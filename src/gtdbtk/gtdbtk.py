@@ -56,8 +56,8 @@ class GtdbTKOptionsParser():
             if options.arc_domain:
                 domain = "archaea"
             success = gtdb_mngr.MakeTreeData(options.batchfile, True, None,
-                                             domain, options.taxa_filter, options.min_perc_aa,
-                                             options.consensus, options.min_perc_taxa, options.out_dir)
+                                             domain, options.filter_taxa, options.min_perc_aa,
+                                             options.consensus, options.min_perc_taxa, options.out_dir, options.no_tree, options.prefix)
             if not success:
                 print "ERROR"
 
@@ -67,7 +67,7 @@ class GtdbTKOptionsParser():
             print " [[GtdbTK %s]] Prediction genome domains..." % self.GTVersion
             print "*******************************************************************************"
             gtdb_mngr = GtdbManager(options.threads)
-            success = gtdb_mngr.MakeTreeData(options.batchfile, False, options.outfile)
+            success = gtdb_mngr.MakeTreeData(options.batchfile, False, options.outfile, option.prefix)
             if not success:
                 print "ERROR"
 

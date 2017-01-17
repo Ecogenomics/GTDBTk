@@ -110,19 +110,24 @@ if __name__ == '__main__':
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                         help='generate a phylogenetic tree',)
     tree_parser.add_argument('--batchfile', help="Path to the User genomes")
-    tree_parser.add_argument('--taxa_filter')
 
     mutual_genome_add = tree_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_add.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--bacteria', action='store_true', dest='bac_domain')
     mutex_group.add_argument('--archaea', action='store_true', dest='arc_domain')
 
+    tree_parser.add_argument('--no_tree', dest='no_tree', action="store_true",
+                             help="Output tree data, but do not infer a tree.")
     tree_parser.add_argument('--min_perc_aa', type=float, default=50,
                              help='Filter genomes with an insufficient percentage of AA in the MSA.')
     tree_parser.add_argument('--consensus', type=float, default=25,
                              help='minimum percentage of the same amino acid required to retain column.')
     tree_parser.add_argument('--min_perc_taxa', type=float, default=50,
                              help='minimum percentage of taxa required required to retain column.')
+    tree_parser.add_argument('--filter_taxa',
+                             help='Filter genomes appearing on the output tree based on their toxonomic ranks(comma delimited).')
+    tree_parser.add_argument('--prefix', required=False, default='gtdbtk',
+                             help='Desired prefix for output files.')
 
     tree_parser.add_argument('--output', dest='out_dir', required=True,
                              help='Directory to output files.')

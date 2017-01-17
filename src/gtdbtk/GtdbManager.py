@@ -27,6 +27,7 @@ import subprocess
 
 from biolib.seq_io import read_fasta
 from gtdblib.trimming import trim_seqs
+from biolib.external.fasttree import FastTree
 
 from external.Prodigal import Prodigal
 from external.TigrfamSearch import TigrfamSearch
@@ -75,8 +76,8 @@ class GtdbManager(object):
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
 
-    def MakeTreeData(self, batchfile, tree_generate, outfile=None, maindomain=None, taxa_filter=None, min_perc_aa=None,
-                     min_per_taxa=None, consensus=None, outdir=None):
+    def MakeTreeData(self, batchfile, tree_generate, outfile=None, maindomain=None, filter_taxa=None, min_perc_aa=None,
+                     consensus=None, min_per_taxa=None, outdir=None, notree=None, prefix=None):
         """Generate a Tree based on the MSA.
 
         Parameters
@@ -89,7 +90,7 @@ class GtdbManager(object):
             Path to the output file for domain prediction
         maindomain: str
             "bacteria" or "archaea". This flag informa which marker set and which MSA to use.
-        taxa_filter: str
+        filter_taxa: str
             Select the taxa of interest to generate the tree
         """
 
@@ -99,16 +100,12 @@ class GtdbManager(object):
             self.tmp_output_dir = tempfile.mkdtemp()
             print self.tmp_output_dir
 
-            #genome_dictionary = {'ERR599094_bin_26': {'aa_gene_path': '/tmp/tmpCTPD34/ERR599094_bin_26/prodigal/ERR599094_bin_26_protein.faa', 'translation_table_path': '/tmp/tmpCTPD34/ERR599094_bin_26/prodigal/prodigal_translation_table.tsv', 'nt_gene_path': '/tmp/tmpCTPD34/ERR599094_bin_26/prodigal/ERR599094_bin_26_protein.fna', 'gff_path': '/tmp/tmpCTPD34/ERR599094_bin_26/prodigal/ERR599094_bin_26_protein.gff'}, 'ERR599094_bin_91': {'aa_gene_path': '/tmp/tmpCTPD34/ERR599094_bin_91/prodigal/ERR599094_bin_91_protein.faa', 'translation_table_path': '/tmp/tmpCTPD34/ERR599094_bin_91/prodigal/prodigal_translation_table.tsv', 'nt_gene_path': '/tmp/tmpCTPD34/ERR599094_bin_91/prodigal/ERR599094_bin_91_protein.fna', 'gff_path': '/tmp/tmpCTPD34/ERR599094_bin_91/prodigal/ERR599094_bin_91_protein.gff'}, 'ERR599094_bin_49': {'aa_gene_path': '/tmp/tmpCTPD34/ERR599094_bin_49/prodigal/ERR599094_bin_49_protein.faa', 'translation_table_path': '/tmp/tmpCTPD34/ERR599094_bin_49/prodigal/prodigal_translation_table.tsv', 'nt_gene_path': '/tmp/tmpCTPD34/ERR599094_bin_49/prodigal/ERR599094_bin_49_protein.fna', 'gff_path': '/tmp/tmpCTPD34/ERR599094_bin_49/prodigal/ERR599094_bin_49_protein.gff'}, 'MySeq': {'aa_gene_path': '/tmp/tmpCTPD34/MySeq/prodigal/MySeq_protein.faa', 'translation_table_path': '/tmp/tmpCTPD34/MySeq/prodigal/prodigal_translation_table.tsv', 'nt_gene_path': '/tmp/tmpCTPD34/MySeq/prodigal/MySeq_protein.fna', 'gff_path': '/tmp/tmpCTPD34/MySeq/prodigal/MySeq_protein.gff'}}
-
             dict_user_genomes = self.list_genomes(batchfile)
-
             genomic_files = self._prepareGenomes(dict_user_genomes, self.tmp_output_dir)
 
             self.logger.info("Running Prodigal to identify genes.")
             prodigal = Prodigal(self.threads, self.userAnnotationDir, self.protein_file_suffix,
                                 self.nt_gene_file_suffix, self.gff_file_suffix, self.checksum_suffix)
-
             genome_dictionary = prodigal.run(genomic_files)
 
             # annotated genes against TIGRfam and Pfam databases
@@ -124,26 +121,18 @@ class GtdbManager(object):
                                      self.pfam_suffix, self.pfam_top_hit_suffix, self.checksum_suffix)
             pfam_search.run(gene_files)
 
-            print genome_dictionary
-
             taxonomy_dict = {}
-            with open(self.taxonomy_file) as f:
-                if not taxa_filter:
-                    taxonomy_dict = {k: v for line in f for (k, v) in (line.strip().split("\t"),)}
-                else:
-                    taxonomy_dict = {k: v for line in f for (k, v) in (line.strip().split("\t"),) if taxa_filter in v}
-
             if maindomain == 'bacteria':
-                dict_gtdb_genomes = read_fasta(self.concatenated_bacteria)
+                dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_bacteria, filter_taxa)
             else:
-                dict_gtdb_genomes = read_fasta(self.concatenated_archaea)
+                dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_archaea, filter_taxa)
 
             # if tree_generate:
             # we generate a tree based on the MSA
             # if not:
             # we do not generate the tree and only predict the domain of the potential genome based on the frequencies of markers.
             if tree_generate:
-                dict_aligned_genomes = self._alignMarkerSet(genome_dictionary, maindomain, outdir)
+                dict_aligned_genomes = self._alignMarkerSet(genome_dictionary, maindomain)
             else:
                 dict_aligned_genomes = self._calculatePresenceMarkerSets(genome_dictionary, outfile)
                 return True
@@ -152,21 +141,55 @@ class GtdbManager(object):
             self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
 
             dict_aligned_genomes = merge_two_dicts(dict_gtdb_genomes, dict_aligned_genomes)
-            trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(dict_aligned_genomes, 50.0 / 100.0, 25 / 100.0, 50 / 100.0)
+            trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(dict_aligned_genomes, min_per_taxa / 100.0, consensus / 100.0, min_perc_aa / 100.0)
             self.logger.info('Trimmed alignment from %d to %d AA (%d by minimum taxa percent, %d by consensus).' % (len(dict_aligned_genomes[dict_aligned_genomes.keys()[0]]),
                                                                                                                     len(trimmed_seqs[trimmed_seqs.keys()[0]]), count_wrong_pa, count_wrong_cons))
             self.logger.info('After trimming %d taxa have amino acids in <%.1f%% of columns.' % (
                 len(pruned_seqs), min_perc_aa))
 
-            seqfile = open(os.path.join(outdir, "gtdb_user_msa.fna"), 'w')
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
+            seqfile_path = os.path.join(outdir, prefix + "_user_msa.fna")
+            seqfile = open(seqfile_path, 'w')
             for key, value in trimmed_seqs.iteritems():
                 seqfile.write(">{0}\n{1}\n".format(key, value))
             seqfile.close()
+
+            if not notree:
+                self.logger.info(
+                    'Inferring tree for %d genomes under the WAG and GAMMA models.' % len(dict_aligned_genomes))
+
+                output_tree = os.path.join(outdir, prefix + '_phylogeny.wag_gamma.tree')
+                output_tree_log = os.path.join(outdir, 'fasttree.log')
+                log_file = os.path.join(outdir, 'fasttree_output.txt')
+
+                fasttree = FastTree(multithreaded=True)
+                fasttree.run(
+                    seqfile_path, 'prot', 'wag', output_tree, output_tree_log, log_file)
+
+            self.logger.info('Done.')
             return True
 
         except IOError as e:
             self.logger.error(str(e))
             self.logger.error("GtdbTK has stopped.")
+
+    def _selectGTDBGenomes(self, concatenated_file, filter_taxa):
+        if filter_taxa is None:
+            return read_fasta(concatenated_file)
+        else:
+            temp_dict = read_fasta(concatenated_file)
+            list_required_fasta = filter_taxa.split(',')
+            dict_taxonomy = {}
+            with open(self.taxonomy_file, 'r') as taxfile:
+                for line in taxfile:
+                    tax_info = line.strip().split('\t')
+                    genome_taxonomy = tax_info[1].split(';')
+                    u = list(set(genome_taxonomy) & set(list_required_fasta))
+                    if len(u) == 0:
+                        if tax_info[0] in temp_dict:
+                            del temp_dict[tax_info[0]]
+            return temp_dict
 
     def list_genomes(self, batchfile):
         """Add genomes to database.
@@ -246,7 +269,7 @@ class GtdbManager(object):
             genomic_files[user_genome] = fasta_target_file
         return genomic_files
 
-    def _alignMarkerSet(self, db_genome_ids, maindomain, outdir):
+    def _alignMarkerSet(self, db_genome_ids, maindomain):
         manager = multiprocessing.Manager()
         out_q = manager.Queue()
         procs = []
