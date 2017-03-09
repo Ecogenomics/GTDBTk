@@ -44,10 +44,10 @@ class GtdbTKOptionsParser():
         self.GTVersion = version
 
     def parseOptions(self, options):
-        if(options.subparser_name == 'tree'):
+        if(options.subparser_name == 'align'):
             # parse raw input
             print "*******************************************************************************"
-            print " [[GtdbTK %s]] Generating a Tree..." % self.GTVersion
+            print " [[GtdbTK %s]] Aligning Genomes..." % self.GTVersion
             print "*******************************************************************************"
             gtdb_mngr = GtdbManager(options.threads)
             domain = None
@@ -55,19 +55,25 @@ class GtdbTKOptionsParser():
                 domain = "bacteria"
             if options.arc_domain:
                 domain = "archaea"
-            success = gtdb_mngr.MakeTreeData(options.batchfile, True, None,
-                                             domain, options.filter_taxa, options.min_perc_aa,
-                                             options.consensus, options.min_perc_taxa, options.out_dir, options.no_tree, options.prefix)
+            success = gtdb_mngr.AlignedGenomes(options.batchfile,
+                                               options.indir,
+                                               domain,
+                                               options.filter_taxa,
+                                               options.min_perc_aa,
+                                               options.consensus,
+                                               options.min_perc_taxa,
+                                               options.out_dir,
+                                               options.prefix)
             if not success:
                 print "ERROR"
 
-        elif (options.subparser_name == 'predict'):
+        elif (options.subparser_name == 'identify'):
             # parse raw input
             print "*******************************************************************************"
-            print " [[GtdbTK %s]] Prediction genome domains..." % self.GTVersion
+            print " [[GtdbTK %s]] Identifying genome domains..." % self.GTVersion
             print "*******************************************************************************"
             gtdb_mngr = GtdbManager(options.threads)
-            success = gtdb_mngr.MakeTreeData(options.batchfile, False, options.outfile, option.prefix)
+            success = gtdb_mngr.IdentifyMarkers(options.batchfile, options.outdir, options.prefix)
             if not success:
                 print "ERROR"
 

@@ -94,7 +94,7 @@ class TreeManager(object):
             id, domain = out_q.get()
             if domain == "d__Bacteria":
                 results.get("Bacteria").append(id)
-            elif doamin == "d__Archaea":
+            elif domain == "d__Archaea":
                 results.get("Archaea").append(id)
             else:
                 results.get("Undefined").append(id)
