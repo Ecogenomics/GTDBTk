@@ -53,8 +53,8 @@ def printHelp():
                                   version: %s
    -------------------------------------------------------------------------
     Typical workflow:
-    gtdbtk tree        -> generate a Tree based on a multi sequence alignement.
-    gtdbtk predict     -> predict if the user genomes are Archaeal or Bacterial genomes.
+    gtdbtk align        -> generate a Tree based on a multi sequence alignement.
+    gtdbtk identify     -> predict if the user genomes are Archaeal or Bacterial genomes.
     USE: gtdbtk OPTION -h to see detailed options
     ''' % __version__
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     #-------------------------------------------------
     # intialise the options parser
-    parser = argparse.ArgumentParser(prog='gtdb', add_help=False)
+    parser = argparse.ArgumentParser(prog='gtdb', add_help=False, conflict_handler='resolve')
     parser.add_argument('-t', '--threads', type=int, default=1, help="Maximum number of threads/cpus to use.")
     parser.add_argument('-f', '--force', action="store_true", default=False, help="overwrite existing DB file without prompting")
 
@@ -106,39 +106,54 @@ if __name__ == '__main__':
 
     #-------------------------------------------------
     # parse raw data and save
-    tree_parser = subparsers.add_parser('tree',
-                                        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                        help='generate a phylogenetic tree',)
-    tree_parser.add_argument('--batchfile', help="Path to the User genomes")
+    align_parser = subparsers.add_parser('align', conflict_handler='resolve',
+                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                         help='generate a phylogenetic tree',)
 
-    mutual_genome_add = tree_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutual_genome_add.add_mutually_exclusive_group(required=True)
+    required_genome_align = align_parser.add_argument_group('required named arguments')
+
+    required_genome_align.add_argument('--batchfile', required=True, help="Batch file describing genomes - one per line, tab separated in 3-6 columns (bin_filename, bin_name, bin_desc, [gene_filename], [source], [id_at_source]).")
+
+    required_genome_align.add_argument('--input_directory', required=True, dest='indir',
+                                       help='.')
+
+    required_genome_align.add_argument('--output', dest='out_dir', required=True,
+                                       help='Directory to output files.')
+
+    mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_group = mutual_genome_align.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--bacteria', action='store_true', dest='bac_domain')
     mutex_group.add_argument('--archaea', action='store_true', dest='arc_domain')
 
-    tree_parser.add_argument('--no_tree', dest='no_tree', action="store_true",
-                             help="Output tree data, but do not infer a tree.")
-    tree_parser.add_argument('--min_perc_aa', type=float, default=50,
-                             help='Filter genomes with an insufficient percentage of AA in the MSA.')
-    tree_parser.add_argument('--consensus', type=float, default=25,
-                             help='minimum percentage of the same amino acid required to retain column.')
-    tree_parser.add_argument('--min_perc_taxa', type=float, default=50,
-                             help='minimum percentage of taxa required required to retain column.')
-    tree_parser.add_argument('--filter_taxa',
-                             help='Filter genomes appearing on the output tree based on their toxonomic ranks(comma delimited).')
-    tree_parser.add_argument('--prefix', required=False, default='gtdbtk',
-                             help='Desired prefix for output files.')
+    optional_genome_align = align_parser.add_argument_group('optional arguments')
+    optional_genome_align.add_argument('-h', '--help', action="help",
+                                       help="Show help message.")
 
-    tree_parser.add_argument('--output', dest='out_dir', required=True,
-                             help='Directory to output files.')
+    optional_genome_align.add_argument('--min_perc_aa', type=float, default=50,
+                                       help='Filter genomes with an insufficient percentage of AA in the MSA.')
+    optional_genome_align.add_argument('--consensus', type=float, default=25,
+                                       help='minimum percentage of the same amino acid required to retain column.')
+    optional_genome_align.add_argument('--min_perc_taxa', type=float, default=50,
+                                       help='minimum percentage of taxa required required to retain column.')
+    optional_genome_align.add_argument('--filter_taxa',
+                                       help='Filter genomes appearing on the output tree based on their toxonomic ranks(comma delimited).')
+    optional_genome_align.add_argument('--prefix', required=False, default='gtdbtk',
+                                       help='Desired prefix for output files.')
 
     #-------------------------------------------------
     # predict if the user genomes are Archaea or Bacteria
-    predict_parser = subparsers.add_parser('predict',
-                                           formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                           help='Predict if the user genomes are Archaeal or Bacterial genomes.')
-    predict_parser.add_argument('--batchfile', help="Path to the User genomes")
-    predict_parser.add_argument('--output_file', dest='outfile', help="Path to the output file")
+    identify_parser = subparsers.add_parser('identify', conflict_handler='resolve',
+                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                            help='Predict if the user genomes are Archaeal or Bacterial genomes.')
+    required_genome_identify = identify_parser.add_argument_group('required named arguments')
+    required_genome_identify.add_argument('--batchfile', required=True, help="Batch file describing genomes - one per line, tab separated in 3-6 columns (bin_filename, bin_name, bin_desc, [gene_filename], [source], [id_at_source]).")
+    required_genome_identify.add_argument('--output_dir', required=True, dest='outdir', help="Directory to output files.")
+
+    optional_genome_identify = identify_parser.add_argument_group('optional arguments')
+    optional_genome_identify.add_argument('-h', '--help', action="help",
+                                          help="Show help message.")
+    optional_genome_identify.add_argument('--prefix', required=False, default='gtdbtk',
+                                          help='Desired prefix for output files.')
 
     ##################################################
     # System

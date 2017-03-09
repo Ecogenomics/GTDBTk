@@ -76,30 +76,16 @@ class GtdbManager(object):
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
 
-    def MakeTreeData(self, batchfile, tree_generate, outfile=None, maindomain=None, filter_taxa=None, min_perc_aa=None,
-                     consensus=None, min_per_taxa=None, outdir=None, notree=None, prefix=None):
-        """Generate a Tree based on the MSA.
-
-        Parameters
-        ----------
-        user_directory : str
-            Directory path where all fasta files are.
-        tree_generate : boolean
-            if True : a tree is created. if False, the domain of each genome is predicted
-        outfile : str
-            Path to the output file for domain prediction
-        maindomain: str
-            "bacteria" or "archaea". This flag informa which marker set and which MSA to use.
-        filter_taxa: str
-            Select the taxa of interest to generate the tree
-        """
-
+    def IdentifyMarkers(self, batchfile, outdir, prefix):
         # create tree data
         try:
+            # gather information for all marker genes
+            marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
+                          "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}
+            bacterial_set = Config.BACTERIAL_MARKERS
+            archaeal_set = Config.ARCHAEAL_MARKERS
 
-            self.tmp_output_dir = tempfile.mkdtemp()
-            print self.tmp_output_dir
-
+            self.tmp_output_dir = os.path.join(outdir, 'genomes_files')
             dict_user_genomes = self.list_genomes(batchfile)
             genomic_files = self._prepareGenomes(dict_user_genomes, self.tmp_output_dir)
 
@@ -121,21 +107,26 @@ class GtdbManager(object):
                                      self.pfam_suffix, self.pfam_top_hit_suffix, self.checksum_suffix)
             pfam_search.run(gene_files)
 
+            self._parse_genome_dictionary(genome_dictionary, outdir, prefix)
+            return True
+
+        except IOError as e:
+            self.logger.error(str(e))
+            self.logger.error("GtdbTK has stopped.")
+
+    def AlignedGenomes(self, batchfile, indir, maindomain, filter_taxa, min_perc_aa,
+                       consensus, min_per_taxa, outdir, prefix):
+
+        genome_dictionary = self._parseIdentificationDirectory(batchfile, indir)
+
+        try:
             taxonomy_dict = {}
             if maindomain == 'bacteria':
                 dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_bacteria, filter_taxa)
             else:
                 dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_archaea, filter_taxa)
 
-            # if tree_generate:
-            # we generate a tree based on the MSA
-            # if not:
-            # we do not generate the tree and only predict the domain of the potential genome based on the frequencies of markers.
-            if tree_generate:
-                dict_aligned_genomes = self._alignMarkerSet(genome_dictionary, maindomain)
-            else:
-                dict_aligned_genomes = self._calculatePresenceMarkerSets(genome_dictionary, outfile)
-                return True
+            dict_aligned_genomes = self._alignMarkerSet(genome_dictionary, maindomain)
 
             # filter columns without sufficient representation across taxa
             self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
@@ -155,18 +146,6 @@ class GtdbManager(object):
                 seqfile.write(">{0}\n{1}\n".format(key, value))
             seqfile.close()
 
-            if not notree:
-                self.logger.info(
-                    'Inferring tree for %d genomes under the WAG and GAMMA models.' % len(dict_aligned_genomes))
-
-                output_tree = os.path.join(outdir, prefix + '_phylogeny.wag_gamma.tree')
-                output_tree_log = os.path.join(outdir, 'fasttree.log')
-                log_file = os.path.join(outdir, 'fasttree_output.txt')
-
-                fasttree = FastTree(multithreaded=True)
-                fasttree.run(
-                    seqfile_path, 'prot', 'wag', output_tree, output_tree_log, log_file)
-
             self.logger.info('Done.')
             return True
 
@@ -174,35 +153,7 @@ class GtdbManager(object):
             self.logger.error(str(e))
             self.logger.error("GtdbTK has stopped.")
 
-    def _selectGTDBGenomes(self, concatenated_file, filter_taxa):
-        if filter_taxa is None:
-            return read_fasta(concatenated_file)
-        else:
-            temp_dict = read_fasta(concatenated_file)
-            list_required_fasta = filter_taxa.split(',')
-            dict_taxonomy = {}
-            with open(self.taxonomy_file, 'r') as taxfile:
-                for line in taxfile:
-                    tax_info = line.strip().split('\t')
-                    genome_taxonomy = tax_info[1].split(';')
-                    u = list(set(genome_taxonomy) & set(list_required_fasta))
-                    if len(u) == 0:
-                        if tax_info[0] in temp_dict:
-                            del temp_dict[tax_info[0]]
-            return temp_dict
-
-    def list_genomes(self, batchfile):
-        """Add genomes to database.
-
-        Parameters
-        ----------
-        batchfile : str
-            Name of file describing genomes to add.
-        Returns
-        -------
-        bool
-            True if genomes added without error.
-        """
+    def _parseIdentificationDirectory(self, batchfile, indir):
         # Add the genomes
         genomic_files = {}
         fh = open(batchfile, "rb")
@@ -214,60 +165,47 @@ class GtdbManager(object):
                 continue
 
             splitline = line.split("\t")
-            if len(splitline) < 2:
-                splitline += [None] * (2 - len(splitline))
 
-            (fasta_path, name) = splitline
+            name = splitline[1].strip()
 
-            if fasta_path is None or fasta_path == '':
-                raise GenomeDatabaseError(
-                    "Each line in the batch file must specify a path to the genome's fasta file.")
-
-            if name is None or name == '':
-                raise GenomeDatabaseError(
-                    "Each line in the batch file must specify a name for the genome.")
-
-            abs_fasta_path = os.path.abspath(fasta_path)
-            real_fasta_path = os.path.realpath(fasta_path)
-
-            if name in genomic_files and genome_files.get(name) == fasta_path:
-                raise GenomeDatabaseError("{0} appears multiple times in the batchfile.".format(name))
-
-            genomic_files[name] = fasta_path
+            genomic_files[name] = {'aa_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + '_protein.faa'),
+                                   'translation_table_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', 'prodigal_translation_table.tsv'),
+                                   'nt_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + '_protein.fna'),
+                                   'gff_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + '_protein.gff')
+                                   }
         return genomic_files
 
-    def _prepareGenomes(self, dict_user_genomes, output_dir):
-        """Copy genome files in temporary folders in order to process them.
+    def _getAlignedMarker(self, hit_name, result_file):
+        '''
+        Parse the output of Hmmalign
+        :param hit_name: gene name
+        :param result_file: output file from Hmmalign
+        '''
+        hit_seq = None
+        mask_seq = None
 
-        Parameters
-        ----------
-        dict_user_genomes : str
-            Name of file describing genomes to add.
-        output_dir : str
-            Output directory.
+        for line in result_file:
+            splitline = line.split(" ", 1)
+            if splitline[0] == hit_name.split(" ", 1)[0]:
+                rsplitline = line.rsplit(" ", 1)
+                hit_seq = rsplitline[-1]
+                continue
+            if line[0:len("#=GC RF")] == "#=GC RF":
+                rsplitline = line.rsplit(" ", 1)
+                mask_seq = rsplitline[-1]
 
-        Returns
-        -------
-        dict
-            Dictionary indicating the temporary gene file for each genome.
-        """
+        if mask_seq is None:
+            raise Exception("Unable to get mask from hmm align result file")
 
-        genomic_files = {}
-        for user_genome_raw in dict_user_genomes.keys():
-            user_genome = os.path.splitext(os.path.basename(user_genome_raw))[0]
-            genome_output_dir = os.path.join(output_dir, user_genome)
-            if not os.path.exists(genome_output_dir):
-                os.makedirs(genome_output_dir)
-            prodigal_output_dir = os.path.join(genome_output_dir, self.userAnnotationDir)
-            if not os.path.exists(prodigal_output_dir):
-                os.makedirs(prodigal_output_dir)
+        if hit_seq is None:
+            return None
 
-            # copy the genome file to the temporary folder
-            fasta_target_file = os.path.join(genome_output_dir, user_genome + self.genomeFileSuffix)
-            shutil.copy(dict_user_genomes.get(user_genome_raw), fasta_target_file)
-
-            genomic_files[user_genome] = fasta_target_file
-        return genomic_files
+        aligned_marker = ""
+        for pos in xrange(0, len(mask_seq)):
+            if mask_seq[pos] != 'x':
+                continue
+            aligned_marker += hit_seq[pos]
+        return aligned_marker
 
     def _alignMarkerSet(self, db_genome_ids, maindomain):
         manager = multiprocessing.Manager()
@@ -295,151 +233,20 @@ class GtdbManager(object):
 
         return results
 
-    def _calculatePresenceMarkerSets(self, db_genome_ids, outfile):
-        """Generate a Tree based on the MSA.
-
-        Parameters
-        ----------
-        user_directory : str
-            Directory path where all fasta files are.
-        tree_generate : boolean
-            if True : a tree is created. if False, the domain of each genome is predicted
-        outfile : str
-            Path to the output file for domain prediction
-        maindomain: str
-            "bacteria" or "archaea". This flag informa which marker set and which MSA to use.
-        taxa_filter: str
-            Select the taxa of interest to generate the tree
-        """
-
-        manager = multiprocessing.Manager()
-        out_q = manager.Queue()
-        procs = []
-        nprocs = self.threads
-        for item in splitchunks(db_genome_ids, nprocs):
-            p = multiprocessing.Process(
-                target=self._hmmWorker,
-                args=(item, out_q))
-            procs.append(p)
-            p.start()
-
-        # Collect all results into a single result dict. We know how many dicts
-        # with results to expect.
-        while out_q.empty():
-            time.sleep(1)
-
-        # Wait for all worker processes to finish
-        results = {"Bacteria": [], "Archaea": [], "Undefined": []}
-        for i in range(len(db_genome_ids)):
-            id, domain = out_q.get()
-            if domain == "d__Bacteria":
-                results.get("Bacteria").append(id)
-            elif doamin == "d__Archaea":
-                results.get("Archaea").append(id)
-            else:
-                results.get("Undefined").append(id)
-
-        outf = open(outfile, "w")
-        for domain in results:
-            outf.write("##########\n")
-            outf.write("{0}\n".format(domain))
-            outf.write("##########\n")
-            for genome in results[domain]:
-                outf.write("{0}\n".format(genome))
-
-        outf.close()
-        return results
-
-    def _hmmWorker(self, subdict_genomes, out_q, maindomain=None):
+    def _hmmWorker(self, subdict_genomes, out_q, maindomain):
         '''
         The worker function, invoked in a process.
-
         :param subdict_genomes: sub dictionary of genomes
         :param out_q: manager.Queue()
-
         '''
-        if maindomain:
-            for db_genome_id, info in subdict_genomes.items():
-                sequence = self._runHmmMultiAlign(db_genome_id, info.get("aa_gene_path"), maindomain)
-                out_q.put((db_genome_id, sequence))
-        else:
-            for db_genome_id, info in subdict_genomes.items():
-                domain = self._runHmmDetector(db_genome_id, info.get("aa_gene_path"))
-                out_q.put((db_genome_id, domain))
-
+        for db_genome_id, info in subdict_genomes.items():
+            sequence = self._runHmmMultiAlign(db_genome_id, info.get("aa_gene_path"), maindomain)
+            out_q.put((db_genome_id, sequence))
         return True
-
-    def _runHmmDetector(self, db_genome_id, path):
-        '''
-        Selects markers that are not present for a specific genome.
-
-        :param db_genome_id: Selected genome
-        :param path: Path to the genomic fasta file for the genome
-        '''
-
-        # gather information for all marker genes
-        marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
-                      "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}
-        bacterial_set = Config.BACTERIAL_MARKERS
-        archaeal_set = Config.ARCHAEAL_MARKERS
-
-        marker_bac_dict_original, marker_arc_dict_original = [], []
-
-        for db_marker in bacterial_set.keys():
-            marker_bac_dict_original.extend([marker.replace(".HMM", "").replace(".hmm", "") for marker in bacterial_set[db_marker]])
-
-        for db_marker in archaeal_set.keys():
-            marker_arc_dict_original.extend([marker.replace(".HMM", "").replace(".hmm", "") for marker in archaeal_set[db_marker]])
-        gene_bac_list, gene_arc_list = [], []
-
-        for marker_db, marker_suffix in marker_dbs.iteritems():
-            # get all gene sequences
-            genome_path = str(path)
-            tophit_path = genome_path.replace(ConfigMetadata.PROTEIN_FILE_SUFFIX, marker_suffix)
-
-            # we store the tophit file line by line and store the
-            # information in a dictionary
-            with open(tophit_path) as tp:
-                # first line is header line
-                tp.readline()
-                gene_dict = {}
-                for line_tp in tp:
-                    linelist = line_tp.split("\t")
-                    genename = linelist[0]
-                    sublist = linelist[1]
-                    if ";" in sublist:
-                        diff_markers = sublist.split(";")
-                    else:
-                        diff_markers = [sublist]
-
-                    for each_gene in diff_markers:
-                        sublist = each_gene.split(",")
-                        markerid = sublist[0]
-                        if markerid not in marker_bac_dict_original and markerid not in marker_arc_dict_original:
-                            continue
-                        if markerid in marker_bac_dict_original:
-                            gene_bac_list.append(markerid)
-                        if markerid in marker_arc_dict_original:
-                            gene_arc_list.append(markerid)
-
-        # gene_arc_list & gene_bac_list return the list of marker present in the genome
-        # We can calculate the frequencies of markers for both Bacterial and Archaeal sets.
-        arc_aa_per = (len(set(gene_arc_list)) * 100 / len(marker_arc_dict_original))
-        bac_aa_per = (len(set(gene_bac_list)) * 100 / len(marker_bac_dict_original))
-        # depending of the frequencies, a domain is assigned to the genome.
-        if arc_aa_per < DefaultValues.DEFAULT_DOMAIN_THRESHOLD and bac_aa_per < DefaultValues.DEFAULT_DOMAIN_THRESHOLD:
-            domain = "d__Undefined"
-        elif bac_aa_per >= arc_aa_per:
-            domain = "d__Bacteria"
-        else:
-            domain = "d__Archaea"
-
-        return domain
 
     def _runHmmMultiAlign(self, db_genome_id, path, maindomain):
         '''
         Returns the concatenated marker sequence for a specific genome
-
         :param db_genome_id: Selected genome
         :param path: Path to the genomic fasta file for the genome
         :param maindomain: "bacteria" or "archaea" marker sets
@@ -532,10 +339,8 @@ class GtdbManager(object):
     def _runHmmAlign(self, marker_dict, genome):
         '''
         Run hmmalign for a set of genes for a specific genome. This is run in a temp folder.
-
         :param marker_dict: list of markers that need to be aligned
         :param genome: specific genome id
-
         Returns
         --------------
         List of tuple to be inserted in aligned_markers table
@@ -576,35 +381,213 @@ class GtdbManager(object):
                     break
         return int(size)
 
-    def _getAlignedMarker(self, hit_name, result_file):
-        '''
-        Parse the output of Hmmalign
+    def _parse_genome_dictionary(self, gene_dict, outdir, prefix):
 
-        :param hit_name: gene name
-        :param result_file: output file from Hmmalign
-        '''
-        hit_seq = None
-        mask_seq = None
+        bac_outfile = open(os.path.join(outdir, prefix + "_bacterial_markers_summary.tsv"), "w")
+        arc_outfile = open(os.path.join(outdir, prefix + "_archaeal_markers_summary.tsv"), "w")
 
-        for line in result_file:
-            splitline = line.split(" ", 1)
-            if splitline[0] == hit_name.split(" ", 1)[0]:
-                rsplitline = line.rsplit(" ", 1)
-                hit_seq = rsplitline[-1]
+        header = "Name\tnumber_unique_genes\tnumber_multiple_genes\tnumber_missing_genes\tlist_unique_genes\tlist_multiple_genes\tlist_missing_genes\n"
+
+        bac_outfile.write(header)
+        arc_outfile.write(header)
+
+        # gather information for all marker genes
+        marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
+                      "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}
+        bacterial_set = Config.BACTERIAL_MARKERS
+        archaeal_set = Config.ARCHAEAL_MARKERS
+
+        marker_bac_list_original, marker_arc_list_original = [], []
+        for db_marker in bacterial_set.keys():
+            marker_bac_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") for marker in bacterial_set[db_marker]])
+
+        for db_marker in archaeal_set.keys():
+            marker_arc_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") for marker in archaeal_set[db_marker]])
+
+        gene_bac_list, gene_arc_list = [], []
+
+        for db_genome_id, info in gene_dict.items():
+            unique_genes_bac, multi_hits_bac, missing_genes_bac = [], [], []
+            unique_genes_arc, multi_hits_arc, missing_genes_arc = [], [], []
+
+            gene_bac_dict, gene_arc_dict = {}, {}
+
+            path = info.get("aa_gene_path")
+            for marker_db, marker_suffix in marker_dbs.iteritems():
+                # get all gene sequences
+                protein_file = str(path)
+                tophit_path = protein_file.replace(ConfigMetadata.PROTEIN_FILE_SUFFIX, marker_suffix)
+                # we load the list of all the genes detected in the genome
+                all_genes_dict = read_fasta(protein_file, False)
+
+                # Prodigal adds an asterisks at the end of each called genes,
+                # These asterisks sometimes appear in the MSA, which can be an issue for some softwares downstream
+                for seq_id, seq in all_genes_dict.iteritems():
+                    if seq[-1] == '*':
+                        all_genes_dict[seq_id] = seq[:-1]
+
+                # we store the tophit file line by line and store the
+                # information in a dictionary
+                with open(tophit_path) as tp:
+                    # first line is header line
+                    tp.readline()
+
+                    for line_tp in tp:
+                        linelist = line_tp.split("\t")
+                        genename = linelist[0]
+                        sublist = linelist[1]
+                        if ";" in sublist:
+                            diff_markers = sublist.split(";")
+                        else:
+                            diff_markers = [sublist]
+                        for each_mark in diff_markers:
+                            sublist = each_mark.split(",")
+                            markerid = sublist[0]
+
+                            if markerid not in marker_bac_list_original and markerid not in marker_arc_list_original:
+                                continue
+
+                            if markerid in marker_bac_list_original:
+                                if markerid in gene_bac_dict:
+                                    gene_bac_dict.get(markerid)["multihit"] = True
+                                else:
+                                    gene_bac_dict[markerid] = {
+                                        "gene": genename,
+                                        #"gene_seq": all_genes_dict.get(genename),
+                                        "multihit": False}
+
+                            if markerid in marker_arc_list_original:
+                                if markerid in gene_arc_dict:
+                                    gene_arc_dict.get(markerid)["multihit"] = True
+                                else:
+                                    gene_arc_dict[markerid] = {
+                                        "gene": genename,
+                                        #"gene_seq": all_genes_dict.get(genename),
+                                        "multihit": False}
+
+            for mid in marker_bac_list_original:
+                if mid not in gene_bac_dict:
+                    missing_genes_bac.append(mid)
+                elif gene_bac_dict[mid]["multihit"]:
+                    multi_hits_bac.append(mid)
+                else:
+                    unique_genes_bac.append(mid)
+
+            for mid in marker_arc_list_original:
+                if mid not in gene_arc_dict:
+                    missing_genes_arc.append(mid)
+                elif gene_arc_dict[mid]["multihit"]:
+                    multi_hits_arc.append(mid)
+                else:
+                    unique_genes_arc.append(mid)
+
+            bac_outfile.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n".format(db_genome_id,
+                                                                           len(unique_genes_bac),
+                                                                           len(multi_hits_bac),
+                                                                           len(missing_genes_bac),
+                                                                           ','.join(unique_genes_bac),
+                                                                           ','.join(multi_hits_bac),
+                                                                           ','.join(missing_genes_bac)))
+
+            arc_outfile.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n".format(db_genome_id,
+                                                                           len(unique_genes_arc),
+                                                                           len(multi_hits_arc),
+                                                                           len(missing_genes_arc),
+                                                                           ','.join(unique_genes_arc),
+                                                                           ','.join(multi_hits_arc),
+                                                                           ','.join(missing_genes_arc)))
+
+        bac_outfile.close()
+        arc_outfile.close()
+
+    def list_genomes(self, batchfile):
+        """Add genomes to database.
+
+        Parameters
+        ----------
+        batchfile : str
+            Name of file describing genomes to add.
+        Returns
+        -------
+        genomic_files : dictionary
+            Dictionary of genomes where key is the genome name and value if the fasta_path.
+        """
+        # Add the genomes
+        genomic_files = {}
+        fh = open(batchfile, "rb")
+        for line in fh:
+            line = line.rstrip()
+            if line == '':
+                self.logger.warning(
+                    "Encountered blank line in batch file. It has been ignored.")
                 continue
-            if line[0:len("#=GC RF")] == "#=GC RF":
-                rsplitline = line.rsplit(" ", 1)
-                mask_seq = rsplitline[-1]
 
-        if mask_seq is None:
-            raise Exception("Unable to get mask from hmm align result file")
+            splitline = line.split("\t")
+            if len(splitline) < 2:
+                splitline += [None] * (2 - len(splitline))
 
-        if hit_seq is None:
-            return None
+            (fasta_path, name) = splitline
 
-        aligned_marker = ""
-        for pos in xrange(0, len(mask_seq)):
-            if mask_seq[pos] != 'x':
-                continue
-            aligned_marker += hit_seq[pos]
-        return aligned_marker
+            if fasta_path is None or fasta_path == '':
+                raise GenomeDatabaseError(
+                    "Each line in the batch file must specify a path to the genome's fasta file.")
+
+            if name is None or name == '':
+                raise GenomeDatabaseError(
+                    "Each line in the batch file must specify a name for the genome.")
+
+            if name in genomic_files and genome_files.get(name) == fasta_path:
+                raise GenomeDatabaseError("{0} appears multiple times in the batchfile.".format(name))
+
+            genomic_files[name] = fasta_path
+        return genomic_files
+
+    def _selectGTDBGenomes(self, concatenated_file, filter_taxa):
+        if filter_taxa is None:
+            return read_fasta(concatenated_file)
+        else:
+            temp_dict = read_fasta(concatenated_file)
+            list_required_fasta = filter_taxa.split(',')
+            dict_taxonomy = {}
+            with open(self.taxonomy_file, 'r') as taxfile:
+                for line in taxfile:
+                    tax_info = line.strip().split('\t')
+                    genome_taxonomy = tax_info[1].split(';')
+                    u = list(set(genome_taxonomy) & set(list_required_fasta))
+                    if len(u) == 0:
+                        if tax_info[0] in temp_dict:
+                            del temp_dict[tax_info[0]]
+            return temp_dict
+
+    def _prepareGenomes(self, dict_user_genomes, output_dir):
+        """Copy genome files in temporary folders in order to process them.
+
+        Parameters
+        ----------
+        dict_user_genomes : str
+            Name of file describing genomes to add.
+        output_dir : str
+            Output directory.
+
+        Returns
+        -------
+        dict
+            Dictionary indicating the temporary gene file for each genome.
+        """
+
+        genomic_files = {}
+        for user_genome_raw in dict_user_genomes.keys():
+            user_genome = os.path.splitext(os.path.basename(user_genome_raw))[0]
+            genome_output_dir = os.path.join(output_dir, user_genome)
+            if not os.path.exists(genome_output_dir):
+                os.makedirs(genome_output_dir)
+            prodigal_output_dir = os.path.join(genome_output_dir, self.userAnnotationDir)
+            if not os.path.exists(prodigal_output_dir):
+                os.makedirs(prodigal_output_dir)
+
+            # copy the genome file to the temporary folder
+            fasta_target_file = os.path.join(genome_output_dir, user_genome + self.genomeFileSuffix)
+            shutil.copy(dict_user_genomes.get(user_genome_raw), fasta_target_file)
+
+            genomic_files[user_genome] = fasta_target_file
+        return genomic_files
