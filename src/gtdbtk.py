@@ -1,13 +1,5 @@
 #!/usr/bin/env python
-###############################################################################
-#                                                                             #
-#                                                                             #
-#                                                                             #
-#    Entry point. See gtdbtk/main.py for internals                            #
-#                                                                             #
-#                                                                             #
-#                                                                             #
-###############################################################################
+
 ###############################################################################
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
@@ -40,6 +32,9 @@ import argparse
 import sys
 from gtdbtk import gtdbtk
 
+from biolib.logger import logger_setup
+from biolib.misc.custom_help_formatter import CustomHelpFormatter
+
 ###############################################################################
 ###############################################################################
 ###############################################################################
@@ -48,55 +43,23 @@ from gtdbtk import gtdbtk
 
 def printHelp():
     print '''\
-                             ...::: gtdb toolkit :::...
-   -------------------------------------------------------------------------
-                                  version: %s
-   -------------------------------------------------------------------------
-    Typical workflow:
-    gtdbtk align        -> generate a Tree based on a multi sequence alignement.
-    gtdbtk identify     -> predict if the user genomes are Archaeal or Bacterial genomes.
-    USE: gtdbtk OPTION -h to see detailed options
+    
+                             ...::: GTDB-Tk v%s :::...
+
+    identify  -> Identify marker genes in genomes
+    align     -> Create multiple sequence alignment
+      
+    Use: gtdbtk <command> -h for command specific help
     ''' % __version__
 
-#    groopm import       -> Import data from csv
-
-
-class CustomHelpFormatter(argparse.HelpFormatter):
-
-    def _split_lines(self, text, width):
-        return text.splitlines()
-
-    def _get_help_string(self, action):
-        h = action.help
-        if '%(default)' not in action.help:
-            if action.default != '' and \
-               action.default != [] and \
-               action.default is not None \
-               and action.default != False:
-                if action.default is not argparse.SUPPRESS:
-                    defaulting_nargs = [argparse.OPTIONAL,
-                                        argparse.ZERO_OR_MORE]
-
-                    if action.option_strings or action.nargs in defaulting_nargs:
-
-                        if '\n' in h:
-                            lines = h.splitlines()
-                            lines[0] += ' (default: %(default)s)'
-                            h = '\n'.join(lines)
-                        else:
-                            h += ' (default: %(default)s)'
-        return h
-
-    def _fill_text(self, text, width, indent):
-        return ''.join([indent + line for line in text.splitlines(True)])
 
 if __name__ == '__main__':
 
     #-------------------------------------------------
     # intialise the options parser
     parser = argparse.ArgumentParser(prog='gtdb', add_help=False, conflict_handler='resolve')
-    parser.add_argument('-t', '--threads', type=int, default=1, help="Maximum number of threads/cpus to use.")
-    parser.add_argument('-f', '--force', action="store_true", default=False, help="overwrite existing DB file without prompting")
+    parser.add_argument('-t', '--threads', type=int, default=1, help="number of threads/cpus to use.")
+    parser.add_argument('-f', '--force', action="store_true", default=False, help="overwrite existing files without prompting.")
 
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
 
@@ -105,19 +68,37 @@ if __name__ == '__main__':
     ##################################################
 
     #-------------------------------------------------
+    # Identify marker genes in genomes
+    identify_parser = subparsers.add_parser('identify', conflict_handler='resolve',
+                                            formatter_class=CustomHelpFormatter,
+                                            help='create multiple sequence alignment')
+    required_genome_identify = identify_parser.add_argument_group('required named arguments')
+    required_genome_identify.add_argument('--batchfile', required=True, 
+                                            help="file describing genomes - tab separated in 2 columns (bin filename, bin name).")
+    required_genome_identify.add_argument('--output_dir', required=True, dest='out_dir', 
+                                            help="directory to output files.")
+
+    optional_genome_identify = identify_parser.add_argument_group('optional arguments')
+    optional_genome_identify.add_argument('--prefix', required=False, default='gtdbtk',
+                                          help='desired prefix for output files.')
+    optional_genome_identify.add_argument('-h', '--help', action="help",
+                                          help="show help message.")
+    
+    #-------------------------------------------------
     # parse raw data and save
     align_parser = subparsers.add_parser('align', conflict_handler='resolve',
-                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                         help='generate a phylogenetic tree',)
+                                         formatter_class=CustomHelpFormatter,
+                                         help='generate tree from multiple sequence alignment',)
 
     required_genome_align = align_parser.add_argument_group('required named arguments')
 
-    required_genome_align.add_argument('--batchfile', required=True, help="Batch file describing genomes - one per line, tab separated in 3-6 columns (bin_filename, bin_name, bin_desc, [gene_filename], [source], [id_at_source]).")
+    required_genome_align.add_argument('--batchfile', required=True, 
+                                        help="file describing genomes - tab separated in 2 columns (bin filename, bin name).")
 
-    required_genome_align.add_argument('--input_directory', required=True, dest='indir',
+    required_genome_align.add_argument('--input_dir', required=True, dest='in_dir',
                                        help='.')
 
-    required_genome_align.add_argument('--output', dest='out_dir', required=True,
+    required_genome_align.add_argument('--output_dir', dest='out_dir', required=True,
                                        help='Directory to output files.')
 
     mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
@@ -130,35 +111,20 @@ if __name__ == '__main__':
                                        help="Show help message.")
 
     optional_genome_align.add_argument('--min_perc_aa', type=float, default=50,
-                                       help='Filter genomes with an insufficient percentage of AA in the MSA.')
+                                       help='filter genomes with an insufficient percentage of AA in the MSA.')
     optional_genome_align.add_argument('--consensus', type=float, default=25,
                                        help='minimum percentage of the same amino acid required to retain column.')
     optional_genome_align.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required required to retain column.')
     optional_genome_align.add_argument('--filter_taxa',
-                                       help='Filter genomes appearing on the output tree based on their toxonomic ranks(comma delimited).')
+                                       help='filter genomes appearing on the output tree based on their toxonomic ranks(comma delimited).')
     optional_genome_align.add_argument('--prefix', required=False, default='gtdbtk',
-                                       help='Desired prefix for output files.')
-
-    #-------------------------------------------------
-    # predict if the user genomes are Archaea or Bacteria
-    identify_parser = subparsers.add_parser('identify', conflict_handler='resolve',
-                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                            help='Predict if the user genomes are Archaeal or Bacterial genomes.')
-    required_genome_identify = identify_parser.add_argument_group('required named arguments')
-    required_genome_identify.add_argument('--batchfile', required=True, help="Batch file describing genomes - one per line, tab separated in 3-6 columns (bin_filename, bin_name, bin_desc, [gene_filename], [source], [id_at_source]).")
-    required_genome_identify.add_argument('--output_dir', required=True, dest='outdir', help="Directory to output files.")
-
-    optional_genome_identify = identify_parser.add_argument_group('optional arguments')
-    optional_genome_identify.add_argument('-h', '--help', action="help",
-                                          help="Show help message.")
-    optional_genome_identify.add_argument('--prefix', required=False, default='gtdbtk',
-                                          help='Desired prefix for output files.')
+                                       help='desired prefix for output files.')
 
     ##################################################
     # System
     ##################################################
-
+    
     #-------------------------------------------------
     # get and check options
     args = None
@@ -181,6 +147,12 @@ if __name__ == '__main__':
         sys.exit(0)
     else:
         args = parser.parse_args()
+        
+    # setup logger
+    if hasattr(args, 'out_dir'):
+        logger_setup(args.out_dir, "gtdb_tk.log", "GTDB-Tk", __version__, False)
+    else:
+        logger_setup(None, "gtdb_tk.log", "GTDB-Tk", __version__, False)
 
     #-------------------------------------------------
     # do what we came here to do

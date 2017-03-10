@@ -21,7 +21,7 @@ import logging
 
 from biolib.seq_io import read_fasta
 
-from Tools import fastaPathGenerator, splitchunks, list_genomes_dir
+from Tools import splitchunks, list_genomes_dir
 
 
 class TreeManager(object):
@@ -29,14 +29,8 @@ class TreeManager(object):
 
     def __init__(self):
         self.init = True
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('timestamp')
         self.logger.setLevel(logging.DEBUG)
-
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - <%(levelname)s>: %(message)s')
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
 
     def MakeTreeData(self, user_directory, maindomain, taxa_filter=None):
         # create tree data
