@@ -7,8 +7,7 @@ import os
 from itertools import islice
 from biolib.seq_io import read_fasta
 
-import Config
-
+import config.Config as Config
 
 ##################################################
 ############MISC UTILITIES########################
