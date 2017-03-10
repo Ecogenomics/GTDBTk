@@ -1,13 +1,5 @@
 #!/usr/bin/env python
-###############################################################################
-#                                                                             #
-#                                                                             #
-#                                                                             #
-#    Entry point. See gtdbtk/main.py for internals                             #
-#                                                                             #
-#                                                                             #
-#                                                                             #
-###############################################################################
+
 ###############################################################################
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
@@ -37,6 +29,8 @@ __status__ = "Development"
 from TreeManager import TreeManager
 from GtdbManager import GtdbManager
 
+from biolib.common import check_file_exists
+
 
 class GtdbTKOptionsParser():
 
@@ -45,18 +39,17 @@ class GtdbTKOptionsParser():
 
     def parseOptions(self, options):
         if(options.subparser_name == 'align'):
-            # parse raw input
-            print "*******************************************************************************"
-            print " [[GtdbTK %s]] Aligning Genomes..." % self.GTVersion
-            print "*******************************************************************************"
+            check_file_exists(options.batchfile)
+            make_sure_path_exists(options.in_dir)
+            
             gtdb_mngr = GtdbManager(options.threads)
             domain = None
             if options.bac_domain:
                 domain = "bacteria"
-            if options.arc_domain:
+            elif options.arc_domain:
                 domain = "archaea"
             success = gtdb_mngr.AlignedGenomes(options.batchfile,
-                                               options.indir,
+                                               options.in_dir,
                                                domain,
                                                options.filter_taxa,
                                                options.min_perc_aa,
@@ -68,12 +61,10 @@ class GtdbTKOptionsParser():
                 print "ERROR"
 
         elif (options.subparser_name == 'identify'):
-            # parse raw input
-            print "*******************************************************************************"
-            print " [[GtdbTK %s]] Identifying genome domains..." % self.GTVersion
-            print "*******************************************************************************"
+            check_file_exists(options.batchfile)
+            
             gtdb_mngr = GtdbManager(options.threads)
-            success = gtdb_mngr.IdentifyMarkers(options.batchfile, options.outdir, options.prefix)
+            success = gtdb_mngr.IdentifyMarkers(options.batchfile, options.out_dir, options.prefix)
             if not success:
                 print "ERROR"
 

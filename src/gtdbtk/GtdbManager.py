@@ -37,7 +37,7 @@ import config.Config as Config
 import config.ConfigMetadata as ConfigMetadata
 import config.DefaultValues as DefaultValues
 
-from Tools import fastaPathGenerator, splitchunks, list_genomes_dir, merge_two_dicts
+from Tools import splitchunks, list_genomes_dir, merge_two_dicts
 
 
 class GtdbManager(object):
@@ -67,14 +67,8 @@ class GtdbManager(object):
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
 
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('timestamp')
         self.logger.setLevel(logging.DEBUG)
-
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - <%(levelname)s>: %(message)s')
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
 
     def IdentifyMarkers(self, batchfile, outdir, prefix):
         # create tree data
