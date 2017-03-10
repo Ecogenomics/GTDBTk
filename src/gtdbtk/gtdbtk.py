@@ -29,7 +29,7 @@ __status__ = "Development"
 from TreeManager import TreeManager
 from GtdbManager import GtdbManager
 
-from biolib.common import check_file_exists
+from biolib.common import check_file_exists, make_sure_path_exists
 
 
 class GtdbTKOptionsParser():
