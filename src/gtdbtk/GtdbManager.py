@@ -32,10 +32,10 @@ from biolib.external.fasttree import FastTree
 from external.Prodigal import Prodigal
 from external.TigrfamSearch import TigrfamSearch
 from external.PfamSearch import PfamSearch
+from external.HmmAligner import HmmAligner
 
 import config.Config as Config
 import config.ConfigMetadata as ConfigMetadata
-import config.DefaultValues as DefaultValues
 
 from Tools import splitchunks, list_genomes_dir, merge_two_dicts
 
@@ -56,6 +56,8 @@ class GtdbManager(object):
 
         self.concatenated_bacteria = Config.CONCAT_BAC
         self.concatenated_archaea = Config.CONCAT_ARC
+        self.bacterial_markers = Config.BACTERIAL_MARKERS
+        self.archaeal_markers = Config.ARCHAEAL_MARKERS
 
         self.taxonomy_file = Config.TAXONOMY_FILE
 
@@ -82,16 +84,18 @@ class GtdbManager(object):
             self.tmp_output_dir = os.path.join(outdir, 'genomes_files')
             dict_user_genomes = self.list_genomes(batchfile)
             genomic_files = self._prepareGenomes(dict_user_genomes, self.tmp_output_dir)
-
+ 
             self.logger.info("Running Prodigal to identify genes.")
             prodigal = Prodigal(self.threads, self.userAnnotationDir, self.protein_file_suffix,
                                 self.nt_gene_file_suffix, self.gff_file_suffix, self.checksum_suffix)
             genome_dictionary = prodigal.run(genomic_files)
 
+            
             # annotated genes against TIGRfam and Pfam databases
             self.logger.info("Identifying TIGRfam protein families.")
             gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
                           for db_genome_id in genome_dictionary.keys()]
+            print gene_files
             tigr_search = TigrfamSearch(self.threads, self.tigrfam_hmms, self.protein_file_suffix,
                                         self.tigrfam_suffix, self.tigrfam_top_hit_suffix, self.checksum_suffix)
             tigr_search.run(gene_files)
@@ -120,7 +124,10 @@ class GtdbManager(object):
             else:
                 dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_archaea, filter_taxa)
 
-            dict_aligned_genomes = self._alignMarkerSet(genome_dictionary, maindomain)
+            hmmaligner = HmmAligner(self.threads,self.pfam_top_hit_suffix,self.tigrfam_top_hit_suffix,
+                                    self.protein_file_suffix,self.pfam_hmm_dir,self.tigrfam_hmms,self.bacterial_markers,
+                                    self.archaeal_markers)
+            dict_aligned_genomes = hmmaligner.alignMarkerSet(genome_dictionary, maindomain)
 
             # filter columns without sufficient representation across taxa
             self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
@@ -162,10 +169,10 @@ class GtdbManager(object):
 
             name = splitline[1].strip()
 
-            genomic_files[name] = {'aa_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + '_protein.faa'),
+            genomic_files[name] = {'aa_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + self.protein_file_suffix),
                                    'translation_table_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', 'prodigal_translation_table.tsv'),
-                                   'nt_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + '_protein.fna'),
-                                   'gff_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + '_protein.gff')
+                                   'nt_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + self.nt_gene_file_suffix),
+                                   'gff_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + self.gff_file_suffix)
                                    }
         return genomic_files
 
@@ -200,180 +207,6 @@ class GtdbManager(object):
                 continue
             aligned_marker += hit_seq[pos]
         return aligned_marker
-
-    def _alignMarkerSet(self, db_genome_ids, maindomain):
-        manager = multiprocessing.Manager()
-        out_q = manager.Queue()
-        procs = []
-        nprocs = self.threads
-        for item in splitchunks(db_genome_ids, nprocs):
-            p = multiprocessing.Process(
-                target=self._hmmWorker,
-                args=(item, out_q, maindomain))
-            procs.append(p)
-            p.start()
-
-        # Collect all results into a single result dict. We know how many dicts
-        # with results to expect.
-        while out_q.empty():
-            time.sleep(1)
-
-        # Wait for all worker processes to finish
-        results = {}
-
-        for i in range(len(db_genome_ids)):
-            id, sequence = out_q.get()
-            results[id] = sequence
-
-        return results
-
-    def _hmmWorker(self, subdict_genomes, out_q, maindomain):
-        '''
-        The worker function, invoked in a process.
-        :param subdict_genomes: sub dictionary of genomes
-        :param out_q: manager.Queue()
-        '''
-        for db_genome_id, info in subdict_genomes.items():
-            sequence = self._runHmmMultiAlign(db_genome_id, info.get("aa_gene_path"), maindomain)
-            out_q.put((db_genome_id, sequence))
-        return True
-
-    def _runHmmMultiAlign(self, db_genome_id, path, maindomain):
-        '''
-        Returns the concatenated marker sequence for a specific genome
-        :param db_genome_id: Selected genome
-        :param path: Path to the genomic fasta file for the genome
-        :param maindomain: "bacteria" or "archaea" marker sets
-        '''
-
-        # gather information for all marker genes
-        marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
-                      "TIGRFAM": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}
-
-        marker_paths = {"PFAM": Config.PFAM_HMM_DIR,
-                        "TIGRFAM": Config.TIGRFAM_HMM_DIR}
-
-        bacterial_set = Config.BACTERIAL_MARKERS
-        archaeal_set = Config.ARCHAEAL_MARKERS
-
-        marker_dict_original = {}
-
-        ordered_markers = []
-
-        if maindomain == "bacteria":
-            for db_marker in sorted(bacterial_set):
-                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): os.path.join(marker_paths[db_marker], marker) for marker in bacterial_set[db_marker]})
-        else:
-            for db_marker in sorted(archaeal_set):
-                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): os.path.join(marker_paths[db_marker], marker) for marker in archaeal_set[db_marker]})
-
-        result_aligns = {}
-        result_aligns[db_genome_id] = {}
-
-        for marker_db, marker_suffix in marker_dbs.iteritems():
-            # get all gene sequences
-            genome_path = str(path)
-            tophit_path = genome_path.replace(ConfigMetadata.PROTEIN_FILE_SUFFIX, marker_suffix)
-
-            # we load the list of all the genes detected in the genome
-            protein_file = tophit_path.replace(
-                marker_suffix, ConfigMetadata.PROTEIN_FILE_SUFFIX)
-            all_genes_dict = read_fasta(protein_file, False)
-            # we store the tophit file line by line and store the
-            # information in a dictionary
-            with open(tophit_path) as tp:
-                # first line is header line
-                tp.readline()
-                gene_dict = {}
-                for line_tp in tp:
-                    linelist = line_tp.split("\t")
-                    genename = linelist[0]
-                    sublist = linelist[1]
-                    if ";" in sublist:
-                        diff_markers = sublist.split(";")
-                    else:
-                        diff_markers = [sublist]
-
-                    for each_gene in diff_markers:
-                        sublist = each_gene.split(",")
-                        markerid = sublist[0]
-                        if markerid not in marker_dict_original.keys():
-                            continue
-                        evalue = sublist[1]
-                        bitscore = sublist[2].strip()
-
-                        if markerid in gene_dict:
-                            oldbitscore = gene_dict.get(markerid).get("bitscore")
-                            if oldbitscore < bitscore:
-                                gene_dict[markerid] = {"marker_path": marker_dict_original.get(markerid),
-                                                       "gene": genename,
-                                                       "gene_seq": all_genes_dict.get(genename),
-                                                       "bitscore": bitscore}
-                        else:
-                            gene_dict[markerid] = {"marker_path": marker_dict_original.get(markerid),
-                                                   "gene": genename,
-                                                   "gene_seq": all_genes_dict.get(genename),
-                                                   "bitscore": bitscore}
-
-            for mid, mpath in marker_dict_original.iteritems():
-                if mid not in gene_dict and mid not in result_aligns.get(db_genome_id):
-                    size = self._getHmmSize(mpath)
-                    result_aligns.get(db_genome_id).update({mid: "-" * size})
-                    #final_genome.append((db_genome_id, mid, "-" * size))
-
-            result_aligns.get(db_genome_id).update(self._runHmmAlign(gene_dict, db_genome_id))
-        # we concatenate the aligned markers together and associate them with the genome.
-        for gid, markids in result_aligns.iteritems():
-            seq = ""
-            for markid in sorted(markids.keys()):
-                seq = seq + markids.get(markid)
-
-        return seq
-
-    def _runHmmAlign(self, marker_dict, genome):
-        '''
-        Run hmmalign for a set of genes for a specific genome. This is run in a temp folder.
-        :param marker_dict: list of markers that need to be aligned
-        :param genome: specific genome id
-        Returns
-        --------------
-        List of tuple to be inserted in aligned_markers table
-        '''
-        result_genomes_dict = {}
-        hmmalign_dir = tempfile.mkdtemp()
-        input_count = 0
-        for markerid, marker_info in marker_dict.iteritems():
-            hmmalign_gene_input = os.path.join(
-                hmmalign_dir, "input_gene{0}.fa".format(input_count))
-            input_count += 1
-            out_fh = open(hmmalign_gene_input, 'wb')
-            out_fh.write(">{0}\n".format(marker_info.get("gene")))
-            out_fh.write("{0}".format(marker_info.get("gene_seq")))
-            out_fh.close()
-            proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
-                "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            proc.wait()
-
-            for line in proc.stderr:
-                print "TODO"
-            result = self._getAlignedMarker(
-                marker_info.get("gene"), proc.stdout)
-            if len(result) < 1:
-                return "TODO"
-            result_genomes_dict[markerid] = result
-
-            input_count += 1
-        shutil.rmtree(hmmalign_dir)
-        return result_genomes_dict
-
-    def _getHmmSize(self, path):
-        size = 0
-        with open(path) as fp:
-            for line in fp:
-                if line.startswith("LENG  "):
-                    size = line.split("  ")[1]
-                    break
-        return int(size)
 
     def _parse_genome_dictionary(self, gene_dict, outdir, prefix):
 
@@ -535,7 +368,7 @@ class GtdbManager(object):
 
             genomic_files[name] = fasta_path
         return genomic_files
-
+    
     def _selectGTDBGenomes(self, concatenated_file, filter_taxa):
         if filter_taxa is None:
             return read_fasta(concatenated_file)

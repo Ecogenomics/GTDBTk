@@ -69,7 +69,6 @@ class TreeManager(object):
         out_q = manager.Queue()
         procs = []
         nprocs = self.threads
-        print db_genome_ids
         for item in splitchunks(db_genome_ids, nprocs):
             p = multiprocessing.Process(
                 target=self._hmmWorker,
@@ -196,7 +195,6 @@ class TreeManager(object):
             for result_align in result_aligns:
                 final_genome.append((result_align[0], result_align[2]))
 
-        print final_genome
         return domain
 
     def _getHmmSize(self, path):
