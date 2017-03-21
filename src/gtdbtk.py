@@ -18,7 +18,10 @@
 ###############################################################################
 
 __author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2016-2017"
+__copyright__ = "Copyright 2016-2017"  
+
+
+
 __credits__ = ["Pierre Chaumeil"]
 __license__ = "GPL3"
 __version__ = "0.0.1"
