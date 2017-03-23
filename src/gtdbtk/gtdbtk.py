@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 ###############################################################################
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
@@ -17,55 +15,79 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2016-2017"
-__credits__ = ["Pierre Chaumeil"]
-__license__ = "GPL3"
-__version__ = "0.0.1"
-__maintainer__ = "Pierre Chaumeil"
-__email__ = "uqpchaum@uq.edu.au"
-__status__ = "Development"
+import logging
 
 from TreeManager import TreeManager
-from GtdbManager import GtdbManager
+from markers import Markers
 
-from biolib.common import check_file_exists, make_sure_path_exists
+from biolib.common import (check_dir_exists,
+                            check_file_exists, 
+                            make_sure_path_exists)
 
 
-class GtdbTKOptionsParser():
+class OptionsParser():
 
     def __init__(self, version):
-        self.GTVersion = version
-
-    def parseOptions(self, options):
-        if(options.subparser_name == 'align'):
-            check_file_exists(options.batchfile)
-            make_sure_path_exists(options.in_dir)
+        """Initialization."""
+        
+        self.version = version
+        
+        self.logger = logging.getLogger('timestamp')
+        
+    def identify(self, options):
+        """Identify marker genes in genomes."""
+        
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
             
-            gtdb_mngr = GtdbManager(options.threads)
-            domain = None
-            if options.bac_domain:
-                domain = "bacteria"
-            elif options.arc_domain:
-                domain = "archaea"
-            success = gtdb_mngr.AlignedGenomes(options.batchfile,
-                                               options.in_dir,
-                                               domain,
-                                               options.filter_taxa,
-                                               options.min_perc_aa,
-                                               options.consensus,
-                                               options.min_perc_taxa,
-                                               options.out_dir,
-                                               options.prefix)
-            if not success:
-                print "ERROR"
-
-        elif (options.subparser_name == 'identify'):
+        if options.batchfile:
             check_file_exists(options.batchfile)
             
-            gtdb_mngr = GtdbManager(options.threads)
-            success = gtdb_mngr.IdentifyMarkers(options.batchfile, options.out_dir, options.prefix)
-            if not success:
-                print "ERROR"
-
+        make_sure_path_exists(options.out_dir)
+            
+        markers = Markers(options.cpus)
+        markers.identify(options.genome_dir,
+                            options.batchfile,
+                            options.proteins,
+                            options.out_dir, 
+                            options.prefix)
+                            
+        self.logger.info('Done.')
+        
+    def align(self, options):
+        """Create multiple sequence alignment from marker genes"""
+        
+        check_file_exists(options.batchfile)
+        make_sure_path_exists(options.in_dir)
+ 
+        domain = None
+        if options.bac_domain:
+            domain = "bacteria"
+        elif options.arc_domain:
+            domain = "archaea"
+          
+        markers = Markers(options.threads)
+        markers.align(options.batchfile,
+                       options.in_dir,
+                       domain,
+                       options.filter_taxa,
+                       options.min_perc_aa,
+                       options.consensus,
+                       options.min_perc_taxa,
+                       options.out_dir,
+                       options.prefix)
+                       
+        self.logger.info('Done.')
+        
+    def parse_options(self, options):
+        """Parse user options and call the correct pipeline(s)"""
+        
+        if (options.subparser_name == 'identify'):
+            self.identify(options)
+        elif(options.subparser_name == 'align'):
+            self.align(options)
+        else:
+            self.logger.error('Unknown GTDB-Tk command: "' + args.subparser_name + '"\n')
+            sys.exit()
+            
         return 0

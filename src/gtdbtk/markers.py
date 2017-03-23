@@ -29,7 +29,8 @@ from biolib.seq_io import read_fasta
 from gtdblib.trimming import trim_seqs
 from biolib.external.fasttree import FastTree
 
-from external.Prodigal import Prodigal
+
+from external.prodigal import Prodigal
 from external.TigrfamSearch import TigrfamSearch
 from external.PfamSearch import PfamSearch
 from external.HmmAligner import HmmAligner
@@ -40,15 +41,18 @@ import config.ConfigMetadata as ConfigMetadata
 from Tools import splitchunks, list_genomes_dir, merge_two_dicts
 
 
-class GtdbManager(object):
-    """Manages genomes, concatenated alignment, and metadata for tree inference and visualization."""
+class Markers(object):
+    """Identify and align marker genes."""
 
-    def __init__(self, threads=1):
-        self.init = True
-        self.threads = threads
+    def __init__(self, cpus=1):
+        """Initialize."""
+        
+        self.logger = logging.getLogger('timestamp')
+        
+        self.cpus = cpus
 
         self.genomeFileSuffix = ConfigMetadata.GENOME_FILE_SUFFIX
-        self.userAnnotationDir = Config.ANNOTATION_DIR
+        self.marker_gene_dir = Config.MARKER_GENE_DIR
         self.protein_file_suffix = ConfigMetadata.PROTEIN_FILE_SUFFIX
         self.nt_gene_file_suffix = ConfigMetadata.NT_GENE_FILE_SUFFIX
         self.gff_file_suffix = ConfigMetadata.GFF_FILE_SUFFIX
@@ -68,51 +72,144 @@ class GtdbManager(object):
         self.tigrfam_hmms = ConfigMetadata.TIGRFAM_HMMS
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
+        
+    def _genomes_to_process(self, genome_dir, batchfile):
+        """Get genomes to process.
 
-        self.logger = logging.getLogger('timestamp')
-        self.logger.setLevel(logging.DEBUG)
+        Parameters
+        ----------
+        genome_dir : str
+          Directory containing genomes.
+        batchfile : str
+          File describing genomes.
+          
+        Returns
+        -------
+        genomic_files : d[genome_id] -> FASTA file
+            Map of genomes to their genomic FASTA files.
+        """
+        
+        genomic_files = {}
+        if genome_dir:
+            for f in os.listdir(genome_dir):
+                genomic_files[f] = os.path.join(genome_dir, f)
+        elif batchfile:
+            for line_no, line in enumerate(open(batchfile, "rb")):
+                line_split = line.strip().split("\t")
+                if line_split[0] == '':
+                    continue # blank line
+                    
+                if len(line_split) != 2:
+                    self.logger.error('Batch file must contain exactly 2 columns.')
+                    sys.exit()
 
-    def IdentifyMarkers(self, batchfile, outdir, prefix):
-        # create tree data
+                genome_file, genome_id  = line_split
+                
+                if genome_file is None or genome_file == '':
+                    self.logger.error('Missing genome file on line %d.' % line_no+1)
+                    self.exit()
+                elif genome_id is None or genome_id == '':
+                    self.logger.error('Missing genome ID on line %d.' % line_no+1)
+                    self.exit()
+                elif genome_id in genomic_files:
+                    self.logger.error('Genome ID %s appear multiple times.' % genome_id)
+                    self.exit()
+
+                genomic_files[genome_id] = genome_file
+            
+        return genomic_files
+        
+    def _prepare_genomes(self, dict_user_genomes, output_dir):
+        """Copy genome files in temporary folders in order to process them.
+
+        Parameters
+        ----------
+        dict_user_genomes : str
+            Name of file describing genomes to add.
+        output_dir : str
+            Output directory.
+
+        Returns
+        -------
+        dict
+            Dictionary indicating the temporary gene file for each genome.
+        """
+
+        genomic_files = {}
+        for user_genome_raw in dict_user_genomes.keys():
+            user_genome = os.path.splitext(os.path.basename(user_genome_raw))[0]
+            genome_output_dir = os.path.join(output_dir, user_genome)
+            if not os.path.exists(genome_output_dir):
+                os.makedirs(genome_output_dir)
+                
+            prodigal_output_dir = os.path.join(genome_output_dir, self.marker_gene_dir)
+            if not os.path.exists(prodigal_output_dir):
+                os.makedirs(prodigal_output_dir)
+
+            # copy the genome file to the temporary folder
+            fasta_target_file = os.path.join(genome_output_dir, user_genome + self.genomeFileSuffix)
+            shutil.copy(dict_user_genomes.get(user_genome_raw), fasta_target_file)
+
+            genomic_files[user_genome] = fasta_target_file
+            
+        return genomic_files
+
+    def identify(self, genome_dir, batchfile, proteins, outdir, prefix):
+        """Identify marker genes in genomes."""
+        
         try:
+            dict_user_genomes = self._genomes_to_process(genome_dir, batchfile)
+            self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(dict_user_genomes), 
+                                                                                        self.cpus))
+            
             # gather information for all marker genes
             marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
-                          "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}
+                          "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}             
             bacterial_set = Config.BACTERIAL_MARKERS
             archaeal_set = Config.ARCHAEAL_MARKERS
 
-            self.tmp_output_dir = os.path.join(outdir, 'genomes_files')
-            dict_user_genomes = self.list_genomes(batchfile)
-            genomic_files = self._prepareGenomes(dict_user_genomes, self.tmp_output_dir)
+            output_dir = os.path.join(outdir, 'genome_data')
+            genomic_files = self._prepare_genomes(dict_user_genomes, 
+                                                    output_dir)
  
             self.logger.info("Running Prodigal to identify genes.")
-            prodigal = Prodigal(self.threads, self.userAnnotationDir, self.protein_file_suffix,
-                                self.nt_gene_file_suffix, self.gff_file_suffix, self.checksum_suffix)
+            prodigal = Prodigal(self.cpus,
+                                proteins,
+                                self.marker_gene_dir, 
+                                self.protein_file_suffix,
+                                self.nt_gene_file_suffix, 
+                                self.gff_file_suffix)
             genome_dictionary = prodigal.run(genomic_files)
 
-            
             # annotated genes against TIGRfam and Pfam databases
             self.logger.info("Identifying TIGRfam protein families.")
             gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
                           for db_genome_id in genome_dictionary.keys()]
-            print gene_files
-            tigr_search = TigrfamSearch(self.threads, self.tigrfam_hmms, self.protein_file_suffix,
-                                        self.tigrfam_suffix, self.tigrfam_top_hit_suffix, self.checksum_suffix)
+
+            tigr_search = TigrfamSearch(self.cpus, 
+                                        self.tigrfam_hmms, 
+                                        self.protein_file_suffix,
+                                        self.tigrfam_suffix, 
+                                        self.tigrfam_top_hit_suffix, 
+                                        self.checksum_suffix)
             tigr_search.run(gene_files)
 
             self.logger.info("Identifying Pfam protein families.")
-            pfam_search = PfamSearch(self.threads, self.pfam_hmm_dir, self.protein_file_suffix,
-                                     self.pfam_suffix, self.pfam_top_hit_suffix, self.checksum_suffix)
+            pfam_search = PfamSearch(self.cpus, 
+                                        self.pfam_hmm_dir, 
+                                        self.protein_file_suffix,
+                                        self.pfam_suffix, 
+                                        self.pfam_top_hit_suffix, 
+                                        self.checksum_suffix)
             pfam_search.run(gene_files)
 
             self._parse_genome_dictionary(genome_dictionary, outdir, prefix)
-            return True
 
         except IOError as e:
             self.logger.error(str(e))
             self.logger.error("GtdbTK has stopped.")
 
-    def AlignedGenomes(self, batchfile, indir, maindomain, filter_taxa, min_perc_aa,
+    def align(self, batchfile, indir, maindomain, filter_taxa, min_perc_aa,
                        consensus, min_per_taxa, outdir, prefix):
 
         genome_dictionary = self._parseIdentificationDirectory(batchfile, indir)
@@ -124,7 +221,7 @@ class GtdbManager(object):
             else:
                 dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_archaea, filter_taxa)
 
-            hmmaligner = HmmAligner(self.threads,self.pfam_top_hit_suffix,self.tigrfam_top_hit_suffix,
+            hmmaligner = HmmAligner(self.cpus,self.pfam_top_hit_suffix,self.tigrfam_top_hit_suffix,
                                     self.protein_file_suffix,self.pfam_hmm_dir,self.tigrfam_hmms,self.bacterial_markers,
                                     self.archaeal_markers)
             dict_aligned_genomes = hmmaligner.alignMarkerSet(genome_dictionary, maindomain)
@@ -146,9 +243,6 @@ class GtdbManager(object):
             for key, value in trimmed_seqs.iteritems():
                 seqfile.write(">{0}\n{1}\n".format(key, value))
             seqfile.close()
-
-            self.logger.info('Done.')
-            return True
 
         except IOError as e:
             self.logger.error(str(e))
@@ -327,48 +421,6 @@ class GtdbManager(object):
         bac_outfile.close()
         arc_outfile.close()
 
-    def list_genomes(self, batchfile):
-        """Add genomes to database.
-
-        Parameters
-        ----------
-        batchfile : str
-            Name of file describing genomes to add.
-        Returns
-        -------
-        genomic_files : dictionary
-            Dictionary of genomes where key is the genome name and value if the fasta_path.
-        """
-        # Add the genomes
-        genomic_files = {}
-        fh = open(batchfile, "rb")
-        for line in fh:
-            line = line.rstrip()
-            if line == '':
-                self.logger.warning(
-                    "Encountered blank line in batch file. It has been ignored.")
-                continue
-
-            splitline = line.split("\t")
-            if len(splitline) < 2:
-                splitline += [None] * (2 - len(splitline))
-
-            (fasta_path, name) = splitline
-
-            if fasta_path is None or fasta_path == '':
-                raise GenomeDatabaseError(
-                    "Each line in the batch file must specify a path to the genome's fasta file.")
-
-            if name is None or name == '':
-                raise GenomeDatabaseError(
-                    "Each line in the batch file must specify a name for the genome.")
-
-            if name in genomic_files and genome_files.get(name) == fasta_path:
-                raise GenomeDatabaseError("{0} appears multiple times in the batchfile.".format(name))
-
-            genomic_files[name] = fasta_path
-        return genomic_files
-    
     def _selectGTDBGenomes(self, concatenated_file, filter_taxa):
         if filter_taxa is None:
             return read_fasta(concatenated_file)
@@ -385,36 +437,3 @@ class GtdbManager(object):
                         if tax_info[0] in temp_dict:
                             del temp_dict[tax_info[0]]
             return temp_dict
-
-    def _prepareGenomes(self, dict_user_genomes, output_dir):
-        """Copy genome files in temporary folders in order to process them.
-
-        Parameters
-        ----------
-        dict_user_genomes : str
-            Name of file describing genomes to add.
-        output_dir : str
-            Output directory.
-
-        Returns
-        -------
-        dict
-            Dictionary indicating the temporary gene file for each genome.
-        """
-
-        genomic_files = {}
-        for user_genome_raw in dict_user_genomes.keys():
-            user_genome = os.path.splitext(os.path.basename(user_genome_raw))[0]
-            genome_output_dir = os.path.join(output_dir, user_genome)
-            if not os.path.exists(genome_output_dir):
-                os.makedirs(genome_output_dir)
-            prodigal_output_dir = os.path.join(genome_output_dir, self.userAnnotationDir)
-            if not os.path.exists(prodigal_output_dir):
-                os.makedirs(prodigal_output_dir)
-
-            # copy the genome file to the temporary folder
-            fasta_target_file = os.path.join(genome_output_dir, user_genome + self.genomeFileSuffix)
-            shutil.copy(dict_user_genomes.get(user_genome_raw), fasta_target_file)
-
-            genomic_files[user_genome] = fasta_target_file
-        return genomic_files

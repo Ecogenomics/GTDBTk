@@ -18,10 +18,7 @@
 ###############################################################################
 
 __author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2016-2017"  
-
-
-
+__copyright__ = "Copyright 2017"  
 __credits__ = ["Pierre Chaumeil"]
 __license__ = "GPL3"
 __version__ = "0.0.1"
@@ -29,7 +26,6 @@ __maintainer__ = "Pierre Chaumeil"
 __email__ = "uqpchaum@uq.edu.au"
 __status__ = "Development"
 
-###############################################################################
 
 import argparse
 import sys
@@ -38,71 +34,73 @@ from gtdbtk import gtdbtk
 from biolib.logger import logger_setup
 from biolib.misc.custom_help_formatter import CustomHelpFormatter
 
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-
 
 def printHelp():
     print '''\
     
-                             ...::: GTDB-Tk v%s :::...
+              ...::: GTDB-Tk v%s :::...
 
-    identify  -> Identify marker genes in genomes
-    align     -> Create multiple sequence alignment
+  Workflows:
+    de_novo_wf  -> Infer a de novo tree, root, and decorate with taxonomy
+    classify_wf -> Classify genomes by placement in GTDB reference genome tree
+    
+  Methods:
+    identify -> Identify marker genes in genome
+    align    -> Create multiple sequence alignment
+    classify -> Determine taxonomic classification of genomes
+    root     -> Root tree using an outgroup
+    decorate -> Decorate tree with taxonomy
       
-    Use: gtdbtk <command> -h for command specific help
+  Use: gtdbtk <command> -h for command specific help
     ''' % __version__
 
 
 if __name__ == '__main__':
-
-    #-------------------------------------------------
-    # intialise the options parser
     parser = argparse.ArgumentParser(prog='gtdb', add_help=False, conflict_handler='resolve')
     parser.add_argument('-t', '--threads', type=int, default=1, help="number of threads/cpus to use.")
     parser.add_argument('-f', '--force', action="store_true", default=False, help="overwrite existing files without prompting.")
 
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
 
-    ##################################################
-    # Typical workflow
-    ##################################################
-
-    #-------------------------------------------------
-    # Identify marker genes in genomes
+    # identify marker genes in genomes
     identify_parser = subparsers.add_parser('identify', conflict_handler='resolve',
                                             formatter_class=CustomHelpFormatter,
-                                            help='create multiple sequence alignment')
-    required_genome_identify = identify_parser.add_argument_group('required named arguments')
-    required_genome_identify.add_argument('--batchfile', required=True, 
-                                            help="file describing genomes - tab separated in 2 columns (bin filename, bin name).")
-    required_genome_identify.add_argument('--output_dir', required=True, dest='out_dir', 
-                                            help="directory to output files.")
-
-    optional_genome_identify = identify_parser.add_argument_group('optional arguments')
-    optional_genome_identify.add_argument('--prefix', required=False, default='gtdbtk',
-                                          help='desired prefix for output files.')
-    optional_genome_identify.add_argument('-h', '--help', action="help",
-                                          help="show help message.")
+                                            help='Identify marker genes in genome.')
+                          
+    mutex_identify = identify_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_group = mutex_identify.add_mutually_exclusive_group(required=True)
+    mutex_group.add_argument('--genome_dir',
+                                help="directory exclusively containing genome files in FASTA format") 
+    mutex_group.add_argument('--batchfile',
+                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     
-    #-------------------------------------------------
-    # parse raw data and save
+    required_identify = identify_parser.add_argument_group('required named arguments')
+    required_identify.add_argument('--out_dir', required=True,
+                                    help="directory to output files")
+
+    optional_identify = identify_parser.add_argument_group('optional arguments')
+    optional_identify.add_argument('--proteins', action="store_true",
+                                    help='genome files contains proteins')
+    optional_identify.add_argument('--prefix', default='gtdbtk',
+                                    help='desired prefix for output files')
+    optional_identify.add_argument('--cpus', default=1, type=int,
+                                    help='number of CPUs to use')
+    optional_identify.add_argument('-h', '--help', action="help",
+                                    help="show help message")
+    
+    # create multiple sequence alignment
     align_parser = subparsers.add_parser('align', conflict_handler='resolve',
                                          formatter_class=CustomHelpFormatter,
-                                         help='generate tree from multiple sequence alignment',)
+                                         help='Create multiple sequence alignment.',)
 
     required_genome_align = align_parser.add_argument_group('required named arguments')
 
     required_genome_align.add_argument('--batchfile', required=True, 
-                                        help="file describing genomes - tab separated in 2 columns (bin filename, bin name).")
-
+                                        help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     required_genome_align.add_argument('--input_dir', required=True, dest='in_dir',
                                        help='.')
-
-    required_genome_align.add_argument('--output_dir', dest='out_dir', required=True,
-                                       help='Directory to output files.')
+    required_genome_align.add_argument('--out_dir', required=True,
+                                       help='directory to output files')
 
     mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_align.add_mutually_exclusive_group(required=True)
@@ -110,24 +108,19 @@ if __name__ == '__main__':
     mutex_group.add_argument('--archaea', action='store_true', dest='arc_domain')
 
     optional_genome_align = align_parser.add_argument_group('optional arguments')
-    optional_genome_align.add_argument('-h', '--help', action="help",
-                                       help="Show help message.")
-
     optional_genome_align.add_argument('--min_perc_aa', type=float, default=50,
-                                       help='filter genomes with an insufficient percentage of AA in the MSA.')
+                                       help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_genome_align.add_argument('--consensus', type=float, default=25,
-                                       help='minimum percentage of the same amino acid required to retain column.')
+                                       help='minimum percentage of the same amino acid required to retain column')
     optional_genome_align.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required required to retain column.')
-    optional_genome_align.add_argument('--filter_taxa',
-                                       help='filter genomes appearing on the output tree based on their toxonomic ranks(comma delimited).')
+                                       help='minimum percentage of taxa required required to retain column')
     optional_genome_align.add_argument('--prefix', required=False, default='gtdbtk',
-                                       help='desired prefix for output files.')
+                                       help='desired prefix for output files')
+    optional_genome_align.add_argument('--cpus', default=1, type=int,
+                                    help='number of CPUs to use')
+    optional_genome_align.add_argument('-h', '--help', action="help",
+                                       help="show help message")
 
-    ##################################################
-    # System
-    ##################################################
-    
     #-------------------------------------------------
     # get and check options
     args = None
@@ -160,17 +153,12 @@ if __name__ == '__main__':
     #-------------------------------------------------
     # do what we came here to do
     try:
-        GT_parser = gtdbtk.GtdbTKOptionsParser(__version__)
+        gt_parser = gtdbtk.OptionsParser(__version__)
         if(False):
             import cProfile
-            cProfile.run('GT_parser.parseOptions(args)', 'prof')
+            cProfile.run('gt_parser.parseOptions(args)', 'prof')
         else:
-            GT_parser.parseOptions(args)
+            gt_parser.parse_options(args)
     except:
         print "Unexpected error:", sys.exc_info()[0]
         raise
-
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
