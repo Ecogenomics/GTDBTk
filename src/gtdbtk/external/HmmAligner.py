@@ -27,7 +27,7 @@ from biolib.checksum import sha256
 
 from biolib.seq_io import read_fasta
 
-from ..Tools import fastaPathGenerator, splitchunks, list_genomes_dir, merge_two_dicts
+from ..Tools import splitchunks, list_genomes_dir, merge_two_dicts
 
 
 class HmmAligner(object):

@@ -22,26 +22,32 @@ import shutil
 import multiprocessing as mp
 
 from biolib.external.prodigal import (Prodigal as BioLibProdigal)
-from biolib.checksum import sha256
 
 
 class Prodigal(object):
     """Perform ab initio gene prediction using Prodigal."""
 
-    def __init__(self, threads, annotation_dir, protein_file_suffix, nt_gene_file_suffix, gff_file_suffix, checksum_suffix):
+    def __init__(self,
+                    threads,
+                    proteins,
+                    marker_gene_dir, 
+                    protein_file_suffix, 
+                    nt_gene_file_suffix, 
+                    gff_file_suffix):
         """Initialize."""
 
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('timestamp')
 
         self.threads = threads
+        
+        self.proteins = proteins
 
-        self.userAnnotationDir = annotation_dir
+        self.marker_gene_dir = marker_gene_dir
         self.protein_file_suffix = protein_file_suffix
         self.nt_gene_file_suffix = nt_gene_file_suffix
         self.gff_file_suffix = gff_file_suffix
-        self.checksum_suffix = checksum_suffix
 
-    def _runProdigal(self, fasta_path):
+    def _run_prodigal(self, fasta_path):
         """Run Prodigal.
 
         Parameters
@@ -51,11 +57,11 @@ class Prodigal(object):
         """
 
         temp_dir, fasta_file = os.path.split(fasta_path)
-        output_dir = os.path.join(temp_dir, self.userAnnotationDir)
+        output_dir = os.path.join(temp_dir, self.marker_gene_dir)
         genome_id = fasta_file[0:fasta_file.rfind('_')]
 
         prodigal = BioLibProdigal(1, False)
-        summary_stats = prodigal.run([fasta_path], output_dir)
+        summary_stats = prodigal.run([fasta_path], output_dir, called_genes=self.proteins)
         summary_stats = summary_stats[summary_stats.keys()[0]]
 
         # rename output files to adhere to GTDB conventions
@@ -76,11 +82,6 @@ class Prodigal(object):
         fout.write('%s\t%.2f\n' % ('coding_density_11', summary_stats.coding_density_11 * 100))
         fout.close()
 
-        checksum = sha256(aa_gene_file)
-        fout = open(aa_gene_file + self.checksum_suffix, 'w')
-        fout.write(checksum)
-        fout.close()
-
         return (aa_gene_file, nt_gene_file, gff_file, translation_table_file)
 
     def _worker(self, out_dict, worker_queue, writer_queue):
@@ -91,13 +92,9 @@ class Prodigal(object):
             if data is None:
                 break
 
-            (db_genome_id, file_path) = data
+            db_genome_id, file_path = data
 
-            #file_paths["nt_gene_path"] = None
-            #file_paths["gff_path"] = None
-            #file_paths["translation_table_path"] = None
-
-            rtn_files = self._runProdigal(file_path)
+            rtn_files = self._run_prodigal(file_path)
             aa_gene_file, nt_gene_file, gff_file, translation_table_file = rtn_files
             file_paths = {}
             file_paths["aa_gene_path"] = aa_gene_file
@@ -148,7 +145,9 @@ class Prodigal(object):
             manager = mp.Manager()
             out_dict = manager.dict()
 
-            worker_proc = [mp.Process(target=self._worker, args=(out_dict, worker_queue, writer_queue)) for _ in range(self.threads)]
+            worker_proc = [mp.Process(target=self._worker, args=(out_dict, 
+                                                                    worker_queue, 
+                                                                    writer_queue)) for _ in range(self.threads)]
             writer_proc = mp.Process(target=self._writer, args=(len(genomic_files), writer_queue))
 
             writer_proc.start()
