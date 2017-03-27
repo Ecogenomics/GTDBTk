@@ -42,14 +42,17 @@ def printHelp():
 
   Workflows:
     de_novo_wf  -> Infer a de novo tree, root, and decorate with taxonomy
+                   (indentify -> align -> infer -> root -> decorate)
     classify_wf -> Classify genomes by placement in GTDB reference genome tree
+                   (identify -> align -> classify)
     
   Methods:
     identify -> Identify marker genes in genome
     align    -> Create multiple sequence alignment
+    infer    -> Infer tree from multiple sequence alignment
     classify -> Determine taxonomic classification of genomes
     root     -> Root tree using an outgroup
-    decorate -> Decorate tree with taxonomy
+    decorate -> Decorate tree with GTDB taxonomy
       
   Use: gtdbtk <command> -h for command specific help
     ''' % __version__
@@ -92,34 +95,96 @@ if __name__ == '__main__':
     align_parser = subparsers.add_parser('align', conflict_handler='resolve',
                                          formatter_class=CustomHelpFormatter,
                                          help='Create multiple sequence alignment.',)
+                                         
+    mutex_align = align_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_group = mutex_align.add_mutually_exclusive_group(required=True)
+    mutex_group.add_argument('--genome_dir',
+                                help="directory exclusively containing genome files in FASTA format") 
+    mutex_group.add_argument('--batchfile',
+                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+    
 
-    required_genome_align = align_parser.add_argument_group('required named arguments')
-
-    required_genome_align.add_argument('--batchfile', required=True, 
-                                        help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
-    required_genome_align.add_argument('--input_dir', required=True, dest='in_dir',
-                                       help='.')
-    required_genome_align.add_argument('--out_dir', required=True,
+    required_align = align_parser.add_argument_group('required named arguments')
+    required_align.add_argument('--identify_dir', required=True,
+                                       help="output directory of 'identify' command")
+    required_align.add_argument('--out_dir', required=True,
                                        help='directory to output files')
 
-    mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutual_genome_align.add_mutually_exclusive_group(required=True)
-    mutex_group.add_argument('--bacteria', action='store_true', dest='bac_domain')
-    mutex_group.add_argument('--archaea', action='store_true', dest='arc_domain')
+    mutual_align = align_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_group = mutual_align.add_mutually_exclusive_group(required=True)
+    mutex_group.add_argument('--bac_ms', action='store_true', help='align bacterial marker genes')
+    mutex_group.add_argument('--ar_ms', action='store_true', help='align archaeal marker genes')
 
-    optional_genome_align = align_parser.add_argument_group('optional arguments')
-    optional_genome_align.add_argument('--min_perc_aa', type=float, default=50,
+    optional_align = align_parser.add_argument_group('optional arguments')
+    optional_align.add_argument('--taxa_filter',
+                                       help=('Filter genomes to taxa (comma separated) within '
+                                            + 'specific taxonomic groups (e.g., d__Bacteria '
+                                            + 'or p__Proteobacteria, p__Actinobacteria).'))
+    optional_align.add_argument('--min_perc_aa', type=float, default=50,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
-    optional_genome_align.add_argument('--consensus', type=float, default=25,
+    optional_align.add_argument('--consensus', type=float, default=25,
                                        help='minimum percentage of the same amino acid required to retain column')
-    optional_genome_align.add_argument('--min_perc_taxa', type=float, default=50,
+    optional_align.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required required to retain column')
-    optional_genome_align.add_argument('--prefix', required=False, default='gtdbtk',
+    optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                        help='desired prefix for output files')
-    optional_genome_align.add_argument('--cpus', default=1, type=int,
+    optional_align.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
-    optional_genome_align.add_argument('-h', '--help', action="help",
+    optional_align.add_argument('-h', '--help', action="help",
                                        help="show help message")
+                                       
+    # infer tree
+    infer_parser = subparsers.add_parser('infer', conflict_handler='resolve',
+                                         formatter_class=CustomHelpFormatter,
+                                         help='Infer tree from multiple sequence alignment.',)
+
+    required_infer = infer_parser.add_argument_group('required named arguments')
+    required_infer.add_argument('--msa_file', required=True,
+                                    help="multiple sequence alignment in FASTA format")
+    required_infer.add_argument('--out_dir', required=True,
+                                    help='directory to output files')
+
+    optional_infer = infer_parser.add_argument_group('optional arguments')
+    optional_infer.add_argument('--prot_model', choices=['WAG', 'LG'], 
+                                    help='protein substitution model for tree inference', default='WAG')
+    optional_infer.add_argument('--prefix', required=False, default='gtdbtk',
+                                    help='desired prefix for output files')
+    optional_infer.add_argument('--cpus', default=1, type=int,
+                                    help='number of CPUs to use')
+    optional_infer.add_argument('-h', '--help', action="help",
+                                    help="show help message")
+                                       
+    # root tree using outgroup
+    root_parser = subparsers.add_parser('root', conflict_handler='resolve',
+                                        formatter_class=CustomHelpFormatter,
+                                        help='Root tree using an outgroup.',)
+
+    required_root = root_parser.add_argument_group('required named arguments')
+    required_root.add_argument('--input_tree', required=True,
+                                help="tree to root in Newick format")
+    required_root.add_argument('--outgroup_taxon', required=True,
+                                help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+    required_root.add_argument('--output_tree', required=True,
+                                help='output tree')
+
+    optional_root = root_parser.add_argument_group('optional arguments')
+    optional_root.add_argument('-h', '--help', action="help",
+                                help="show help message")
+                                       
+    # decorate tree
+    decorate_parser = subparsers.add_parser('decorate', conflict_handler='resolve',
+                                                formatter_class=CustomHelpFormatter,
+                                                help='Decorate tree with GTDB taxonomy.',)
+
+    required_decorate = decorate_parser.add_argument_group('required named arguments')
+    required_decorate.add_argument('--input_tree', required=True,
+                                    help="tree to root in Newick format")
+    required_decorate.add_argument('--output_tree', required=True,
+                                    help='output tree')
+
+    optional_decorate = decorate_parser.add_argument_group('optional arguments')
+    optional_decorate.add_argument('-h', '--help', action="help",
+                                    help="show help message")
 
     #-------------------------------------------------
     # get and check options
