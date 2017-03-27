@@ -24,21 +24,21 @@ import multiprocessing
 import time
 import subprocess
 
-
-from biolib.seq_io import read_fasta
 from gtdblib.trimming import trim_seqs
-from biolib.external.fasttree import FastTree
 
+from biolib.common import remove_extension
+from biolib.seq_io import read_fasta
+from biolib.taxonomy import Taxonomy
 
 from external.prodigal import Prodigal
-from external.TigrfamSearch import TigrfamSearch
-from external.PfamSearch import PfamSearch
-from external.HmmAligner import HmmAligner
+from external.tigrfam_search import TigrfamSearch
+from external.pfam_search import PfamSearch
+from external.hmm_aligner import HmmAligner
 
-import config.Config as Config
-import config.ConfigMetadata as ConfigMetadata
+import config.config as Config
+import config.config_metadata as ConfigMetadata
 
-from Tools import splitchunks, list_genomes_dir, merge_two_dicts
+from tools import splitchunks, list_genomes_dir, merge_two_dicts
 
 
 class Markers(object):
@@ -50,6 +50,8 @@ class Markers(object):
         self.logger = logging.getLogger('timestamp')
         
         self.cpus = cpus
+        
+        self.identify_dir = 'genome_data'
 
         self.genomeFileSuffix = ConfigMetadata.GENOME_FILE_SUFFIX
         self.marker_gene_dir = Config.MARKER_GENE_DIR
@@ -57,7 +59,7 @@ class Markers(object):
         self.nt_gene_file_suffix = ConfigMetadata.NT_GENE_FILE_SUFFIX
         self.gff_file_suffix = ConfigMetadata.GFF_FILE_SUFFIX
         self.checksum_suffix = ConfigMetadata.CHECKSUM_SUFFIX
-
+        
         self.concatenated_bacteria = Config.CONCAT_BAC
         self.concatenated_archaea = Config.CONCAT_ARC
         self.bacterial_markers = Config.BACTERIAL_MARKERS
@@ -92,7 +94,9 @@ class Markers(object):
         genomic_files = {}
         if genome_dir:
             for f in os.listdir(genome_dir):
-                genomic_files[f] = os.path.join(genome_dir, f)
+                genome_id = remove_extension(f)
+                genomic_files[genome_id] = os.path.join(genome_dir, f)
+                
         elif batchfile:
             for line_no, line in enumerate(open(batchfile, "rb")):
                 line_split = line.strip().split("\t")
@@ -153,156 +157,9 @@ class Markers(object):
             genomic_files[user_genome] = fasta_target_file
             
         return genomic_files
-
-    def identify(self, genome_dir, batchfile, proteins, outdir, prefix):
-        """Identify marker genes in genomes."""
         
-        try:
-            dict_user_genomes = self._genomes_to_process(genome_dir, batchfile)
-            self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(dict_user_genomes), 
-                                                                                        self.cpus))
-            
-            # gather information for all marker genes
-            marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
-                          "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}             
-            bacterial_set = Config.BACTERIAL_MARKERS
-            archaeal_set = Config.ARCHAEAL_MARKERS
-
-            output_dir = os.path.join(outdir, 'genome_data')
-            genomic_files = self._prepare_genomes(dict_user_genomes, 
-                                                    output_dir)
- 
-            self.logger.info("Running Prodigal to identify genes.")
-            prodigal = Prodigal(self.cpus,
-                                proteins,
-                                self.marker_gene_dir, 
-                                self.protein_file_suffix,
-                                self.nt_gene_file_suffix, 
-                                self.gff_file_suffix)
-            genome_dictionary = prodigal.run(genomic_files)
-
-            # annotated genes against TIGRfam and Pfam databases
-            self.logger.info("Identifying TIGRfam protein families.")
-            gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
-                          for db_genome_id in genome_dictionary.keys()]
-
-            tigr_search = TigrfamSearch(self.cpus, 
-                                        self.tigrfam_hmms, 
-                                        self.protein_file_suffix,
-                                        self.tigrfam_suffix, 
-                                        self.tigrfam_top_hit_suffix, 
-                                        self.checksum_suffix)
-            tigr_search.run(gene_files)
-
-            self.logger.info("Identifying Pfam protein families.")
-            pfam_search = PfamSearch(self.cpus, 
-                                        self.pfam_hmm_dir, 
-                                        self.protein_file_suffix,
-                                        self.pfam_suffix, 
-                                        self.pfam_top_hit_suffix, 
-                                        self.checksum_suffix)
-            pfam_search.run(gene_files)
-
-            self._parse_genome_dictionary(genome_dictionary, outdir, prefix)
-
-        except IOError as e:
-            self.logger.error(str(e))
-            self.logger.error("GtdbTK has stopped.")
-
-    def align(self, batchfile, indir, maindomain, filter_taxa, min_perc_aa,
-                       consensus, min_per_taxa, outdir, prefix):
-
-        genome_dictionary = self._parseIdentificationDirectory(batchfile, indir)
-
-        try:
-            taxonomy_dict = {}
-            if maindomain == 'bacteria':
-                dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_bacteria, filter_taxa)
-            else:
-                dict_gtdb_genomes = self._selectGTDBGenomes(self.concatenated_archaea, filter_taxa)
-
-            hmmaligner = HmmAligner(self.cpus,self.pfam_top_hit_suffix,self.tigrfam_top_hit_suffix,
-                                    self.protein_file_suffix,self.pfam_hmm_dir,self.tigrfam_hmms,self.bacterial_markers,
-                                    self.archaeal_markers)
-            dict_aligned_genomes = hmmaligner.alignMarkerSet(genome_dictionary, maindomain)
-
-            # filter columns without sufficient representation across taxa
-            self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
-
-            dict_aligned_genomes = merge_two_dicts(dict_gtdb_genomes, dict_aligned_genomes)
-            trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(dict_aligned_genomes, min_per_taxa / 100.0, consensus / 100.0, min_perc_aa / 100.0)
-            self.logger.info('Trimmed alignment from %d to %d AA (%d by minimum taxa percent, %d by consensus).' % (len(dict_aligned_genomes[dict_aligned_genomes.keys()[0]]),
-                                                                                                                    len(trimmed_seqs[trimmed_seqs.keys()[0]]), count_wrong_pa, count_wrong_cons))
-            self.logger.info('After trimming %d taxa have amino acids in <%.1f%% of columns.' % (
-                len(pruned_seqs), min_perc_aa))
-
-            if not os.path.exists(outdir):
-                os.makedirs(outdir)
-            seqfile_path = os.path.join(outdir, prefix + "_user_msa.fna")
-            seqfile = open(seqfile_path, 'w')
-            for key, value in trimmed_seqs.iteritems():
-                seqfile.write(">{0}\n{1}\n".format(key, value))
-            seqfile.close()
-
-        except IOError as e:
-            self.logger.error(str(e))
-            self.logger.error("GtdbTK has stopped.")
-
-    def _parseIdentificationDirectory(self, batchfile, indir):
-        # Add the genomes
-        genomic_files = {}
-        fh = open(batchfile, "rb")
-        for line in fh:
-            line = line.rstrip()
-            if line == '':
-                self.logger.warning(
-                    "Encountered blank line in batch file. It has been ignored.")
-                continue
-
-            splitline = line.split("\t")
-
-            name = splitline[1].strip()
-
-            genomic_files[name] = {'aa_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + self.protein_file_suffix),
-                                   'translation_table_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', 'prodigal_translation_table.tsv'),
-                                   'nt_gene_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + self.nt_gene_file_suffix),
-                                   'gff_path': os.path.join('.', indir, 'genomes_files', name, 'prodigal', name + self.gff_file_suffix)
-                                   }
-        return genomic_files
-
-    def _getAlignedMarker(self, hit_name, result_file):
-        '''
-        Parse the output of Hmmalign
-        :param hit_name: gene name
-        :param result_file: output file from Hmmalign
-        '''
-        hit_seq = None
-        mask_seq = None
-
-        for line in result_file:
-            splitline = line.split(" ", 1)
-            if splitline[0] == hit_name.split(" ", 1)[0]:
-                rsplitline = line.rsplit(" ", 1)
-                hit_seq = rsplitline[-1]
-                continue
-            if line[0:len("#=GC RF")] == "#=GC RF":
-                rsplitline = line.rsplit(" ", 1)
-                mask_seq = rsplitline[-1]
-
-        if mask_seq is None:
-            raise Exception("Unable to get mask from hmm align result file")
-
-        if hit_seq is None:
-            return None
-
-        aligned_marker = ""
-        for pos in xrange(0, len(mask_seq)):
-            if mask_seq[pos] != 'x':
-                continue
-            aligned_marker += hit_seq[pos]
-        return aligned_marker
-
-    def _parse_genome_dictionary(self, gene_dict, outdir, prefix):
+    def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
+        """Report statistics for identified marker genes."""
 
         bac_outfile = open(os.path.join(outdir, prefix + "_bacterial_markers_summary.tsv"), "w")
         arc_outfile = open(os.path.join(outdir, prefix + "_archaeal_markers_summary.tsv"), "w")
@@ -320,10 +177,12 @@ class Markers(object):
 
         marker_bac_list_original, marker_arc_list_original = [], []
         for db_marker in bacterial_set.keys():
-            marker_bac_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") for marker in bacterial_set[db_marker]])
+            marker_bac_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") 
+                                                for marker in bacterial_set[db_marker]])
 
         for db_marker in archaeal_set.keys():
-            marker_arc_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") for marker in archaeal_set[db_marker]])
+            marker_arc_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") 
+                                                for marker in archaeal_set[db_marker]])
 
         gene_bac_list, gene_arc_list = [], []
 
@@ -341,8 +200,9 @@ class Markers(object):
                 # we load the list of all the genes detected in the genome
                 all_genes_dict = read_fasta(protein_file, False)
 
-                # Prodigal adds an asterisks at the end of each called genes,
-                # These asterisks sometimes appear in the MSA, which can be an issue for some softwares downstream
+                # Prodigal adds an asterisks at the end of each called genes.
+                # These asterisks sometimes appear in the MSA, which can be 
+                # an issue for some downstream software
                 for seq_id, seq in all_genes_dict.iteritems():
                     if seq[-1] == '*':
                         all_genes_dict[seq_id] = seq[:-1]
@@ -421,19 +281,171 @@ class Markers(object):
         bac_outfile.close()
         arc_outfile.close()
 
-    def _selectGTDBGenomes(self, concatenated_file, filter_taxa):
-        if filter_taxa is None:
-            return read_fasta(concatenated_file)
-        else:
-            temp_dict = read_fasta(concatenated_file)
-            list_required_fasta = filter_taxa.split(',')
-            dict_taxonomy = {}
-            with open(self.taxonomy_file, 'r') as taxfile:
-                for line in taxfile:
-                    tax_info = line.strip().split('\t')
-                    genome_taxonomy = tax_info[1].split(';')
-                    u = list(set(genome_taxonomy) & set(list_required_fasta))
-                    if len(u) == 0:
-                        if tax_info[0] in temp_dict:
-                            del temp_dict[tax_info[0]]
-            return temp_dict
+    def identify(self, genome_dir, batchfile, proteins, out_dir, prefix):
+        """Identify marker genes in genomes."""
+        
+        try:
+            genomes = self._genomes_to_process(genome_dir, batchfile)
+            self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes), 
+                                                                                        self.cpus))
+            
+            # gather information for all marker genes
+            marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
+                          "TIGR": ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX}             
+            bacterial_set = Config.BACTERIAL_MARKERS
+            archaeal_set = Config.ARCHAEAL_MARKERS
+
+            output_dir = os.path.join(out_dir, self.identify_dir)
+            genomic_files = self._prepare_genomes(genomes, 
+                                                    output_dir)
+ 
+            self.logger.info("Running Prodigal to identify genes.")
+            prodigal = Prodigal(self.cpus,
+                                proteins,
+                                self.marker_gene_dir, 
+                                self.protein_file_suffix,
+                                self.nt_gene_file_suffix, 
+                                self.gff_file_suffix)
+            genome_dictionary = prodigal.run(genomic_files)
+
+            # annotated genes against TIGRfam and Pfam databases
+            self.logger.info("Identifying TIGRfam protein families.")
+            gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
+                          for db_genome_id in genome_dictionary.keys()]
+
+            tigr_search = TigrfamSearch(self.cpus, 
+                                        self.tigrfam_hmms, 
+                                        self.protein_file_suffix,
+                                        self.tigrfam_suffix, 
+                                        self.tigrfam_top_hit_suffix, 
+                                        self.checksum_suffix)
+            tigr_search.run(gene_files)
+
+            self.logger.info("Identifying Pfam protein families.")
+            pfam_search = PfamSearch(self.cpus, 
+                                        self.pfam_hmm_dir, 
+                                        self.protein_file_suffix,
+                                        self.pfam_suffix, 
+                                        self.pfam_top_hit_suffix, 
+                                        self.checksum_suffix)
+            pfam_search.run(gene_files)
+
+            self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
+
+        except IOError as e:
+            self.logger.error(str(e))
+            self.logger.error("GTDB-Tk has encountered an error.")
+            
+    def _path_to_identify_data(self, genome_ids, indir):
+        """Get path to genome data produced by 'identify' command."""
+        
+        genomic_files = {}
+        for genome_id in genome_ids:
+            genomic_files[genome_id] = {'aa_gene_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.protein_file_suffix),
+                                   'translation_table_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', 'prodigal_translation_table.tsv'),
+                                   'nt_gene_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.nt_gene_file_suffix),
+                                   'gff_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.gff_file_suffix)
+                                   }
+        return genomic_files
+        
+    def _msa_filter_by_taxa(self, concatenated_file, gtdb_taxonomy, taxa_filter):
+        """Filter GTDB MSA filtered to specified taxa."""
+        
+        msa = read_fasta(concatenated_file)
+        self.logger.info('Read concatenated alignment for %d GTDB genomes.' % len(msa))
+        
+        if taxa_filter is not None:
+            taxa_to_keep = set(taxa_filter.split(','))
+
+            filtered_genomes = 0
+            for genome_id, taxa in gtdb_taxonomy.iteritems():
+                common_taxa = taxa_to_keep.intersection(taxa)
+                if len(common_taxa) == 0:
+                    if genome_id in msa:
+                        del msa[genome_id]
+                        filtered_genomes += 1
+                        
+            self.logger.info('Filtered %d taxa based on assigned taxonomy.' % filtered_genomes)
+        
+        return msa
+
+    def align(self,
+                genome_dir,
+                batchfile, 
+                identify_dir, 
+                marker_set_id, 
+                taxa_filter, 
+                min_perc_aa,
+                consensus, 
+                min_per_taxa, 
+                out_dir, 
+                prefix):
+        """Align marker genes in genomes."""
+
+        try:
+            genomes = self._genomes_to_process(genome_dir, batchfile)
+            self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomes), 
+                                                                                        self.cpus))
+            genomic_files = self._path_to_identify_data(genomes, identify_dir)
+            
+            gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
+                                                                                
+            if marker_set_id == 'bac120':
+                gtdb_msa = self._msa_filter_by_taxa(self.concatenated_bacteria,
+                                                        gtdb_taxonomy,
+                                                        taxa_filter)
+            elif marker_set_id == 'ar122':
+                gtdb_msa = self._msa_filter_by_taxa(self.concatenated_archaea,
+                                                        gtdb_taxonomy,
+                                                        taxa_filter)
+            else:
+                self.logger.error('Unrecognized marker set: %s' % marker_set_id)
+                sys.exit()
+
+            hmm_aligner = HmmAligner(self.cpus,
+                                        self.pfam_top_hit_suffix,
+                                        self.tigrfam_top_hit_suffix,
+                                        self.protein_file_suffix,
+                                        self.pfam_hmm_dir,
+                                        self.tigrfam_hmms,
+                                        self.bacterial_markers,
+                                        self.archaeal_markers)
+            user_msa = hmm_aligner.align_marker_set(genomic_files, 
+                                                            marker_set_id)
+
+            # filter columns without sufficient representation across taxa
+            self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
+
+            aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
+            trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(aligned_genomes, 
+                                                                                    min_per_taxa / 100.0, 
+                                                                                    consensus / 100.0, 
+                                                                                    min_perc_aa / 100.0)
+            self.logger.info(('Trimmed alignment from %d to %d AA (%d by minimum taxa percent, '
+                                + '%d by consensus).') % (len(aligned_genomes[aligned_genomes.keys()[0]]),
+                                                            len(trimmed_seqs[trimmed_seqs.keys()[0]]), 
+                                                            count_wrong_pa, 
+                                                            count_wrong_cons))
+            self.logger.info('Pruned %d taxa with amino acids in <%.1f%% of columns in trimmed MSA.' % (
+                                len(pruned_seqs), 
+                                min_perc_aa))
+                                
+            pruned_user_genomes = set(pruned_seqs).intersection(user_msa)
+            if len(pruned_user_genomes):
+                self.logger.info('Pruned genomes include %d of the submitted genomes.' % len(pruned_user_genomes))
+
+            # write out MSA
+            self.logger.info('Creating concatenated alignment for %d taxa.' % len(trimmed_seqs))
+            seqfile_path = os.path.join(out_dir, prefix + "_msa.fna")
+            seqfile = open(seqfile_path, 'w')
+            for genome_id, alignment in trimmed_seqs.iteritems():
+                if genome_id in gtdb_taxonomy:
+                    seqfile.write('>%s %s\n' % (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
+                else:
+                    seqfile.write('>%s\n' % genome_id)
+                seqfile.write('%s\n' % alignment)
+            seqfile.close()
+
+        except IOError as e:
+            self.logger.error(str(e))
+            self.logger.error("GTDB-Tk has encountered an error.")
