@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 ###############################################################################
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
@@ -17,55 +15,221 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2016-2017"
-__credits__ = ["Pierre Chaumeil"]
-__license__ = "GPL3"
-__version__ = "0.0.1"
-__maintainer__ = "Pierre Chaumeil"
-__email__ = "uqpchaum@uq.edu.au"
-__status__ = "Development"
+import os
+import logging
 
-from TreeManager import TreeManager
-from GtdbManager import GtdbManager
+from markers import Markers
+from classify import Classify
+from reroot_tree import RerootTree
+import config.config as Config
 
-from biolib.common import check_file_exists
+from biolib.common import (check_dir_exists,
+                            check_file_exists, 
+                            make_sure_path_exists)
+from biolib.taxonomy import Taxonomy
+from biolib.external.execute import check_dependencies
+from biolib.external.fasttree import FastTree 
 
-
-class GtdbTKOptionsParser():
+class OptionsParser():
 
     def __init__(self, version):
-        self.GTVersion = version
-
-    def parseOptions(self, options):
-        if(options.subparser_name == 'align'):
-            check_file_exists(options.batchfile)
-            make_sure_path_exists(options.in_dir)
+        """Initialization."""
+        
+        self.version = version
+        
+        self.logger = logging.getLogger('timestamp')
+        
+    def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
+        """Get unique identifier for marker set."""
+        
+        if bac120_ms:
+            marker_set_id = "bac120"
+        elif ar122_ms:
+            marker_set_id = "ar122"
+        elif rps23_ms:
+            marker_set_id = "rps23"
             
-            gtdb_mngr = GtdbManager(options.threads)
-            domain = None
-            if options.bac_domain:
-                domain = "bacteria"
-            elif options.arc_domain:
-                domain = "archaea"
-            success = gtdb_mngr.AlignedGenomes(options.batchfile,
-                                               options.in_dir,
-                                               domain,
-                                               options.filter_taxa,
-                                               options.min_perc_aa,
-                                               options.consensus,
-                                               options.min_perc_taxa,
-                                               options.out_dir,
-                                               options.prefix)
-            if not success:
-                print "ERROR"
+        return marker_set_id
+        
+    def identify(self, options):
+        """Identify marker genes in genomes."""
+        
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            
+        make_sure_path_exists(options.out_dir)
+            
+        markers = Markers(options.cpus)
+        markers.identify(options.genome_dir,
+                            options.batchfile,
+                            options.proteins,
+                            options.out_dir, 
+                            options.prefix)
+                            
+        self.logger.info('Done.')
+        
+    def align(self, options):
+        """Create MSA from marker genes."""
+        
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            
+        check_dir_exists(options.identify_dir)
+        make_sure_path_exists(options.out_dir)
+ 
+        marker_set_id = self._marker_set_id(options.bac120_ms,
+                                            options.ar122_ms,
+                                            options.rps23_ms)
+          
+        markers = Markers(options.threads)
+        markers.align(options.genome_dir,
+                        options.batchfile,
+                        options.identify_dir,
+                        marker_set_id,
+                        options.taxa_filter,
+                        options.min_perc_aa,
+                        options.custom_msa_filters,
+                        options.consensus,
+                        options.min_perc_taxa,
+                        options.out_dir,
+                        options.prefix)
+                       
+        self.logger.info('Done.')
+        
+    def infer(self, options):
+        """Infer tree from MSA."""
+        
+        check_file_exists(options.msa_file)
+        make_sure_path_exists(options.out_dir)
+        
+        if (options.cpus > 1):
+            check_dependencies(['FastTreeMP'])
+        else:
+            check_dependencies(['FastTree'])
+        
+        self.logger.info('Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
+        fasttree = FastTree(multithreaded=(options.cpus > 1))
 
+        tree_unrooted_output = os.path.join(options.out_dir, options.prefix + '.unrooted.tree')
+        tree_log = os.path.join(options.out_dir, options.prefix + '.tree.log')
+        tree_output_log = os.path.join(options.out_dir, 'fasttree.log')
+        fasttree.run(options.msa_file, 
+                        'prot', 
+                        options.prot_model, 
+                        tree_unrooted_output, 
+                        tree_log, 
+                        tree_output_log)
+        
+        self.logger.info('Done.')
+        
+    def classify(self, options):
+        """Determine taxonomic classification of genomes."""
+
+        check_file_exists(options.user_msa_file)
+        make_sure_path_exists(options.out_dir)
+        
+        marker_set_id = self._marker_set_id(options.bac120_ms,
+                                            options.ar122_ms,
+                                            options.rps23_ms)
+
+        classify = Classify(options.cpus)
+        classify.run(options.user_msa_file,
+                        marker_set_id,
+                        options.out_dir,
+                        options.prefix)
+        
+        self.logger.info('Done.')
+        
+    def root(self, options):
+        """Root tree using outgroup."""
+        
+        check_file_exists(options.input_tree)
+        
+        gtdb_taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
+        
+        self.logger.info('Identifying genomes from the specified outgroup.')
+        outgroup = set()
+        for genome_id, taxa in gtdb_taxonomy.iteritems():
+            if options.outgroup_taxon in taxa:
+                outgroup.add(genome_id)
+
+        reroot = RerootTree()
+        reroot.root_with_outgroup(options.input_tree, 
+                                    options.output_tree, 
+                                    outgroup)
+        
+        self.logger.info('Done.')
+        
+    def decorate(self, options):
+        """Decorate tree with GTDB taxonomy."""
+        
+        check_file_exists(options.input_tree)
+        
+        #Config.TAXONOMY_FILE
+        self.logger.warning('NOT YET IMPLEMENTED!')
+        
+        self.logger.info('Done.')
+        
+    def parse_options(self, options):
+        """Parse user options and call the correct pipeline(s)"""
+        
+        if(options.subparser_name == 'de_novo_wf'):
+            check_dependencies(['prodigal', 'hmmalign'])
+            if (options.cpus > 1):
+                check_dependencies(['FastTreeMP'])
+            else:
+                check_dependencies(['FastTree'])
+                
+            self.identify(options)
+            
+            options.identify_dir = options.out_dir
+            self.align(options)
+            
+            options.msa_file = os.path.join(options.out_dir, 
+                                            options.prefix + ".msa.faa")
+            self.infer(options)
+            
+            options.input_tree = os.path.join(options.out_dir, 
+                                                options.prefix + ".unrooted.tree")
+            options.output_tree = os.path.join(options.out_dir, 
+                                                options.prefix + ".rooted.tree")
+            self.root(options)
+            
+            self.decorate(options)
+        elif(options.subparser_name == 'classify_wf'):
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy'])               
+            self.identify(options)
+            
+            options.identify_dir = options.out_dir
+            options.taxa_filter = None
+            options.custom_msa_filters = False
+            options.consensus = None
+            options.min_perc_taxa = None
+            self.align(options)
+            
+            options.user_msa_file = os.path.join(options.out_dir, 
+                                                    options.prefix + ".user_msa.faa")
+            self.classify(options)
         elif (options.subparser_name == 'identify'):
-            check_file_exists(options.batchfile)
+            self.identify(options)
+        elif(options.subparser_name == 'align'):
+            self.align(options)
+        elif(options.subparser_name == 'infer'):
+            self.infer(options)
+        elif(options.subparser_name == 'classify'):
+            self.classify(options)
+        elif(options.subparser_name == 'root'):
+            self.root(options)
+        elif(options.subparser_name == 'decorate'):
+            self.decorate(options)
+        else:
+            self.logger.error('Unknown GTDB-Tk command: "' + options.subparser_name + '"\n')
+            sys.exit()
             
-            gtdb_mngr = GtdbManager(options.threads)
-            success = gtdb_mngr.IdentifyMarkers(options.batchfile, options.out_dir, options.prefix)
-            if not success:
-                print "ERROR"
-
         return 0
