@@ -42,7 +42,7 @@ def printHelp():
 
   Workflows:
     de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
-                     (indentify -> align -> infer -> root -> decorate)
+                     (identify -> align -> infer -> root -> decorate)
     classify_wf -> Classify genomes by placement in GTDB reference tree
                      (identify -> align -> classify)
     
@@ -59,7 +59,7 @@ def printHelp():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='gtdb', add_help=False, conflict_handler='resolve')
+    parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
     parser.add_argument('-t', '--threads', type=int, default=1, help="number of threads/cpus to use.")
     parser.add_argument('-f', '--force', action="store_true", default=False, help="overwrite existing files without prompting.")
 

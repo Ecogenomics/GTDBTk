@@ -88,6 +88,7 @@ class Markers(object):
         
         genomic_files = {}
         if genome_dir:
+            
             for f in os.listdir(genome_dir):
                 genome_id = remove_extension(f)
                 genomic_files[genome_id] = os.path.join(genome_dir, f)
@@ -365,9 +366,10 @@ class Markers(object):
             
     def _path_to_identify_data(self, genome_ids, indir):
         """Get path to genome data produced by 'identify' command."""
-        
+                
         genomic_files = {}
-        for genome_id in genome_ids:
+        for genome_id_raw in genome_ids:
+            genome_id = os.path.splitext(os.path.basename(genome_id_raw))[0]
             genomic_files[genome_id] = {'aa_gene_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.protein_file_suffix),
                                    'translation_table_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', 'prodigal_translation_table.tsv'),
                                    'nt_gene_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.nt_gene_file_suffix),
