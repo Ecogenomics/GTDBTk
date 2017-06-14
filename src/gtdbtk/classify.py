@@ -58,7 +58,7 @@ class Classify(object):
             
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
-            t = os.path.join(out_dir, prefix + '.msa.fasta')
+            t = os.path.join(out_dir, prefix + '.user_msa.fasta')
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
               
@@ -113,7 +113,7 @@ class Classify(object):
                 while cur_node.parent_node:
                     _support, taxon, _aux_info = parse_label(cur_node.label)
                     if taxon:
-                        for t in taxon.split(';'):
+                        for t in taxon.split(';')[::-1]:
                             taxa.append(t.strip())
                             
                     cur_node = cur_node.parent_node
