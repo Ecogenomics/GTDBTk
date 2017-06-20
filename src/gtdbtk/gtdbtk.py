@@ -130,6 +130,12 @@ class OptionsParser():
         
     def classify(self, options):
         """Determine taxonomic classification of genomes."""
+        
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            
+        if options.batchfile:
+            check_file_exists(options.batchfile)
 
         check_file_exists(options.user_msa_file)
         make_sure_path_exists(options.out_dir)
@@ -140,9 +146,11 @@ class OptionsParser():
 
         classify = Classify(options.cpus)
         classify.run(options.user_msa_file,
-                        marker_set_id,
-                        options.out_dir,
-                        options.prefix)
+                     options.genome_dir,
+                     options.batchfile,                    
+                     marker_set_id,
+                     options.out_dir,
+                     options.prefix)
         
         self.logger.info('Done.')
         

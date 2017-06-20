@@ -19,11 +19,16 @@ import os
 import sys
 import shutil
 import logging
+import tempfile
 
 from biolib.common import remove_extension
 from biolib.seq_io import read_seq, read_fasta
 from biolib.newick import parse_label
 from biolib.external.execute import check_dependencies
+from biolib.taxonomy import Taxonomy
+
+from tools import genomes_to_process,add_ncbi_prefix,merge_two_dicts
+
 
 import config.config as Config
 
@@ -37,6 +42,9 @@ class Classify(object):
         """Initialize."""
         
         check_dependencies(['pplacer', 'guppy'])
+        
+        self.taxonomy_file = Config.TAXONOMY_FILE
+
         
         self.logger = logging.getLogger('timestamp') 
         self.cpus = cpus
@@ -77,6 +85,7 @@ class Classify(object):
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
+        
         os.system(cmd)
 
         # extract tree
@@ -87,25 +96,50 @@ class Classify(object):
         return tree_file
         
     def run(self, 
-            user_msa_file, 
+            user_msa_file,
+            genome_dir, 
+            batchfile, 
             marker_set_id, 
             out_dir, 
             prefix):
         """Classify genomes based on position in reference tree."""
         
-        classify_tree = self.place_genomes(user_msa_file,
-                                            marker_set_id,
-                                            out_dir,
-                                            prefix)
+        #=======================================================================
+        # classify_tree = self.place_genomes(user_msa_file,
+        #                                     marker_set_id,
+        #                                     out_dir,
+        #                                     prefix)
+        #=======================================================================
         
+        genomes = genomes_to_process(genome_dir, batchfile)
+        classify_tree = '/srv/home/uqpchaum/playground/gtdbtk_test/classify_10UBAs/classify/gtdbtk.classify.tree'
         # get taxonomic classification of each user genome
         tree = dendropy.Tree.get_from_path(classify_tree, 
                                             schema='newick', 
                                             rooting='force-rooted', 
                                             preserve_underscores=True)
         
-        fout = open(os.path.join(out_dir, prefix + '.classification.tsv'), 'w')
+        gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
+        
+        fout = open(os.path.join(out_dir, prefix + '.classification.tsv'), 'w')   
+        
+        # We measure the mash distance for Genome placed on terminal branches
+        analysed_nodes = []
+        mash_dict = {}
+        for nd in tree:
+            list_subnode_initials = [subnd.taxon.__str__().replace("'",'')[0] for subnd in nd.leaf_iter()]
+            list_subnode = [subnd.taxon.__str__().replace("'",'') for subnd in nd.leaf_iter()]
+            if list_subnode_initials.count('U') == len(list_subnode_initials) - 1 and len(list_subnode_initials) > 1 and list_subnode[0] not in analysed_nodes:
+                results = self._calculate_mash_distance(list_subnode,genomes)
+                mash_dict = merge_two_dicts(mash_dict,results)
+                analysed_nodes.extend(list_subnode)
+        for k,v in mash_dict.iteritems():
+            suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
+            taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
+            fout.write('%s\t%s\n' % (k, taxa_str))        
+        
         user_genome_ids = set(read_fasta(user_msa_file).keys())
+        user_genome_ids = user_genome_ids.difference(set(mash_dict.keys()))
         for leaf in tree.leaf_node_iter():
             if leaf.taxon.label in user_genome_ids:
                 taxa = []
@@ -121,7 +155,50 @@ class Classify(object):
                 taxa_str = ';'.join(taxa[::-1])
                 fout.write('%s\t%s\n' % (leaf.taxon.label, taxa_str))
         fout.close()
+    
         
         print "THERE RESULTS SHOULD BE REFINED TO SEE IF A GENOME CAN BE ASSIGNED TO ANY SISTER TAXON"
         print "EX: PERHAPS THIS GENOME BELONGS TO A SISTER CLASS!"
         print "NEED TO GET FIXED PhyloRank THRESHOLDS INTO THE MIX."
+        
+        
+    def _calculate_mash_distance(self,list_leaf,genomes):
+        """ Calculate the Mash distance between all user genomes and the reference to classfy them at the species level"""
+        try:
+            self.tmp_output_dir = tempfile.mkdtemp()
+            for leaf in list_leaf:
+                if leaf.startswith('U'):
+                    shutil.copy(genomes.get(leaf),self.tmp_output_dir)
+            cmd = 'mash sketch -s 5000 -k 16 -o {0}/user_genomes {0}/*.fna -p {1} > /dev/null 2>&1'.format(self.tmp_output_dir,self.cpus)
+            os.system(cmd)
+            reference_db = os.path.join(Config.MASH_DIR,Config.MASH_DB)
+            cmd = 'mash dist {0} {1}/user_genomes.msh -p {2} -d {3}> {1}/distances.tab'.format(reference_db,self.tmp_output_dir,self.cpus,Config.MASH_SPECIES_THRESHOLD) 
+            os.system(cmd)
+            if not os.path.isfile(os.path.join(self.tmp_output_dir,'user_genomes.msh')) or not os.path.isfile(os.path.join(self.tmp_output_dir,'distances.tab')):
+                raise
+            dict_parser_distance = self._parse_mash_results(os.path.join(self.tmp_output_dir,'distances.tab'))
+            return dict_parser_distance
+              
+        except:
+            if os.path.exists(self.tmp_output_dir):
+                shutil.rmtree(self.tmp_output_dir)
+            raise
+        
+    def _parse_mash_results(self,distance_file):
+        dict_results = {}
+        with open(distance_file) as distfile:
+            for line in distfile:
+                info = line.strip().split("\t")
+                ref_genome = "_".join(info[0].split("_", 2)[:2])
+                user_g = remove_extension(os.path.basename(info[1]))
+                mash_dist = float(info[2])
+                if user_g in dict_results:
+                    if mash_dist < dict_results.get(user_g).get("mash_dist"):
+                        dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
+                else:
+                    dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
+                    
+        return dict_results
+
+                    
+                

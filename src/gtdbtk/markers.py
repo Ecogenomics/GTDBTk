@@ -38,7 +38,7 @@ from external.hmm_aligner import HmmAligner
 import config.config as Config
 import config.config_metadata as ConfigMetadata
 
-from tools import splitchunks, list_genomes_dir, merge_two_dicts
+from tools import splitchunks, list_genomes_dir, merge_two_dicts, genomes_to_process
 
 
 class Markers(object):
@@ -69,56 +69,7 @@ class Markers(object):
         self.tigrfam_hmms = ConfigMetadata.TIGRFAM_HMMS
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
-        
-    def _genomes_to_process(self, genome_dir, batchfile):
-        """Get genomes to process.
-
-        Parameters
-        ----------
-        genome_dir : str
-          Directory containing genomes.
-        batchfile : str
-          File describing genomes.
-          
-        Returns
-        -------
-        genomic_files : d[genome_id] -> FASTA file
-            Map of genomes to their genomic FASTA files.
-        """
-        
-        genomic_files = {}
-        if genome_dir:
-            
-            for f in os.listdir(genome_dir):
-                genome_id = remove_extension(f)
-                genomic_files[genome_id] = os.path.join(genome_dir, f)
                 
-        elif batchfile:
-            for line_no, line in enumerate(open(batchfile, "rb")):
-                line_split = line.strip().split("\t")
-                if line_split[0] == '':
-                    continue # blank line
-                    
-                if len(line_split) != 2:
-                    self.logger.error('Batch file must contain exactly 2 columns.')
-                    sys.exit()
-
-                genome_file, genome_id  = line_split
-                
-                if genome_file is None or genome_file == '':
-                    self.logger.error('Missing genome file on line %d.' % line_no+1)
-                    self.exit()
-                elif genome_id is None or genome_id == '':
-                    self.logger.error('Missing genome ID on line %d.' % line_no+1)
-                    self.exit()
-                elif genome_id in genomic_files:
-                    self.logger.error('Genome ID %s appear multiple times.' % genome_id)
-                    self.exit()
-
-                genomic_files[genome_id] = genome_file
-            
-        return genomic_files
-        
     def _prepare_genomes(self, dict_user_genomes, output_dir):
         """Copy genome files in temporary folders in order to process them.
 
@@ -318,7 +269,7 @@ class Markers(object):
         """Identify marker genes in genomes."""
         
         try:
-            genomes = self._genomes_to_process(genome_dir, batchfile)
+            genomes = genomes_to_process(genome_dir, batchfile)
             self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes), 
                                                                                         self.cpus))
             
