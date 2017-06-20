@@ -250,6 +250,14 @@ if __name__ == '__main__':
                                     help="multiple sequence alignment of user genomes in FASTA format")
     required_classify.add_argument('--out_dir', required=True,
                                     help='directory to output files')
+    
+    mutex_align = classify_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_group = mutex_align.add_mutually_exclusive_group(required=True)
+    mutex_group.add_argument('--genome_dir',
+                                help="directory exclusively containing genome files in FASTA format") 
+    mutex_group.add_argument('--batchfile',
+                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+    
                                     
     mutual_classify = classify_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_classify.add_mutually_exclusive_group(required=True)
