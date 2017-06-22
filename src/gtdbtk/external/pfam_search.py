@@ -34,7 +34,6 @@ class PfamSearch(object):
         self.threads = threads
 
         self.pfam_hmm_dir = pfam_hmm_dir
-        print self.pfam_hmm_dir
         self.protein_file_suffix = protein_file_suffix
         self.pfam_suffix = pfam_suffix
         self.pfam_top_hit_suffix = pfam_top_hit_suffix
