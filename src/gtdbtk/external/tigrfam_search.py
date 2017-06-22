@@ -31,7 +31,6 @@ class TigrfamSearch(object):
 
         self.threads = threads
         self.tigrfam_hmms = tigrfam_hmms
-        print tigrfam_hmms
         self.protein_file_suffix = protein_file_suffix
         self.tigrfam_suffix = tigrfam_suffix
         self.tigrfam_top_hit_suffix = tigrfam_top_hit_suffix

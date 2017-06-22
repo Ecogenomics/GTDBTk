@@ -104,15 +104,12 @@ class Classify(object):
             prefix):
         """Classify genomes based on position in reference tree."""
         
-        #=======================================================================
-        # classify_tree = self.place_genomes(user_msa_file,
-        #                                     marker_set_id,
-        #                                     out_dir,
-        #                                     prefix)
-        #=======================================================================
+        classify_tree = self.place_genomes(user_msa_file,
+                                            marker_set_id,
+                                            out_dir,
+                                            prefix)
         
         genomes = genomes_to_process(genome_dir, batchfile)
-        classify_tree = '/srv/home/uqpchaum/playground/gtdbtk_test/classify_10UBAs/classify/gtdbtk.classify.tree'
         # get taxonomic classification of each user genome
         tree = dendropy.Tree.get_from_path(classify_tree, 
                                             schema='newick', 

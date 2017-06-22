@@ -399,7 +399,7 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         try:
-            genomes = self._genomes_to_process(genome_dir, batchfile)
+            genomes = genomes_to_process(genome_dir, batchfile)
             self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomes), 
                                                                                         self.cpus))
             genomic_files = self._path_to_identify_data(genomes, identify_dir)

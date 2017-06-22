@@ -7,8 +7,8 @@ CHECKSUM_SUFFIX = ".sha256"
 
 #TIGRFAM_HMMS = '/srv/whitlam/bio/db/tigrfam/15.0/TIGRFAMs_15.0_HMM/tigrfam.hmm'
 #PFAM_HMM_DIR = '/srv/db/pfam/27/'
-TIGRFAM_HMMS = '/srv/home/uqpchaum/playground/gtdbtk_data/markers/tigrfam/tigrfam.hmm'
-PFAM_HMM_DIR = '/srv/home/uqpchaum/playground/gtdbtk_data/markers/pfam/'
+TIGRFAM_HMMS = '/srv/db/gtdbtk/markers//tigrfam/tigrfam.hmm'
+PFAM_HMM_DIR = '/srv/db/gtdbtk/markers/pfam/'
 
 
 TIGRFAM_SUFFIX = "_tigrfam.tsv"

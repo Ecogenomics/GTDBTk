@@ -40,32 +40,37 @@ RPS23_MARKERS = {"PFAM": ["PF00687.16.hmm","PF00466.15.hmm","PF00298.14.hmm","PF
                             "PF00333.15.hmm","PF03719.10.hmm","PF00177.16.hmm","PF00410.14.hmm",
                             "PF00380.14.hmm","PF00164.20.hmm"],
                     "TIGRFAM": []}
+
+GENERIC_PATH = '/srv/db/gtdbtk/'
                        
-TIGRFAM_HMM_DIR = '/srv/db/tigrfam/15.0/TIGRFAMs_15.0_HMM/individual_hmms/'
-PFAM_HMM_DIR = '/srv/db/pfam/27/individual_hmms/'
+TIGRFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/individual_hmms/'
+PFAM_HMM_DIR = GENERIC_PATH + 'markers/tigrfam/individual_hmms/'
 
 # Path to MSA and Taxonomy
-GENERIC_PATH = "/srv/home/uqpchaum/development/GtdbTK/data/"
 
 MSA_FOLDER = GENERIC_PATH + "msa/"
-CONCAT_BAC120 = MSA_FOLDER + "gtdb_concatenated_bacteria.faa"
+CONCAT_BAC120 = MSA_FOLDER + "gtdb_r78_bac120.faa"
 CONCAT_AR122 = MSA_FOLDER + "gtdb_concatenated_archaea.faa"
-CONCAT_RPS23 = "/srv/db/gtdbtk/msa/" + "gtdb_r78_rps23.faa"
+CONCAT_RPS23 = MSA_FOLDER + "gtdb_r78_rps23.faa"
 
 TAX_FOLDER = GENERIC_PATH + "taxonomy/"
 TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
 
 # Path to canonical masks
-MASK_DIR = "/srv/db/gtdbtk/masks"
+MASK_DIR = GENERIC_PATH + "masks/"
 MASK_BAC120 = "gtdb_r78_bac120.mask"
 MASK_AR122 = "gtdb_r78_ar122.mask"
 MASK_RPS23 = "gtdb_r78_rps23.mask"
 
 # Path to pplacer data
-PPLACER_DIR = "/srv/db/gtdbtk/pplacer"
+PPLACER_DIR = GENERIC_PATH + "pplacer/"
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
 
 PPLACER_BAC120_REF_PKG = "gtdb_r78_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_r78_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_r78_rps23.refpkg"
+
+MASH_DIR = GENERIC_PATH + "mash/"
+MASH_DB = 'reference/reference_database.msh'
+MASH_SPECIES_THRESHOLD = 0.05
