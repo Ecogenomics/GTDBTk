@@ -17,6 +17,7 @@
 
 import os
 import logging
+import sys
 
 from markers import Markers
 from classify import Classify
@@ -54,22 +55,27 @@ class OptionsParser():
     def identify(self, options):
         """Identify marker genes in genomes."""
         
-        if options.genome_dir:
-            check_dir_exists(options.genome_dir)
-            
-        if options.batchfile:
-            check_file_exists(options.batchfile)
-            
-        make_sure_path_exists(options.out_dir)
-            
-        markers = Markers(options.cpus)
-        markers.identify(options.genome_dir,
-                            options.batchfile,
-                            options.proteins,
-                            options.out_dir, 
-                            options.prefix)
-                            
-        self.logger.info('Done.')
+        try:
+        
+            if options.genome_dir:
+                check_dir_exists(options.genome_dir)
+                
+            if options.batchfile:
+                check_file_exists(options.batchfile)
+                
+            make_sure_path_exists(options.out_dir)
+                
+            markers = Markers(options.cpus)
+            markers.identify(options.genome_dir,
+                                options.batchfile,
+                                options.proteins,
+                                options.out_dir, 
+                                options.prefix)
+                                
+            self.logger.info('Done.')
+        
+        except Exception as e:
+            self.logger.info('GTDB-Tk has encountered an error.')
         
     def align(self, options):
         """Create MSA from marker genes."""
