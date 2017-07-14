@@ -315,6 +315,10 @@ class Markers(object):
             self.logger.error(str(e))
             self.logger.error("GTDB-Tk has encountered an error.")
             
+        except Exception as e:
+            self.logger.error(str(e))
+            raise
+            
     def _path_to_identify_data(self, genome_ids, indir):
         """Get path to genome data produced by 'identify' command."""
                 

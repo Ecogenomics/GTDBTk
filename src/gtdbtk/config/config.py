@@ -63,7 +63,7 @@ MASK_AR122 = "gtdb_r78_ar122.mask"
 MASK_RPS23 = "gtdb_r78_rps23.mask"
 
 # Path to pplacer data
-PPLACER_DIR = GENERIC_PATH + "pplacer/"
+PPLACER_DIR = GENERIC_PATH + "pplacer/pruned_trees/"
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
 
@@ -74,3 +74,9 @@ PPLACER_RPS23_REF_PKG = "gtdb_r78_rps23.refpkg"
 MASH_DIR = GENERIC_PATH + "mash/"
 MASH_DB = 'reference/reference_database.msh'
 MASH_SPECIES_THRESHOLD = 0.05
+
+#Relative Evolution Distance
+RED_MIN_SUPPORT = 0.0
+RED_MIN_CHILDREN = 2 
+RED_DIST_DICT = {"p__":0.305405949512,"c__":0.459651489695,"o__":0.63568945839,"f__":0.777457279798,"g__":0.936705904511}
+

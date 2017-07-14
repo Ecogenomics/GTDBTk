@@ -60,6 +60,11 @@ def genomes_to_process(genome_dir, batchfile):
                     self.exit()
 
                 genomic_files[genome_id] = genome_file
+                
+        for genome_key in genomic_files.iterkeys():
+            if genome_key.startswith("RS_") or genome_key.startswith("GB_"):
+                raise Exception("Submitted genomes start with similar prefix (RS_,GB_) as reference Genomes in GtdbTk. This may cause issues for downstream analysis.") 
+            
             
         return genomic_files
     

@@ -42,3 +42,28 @@ CONCAT_ARC = MSA_FOLDER + "gtdb_concatenated_archaea.faa"
 
 TAX_FOLDER = GENERIC_PATH + "taxonomy/"
 TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
+
+# Path to canonical masks
+MASK_DIR = GENERIC_PATH + "masks/"
+MASK_BAC120 = "gtdb_bac120.mask"
+MASK_AR122 = "gtdb_ar122.mask"
+MASK_RPS23 = "gtdb_rps23.mask"
+
+# Path to pplacer data
+PPLACER_DIR = GENERIC_PATH + "pplacer/"
+PPLACER_OUT = "pplacer.out"
+PPLACER_JSON_OUT = "pplacer.json"
+
+PPLACER_BAC120_REF_PKG = "gtdb_bac120.refpkg"
+PPLACER_AR122_REF_PKG = "gtdb_ar122.refpkg"
+PPLACER_RPS23_REF_PKG = "gtdb_rps23.refpkg"
+
+MASH_DIR = GENERIC_PATH + "mash/"
+MASH_DB = 'reference/reference_database.msh'
+MASH_SPECIES_THRESHOLD = 0.05
+
+#Relative Evolution Distance
+RED_MIN_SUPPORT = 0.0
+RED_MIN_CHILDREN = 2 
+RED_DIST_DICT = { 'RED dictionary generate by phylorank outliers'}
+
