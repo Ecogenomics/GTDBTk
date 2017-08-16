@@ -63,7 +63,7 @@ MASK_AR122 = "gtdb_r78_ar122.mask"
 MASK_RPS23 = "gtdb_r78_rps23.mask"
 
 # Path to pplacer data
-PPLACER_DIR = GENERIC_PATH + "pplacer/"
+PPLACER_DIR = GENERIC_PATH + "pplacer/pruned_trees"
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
 

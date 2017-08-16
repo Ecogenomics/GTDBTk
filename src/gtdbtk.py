@@ -41,10 +41,11 @@ def printHelp():
               ...::: GTDB-Tk v%s :::...
 
   Workflows:
-    de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
-                     (identify -> align -> infer -> root -> decorate)
     classify_wf -> Classify genomes by placement in GTDB reference tree
                      (identify -> align -> classify)
+    de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
+                     (identify -> align -> infer -> root -> decorate)
+
     
   Methods:
     identify -> Identify marker genes in genome
