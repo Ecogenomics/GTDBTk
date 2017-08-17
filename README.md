@@ -36,6 +36,10 @@ Usage information about specific methods can also be accessed through the help m
 
 ## De novo workflow
 
+## Validating Species Assignments
+
+The GTDB-Tk uses Mash distances to estimate the ANI between genomes. Mash is computationally favourable, but is primarily used for practical considerations as it removes the need to have all references genomes avaliable to the GTDB-Tk in order to calculate ANI values. We recommend that species assignments made by the GTDB-Tk be validate using ANI distances against a suitably large set of reference genomes. ANI values can be calculated using [gANI](https://ani.jgi-psf.org/html/home.php).
+
 ## Cite
 
 If you find this package useful, please cite:
