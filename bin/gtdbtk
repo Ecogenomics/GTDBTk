@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
     optional_classify_wf.add_argument('--proteins', action="store_true",
-                                    help='genome files contains proteins')
+                                    help='genome files contain protein sequences')
     optional_classify_wf.add_argument('--min_perc_aa', type=float, default=50,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_classify_wf.add_argument('--prefix', required=False, default='gtdbtk',
@@ -338,12 +338,14 @@ if __name__ == '__main__':
     #-------------------------------------------------
     # do what we came here to do
     try:
-        gt_parser = gtdbtk.OptionsParser(__version__)
+        gt_parser = OptionsParser(version())
         if(False):
             import cProfile
             cProfile.run('gt_parser.parseOptions(args)', 'prof')
         else:
             gt_parser.parse_options(args)
+    except SystemExit:
+        print("\nControlled exit resulting from an unrecoverable error or warning.")
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
