@@ -8,6 +8,14 @@ efficient and designed to work with recent advances that allow hundreds or thous
 
 ## Installation
 
+GTDB-Tk requires the following Python libraries:
+* [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
+* [mpld3](http://mpld3.github.io/) >= 0.2: D3 viewer for Matplotlib.
+* [biolib](https://github.com/dparks1134/biolib) >= 0.0.44: Python package for common tasks in bioinformatic.
+* [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries
+
+Jinja2, mpld3, and biolib should install as part of the GTDB-Tk if you install it via pip as described below. The SciPy Stack must be install seperately of GTDB-Tk.
+
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
@@ -18,7 +26,7 @@ GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system p
 
 Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
-> sudo pip install gtdbtk
+> pip install gtdbtk
 ```
 
 ## Quick Start
@@ -35,13 +43,13 @@ Usage information about specific methods can also be accessed through the help m
 
 ## Classify Workflow
 
-The classify workflow consists of three step: identify, align, and classify. The identify step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. As part of this search marker genes are aligned to their respective HMM model. The align step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment. Finally, the classify step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome into the GTDB-Tk reference tree based on its concatenated multiple sequence alignment. GTDB-Tk classify each genome based on its placement in the reference tree, relative evolutionary distance, and Mash distance (see Chaumeil PA, et al., 2017 for details).
+The classify workflow consists of three step: identify, align, and classify. The identify step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. As part of this search marker genes are aligned to their respective HMM model. The align step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment. Finally, the classify step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome into the GTDB-Tk reference tree based on its concatenated multiple sequence alignment. GTDB-Tk classify each genome based on its placement in the reference tree, relative evolutionary distance, and Mash distance (see Chaumeil PA et al., 2017 for details).
  
 The classify workflow can be run as follows:
 ```
 > gtdbtk classify_wf --genome_dir <my_genomes> --<marker_set> --out_dir <output_dir>
 ```
-This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. Genomes must be in FASTA format. The location of genomes can also be specified using a batch file with the --batchfile flag. The batch file is simply a two column file indicating the location of each genome and the desired genome identified (i.e., a Newick compatible alphanumeric string | PIERRE: WE SHOULD VALIDATE THESE IN THE CODE!). These fields must be seperated by a tab. The GTDB-Tk supports 3 different marker sets:
+This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. Genomes must be in FASTA format. The location of genomes can also be specified using a batch file with the --batchfile flag. The batch file is simply a two column file indicating the location of each genome and the desired genome identified (i.e., a Newick compatible alphanumeric string). These fields must be seperated by a tab. The GTDB-Tk supports 3 different marker sets:
 
 * bac120_ms: 120 bacterial-specific proteins
 * ar122_ms: 122 archaeal-specific proteins
