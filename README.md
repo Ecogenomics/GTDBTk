@@ -19,8 +19,9 @@ Jinja2, mpld3, and biolib should install as part of the GTDB-Tk if you install i
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
-* [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen, F. et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
+* [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
 * [Mash](https://github.com/marbl/mash) >= 1.1.1: Ondov BD, et al. 2016. Mash: fast genome and metagenome distance estimation using MinHash. <i>Genome Biol.</i>, 17, 132.
+* [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.
 
@@ -59,13 +60,43 @@ The workflow supports several optional flags, including:
 * cpus: maximum number of CPUs to use
 * proteins: indicates genome  files contain called proteins as amino acids and gene calling can be skipped
 
-For other flags please consult the command line interface. 
+For other flags please consult the command line interface.
 
-## De novo workflow
+Here is an example run of this workflow:
+```
+> gtdbtk classify_wf --cpus 24 --genome_dir ./my_genomes --ar122_ms --out_dir de_novo_output
+```
 
 ## Validating Species Assignments
 
 The GTDB-Tk uses Mash distances to estimate the ANI between genomes. Mash is computationally favourable, but is primarily used for practical considerations as it removes the need to have all references genomes avaliable to the GTDB-Tk in order to calculate ANI values. We recommend that species assignments made by the GTDB-Tk be validate using ANI distances against a suitably set of reference genomes. ANI values can be calculated using [ANIcalculator](https://ani.jgi-psf.org/html/home.php).
+
+## De Dovo Workflow
+
+The <i>de novo</i> workflow infers a new tree containing all reference GTDB-Tk genomes and user supply genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a <i>de novo</i> tree is desired. This workflow consists of five steps: identify, align, infer, root, and decorate. The first to are the same as in the classify workflow. The infer step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a <i>de novo</i> tree. This tree is then rooted using a user specified outgroup and then decorated with the GTDB taxonomy. 
+
+The classify workflow can be run as follows:
+```
+> gtdbtk de_novo_wf --genome_dir <my_genomes> --<marker_set> --outgroup_taxon <outgroup> --out_dir <output_dir>
+```
+This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. The tree will thbe rooted with the <outgroup> taxon. Identical to the classify workflow, the location of genomes can also be specified using a batch file with the --batchfile flag and any of the 3 marker sets defined by GTDB-Tk used to infer the tree.
+
+The workflow supports several optional flags, including:
+* cpus: maximum number of CPUs to use
+* min_perc_aa: filter genomes with an insufficient percentage of AA in the MSA (default: 50)
+* taxa_filter: filter genomes to taxa within specific taxonomic groups
+* prot_model:  protein substitution model for tree inference (LG or WAG; default: WAG)
+
+For other flags please consult the command line interface.
+
+Here is an example run of this workflow:
+```
+> gtdbtk de_novo_wf --genome_dir ./genomes --bac120_ms --outgroup_taxon p__Acetothermia --taxa_filter p__Firmicutes --out_dir de_novo_output
+```
+
+## Individual Steps
+
+All steps comprising the classify and <i>de novo</i> workflows can be run independently if desired. Please consult the command line interface for specific details on running each of these steps.
 
 ## Cite
 
