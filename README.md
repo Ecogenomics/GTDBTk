@@ -9,10 +9,12 @@ efficient and designed to work with recent advances that allow hundreds or thous
 ## Installation
 
 GTDB-Tk requires the following Python libraries:
-* [mpld3](http://mpld3.github.io/): D3 viewer for Matplotlib
+* [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
+* [mpld3](http://mpld3.github.io/) >= 0.2: D3 viewer for Matplotlib.
+* [biolib](https://github.com/dparks1134/biolib) >= 0.0.44: Python package for common tasks in bioinformatic.
 * [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries
 
-The SciPy Stack must be install seperately of GTDB-Tk. Mpld3 should install as part of the GTDB-Tk if you install it via pip as described below.
+Jinja2, mpld3, and biolib should install as part of the GTDB-Tk if you install it via pip as described below. The SciPy Stack must be install seperately of GTDB-Tk.
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
