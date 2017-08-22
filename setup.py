@@ -31,5 +31,7 @@ setup(
           'Programming Language :: Python :: 3',
           'Topic :: Scientific/Engineering :: Bio-Informatics',
           ],
-    install_requires=[],
+    install_requires=["biolib >= 0.0.43",
+                        "jinja2>=2.7.3",
+                        "mpld3>=0.2"],
 )
