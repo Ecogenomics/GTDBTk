@@ -34,6 +34,10 @@ Usage information about specific methods can also be accessed through the help m
 
 ## Classify Workflow
 
+The classify workflow consists of three step: identify, align, and classify. The identify step finds marker genes
+ 
+ identify -> align -> classify
+
 ## De novo workflow
 
 ## Validating Species Assignments

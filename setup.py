@@ -7,8 +7,8 @@ import os
 
 def version():
     setupDir = os.path.dirname(os.path.realpath(__file__))
-    versionFile = open(os.path.join(setupDir, 'src', 'VERSION'))
-    return versionFile.read().strip()
+    versionFile = open(os.path.join(setupDir, 'gtdbtk', 'VERSION'))
+    return versionFile.readline().strip()
 
 setup(
     name='gtdbtk',
