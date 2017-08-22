@@ -24,9 +24,6 @@ from biolib.taxonomy import Taxonomy
 from biolib.common import is_float
 from biolib.newick import parse_label
 
-
-
-
 import dendropy
 import mpld3
 
@@ -51,7 +48,6 @@ class RelativeDistance(AbstractPlot):
        
     """
     
-
     def __init__(self):
         """Initialization."""
         self.logger = logging.getLogger()
@@ -170,16 +166,6 @@ class RelativeDistance(AbstractPlot):
 
         return rel_dists
 
-
-    def is_integer(s):
-        """Test if a string represents an integer."""
-        try:
-            int(s)
-            return True
-        except ValueError:
-            return False
-    
-    
     def read_taxa_file(taxa_file):
         """Read taxa from file.
     
@@ -280,7 +266,6 @@ class RelativeDistance(AbstractPlot):
             taxa_for_dist_inference = trusted_taxa.intersection(taxa_for_dist_inference)
     
         return taxa_for_dist_inference
-        
         
     def get_phyla_lineages(tree):
         """Get list of phyla level lineages.
@@ -827,7 +812,6 @@ class RelativeDistance(AbstractPlot):
                                                                    'Insufficent data to calcualte median for rank.'))
         fout.close()
 
-
     def _is_integer(self,s):
         """Test if a string represents an integer."""
         try:
@@ -835,6 +819,3 @@ class RelativeDistance(AbstractPlot):
             return True
         except ValueError:
             return False
-
-        
-    
