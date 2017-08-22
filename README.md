@@ -71,7 +71,7 @@ Here is an example run of this workflow:
 
 The GTDB-Tk uses Mash distances to estimate the ANI between genomes. Mash is computationally favourable, but is primarily used for practical considerations as it removes the need to have all references genomes avaliable to the GTDB-Tk in order to calculate ANI values. We recommend that species assignments made by the GTDB-Tk be validate using ANI distances against a suitably set of reference genomes. ANI values can be calculated using [ANIcalculator](https://ani.jgi-psf.org/html/home.php).
 
-## De Dovo Workflow
+## De Novo Workflow
 
 The <i>de novo</i> workflow infers a new tree containing all reference GTDB-Tk genomes and user supply genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a <i>de novo</i> tree is desired. This workflow consists of five steps: identify, align, infer, root, and decorate. The first to are the same as in the classify workflow. The infer step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a <i>de novo</i> tree. This tree is then rooted using a user specified outgroup and then decorated with the GTDB taxonomy. 
 
