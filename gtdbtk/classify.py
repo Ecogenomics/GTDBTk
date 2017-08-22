@@ -24,7 +24,7 @@ import random
 
 from collections import defaultdict, namedtuple
 
-from biolib.common import remove_extension
+from biolib.common import remove_extension, make_sure_path_exists
 from biolib.seq_io import read_seq, read_fasta
 from biolib.newick import parse_label
 from biolib.external.execute import check_dependencies
@@ -433,10 +433,12 @@ class Classify():
         """
         try:
             self.tmp_output_dir = tempfile.mkdtemp()
+            usr_genome_dir = os.path.join(self.tmp_output_dir, 'input_genomes')
+            make_sure_path_exists(usr_genome_dir)
             for leaf in list_leaf:
                 if not leaf.startswith('GB_') and not leaf.startswith('RS_'):
-                    shutil.copy(genomes.get(leaf),self.tmp_output_dir)
-            cmd = 'mash sketch -s 5000 -k 16 -o {0}/user_genomes {0}/*.fna -p {1} > /dev/null 2>&1'.format(self.tmp_output_dir,self.cpus)
+                    shutil.copy(genomes.get(leaf), usr_genome_dir)
+            cmd = 'mash sketch -s 5000 -k 16 -o {0}/user_genomes {1}/* -p {2} > /dev/null 2>&1'.format(self.tmp_output_dir, usr_genome_dir, self.cpus)
             os.system(cmd)
             reference_db = os.path.join(Config.MASH_DIR,Config.MASH_DB)
             cmd = 'mash dist {0} {1}/user_genomes.msh -p {2} -d {3}> {1}/distances.tab'.format(reference_db,self.tmp_output_dir,self.cpus,Config.MASH_SPECIES_THRESHOLD) 
