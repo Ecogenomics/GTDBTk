@@ -24,7 +24,7 @@ GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system p
 
 Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
-> sudo pip install gtdbtk
+> pip install gtdbtk
 ```
 
 ## Quick Start
