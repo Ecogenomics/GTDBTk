@@ -80,13 +80,7 @@ class OptionsParser():
         
     def align(self, options):
         """Create MSA from marker genes."""
-        
-        if options.genome_dir:
-            check_dir_exists(options.genome_dir)
-            
-        if options.batchfile:
-            check_file_exists(options.batchfile)
-            
+
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
  
@@ -95,10 +89,7 @@ class OptionsParser():
                                             options.rps23_ms)
           
         markers = Markers(options.threads)
-        markers.align(options.genome_dir,
-                        options.extension,
-                        options.batchfile,
-                        options.identify_dir,
+        markers.align(options.identify_dir,
                         marker_set_id,
                         options.taxa_filter,
                         options.min_perc_aa,

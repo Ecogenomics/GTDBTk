@@ -74,7 +74,7 @@ if __name__ == '__main__':
     mutual_genome_denovo_wf = denovo_wf_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_denovo_wf.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory exclusively containing genome files in FASTA format") 
+                                help="directory containing genome files in FASTA format") 
     mutex_group.add_argument('--batchfile',
                                 help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     mutual_genome_classify_wf = classify_wf_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_classify_wf.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory exclusively containing genome files in FASTA format") 
+                                help="directory containing genome files in FASTA format") 
     mutex_group.add_argument('--batchfile',
                                 help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     mutex_identify = identify_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutex_identify.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory exclusively containing genome files in FASTA format") 
+                                help="directory containing genome files in FASTA format") 
     mutex_group.add_argument('--batchfile',
                                 help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     
@@ -185,14 +185,7 @@ if __name__ == '__main__':
     align_parser = subparsers.add_parser('align', conflict_handler='resolve',
                                          formatter_class=CustomHelpFormatter,
                                          help='Create multiple sequence alignment.',)
-                                         
-    mutex_align = align_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutex_align.add_mutually_exclusive_group(required=True)
-    mutex_group.add_argument('--genome_dir',
-                                help="directory exclusively containing genome files in FASTA format") 
-    mutex_group.add_argument('--batchfile',
-                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
-    
+
     required_align = align_parser.add_argument_group('required named arguments')
     required_align.add_argument('--identify_dir', required=True,
                                        help="output directory of 'identify' command")
@@ -261,11 +254,10 @@ if __name__ == '__main__':
     mutex_align = classify_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutex_align.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory exclusively containing genome files in FASTA format") 
+                                help="directory containing genome files in FASTA format") 
     mutex_group.add_argument('--batchfile',
                                 help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     
-                                    
     mutual_classify = classify_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_classify.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--bac120_ms', action='store_true', help='classify with 120 bacterial marker genes')
