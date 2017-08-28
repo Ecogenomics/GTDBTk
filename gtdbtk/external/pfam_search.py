@@ -26,9 +26,14 @@ from biolib.checksum import sha256
 class PfamSearch(object):
     """Runs pfam_search.pl over a set of genomes."""
 
-    def __init__(self, threads, pfam_hmm_dir,
-                 protein_file_suffix, pfam_suffix,
-                 pfam_top_hit_suffix, checksum_suffix):
+    def __init__(self, 
+                    threads, 
+                    pfam_hmm_dir,
+                    protein_file_suffix, 
+                    pfam_suffix,
+                    pfam_top_hit_suffix, 
+                    checksum_suffix,
+                    output_dir):
         """Initialization."""
 
         self.threads = threads
@@ -38,6 +43,7 @@ class PfamSearch(object):
         self.pfam_suffix = pfam_suffix
         self.pfam_top_hit_suffix = pfam_top_hit_suffix
         self.checksum_suffix = checksum_suffix
+        self.output_dir = output_dir
 
     def _topHit(self, pfam_file):
         """Determine top hits to PFAMs.
@@ -55,8 +61,9 @@ class PfamSearch(object):
         """
 
         assembly_dir, filename = os.path.split(pfam_file)
-        output_tophit_file = os.path.join(assembly_dir, filename.replace(self.pfam_suffix,
-                                                                         self.pfam_top_hit_suffix))
+        genome_id = filename.replace(self.pfam_suffix, '')
+        output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
+                                                                                        self.pfam_top_hit_suffix))
 
         tophits = defaultdict(dict)
         for line in open(pfam_file):
@@ -100,8 +107,9 @@ class PfamSearch(object):
                 break
 
             genome_dir, filename = os.path.split(gene_file)
-            output_hit_file = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
-                                                                        self.pfam_suffix))
+            genome_id = filename.replace(self.protein_file_suffix, '')
+            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
+                                                                                        self.pfam_suffix))
 
             cmd = 'pfam_search.pl -outfile %s -cpu %d -fasta %s -dir %s' % (output_hit_file,
                                                                             self.cpus_per_genome,

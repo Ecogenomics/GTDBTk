@@ -67,6 +67,7 @@ class OptionsParser():
                 
             markers = Markers(options.cpus)
             markers.identify(options.genome_dir,
+                                options.extension,
                                 options.batchfile,
                                 options.proteins,
                                 options.out_dir, 
@@ -95,6 +96,7 @@ class OptionsParser():
           
         markers = Markers(options.threads)
         markers.align(options.genome_dir,
+                        options.extension,
                         options.batchfile,
                         options.identify_dir,
                         marker_set_id,

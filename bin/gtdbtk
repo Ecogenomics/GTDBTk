@@ -91,6 +91,8 @@ if __name__ == '__main__':
                                     help="directory to output files")
 
     optional_denovo_wf = denovo_wf_parser.add_argument_group('optional arguments')
+    optional_denovo_wf.add_argument('-x', '--extension', default='fna',
+                                    help='extension of files to process')
     optional_denovo_wf.add_argument('--proteins', action="store_true",
                                     help='genome files contains proteins')
     optional_denovo_wf.add_argument('--taxa_filter',
@@ -138,6 +140,8 @@ if __name__ == '__main__':
                                     help="directory to output files")
 
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
+    optional_classify_wf.add_argument('-x', '--extension', default='fna',
+                                    help='extension of files to process')
     optional_classify_wf.add_argument('--proteins', action="store_true",
                                     help='genome files contain protein sequences')
     optional_classify_wf.add_argument('--min_perc_aa', type=float, default=50,
@@ -166,6 +170,8 @@ if __name__ == '__main__':
                                     help="directory to output files")
 
     optional_identify = identify_parser.add_argument_group('optional arguments')
+    optional_identify.add_argument('-x', '--extension', default='fna',
+                                    help='extension of files to process')
     optional_identify.add_argument('--proteins', action="store_true",
                                     help='genome files contains proteins')
     optional_identify.add_argument('--prefix', default='gtdbtk',

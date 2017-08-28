@@ -50,11 +50,8 @@ class Markers(object):
         self.logger = logging.getLogger('timestamp')
         
         self.cpus = cpus
-        
-        self.identify_dir = 'genome_data'
 
         self.genome_file_suffix = ConfigMetadata.GENOME_FILE_SUFFIX
-        self.marker_gene_dir = Config.MARKER_GENE_DIR
         self.protein_file_suffix = ConfigMetadata.PROTEIN_FILE_SUFFIX
         self.nt_gene_file_suffix = ConfigMetadata.NT_GENE_FILE_SUFFIX
         self.gff_file_suffix = ConfigMetadata.GFF_FILE_SUFFIX
@@ -69,41 +66,6 @@ class Markers(object):
         self.tigrfam_hmms = ConfigMetadata.TIGRFAM_HMMS
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
-                
-    def _prepare_genomes(self, dict_user_genomes, output_dir):
-        """Copy genome files in temporary folders in order to process them.
-
-        Parameters
-        ----------
-        dict_user_genomes : str
-            Name of file describing genomes to add.
-        output_dir : str
-            Output directory.
-
-        Returns
-        -------
-        dict
-            Dictionary indicating the temporary gene file for each genome.
-        """
-
-        genomic_files = {}
-        for user_genome_raw in dict_user_genomes.keys():
-            user_genome = os.path.splitext(os.path.basename(user_genome_raw))[0]
-            genome_output_dir = os.path.join(output_dir, user_genome)
-            if not os.path.exists(genome_output_dir):
-                os.makedirs(genome_output_dir)
-                
-            prodigal_output_dir = os.path.join(genome_output_dir, self.marker_gene_dir)
-            if not os.path.exists(prodigal_output_dir):
-                os.makedirs(prodigal_output_dir)
-
-            # copy the genome file to the temporary folder
-            fasta_target_file = os.path.join(genome_output_dir, user_genome + self.genome_file_suffix)
-            shutil.copy(dict_user_genomes.get(user_genome_raw), fasta_target_file)
-
-            genomic_files[user_genome] = fasta_target_file
-            
-        return genomic_files
         
     def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
         """Report statistics for identified marker genes."""
@@ -265,28 +227,42 @@ class Markers(object):
         arc_outfile.close()
         rps23_outfile.close()
 
-    def identify(self, genome_dir, batchfile, proteins, out_dir, prefix):
+    def identify(self, 
+                    genome_dir,
+                    extension,
+                    batchfile, 
+                    proteins, 
+                    out_dir, 
+                    prefix):
         """Identify marker genes in genomes."""
         
         try:
-            genomes = genomes_to_process(genome_dir, batchfile)
+            genomes = genomes_to_process(genome_dir, batchfile, extension)
+            if len(genomes) == 0:
+                if genome_dir:
+                    self.logger.info('WARNING: No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
+                else:
+                    self.logger.info('WARNING: No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
+                sys.exit(-1)
+                
             self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes), 
                                                                                         self.cpus))
             
-            # gather information for all marker genes
-            output_dir = os.path.join(out_dir, self.identify_dir)
-            genomic_files = self._prepare_genomes(genomes, 
-                                                    output_dir)
- 
-            self.logger.info("Running Prodigal to identify genes.")
+            if proteins:
+                self.logger.info("Genome files specified as containing called proteins.")
+                
+            else:
+                self.logger.info("Running Prodigal to identify genes.")
+                
+            self.marker_gene_dir = os.path.join(out_dir, Config.MARKER_GENE_DIR)
             prodigal = Prodigal(self.cpus,
                                 proteins,
                                 self.marker_gene_dir, 
                                 self.protein_file_suffix,
                                 self.nt_gene_file_suffix, 
                                 self.gff_file_suffix)
-            genome_dictionary = prodigal.run(genomic_files)
-
+            genome_dictionary = prodigal.run(genomes)
+            
             # annotated genes against TIGRfam and Pfam databases
             self.logger.info("Identifying TIGRfam protein families.")
             gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
@@ -297,7 +273,8 @@ class Markers(object):
                                         self.protein_file_suffix,
                                         self.tigrfam_suffix, 
                                         self.tigrfam_top_hit_suffix, 
-                                        self.checksum_suffix)
+                                        self.checksum_suffix,
+                                        self.marker_gene_dir)
             tigr_search.run(gene_files)
 
             self.logger.info("Identifying Pfam protein families.")
@@ -306,7 +283,8 @@ class Markers(object):
                                         self.protein_file_suffix,
                                         self.pfam_suffix, 
                                         self.pfam_top_hit_suffix, 
-                                        self.checksum_suffix)
+                                        self.checksum_suffix,
+                                        self.marker_gene_dir)
             pfam_search.run(gene_files)
 
             self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
@@ -390,6 +368,7 @@ class Markers(object):
 
     def align(self,
                 genome_dir,
+                extension,
                 batchfile, 
                 identify_dir, 
                 marker_set_id, 
@@ -403,7 +382,7 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         try:
-            genomes = genomes_to_process(genome_dir, batchfile)
+            genomes = genomes_to_process(genome_dir, batchfile, extension)
             self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomes), 
                                                                                         self.cpus))
             genomic_files = self._path_to_identify_data(genomes, identify_dir)

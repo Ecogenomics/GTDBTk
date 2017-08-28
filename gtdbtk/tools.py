@@ -14,7 +14,7 @@ from biolib.common import remove_extension
 ##################################################
 
 
-def genomes_to_process(genome_dir, batchfile):
+def genomes_to_process(genome_dir, batchfile, extension):
         """Get genomes to process.
 
         Parameters
@@ -23,6 +23,8 @@ def genomes_to_process(genome_dir, batchfile):
           Directory containing genomes.
         batchfile : str
           File describing genomes.
+        extension : str
+          Extension of files to process.
           
         Returns
         -------
@@ -32,11 +34,12 @@ def genomes_to_process(genome_dir, batchfile):
         
         genomic_files = {}
         if genome_dir:
-            
             for f in os.listdir(genome_dir):
-                genome_id = remove_extension(f)
-                genomic_files[genome_id] = os.path.join(genome_dir, f)
-                
+                if f.endswith(extension):
+                    genome_id = remove_extension(f)
+                    genomic_files[genome_id] = os.path.join(genome_dir, f)
+                    
+            
         elif batchfile:
             for line_no, line in enumerate(open(batchfile, "rb")):
                 line_split = line.strip().split("\t")
@@ -60,7 +63,7 @@ def genomes_to_process(genome_dir, batchfile):
                     self.exit()
 
                 genomic_files[genome_id] = genome_file
-                
+
         for genome_key in genomic_files.iterkeys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_"):
                 raise Exception("Submitted genomes start with similar prefix (RS_,GB_) as reference Genomes in GtdbTk. This may cause issues for downstream analysis.") 
