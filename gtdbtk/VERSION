@@ -1,2 +1,4 @@
+0.0.2
+- modified align command to automatically determine domain of each genome and process accordingly
 0.0.1
 - initial release

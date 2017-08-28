@@ -82,8 +82,7 @@ if __name__ == '__main__':
     mutex_group = mutual_ms_denovo_wf.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--bac120_ms', action='store_true', help='use 120 bacterial marker genes')
     mutex_group.add_argument('--ar122_ms', action='store_true', help='use 122 archaeal marker genes')
-    mutex_group.add_argument('--rps23_ms', action='store_true', help='use 23 universal ribosomal proteins')
-    
+
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
     required_denovo_wf.add_argument('--outgroup_taxon', required=True,
                                 help="taxon to use as outgroup (e.g., p__Patescibacteria)")
@@ -93,8 +92,6 @@ if __name__ == '__main__':
     optional_denovo_wf = denovo_wf_parser.add_argument_group('optional arguments')
     optional_denovo_wf.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process')
-    optional_denovo_wf.add_argument('--proteins', action="store_true",
-                                    help='genome files contains proteins')
     optional_denovo_wf.add_argument('--taxa_filter',
                                        help=('Filter genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
@@ -128,13 +125,7 @@ if __name__ == '__main__':
                                 help="directory containing genome files in FASTA format") 
     mutex_group.add_argument('--batchfile',
                                 help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
-    
-    mutual_ms_classify_wf = classify_wf_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutual_ms_classify_wf.add_mutually_exclusive_group(required=True)
-    mutex_group.add_argument('--bac120_ms', action='store_true', help='classify with 120 bacterial marker genes')
-    mutex_group.add_argument('--ar122_ms', action='store_true', help='classify with 122 archaeal marker genes')
-    mutex_group.add_argument('--rps23_ms', action='store_true', help='classify with 23 universal ribosomal proteins')
-    
+
     required_classify_wf = classify_wf_parser.add_argument_group('required named arguments')
     required_classify_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
@@ -142,8 +133,6 @@ if __name__ == '__main__':
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
     optional_classify_wf.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process')
-    optional_classify_wf.add_argument('--proteins', action="store_true",
-                                    help='genome files contain protein sequences')
     optional_classify_wf.add_argument('--min_perc_aa', type=float, default=50,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_classify_wf.add_argument('--prefix', required=False, default='gtdbtk',
@@ -172,8 +161,6 @@ if __name__ == '__main__':
     optional_identify = identify_parser.add_argument_group('optional arguments')
     optional_identify.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process')
-    optional_identify.add_argument('--proteins', action="store_true",
-                                    help='genome files contains proteins')
     optional_identify.add_argument('--prefix', default='gtdbtk',
                                     help='desired prefix for output files')
     optional_identify.add_argument('--cpus', default=1, type=int,
@@ -191,12 +178,6 @@ if __name__ == '__main__':
                                        help="output directory of 'identify' command")
     required_align.add_argument('--out_dir', required=True,
                                        help='directory to output files')
-
-    mutual_align = align_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutual_align.add_mutually_exclusive_group(required=True)
-    mutex_group.add_argument('--bac120_ms', action='store_true', help='align 120 bacterial marker genes')
-    mutex_group.add_argument('--ar122_ms', action='store_true', help='align 122 archaeal marker genes')
-    mutex_group.add_argument('--rps23_ms', action='store_true', help='align 23 universal ribosomal proteins')
 
     optional_align = align_parser.add_argument_group('optional arguments')
     optional_align.add_argument('--taxa_filter',
@@ -245,26 +226,22 @@ if __name__ == '__main__':
                                          formatter_class=CustomHelpFormatter,
                                          help='Determine taxonomic classification of genomes.',)
 
-    required_classify = classify_parser.add_argument_group('required named arguments')
-    required_classify.add_argument('--user_msa_file', required=True,
-                                    help="multiple sequence alignment of user genomes in FASTA format")
-    required_classify.add_argument('--out_dir', required=True,
-                                    help='directory to output files')
-    
-    mutex_align = classify_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutex_align.add_mutually_exclusive_group(required=True)
+    mutual_genome_classify = classify_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_group = mutual_genome_classify.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
                                 help="directory containing genome files in FASTA format") 
     mutex_group.add_argument('--batchfile',
                                 help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
     
-    mutual_classify = classify_parser.add_argument_group('mutually exclusive required arguments')
-    mutex_group = mutual_classify.add_mutually_exclusive_group(required=True)
-    mutex_group.add_argument('--bac120_ms', action='store_true', help='classify with 120 bacterial marker genes')
-    mutex_group.add_argument('--ar122_ms', action='store_true', help='classify with 122 archaeal marker genes')
-    mutex_group.add_argument('--rps23_ms', action='store_true', help='classify with 23 universal ribosomal proteins')
+    required_classify = classify_parser.add_argument_group('required named arguments')
+    required_classify.add_argument('--align_dir', required=True,
+                                    help="output directory of 'align' command")
+    required_classify.add_argument('--out_dir', required=True,
+                                    help='directory to output files')
 
     optional_classify = classify_parser.add_argument_group('optional arguments')
+    optional_classify.add_argument('-x', '--extension', default='fna',
+                                    help='extension of files to process')
     optional_classify.add_argument('--prefix', required=False, default='gtdbtk',
                                     help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
