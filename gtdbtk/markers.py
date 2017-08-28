@@ -18,11 +18,8 @@
 import os
 import sys
 import logging
-import tempfile
 import shutil
-import multiprocessing
-import time
-import subprocess
+from collections import defaultdict
 
 from gtdblib.trimming import trim_seqs
 
@@ -38,7 +35,7 @@ from external.hmm_aligner import HmmAligner
 import config.config as Config
 import config.config_metadata as ConfigMetadata
 
-from tools import splitchunks, list_genomes_dir, merge_two_dicts, genomes_to_process
+from tools import splitchunks, list_genomes_dir, merge_two_dicts
 
 
 class Markers(object):
@@ -72,13 +69,11 @@ class Markers(object):
 
         bac_outfile = open(os.path.join(outdir, prefix + "_bac120_markers_summary.tsv"), "w")
         arc_outfile = open(os.path.join(outdir, prefix + "_ar122_markers_summary.tsv"), "w")
-        rps23_outfile = open(os.path.join(outdir, prefix + "_rps23_markers_summary.tsv"), "w")
 
         header = "Name\tnumber_unique_genes\tnumber_multiple_genes\tnumber_missing_genes\tlist_unique_genes\tlist_multiple_genes\tlist_missing_genes\n"
 
         bac_outfile.write(header)
         arc_outfile.write(header)
-        rps23_outfile.write(header)
 
         # gather information for all marker genes
         marker_dbs = {"PFAM": ConfigMetadata.PFAM_TOP_HIT_SUFFIX,
@@ -93,20 +88,14 @@ class Markers(object):
         for db_marker in Config.AR122_MARKERS.keys():
             marker_arc_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") 
                                                 for marker in Config.AR122_MARKERS[db_marker]])
-         
-        marker_rps23_list_original = []
-        for db_marker in Config.RPS23_MARKERS.keys():
-            marker_rps23_list_original.extend([marker.replace(".HMM", "").replace(".hmm", "") 
-                                                for marker in Config.RPS23_MARKERS[db_marker]])
 
-        gene_bac_list, gene_arc_list, gene_rps23_list = [], [], []
+        gene_bac_list, gene_arc_list = [], []
 
         for db_genome_id, info in gene_dict.items():
             unique_genes_bac, multi_hits_bac, missing_genes_bac = [], [], []
             unique_genes_arc, multi_hits_arc, missing_genes_arc = [], [], []
-            unique_genes_rps23, multi_hits_rps23, missing_genes_rps23 = [], [], []
 
-            gene_bac_dict, gene_arc_dict, gene_rps23_dict = {}, {}, {}
+            gene_bac_dict, gene_arc_dict = {}, {}
 
             path = info.get("aa_gene_path")
             for marker_db, marker_suffix in marker_dbs.iteritems():
@@ -144,8 +133,7 @@ class Markers(object):
                             markerid = sublist[0]
 
                             if (markerid not in marker_bac_list_original 
-                                and markerid not in marker_arc_list_original
-                                and markerid not in marker_rps23_list_original):
+                                and markerid not in marker_arc_list_original):
                                 continue
 
                             if markerid in marker_bac_list_original:
@@ -165,15 +153,6 @@ class Markers(object):
                                         "gene": genename,
                                         #"gene_seq": all_genes_dict.get(genename),
                                         "multihit": False}
-                                        
-                            if markerid in marker_rps23_list_original:
-                                if markerid in gene_rps23_dict:
-                                    gene_rps23_dict.get(markerid)["multihit"] = True
-                                else:
-                                    gene_rps23_dict[markerid] = {
-                                        "gene": genename,
-                                        #"gene_seq": all_genes_dict.get(genename),
-                                        "multihit": False}
 
             for mid in marker_bac_list_original:
                 if mid not in gene_bac_dict:
@@ -190,14 +169,6 @@ class Markers(object):
                     multi_hits_arc.append(mid)
                 else:
                     unique_genes_arc.append(mid)
-                    
-            for mid in marker_rps23_list_original:
-                if mid not in gene_rps23_dict:
-                    missing_genes_rps23.append(mid)
-                elif gene_rps23_dict[mid]["multihit"]:
-                    multi_hits_rps23.append(mid)
-                else:
-                    unique_genes_rps23.append(mid)
 
             bac_outfile.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n".format(db_genome_id,
                                                                            len(unique_genes_bac),
@@ -214,49 +185,24 @@ class Markers(object):
                                                                            ','.join(unique_genes_arc),
                                                                            ','.join(multi_hits_arc),
                                                                            ','.join(missing_genes_arc)))
-                                                                           
-            rps23_outfile.write("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n".format(db_genome_id,
-                                                                           len(unique_genes_rps23),
-                                                                           len(multi_hits_rps23),
-                                                                           len(missing_genes_rps23),
-                                                                           ','.join(unique_genes_rps23),
-                                                                           ','.join(multi_hits_rps23),
-                                                                           ','.join(missing_genes_rps23)))
 
         bac_outfile.close()
         arc_outfile.close()
-        rps23_outfile.close()
 
     def identify(self, 
-                    genome_dir,
-                    extension,
-                    batchfile, 
-                    proteins, 
+                    genomes, 
                     out_dir, 
                     prefix):
         """Identify marker genes in genomes."""
         
         try:
-            genomes = genomes_to_process(genome_dir, batchfile, extension)
-            if len(genomes) == 0:
-                if genome_dir:
-                    self.logger.info('WARNING: No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
-                else:
-                    self.logger.info('WARNING: No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
-                sys.exit(-1)
-                
             self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes), 
                                                                                         self.cpus))
             
-            if proteins:
-                self.logger.info("Genome files specified as containing called proteins.")
-                
-            else:
-                self.logger.info("Running Prodigal to identify genes.")
-                
+            self.logger.info("Running Prodigal to identify genes.")
             self.marker_gene_dir = os.path.join(out_dir, Config.MARKER_GENE_DIR)
             prodigal = Prodigal(self.cpus,
-                                proteins,
+                                False,
                                 self.marker_gene_dir, 
                                 self.protein_file_suffix,
                                 self.nt_gene_file_suffix, 
@@ -370,10 +316,39 @@ class Markers(object):
                 fout.write('>%s\n' % genome_id)
             fout.write('%s\n' % alignment)
         fout.close()
+        
+    def _genome_domain(self, identity_dir):
+        """Determine domain of User genomes based on identified marker genes."""
+        
+        bac_count = defaultdict(int)
+        ar_count = defaultdict(int)
+        for d, marker_file in ((bac_count, 'gtdbtk_bac120_markers_summary.tsv'),
+                                (ar_count, 'gtdbtk_ar122_markers_summary.tsv')):
+            with open(os.path.join(identity_dir, marker_file)) as f:
+                f.readline()
+                
+                for line in f:
+                    line_split = line.strip().split('\t')
+                    
+                    gid = line_split[0]
+                    num_markers = int(line_split[1])
+                    
+                    d[gid] = num_markers
+                    
+        bac_gids = set()
+        ar_gids = set()
+        for gid in bac_count:
+            arc_aa_per = (ar_count[gid] * 100.0 / Config.AR_MARKER_COUNT)
+            bac_aa_per = (bac_count[gid] * 100.0 / Config.BAC_MARKER_COUNT)
+            if bac_aa_per >= arc_aa_per:
+                bac_gids.add(gid)
+            else:
+                ar_gids.add(gid)
+                
+        return bac_gids, ar_gids
 
     def align(self,
                 identify_dir, 
-                marker_set_id, 
                 taxa_filter, 
                 min_perc_aa,
                 custom_msa_filters,
@@ -387,78 +362,83 @@ class Markers(object):
             genomic_files = self._path_to_identify_data(identify_dir)
             self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files), 
                                                                                         self.cpus))
+                                                                                        
+            # determine marker set for each user genome
+            bac_gids, ar_gids = self._genome_domain(identify_dir)
             
-            
+            # align user genomes
             gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
-                                                                                
-            if marker_set_id == 'bac120':
-                gtdb_msa = self._msa_filter_by_taxa(Config.CONCAT_BAC120,
-                                                        gtdb_taxonomy,
-                                                        taxa_filter)
-                gtdb_msa_mask = os.path.join(Config.MASK_DIR, Config.MASK_BAC120)
-            elif marker_set_id == 'ar122':
-                gtdb_msa = self._msa_filter_by_taxa(Config.CONCAT_AR122,
-                                                        gtdb_taxonomy,
-                                                        taxa_filter)
-                gtdb_msa_mask = os.path.join(Config.MASK_DIR, Config.MASK_AR122)
-            elif marker_set_id == 'rps23':
-                gtdb_msa = self._msa_filter_by_taxa(Config.CONCAT_RPS23,
-                                                        gtdb_taxonomy,
-                                                        taxa_filter)
-                gtdb_msa_mask = os.path.join(Config.MASK_DIR, Config.MASK_RPS23)
-            else:
-                self.logger.error('Unrecognized marker set: %s' % marker_set_id)
-                sys.exit()
-
-            hmm_aligner = HmmAligner(self.cpus,
-                                        self.pfam_top_hit_suffix,
-                                        self.tigrfam_top_hit_suffix,
-                                        self.protein_file_suffix,
-                                        self.pfam_hmm_dir,
-                                        self.tigrfam_hmms,
-                                        Config.BAC120_MARKERS,
-                                        Config.AR122_MARKERS,
-                                        Config.RPS23_MARKERS)
-            user_msa = hmm_aligner.align_marker_set(genomic_files, 
-                                                    marker_set_id)
-
-            # filter columns without sufficient representation across taxa
-            aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-            if custom_msa_filters:
-                self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
-                trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(aligned_genomes, 
-                                                                                        min_per_taxa / 100.0, 
-                                                                                        consensus / 100.0, 
-                                                                                        min_perc_aa / 100.0)
-                self.logger.info(('Trimmed alignment from %d to %d AA (%d by minimum taxa percent, '
-                                    + '%d by consensus).') % (len(aligned_genomes.values()[0]),
-                                                                len(trimmed_seqs.values()[0]), 
-                                                                count_wrong_pa, 
-                                                                count_wrong_cons))
-            else:
-                self.logger.info('Masking columns of multiple sequence alignment.')
-                trimmed_seqs, pruned_seqs = self._apply_mask(aligned_genomes, 
-                                                                gtdb_msa_mask, 
-                                                                min_perc_aa / 100.0)
-                self.logger.info('Masked alignment from %d to %d AA.' % (len(aligned_genomes.values()[0]),
-                                                                            len(trimmed_seqs.values()[0])))                                                                
-                                                            
-            self.logger.info('Pruned %d taxa with amino acids in <%.1f%% of columns in filtered MSA.' % (
-                                len(pruned_seqs), 
-                                min_perc_aa))
-                                
-            pruned_user_genomes = set(pruned_seqs).intersection(user_msa)
-            if len(pruned_user_genomes):
-                self.logger.info('Pruned genomes include %d user submitted genomes.' % len(pruned_user_genomes))
-
-            # write out MSA
-            self.logger.info('Creating concatenated alignment for %d taxa.' % len(trimmed_seqs)) 
-            msa_file = os.path.join(out_dir, prefix + ".msa.faa")
-            self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
+            for gids, msa_file, mask_file, marker_set_id in ((bac_gids, Config.CONCAT_BAC120, Config.MASK_BAC120, "bac120"),
+                                                                (ar_gids, Config.CONCAT_AR122, Config.MASK_AR122, "ar122")):
             
-            user_msa_file = os.path.join(out_dir, prefix + ".user_msa.faa")
-            trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-            self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
+                if len(gids) == 0:
+                    continue
+                    
+                if marker_set_id == 'bac120':
+                    self.logger.info('Processing %d genomes identified as bacterial.' % len(gids))
+                else:
+                    self.logger.info('Processing %d genomes identified as archaeal.' % len(gids))
+                    
+                    ### HACK: archaeal alignment is not yet ready!
+                    self.logger.warning('ARCHAEAL ALIGNMENT IS NOT YET READY SO SKIPPING THIS ALIGNMENT!')
+                    continue
+                    
+                cur_genome_files = {gid: f for gid, f in genomic_files.iteritems() if gid in gids}
+                    
+                gtdb_msa = self._msa_filter_by_taxa(msa_file,
+                                                    gtdb_taxonomy,
+                                                    taxa_filter)
+                gtdb_msa_mask = os.path.join(Config.MASK_DIR, mask_file)
+
+                hmm_aligner = HmmAligner(self.cpus,
+                                            self.pfam_top_hit_suffix,
+                                            self.tigrfam_top_hit_suffix,
+                                            self.protein_file_suffix,
+                                            self.pfam_hmm_dir,
+                                            self.tigrfam_hmms,
+                                            Config.BAC120_MARKERS,
+                                            Config.AR122_MARKERS,
+                                            Config.RPS23_MARKERS)
+                user_msa = hmm_aligner.align_marker_set(cur_genome_files, 
+                                                            marker_set_id)
+
+                # filter columns without sufficient representation across taxa
+                aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
+                if custom_msa_filters:
+                    self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
+                    trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(aligned_genomes, 
+                                                                                            min_per_taxa / 100.0, 
+                                                                                            consensus / 100.0, 
+                                                                                            min_perc_aa / 100.0)
+                    self.logger.info(('Trimmed alignment from %d to %d AA (%d by minimum taxa percent, '
+                                        + '%d by consensus).') % (len(aligned_genomes.values()[0]),
+                                                                    len(trimmed_seqs.values()[0]), 
+                                                                    count_wrong_pa, 
+                                                                    count_wrong_cons))
+                else:
+                    self.logger.info('Masking columns of multiple sequence alignment.')
+                    trimmed_seqs, pruned_seqs = self._apply_mask(aligned_genomes, 
+                                                                    gtdb_msa_mask, 
+                                                                    min_perc_aa / 100.0)
+                    self.logger.info('Masked alignment from %d to %d AA.' % (len(aligned_genomes.values()[0]),
+                                                                                len(trimmed_seqs.values()[0])))                                                                
+                                                                
+                self.logger.info('Pruned %d taxa with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                                    len(pruned_seqs), 
+                                    min_perc_aa))
+                                    
+                pruned_user_genomes = set(pruned_seqs).intersection(user_msa)
+                if len(pruned_user_genomes):
+                    self.logger.info('Pruned genomes include %d user submitted genomes.' % len(pruned_user_genomes))
+
+                # write out MSA
+                self.logger.info('Creating concatenated alignment for %d taxa.' % len(trimmed_seqs)) 
+                msa_file = os.path.join(out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
+                self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
+                
+                user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
 
         except IOError as e:
             self.logger.error(str(e))

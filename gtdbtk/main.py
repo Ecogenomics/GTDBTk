@@ -26,7 +26,8 @@ import config.config as Config
 
 from biolib.common import (check_dir_exists,
                             check_file_exists, 
-                            make_sure_path_exists)
+                            make_sure_path_exists,
+                            remove_extension)
 from biolib.taxonomy import Taxonomy
 from biolib.external.execute import check_dependencies
 from biolib.external.fasttree import FastTree 
@@ -39,6 +40,68 @@ class OptionsParser():
         self.version = version
         
         self.logger = logging.getLogger('timestamp')
+        
+    def _genomes_to_process(self, genome_dir, batchfile, extension):
+        """Get genomes to process.
+
+        Parameters
+        ----------
+        genome_dir : str
+          Directory containing genomes.
+        batchfile : str
+          File describing genomes.
+        extension : str
+          Extension of files to process.
+          
+        Returns
+        -------
+        genomic_files : d[genome_id] -> FASTA file
+            Map of genomes to their genomic FASTA files.
+        """
+        
+        genomic_files = {}
+        if genome_dir:
+            for f in os.listdir(genome_dir):
+                if f.endswith(extension):
+                    genome_id = remove_extension(f)
+                    genomic_files[genome_id] = os.path.join(genome_dir, f)
+                    
+        elif batchfile:
+            for line_no, line in enumerate(open(batchfile, "rb")):
+                line_split = line.strip().split("\t")
+                if line_split[0] == '':
+                    continue # blank line
+                    
+                if len(line_split) != 2:
+                    self.logger.error('Batch file must contain exactly 2 columns.')
+                    sys.exit()
+
+                genome_file, genome_id  = line_split
+                
+                if genome_file is None or genome_file == '':
+                    self.logger.error('Missing genome file on line %d.' % line_no+1)
+                    self.exit()
+                elif genome_id is None or genome_id == '':
+                    self.logger.error('Missing genome ID on line %d.' % line_no+1)
+                    self.exit()
+                elif genome_id in genomic_files:
+                    self.logger.error('Genome ID %s appear multiple times.' % genome_id)
+                    self.exit()
+
+                genomic_files[genome_id] = genome_file
+
+        for genome_key in genomic_files.iterkeys():
+            if genome_key.startswith("RS_") or genome_key.startswith("GB_"):
+                raise Exception("Submitted genomes start with similar prefix (RS_,GB_) as reference Genomes in GtdbTk. This may cause issues for downstream analysis.") 
+            
+        if len(genomic_files) == 0:
+            if genome_dir:
+                self.logger.info('WARNING: No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
+            else:
+                self.logger.info('WARNING: No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
+            sys.exit(-1)
+            
+        return genomic_files
         
     def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
         """Get unique identifier for marker set."""
@@ -64,12 +127,11 @@ class OptionsParser():
                 check_file_exists(options.batchfile)
                 
             make_sure_path_exists(options.out_dir)
+            
+            genomes = self._genomes_to_process(options.genome_dir, options.batchfile, options.extension)
                 
             markers = Markers(options.cpus)
-            markers.identify(options.genome_dir,
-                                options.extension,
-                                options.batchfile,
-                                options.proteins,
+            markers.identify(genomes,
                                 options.out_dir, 
                                 options.prefix)
                                 
@@ -83,14 +145,9 @@ class OptionsParser():
 
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
- 
-        marker_set_id = self._marker_set_id(options.bac120_ms,
-                                            options.ar122_ms,
-                                            options.rps23_ms)
-          
+
         markers = Markers(options.threads)
         markers.align(options.identify_dir,
-                        marker_set_id,
                         options.taxa_filter,
                         options.min_perc_aa,
                         options.custom_msa_filters,
@@ -130,26 +187,16 @@ class OptionsParser():
     def classify(self, options):
         """Determine taxonomic classification of genomes."""
         
-        if options.genome_dir:
-            check_dir_exists(options.genome_dir)
-            
-        if options.batchfile:
-            check_file_exists(options.batchfile)
-
-        check_file_exists(options.user_msa_file)
+        check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
         
-        marker_set_id = self._marker_set_id(options.bac120_ms,
-                                            options.ar122_ms,
-                                            options.rps23_ms)
+        genomes = self._genomes_to_process(options.genome_dir, options.batchfile, options.extension)
 
         classify = Classify(options.cpus)
-        classify.run(options.user_msa_file,
-                     options.genome_dir,
-                     options.batchfile,                    
-                     marker_set_id,
-                     options.out_dir,
-                     options.prefix)
+        classify.run(genomes,
+                        options.align_dir,
+                        options.out_dir,
+                        options.prefix)
         
         self.logger.info('Done.')
         
