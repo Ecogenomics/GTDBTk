@@ -59,7 +59,7 @@ class Classify():
     def __init__(self, cpus=1):
         """Initialize."""
                 
-        check_dependencies(['pplacer', 'guppy'])
+        check_dependencies(['pplacer', 'guppy', 'mash'])
         
         self.taxonomy_file = Config.TAXONOMY_FILE
         
