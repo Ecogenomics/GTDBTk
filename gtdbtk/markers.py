@@ -297,17 +297,22 @@ class Markers(object):
             self.logger.error(str(e))
             raise
             
-    def _path_to_identify_data(self, genome_ids, indir):
+    def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
-                
+        
+        marker_gene_dir = os.path.join(identity_dir, Config.MARKER_GENE_DIR)
+        
         genomic_files = {}
-        for genome_id_raw in genome_ids:
-            genome_id = os.path.splitext(os.path.basename(genome_id_raw))[0]
-            genomic_files[genome_id] = {'aa_gene_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.protein_file_suffix),
-                                   'translation_table_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', 'prodigal_translation_table.tsv'),
-                                   'nt_gene_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.nt_gene_file_suffix),
-                                   'gff_path': os.path.join(indir, self.identify_dir, genome_id, 'marker_genes', genome_id + self.gff_file_suffix)
-                                   }
+        for gid in os.listdir(marker_gene_dir):
+            gid_dir = os.path.join(marker_gene_dir, gid)
+            if not os.path.isdir(gid_dir):
+                continue
+                
+            genomic_files[gid] = {'aa_gene_path': os.path.join(gid_dir, gid + self.protein_file_suffix),
+                                'translation_table_path': os.path.join(gid_dir, 'prodigal_translation_table.tsv'),
+                                'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
+                                'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
+                                }
         return genomic_files
         
     def _msa_filter_by_taxa(self, concatenated_file, gtdb_taxonomy, taxa_filter):
@@ -367,9 +372,6 @@ class Markers(object):
         fout.close()
 
     def align(self,
-                genome_dir,
-                extension,
-                batchfile, 
                 identify_dir, 
                 marker_set_id, 
                 taxa_filter, 
@@ -382,10 +384,10 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         try:
-            genomes = genomes_to_process(genome_dir, batchfile, extension)
-            self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomes), 
+            genomic_files = self._path_to_identify_data(identify_dir)
+            self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files), 
                                                                                         self.cpus))
-            genomic_files = self._path_to_identify_data(genomes, identify_dir)
+            
             
             gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
                                                                                 
