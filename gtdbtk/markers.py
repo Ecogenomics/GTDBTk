@@ -285,22 +285,24 @@ class Markers(object):
         
         return msa
         
-    def _apply_mask(self, alignments, msa_mask, min_perc_aa):
+    def _apply_mask(self, gtdb_msa, user_msa, msa_mask, min_perc_aa):
         """Apply canonical mask to MSA file."""
+        
+        aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
         
         mask = open(msa_mask).readline().strip()
         
-        if len(mask) != len(alignments.values()[0]):
+        if len(mask) != len(aligned_genomes.values()[0]):
             self.logger.error('Mask and alignment length do not match.')
             sys.exit()
-        
+
         output_seqs = {}
         pruned_seqs = {}
-        for seq_id, seq in alignments.iteritems():
+        for seq_id, seq in aligned_genomes.iteritems():
             masked_seq = ''.join([seq[i] for i in xrange(0, len(mask)) if mask[i] == '1'])
             
             valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
-            if valid_bases < len(masked_seq) * min_perc_aa:
+            if seq_id in user_msa and valid_bases < len(masked_seq) * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue
 
@@ -406,8 +408,8 @@ class Markers(object):
                                                             marker_set_id)
 
                 # filter columns without sufficient representation across taxa
-                aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
                 if custom_msa_filters:
+                    aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
                     self.logger.info('Trimming columns with insufficient taxa or poor consensus.')
                     trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(aligned_genomes, 
                                                                                             min_per_taxa / 100.0, 
@@ -418,21 +420,35 @@ class Markers(object):
                                                                     len(trimmed_seqs.values()[0]), 
                                                                     count_wrong_pa, 
                                                                     count_wrong_cons))
+                                                                    
+                    self.logger.info('Pruned %d taxa with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                                                                                                len(pruned_seqs), 
+                                                                                                min_perc_aa))
+                                    
+                    pruned_user_genomes = set(pruned_seqs).intersection(user_msa)
+                    if len(pruned_user_genomes):
+                        self.logger.info('Pruned genomes include %d user submitted genomes.' % len(pruned_user_genomes))
                 else:
                     self.logger.info('Masking columns of multiple sequence alignment.')
-                    trimmed_seqs, pruned_seqs = self._apply_mask(aligned_genomes, 
+                    trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa, 
+                                                                    user_msa, 
                                                                     gtdb_msa_mask, 
                                                                     min_perc_aa / 100.0)
-                    self.logger.info('Masked alignment from %d to %d AA.' % (len(aligned_genomes.values()[0]),
-                                                                                len(trimmed_seqs.values()[0])))                                                                
-                                                                
-                self.logger.info('Pruned %d taxa with amino acids in <%.1f%% of columns in filtered MSA.' % (
-                                    len(pruned_seqs), 
-                                    min_perc_aa))
-                                    
-                pruned_user_genomes = set(pruned_seqs).intersection(user_msa)
-                if len(pruned_user_genomes):
-                    self.logger.info('Pruned genomes include %d user submitted genomes.' % len(pruned_user_genomes))
+                    self.logger.info('Masked alignment from %d to %d AA.' % (len(gtdb_msa.values()[0]),
+                                                                                len(trimmed_seqs.values()[0])))
+                                                                                
+                    self.logger.info('Pruned %d user genomes with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                                                                                                len(pruned_seqs), 
+                                                                                                min_perc_aa))
+
+                # write out filtering information
+                fout = open(os.path.join(out_dir, prefix + ".%s.filtered.tsv" % marker_set_id), 'w')
+                for pruned_seq_id, pruned_seq in pruned_seqs.items():
+                    valid_bases = len(pruned_seq) - pruned_seq.count('.') - pruned_seq.count('-')
+                    perc_alignment = valid_bases * 100.0 / len(pruned_seq)
+                    fout.write('%s\t%s\n' % (pruned_seq_id, 
+                                            'Insufficient number of amino acids in MSA (%.1f%%)' % perc_alignment))
+                fout.close()
 
                 # write out MSA
                 self.logger.info('Creating concatenated alignment for %d taxa.' % len(trimmed_seqs)) 

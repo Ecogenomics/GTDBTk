@@ -581,7 +581,7 @@ class Classify():
         rd = RelativeDistance()
         for p in phyla:
             phylum = p.replace('p__', '').replace(' ', '_').lower()
-            status_msg = ' ==> Calculating information with rooting on %s.              ' % phylum.capitalize()
+            status_msg = '==> Calculating information with rooting on %s.              ' % phylum.capitalize()
             sys.stdout.write('%s\r' % status_msg)
             sys.stdout.flush()
 

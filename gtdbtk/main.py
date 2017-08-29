@@ -41,6 +41,17 @@ class OptionsParser():
         
         self.logger = logging.getLogger('timestamp')
         
+    def _verify_genome_id(self, genome_id):
+        """Ensure genome ID will be valid in Newick tree."""
+        
+        invalid_chars = set('()[],;=')
+        if any((c in invalid_chars) for c in genome_id):
+            self.logger.error('Invalid genome ID: %s' % genome_id)
+            self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
+            sys.exit(-1)
+                
+        return True
+        
     def _genomes_to_process(self, genome_dir, batchfile, extension):
         """Get genomes to process.
 
@@ -74,31 +85,33 @@ class OptionsParser():
                     
                 if len(line_split) != 2:
                     self.logger.error('Batch file must contain exactly 2 columns.')
-                    sys.exit()
+                    sys.exit(-1)
 
                 genome_file, genome_id  = line_split
-                
+                self._verify_genome_id(genome_id)
+                    
                 if genome_file is None or genome_file == '':
                     self.logger.error('Missing genome file on line %d.' % line_no+1)
-                    self.exit()
+                    self.exit(-1)
                 elif genome_id is None or genome_id == '':
                     self.logger.error('Missing genome ID on line %d.' % line_no+1)
-                    self.exit()
+                    self.exit(-1)
                 elif genome_id in genomic_files:
                     self.logger.error('Genome ID %s appear multiple times.' % genome_id)
-                    self.exit()
+                    self.exit(-1)
 
                 genomic_files[genome_id] = genome_file
 
         for genome_key in genomic_files.iterkeys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_"):
-                raise Exception("Submitted genomes start with similar prefix (RS_,GB_) as reference Genomes in GtdbTk. This may cause issues for downstream analysis.") 
-            
+                self.logger.error("Submitted genomes start with the same prefix (RS_,GB_) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.") 
+                sys.exit(-1)
+                
         if len(genomic_files) == 0:
             if genome_dir:
-                self.logger.info('WARNING: No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
+                self.logger.warning('No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
             else:
-                self.logger.info('WARNING: No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
+                self.logger.warning('No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
             sys.exit(-1)
             
         return genomic_files
@@ -141,7 +154,7 @@ class OptionsParser():
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
 
-        markers = Markers(options.threads)
+        markers = Markers(options.cpus)
         markers.align(options.identify_dir,
                         options.taxa_filter,
                         options.min_perc_aa,
@@ -256,14 +269,13 @@ class OptionsParser():
             self.identify(options)
             
             options.identify_dir = options.out_dir
+            options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
             options.consensus = None
             options.min_perc_taxa = None
             self.align(options)
             
-            options.user_msa_file = os.path.join(options.out_dir, 
-                                                    options.prefix + ".user_msa.faa")
             self.classify(options)
         elif (options.subparser_name == 'identify'):
             self.identify(options)
