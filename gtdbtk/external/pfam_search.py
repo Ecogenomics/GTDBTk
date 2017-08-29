@@ -105,16 +105,18 @@ class PfamSearch(object):
             gene_file = queueIn.get(block=True, timeout=None)
             if gene_file is None:
                 break
-
+                
             genome_dir, filename = os.path.split(gene_file)
             genome_id = filename.replace(self.protein_file_suffix, '')
             output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
                                                                                         self.pfam_suffix))
-
-            cmd = 'pfam_search.pl -outfile %s -cpu %d -fasta %s -dir %s' % (output_hit_file,
-                                                                            self.cpus_per_genome,
-                                                                            gene_file,
-                                                                            self.pfam_hmm_dir)
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            pfam_search_script = os.path.join(dir_path, 'pfam_search.pl')
+            cmd = '%s -outfile %s -cpu %d -fasta %s -dir %s' % (pfam_search_script,
+                                                                    output_hit_file,
+                                                                    self.cpus_per_genome,
+                                                                    gene_file,
+                                                                    self.pfam_hmm_dir)
             os.system(cmd)
 
             # calculate checksum
