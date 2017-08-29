@@ -22,7 +22,7 @@ import logging
 import tempfile
 import random
 
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 from biolib.common import remove_extension, make_sure_path_exists
 from biolib.seq_io import read_seq, read_fasta
@@ -35,22 +35,10 @@ from relative_distance import RelativeDistance
 
 import config.config as Config
 
-from scipy.stats import norm
-
 import dendropy
 
-from biolib.plots.abstract_plot import AbstractPlot
+from numpy import median as np_median
 
-from numpy import (mean as np_mean,
-                   std as np_std,
-                   median as np_median,
-                   abs as np_abs,
-                   array as np_array,
-                   arange as np_arange,
-                   linspace as np_linspace,
-                   percentile as np_percentile,
-                   ones_like as np_ones_like,
-                   histogram as np_histogram)
 
 class Classify():
     """Determine taxonomic classification of genomes by ML placement."""
@@ -141,9 +129,8 @@ class Classify():
             fout = open(os.path.join(out_dir, prefix + '.%s.classification.tsv' % marker_set_id), 'w')
             mashfout = open(os.path.join(out_dir, prefix + '.%s.mash_distance.tsv' % marker_set_id), 'w')
             redfout = open(os.path.join(out_dir, prefix + '.%s.red_value.tsv' % marker_set_id), 'w')
-            pplaceout = open(os.path.join(out_dir, prefix + '.%s.classification_pplacer.tsv' % marker_set_id), 'w')
-            
-            reddictfile = open(os.path.join(out_dir, prefix + '.red_dictionary.tsv'), 'w')
+
+            reddictfile = open(os.path.join(out_dir, prefix + '.%s.red_dictionary.tsv' % marker_set_id), 'w')
             reddictfile.write('Phylum\t{0}\n'.format(Config.RED_DIST_DICT.get('p__')))
             reddictfile.write('Class\t{0}\n'.format(Config.RED_DIST_DICT.get('c__')))
             reddictfile.write('Order\t{0}\n'.format(Config.RED_DIST_DICT.get('o__')))
@@ -211,7 +198,7 @@ class Classify():
             redfout.close()
             fout.close()
 
-            pplaceout = open(os.path.join(out_dir, prefix + '.classification_pplacer.tsv'), 'w')        
+            pplaceout = open(os.path.join(out_dir, prefix + '.%s.classification_pplacer.tsv' % marker_set_id), 'w')        
             
             # We get the pplacer taxonomy for comparison
             user_genome_ids = set(read_fasta(user_msa_file).keys())
@@ -344,7 +331,6 @@ class Classify():
         -------
         string
             Taxonomy string.
-        
         """
         
         # read tree
@@ -354,19 +340,11 @@ class Classify():
                                             rooting='force-rooted', 
                                             preserve_underscores=True)
 
-        input_tree_name = os.path.splitext(os.path.basename(input_tree))[0]
-
         self.logger.info('Reading taxonomy from file.')
         taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
-            
-        gtdb_parent_ranks = Taxonomy().parents(taxonomy)
 
-        # read trusted taxa
-        trusted_taxa = None
-        
-        rd = RelativeDistance()
-        
         # determine taxa to be used for inferring distribution
+        trusted_taxa = None
         taxa_for_dist_inference = self._filter_taxa_for_dist_inference(tree, 
                                                                  taxonomy, 
                                                                  trusted_taxa, 
@@ -383,31 +361,40 @@ class Classify():
             n.rel_dist = np_median(rel_node_dists[n.id])
             rd_to_parent = n.rel_dist - n.parent_node.rel_dist
             if rd_to_parent < 0:
-                self.logger.warning('Not all branches are positive after scaling.')
+                # This can occur since we are setting all nodes
+                # to their median RED value.
+                #self.logger.warning('Not all branches are positive after scaling.')
+                pass
             n.edge_length = rd_to_parent
-            
-        plot_file = os.path.join(out_dir, '%s.png' % input_tree_name)
-        rd._distribution_summary_plot(phylum_rel_dists, taxa_for_dist_inference, plot_file)
+        
+        if False:
+            # These plots can be useful for debugging and internal use,
+            # but are likely to be confusing to users.
+            rd = RelativeDistance()
 
-        median_outlier_table = os.path.join(out_dir, '%s.tsv' % input_tree_name)
-        median_rank_file = os.path.join(out_dir, '%s.dict' % input_tree_name)
-        rd._median_summary_outlier_file(phylum_rel_dists, 
-                                             taxa_for_dist_inference, 
-                                             gtdb_parent_ranks, 
-                                             median_outlier_table, 
-                                             median_rank_file, 
-                                             False)
-                                        
-    
-        output_tree = os.path.join(out_dir, '%s.scaled.tree' % input_tree_name)
-        tree.write_to_path(output_tree, 
-                        schema='newick', 
-                        suppress_rooting=True, 
-                        unquoted_underscores=True)
+            input_tree_name = os.path.splitext(os.path.basename(input_tree))[0]
+            plot_file = os.path.join(out_dir, '%s.png' % input_tree_name)
+            rd._distribution_summary_plot(phylum_rel_dists, taxa_for_dist_inference, plot_file)
+
+            gtdb_parent_ranks = Taxonomy().parents(taxonomy)
+            median_outlier_table = os.path.join(out_dir, '%s.tsv' % input_tree_name)
+            median_rank_file = os.path.join(out_dir, '%s.dict' % input_tree_name)
+            rd._median_summary_outlier_file(phylum_rel_dists, 
+                                                 taxa_for_dist_inference, 
+                                                 gtdb_parent_ranks, 
+                                                 median_outlier_table, 
+                                                 median_rank_file, 
+                                                 False)
+                                            
         
+            output_tree = os.path.join(out_dir, '%s.scaled.tree' % input_tree_name)
+            tree.write_to_path(output_tree, 
+                            schema='newick', 
+                            suppress_rooting=True, 
+                            unquoted_underscores=True)
         
-        return tree     
-        
+        return tree
+
     def _calculate_mash_distance(self,list_leaf,genomes):
 
         """ Calculate the Mash distance between all user genomes and the reference to classfy them at the species level
@@ -579,7 +566,7 @@ class Classify():
         self.logger.info('Identified %d phyla.' % len(all_phyla))
         
         phyla = [p for p in all_phyla if p in taxa_for_dist_inference]
-        self.logger.info('Using %d phyla as rootings for inferring distributions.' % len(phyla))
+        self.logger.info('Using %d phyla as rootings for inferring RED distributions.' % len(phyla))
         if len(phyla) < 2:
             self.logger.error('Rescaling requires at least 2 valid phyla.')
             sys.exit(-1)
@@ -594,8 +581,10 @@ class Classify():
         rd = RelativeDistance()
         for p in phyla:
             phylum = p.replace('p__', '').replace(' ', '_').lower()
-            self.logger.info('Calculating information with rooting on %s.' % phylum.capitalize())
-            
+            status_msg = ' ==> Calculating information with rooting on %s.              ' % phylum.capitalize()
+            sys.stdout.write('%s\r' % status_msg)
+            sys.stdout.flush()
+
             cur_tree = self.root_with_outgroup(tree, taxonomy, p)
             
             # calculate relative distance to taxa
@@ -625,9 +614,11 @@ class Classify():
                     break
             
             # do a preorder traversal of 'ingroup' and record relative divergence to nodes
-            for n in ingroup_subtree.preorder_iter():                        
+            for n in ingroup_subtree.preorder_iter():
                 rel_node_dists[n.id].append(n.rel_dist)
-                                                           
+
+        sys.stdout.write('\n')
+        
         return phylum_rel_dists, rel_node_dists
     
     def _get_phyla_lineages(self,tree):
@@ -680,8 +671,7 @@ class Classify():
         for genome_id, taxa in taxonomy.iteritems():
             if outgroup_taxa in taxa:
                 outgroup.add(genome_id)
-        self.logger.info('Identifying %d genomes in the outgroup.' % len(outgroup))
-
+                
         outgroup_in_tree = set()
         ingroup_in_tree = set()
         for n in new_tree.leaf_node_iter():
@@ -689,7 +679,6 @@ class Classify():
                 outgroup_in_tree.add(n.taxon)
             else:
                 ingroup_in_tree.add(n)
-        self.logger.info('Identified %d outgroup taxa in the tree.' % len(outgroup_in_tree))
 
         if len(outgroup_in_tree) == 0:
             self.logger.warning('No outgroup taxa identified in the tree.')
@@ -716,20 +705,16 @@ class Classify():
             if leaves_in_mrca != leaves_in_tree:
                 break
 
-        if leaves_in_mrca != len(outgroup_in_tree):
-            self.logger.info('Outgroup is not monophyletic. Tree will be rerooted at the MRCA of the outgroup.')
-            self.logger.info('The outgroup consisted of %d taxa, while the MRCA has %d leaf nodes.' % (len(outgroup_in_tree), leaves_in_mrca))
-            if leaves_in_mrca == leaves_in_tree:
-                self.logger.warning('The MRCA spans all taxa in the tree.')
-                self.logger.warning('This indicating the selected outgroup is likely polyphyletic in the current tree.')
-                self.logger.warning('Polyphyletic outgroups are not suitable for rooting. Try another outgroup.')
-        else:
-            self.logger.info('Outgroup is monophyletic.')
+        if leaves_in_mrca == leaves_in_tree:
+            self.logger.error('The MRCA spans all taxa in the tree.')
+            self.logger.error('This indicating the selected outgroup is likely polyphyletic in the current tree.')
+            self.logger.error('This should never occur. Please report this as a bug.')
+            sys.exit(-1)
 
         if mrca.edge_length is None:
-            self.logger.info('Tree appears to already be rooted on this outgroup.')
+            #self.logger.info('Tree appears to already be rooted on this outgroup.')
+            pass
         else:
-            self.logger.info('Rerooting tree.')
             new_tree.reroot_at_edge(mrca.edge,
                                 length1=0.5 * mrca.edge_length,
                                 length2=0.5 * mrca.edge_length)
