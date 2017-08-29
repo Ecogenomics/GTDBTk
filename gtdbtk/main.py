@@ -118,27 +118,22 @@ class OptionsParser():
     def identify(self, options):
         """Identify marker genes in genomes."""
         
-        try:
-        
-            if options.genome_dir:
-                check_dir_exists(options.genome_dir)
-                
-            if options.batchfile:
-                check_file_exists(options.batchfile)
-                
-            make_sure_path_exists(options.out_dir)
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
             
-            genomes = self._genomes_to_process(options.genome_dir, options.batchfile, options.extension)
-                
-            markers = Markers(options.cpus)
-            markers.identify(genomes,
-                                options.out_dir, 
-                                options.prefix)
-                                
-            self.logger.info('Done.')
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            
+        make_sure_path_exists(options.out_dir)
         
-        except Exception as e:
-            self.logger.info('GTDB-Tk has encountered an error.')
+        genomes = self._genomes_to_process(options.genome_dir, options.batchfile, options.extension)
+            
+        markers = Markers(options.cpus)
+        markers.identify(genomes,
+                            options.out_dir, 
+                            options.prefix)
+                            
+        self.logger.info('Done.')
         
     def align(self, options):
         """Create MSA from marker genes."""

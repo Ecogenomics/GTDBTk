@@ -39,7 +39,6 @@ from scipy.stats import norm
 
 import dendropy
 
-
 from biolib.plots.abstract_plot import AbstractPlot
 
 from numpy import (mean as np_mean,
@@ -180,7 +179,7 @@ class Classify():
             
             self.logger.info('{0} genomes have been classify with Mash.'.format(len(mash_dict)))
 
-            scaled_tree = self._calculate_red_distances(classify_tree,out_dir)
+            scaled_tree = self._calculate_red_distances(classify_tree, out_dir)
             
             user_genome_ids = set(read_fasta(user_msa_file).keys())
             user_genome_ids = user_genome_ids.difference(set(mash_dict.keys()))
@@ -398,7 +397,8 @@ class Classify():
                                              median_outlier_table, 
                                              median_rank_file, 
                                              False)
-                                            
+                                        
+    
         output_tree = os.path.join(out_dir, '%s.scaled.tree' % input_tree_name)
         tree.write_to_path(output_tree, 
                         schema='newick', 
@@ -458,9 +458,6 @@ class Classify():
         -------
         dictionary
             dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
-        
-        
-        
         """
         dict_results = {}
         with open(distance_file) as distfile:

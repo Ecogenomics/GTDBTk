@@ -26,6 +26,7 @@ from gtdblib.trimming import trim_seqs
 from biolib.common import remove_extension
 from biolib.seq_io import read_fasta
 from biolib.taxonomy import Taxonomy
+from biolib.external.execute import check_dependencies
 
 from external.prodigal import Prodigal
 from external.tigrfam_search import TigrfamSearch
@@ -194,6 +195,8 @@ class Markers(object):
                     out_dir, 
                     prefix):
         """Identify marker genes in genomes."""
+        
+        check_dependencies(['prodigal', 'hmmsearch'])
         
         try:
             self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes), 

@@ -25,7 +25,7 @@ from biolib.common import is_float
 from biolib.newick import parse_label
 
 import dendropy
-import mpld3
+#import mpld3
 
 from biolib.plots.abstract_plot import AbstractPlot
 
