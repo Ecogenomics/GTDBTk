@@ -25,8 +25,14 @@ from biolib.checksum import sha256
 class TigrfamSearch(object):
     """Runs TIGRfam HMMs over a set of genomes."""
 
-    def __init__(self, threads, tigrfam_hmms, protein_file_suffix,
-                 tigrfam_suffix, tigrfam_top_hit_suffix, checksum_suffix):
+    def __init__(self, 
+                    threads, 
+                    tigrfam_hmms, 
+                    protein_file_suffix,
+                    tigrfam_suffix, 
+                    tigrfam_top_hit_suffix, 
+                    checksum_suffix,
+                    output_dir):
         """Initialization."""
 
         self.threads = threads
@@ -35,6 +41,7 @@ class TigrfamSearch(object):
         self.tigrfam_suffix = tigrfam_suffix
         self.tigrfam_top_hit_suffix = tigrfam_top_hit_suffix
         self.checksum_suffix = checksum_suffix
+        self.output_dir = output_dir
 
     def _topHit(self, tigrfam_file):
         """Determine top hits to TIGRFAMs.
@@ -50,8 +57,9 @@ class TigrfamSearch(object):
             Name of file containing hits to TIGRFAM HMMs.
         """
         assembly_dir, filename = os.path.split(tigrfam_file)
-        output_tophit_file = os.path.join(assembly_dir, filename.replace(self.tigrfam_suffix,
-                                                                         self.tigrfam_top_hit_suffix))
+        genome_id = filename.replace(self.tigrfam_suffix, '')
+        output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.tigrfam_suffix,
+                                                                                self.tigrfam_top_hit_suffix))
 
         tophits = {}
         for line in open(tigrfam_file):
@@ -90,10 +98,12 @@ class TigrfamSearch(object):
                 break
 
             assembly_dir, filename = os.path.split(gene_file)
-            output_hit_file = os.path.join(assembly_dir, filename.replace(self.protein_file_suffix,
-                                                                          self.tigrfam_suffix))
+            genome_id = filename.replace(self.protein_file_suffix, '')
+            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
+                                                                                        self.tigrfam_suffix))
 
-            hmmsearch_out = os.path.join(assembly_dir, filename.replace(self.protein_file_suffix, '_tigrfam.out'))
+            hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix, 
+                                                                                        '_tigrfam.out'))
             cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
                                                                                              output_hit_file,
                                                                                              self.cpus_per_genome,
@@ -122,7 +132,7 @@ class TigrfamSearch(object):
                 break
 
             processedItems += 1
-            statusStr = '==> Finished processing %d of %d (%.2f%%) genomes.' % (processedItems,
+            statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
                                                                                 numDataItems,
                                                                                 float(processedItems) * 100 / numDataItems)
             sys.stdout.write('%s\r' % statusStr)
