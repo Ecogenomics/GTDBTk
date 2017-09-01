@@ -22,7 +22,7 @@ import logging
 import tempfile
 import random
 
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 from biolib.common import remove_extension, make_sure_path_exists
 from biolib.seq_io import read_seq, read_fasta
@@ -30,31 +30,14 @@ from biolib.newick import parse_label
 from biolib.external.execute import check_dependencies
 from biolib.taxonomy import Taxonomy
 
-from tools import genomes_to_process,add_ncbi_prefix,merge_two_dicts
+from tools import add_ncbi_prefix, merge_two_dicts
 from relative_distance import RelativeDistance
 
 import config.config as Config
 
-from scipy.stats import norm
-
 import dendropy
 
-
-from biolib.plots.abstract_plot import AbstractPlot
-
-from numpy import (mean as np_mean,
-                   std as np_std,
-                   median as np_median,
-                   abs as np_abs,
-                   array as np_array,
-                   arange as np_arange,
-                   linspace as np_linspace,
-                   percentile as np_percentile,
-                   ones_like as np_ones_like,
-                   histogram as np_histogram)
-
-
-
+from numpy import median as np_median
 
 
 class Classify():
@@ -63,14 +46,12 @@ class Classify():
     def __init__(self, cpus=1):
         """Initialize."""
                 
-        check_dependencies(['pplacer', 'guppy'])
+        check_dependencies(['pplacer', 'guppy', 'mash'])
         
         self.taxonomy_file = Config.TAXONOMY_FILE
         
         self.logger = logging.getLogger('timestamp') 
         self.cpus = cpus
-        
-
 
     def place_genomes(self, 
                         user_msa_file, 
@@ -78,15 +59,7 @@ class Classify():
                         out_dir, 
                         prefix):
         """Place genomes into reference tree using pplacer."""
-
-        # get path to pplacer reference package   
-        if marker_set_id == 'bac120':
-            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR, Config.PPLACER_BAC120_REF_PKG)
-        elif marker_set_id == 'ar122':
-            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG)
-        elif marker_set_id == 'rps23':
-            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
-            
+        
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
             t = os.path.join(out_dir, prefix + '.user_msa.fasta')
@@ -95,152 +68,157 @@ class Classify():
               
         # run pplacer to place bins in reference genome tree
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
-        self.logger.info('Placing %d genomes into GTDB reference tree with pplacer (be patient).' % num_genomes)
-        
-        pplacer_out_dir = os.path.join(out_dir, 'classify', 'pplacer')
+
+        # get path to pplacer reference package   
+        if marker_set_id == 'bac120':
+            self.logger.info('Placing %d bacterial genomes into reference tree with pplacer (be patient).' % num_genomes)
+            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR, Config.PPLACER_BAC120_REF_PKG)
+        elif marker_set_id == 'ar122':
+            self.logger.info('Placing %d archaeal genomes into reference tree with pplacer (be patient).' % num_genomes)
+            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG)
+        elif marker_set_id == 'rps23':
+            self.logger.info('Placing %d genomes into reference tree with pplacer (be patient).' % num_genomes)
+            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
+
+        pplacer_out_dir = os.path.join(out_dir, 'pplacer')
         if not os.path.exists(pplacer_out_dir):
             os.makedirs(pplacer_out_dir)
             
-        pplacer_out = os.path.join(pplacer_out_dir, Config.PPLACER_OUT)
-        pplacer_json_out = os.path.join(pplacer_out_dir, Config.PPLACER_JSON_OUT)
+        pplacer_out = os.path.join(pplacer_out_dir, 'pplacer.%s.out' % marker_set_id)
+        pplacer_json_out = os.path.join(pplacer_out_dir, 'pplacer.%s.json' % marker_set_id)
         cmd = 'pplacer -j %d -c %s -o %s %s > %s' % (self.cpus,
                                                      pplacer_ref_pkg,
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        
-        
         os.system(cmd)
 
         # extract tree
-        tree_file = os.path.join(out_dir, 'classify', prefix + ".classify.tree")
+        tree_file = os.path.join(out_dir, prefix + ".%s.classify.tree" % marker_set_id)
         cmd = 'guppy tog -o %s %s' % (tree_file, pplacer_json_out)
         os.system(cmd)
         
         return tree_file
         
-    def run(self, 
-            user_msa_file,
-            genome_dir, 
-            batchfile, 
-            marker_set_id, 
+    def run(self,
+            genomes,
+            align_dir,
             out_dir, 
             prefix):
         """Classify genomes based on position in reference tree."""
         
-        classify_tree = self.place_genomes(user_msa_file,
-                                            marker_set_id,
-                                            out_dir,
-                                            prefix)
-        
-        
-        genomes = genomes_to_process(genome_dir, batchfile)
-        # get taxonomic classification of each user genome
-        tree = dendropy.Tree.get_from_path(classify_tree, 
-                                            schema='newick', 
-                                            rooting='force-rooted', 
-                                            preserve_underscores=True)
-        
-        gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
-        
-        fout = open(os.path.join(out_dir, prefix + '.classification.tsv'), 'w')
-        mashfout = open(os.path.join(out_dir, prefix + '.mash_distance.tsv'), 'w')
-        redfout = open(os.path.join(out_dir, prefix + '.red_value.tsv'), 'w')
-        pplaceout = open(os.path.join(out_dir, prefix + '.classification_pplacer.tsv'), 'w')
-        
-        reddictfile = open(os.path.join(out_dir, prefix + '.red_dictionary.tsv'), 'w')
-        reddictfile.write('Phylum\t{0}\n'.format(Config.RED_DIST_DICT.get('p__')))
-        reddictfile.write('Class\t{0}\n'.format(Config.RED_DIST_DICT.get('c__')))
-        reddictfile.write('Order\t{0}\n'.format(Config.RED_DIST_DICT.get('o__')))
-        reddictfile.write('Family\t{0}\n'.format(Config.RED_DIST_DICT.get('f__')))
-        reddictfile.write('Genus\t{0}\n'.format(Config.RED_DIST_DICT.get('g__')))
-        reddictfile.close()
-        
-        mashfout.write("User genome\tReference genome\tMash distance\n")
-        redfout.write("User genome\tRed value\n")
-        
-        
-        # Genomes can be classified by using Mash or RED values
-        # We go through all leaves of the tree. if the leaf is a user genome we take it's parent node and look at all the leaves for this node.
-        # If the parent node has only one Reference genome ( GB or RS ) we calculate the mash distance between the user genome and the reference genome
-        analysed_nodes = []
-        mash_dict = {}
-        self.logger.info('Calculating Mash distances.')
-        for nd in tree:
-            #We store the prefixes of each leaves to check if one starts with GB_ or RS_
-            list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in nd.leaf_iter()]
-            list_subnode = [subnd.taxon.label.replace("'",'') for subnd in nd.leaf_iter()]
-            #if only one genome is a reference genome
-            if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 and len(list_subnode_initials) > 1 and list_subnode[0] not in analysed_nodes:
-                results = self._calculate_mash_distance(list_subnode,genomes)
-                mash_dict = merge_two_dicts(mash_dict,results)
-                analysed_nodes.extend(list_subnode)
-                
-        for k,v in mash_dict.iteritems():
-            suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
-            taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
-            fout.write('%s\t%s\n' % (k, taxa_str))
-            mashfout.write("{0}\t{1}\t{2}\n".format(k,v.get("ref_genome"),v.get("mash_dist")))    
-        mashfout.close()
-        
-        self.logger.info('{0} genomes have been classify with Mash.'.format(len(mash_dict)))
+        for marker_set_id in ('bac120', 'ar122'):
+            user_msa_file = os.path.join(align_dir, 'gtdbtk.%s.user_msa.fasta' % marker_set_id)
+            if not os.path.exists(user_msa_file):
+                # file will not exist if there are no User genomes from a given domain
+                continue 
+            
+            classify_tree = self.place_genomes(user_msa_file,
+                                                marker_set_id,
+                                                out_dir,
+                                                prefix)
 
-        scaled_tree = self._calculate_red_distances(classify_tree,out_dir)
-        
-        user_genome_ids = set(read_fasta(user_msa_file).keys())
-        user_genome_ids = user_genome_ids.difference(set(mash_dict.keys()))
-        # for all other cases we measure the RED distance between a leaf and a parent node ( RED = 1-edge_length). This RED value will tell us
-        # the rank level that can be associated with a User genome. 
-        # As an example if the RED value is close to the order level, the user genome will take the order level of the Reference genome under the same parent node.
-        # Is there are multiple orders under the parent node. The user genome is considered as a new order 
-        for leaf in scaled_tree.leaf_node_iter():
-            if leaf.taxon.label in user_genome_ids:
-                taxa = []
-                # In some cases , pplacer can associate 2 user genomes on the same parent node so we need to go up the tree to find a node with a reference genome as leaf.
-                edge_length = leaf.edge_length
-                cur_node = leaf.parent_node
-                list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in cur_node.leaf_iter()]
-                while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials:
-                    edge_length += cur_node.edge_length
-                    cur_node = cur_node.parent_node
+            # get taxonomic classification of each user genome
+            tree = dendropy.Tree.get_from_path(classify_tree, 
+                                                schema='newick', 
+                                                rooting='force-rooted', 
+                                                preserve_underscores=True)
+            
+            gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
+            
+            fout = open(os.path.join(out_dir, prefix + '.%s.classification.tsv' % marker_set_id), 'w')
+            mashfout = open(os.path.join(out_dir, prefix + '.%s.mash_distance.tsv' % marker_set_id), 'w')
+            redfout = open(os.path.join(out_dir, prefix + '.%s.red_value.tsv' % marker_set_id), 'w')
+
+            reddictfile = open(os.path.join(out_dir, prefix + '.%s.red_dictionary.tsv' % marker_set_id), 'w')
+            reddictfile.write('Phylum\t{0}\n'.format(Config.RED_DIST_DICT.get('p__')))
+            reddictfile.write('Class\t{0}\n'.format(Config.RED_DIST_DICT.get('c__')))
+            reddictfile.write('Order\t{0}\n'.format(Config.RED_DIST_DICT.get('o__')))
+            reddictfile.write('Family\t{0}\n'.format(Config.RED_DIST_DICT.get('f__')))
+            reddictfile.write('Genus\t{0}\n'.format(Config.RED_DIST_DICT.get('g__')))
+            reddictfile.close()
+            
+            mashfout.write("User genome\tReference genome\tMash distance\n")
+            redfout.write("User genome\tRed value\n")
+            
+            # Genomes can be classified by using Mash or RED values
+            # We go through all leaves of the tree. if the leaf is a user genome we take it's parent node and look at all the leaves for this node.
+            # If the parent node has only one Reference genome ( GB or RS ) we calculate the mash distance between the user genome and the reference genome
+            analysed_nodes = []
+            mash_dict = {}
+            self.logger.info('Calculating Mash distances.')
+            for nd in tree:
+                #We store the prefixes of each leaves to check if one starts with GB_ or RS_
+                list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in nd.leaf_iter()]
+                list_subnode = [subnd.taxon.label.replace("'",'') for subnd in nd.leaf_iter()]
+                #if only one genome is a reference genome
+                if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 and len(list_subnode_initials) > 1 and list_subnode[0] not in analysed_nodes:
+                    results = self._calculate_mash_distance(list_subnode, genomes)
+                    mash_dict = merge_two_dicts(mash_dict,results)
+                    analysed_nodes.extend(list_subnode)
+                    
+            for k,v in mash_dict.iteritems():
+                suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
+                taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
+                fout.write('%s\t%s\n' % (k, taxa_str))
+                mashfout.write("{0}\t{1}\t{2}\n".format(k,v.get("ref_genome"),v.get("mash_dist")))    
+            mashfout.close()
+            
+            self.logger.info('{0} genomes have been classify with Mash.'.format(len(mash_dict)))
+
+            scaled_tree = self._calculate_red_distances(classify_tree, out_dir)
+            
+            user_genome_ids = set(read_fasta(user_msa_file).keys())
+            user_genome_ids = user_genome_ids.difference(set(mash_dict.keys()))
+            # for all other cases we measure the RED distance between a leaf and a parent node ( RED = 1-edge_length). This RED value will tell us
+            # the rank level that can be associated with a User genome. 
+            # As an example if the RED value is close to the order level, the user genome will take the order level of the Reference genome under the same parent node.
+            # Is there are multiple orders under the parent node. The user genome is considered as a new order 
+            for leaf in scaled_tree.leaf_node_iter():
+                if leaf.taxon.label in user_genome_ids:
+                    taxa = []
+                    # In some cases , pplacer can associate 2 user genomes on the same parent node so we need to go up the tree to find a node with a reference genome as leaf.
+                    edge_length = leaf.edge_length
+                    cur_node = leaf.parent_node
                     list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in cur_node.leaf_iter()]
-                     
-                closest_rank = self._get_closest_red_rank(1-edge_length)              
-                red_parent_node  = leaf.parent_node
-                list_subnode = [subnd.taxon.label.replace("'",'') for subnd in cur_node.leaf_iter()]
-                if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 : 
-                    red_taxonomy = self._get_redtax_single_ref(list_subnode,closest_rank,gtdb_taxonomy)
-                else :
-                    red_taxonomy = self._get_redtax_multi_ref(list_subnode,closest_rank,gtdb_taxonomy)
-                fout.write('{0}\t{1}\n'.format(leaf.taxon.label, red_taxonomy,))
-                redfout.write('{0}\t{1}\n'.format(leaf.taxon.label,1-edge_length))
-        redfout.close()
-        fout.close()
-        
+                    while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials:
+                        edge_length += cur_node.edge_length
+                        cur_node = cur_node.parent_node
+                        list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in cur_node.leaf_iter()]
+                         
+                    closest_rank = self._get_closest_red_rank(1-edge_length)              
+                    red_parent_node  = leaf.parent_node
+                    list_subnode = [subnd.taxon.label.replace("'",'') for subnd in cur_node.leaf_iter()]
+                    if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 : 
+                        red_taxonomy = self._get_redtax_single_ref(list_subnode,closest_rank,gtdb_taxonomy)
+                    else :
+                        red_taxonomy = self._get_redtax_multi_ref(list_subnode,closest_rank,gtdb_taxonomy)
+                    fout.write('{0}\t{1}\n'.format(leaf.taxon.label, red_taxonomy,))
+                    redfout.write('{0}\t{1}\n'.format(leaf.taxon.label,1-edge_length))
+            redfout.close()
+            fout.close()
 
-        pplaceout = open(os.path.join(out_dir, prefix + '.classification_pplacer.tsv'), 'w')        
+            pplaceout = open(os.path.join(out_dir, prefix + '.%s.classification_pplacer.tsv' % marker_set_id), 'w')        
+            
+            # We get the pplacer taxonomy for comparison
+            user_genome_ids = set(read_fasta(user_msa_file).keys())
+            for leaf in tree.leaf_node_iter():
+                if leaf.taxon.label in user_genome_ids:
+                    taxa = []
+                    cur_node = leaf
+                    while cur_node.parent_node:
+                        _support, taxon, _aux_info = parse_label(cur_node.label)      
+                        if taxon:
+                            for t in taxon.split(';')[::-1]:
+                                taxa.append(t.strip())                           
+                        cur_node = cur_node.parent_node
+                    taxa_str = ';'.join(taxa[::-1])
+                    pplaceout.write('%s\t%s\n' % (leaf.taxon.label, taxa_str))
+            pplaceout.close()
         
-        
-        # We get the pplacer taxonomy for comparison
-        user_genome_ids = set(read_fasta(user_msa_file).keys())
-        for leaf in tree.leaf_node_iter():
-            if leaf.taxon.label in user_genome_ids:
-                taxa = []
-                cur_node = leaf
-                while cur_node.parent_node:
-                    _support, taxon, _aux_info = parse_label(cur_node.label)      
-                    if taxon:
-                        for t in taxon.split(';')[::-1]:
-                            taxa.append(t.strip())                           
-                    cur_node = cur_node.parent_node
-                taxa_str = ';'.join(taxa[::-1])
-                pplaceout.write('%s\t%s\n' % (leaf.taxon.label, taxa_str))
-        pplaceout.close()
-    
-        
-        print "THERE RESULTS SHOULD BE REFINED TO SEE IF A GENOME CAN BE ASSIGNED TO ANY SISTER TAXON"
-        print "EX: PERHAPS THIS GENOME BELONGS TO A SISTER CLASS!"
-        print "NEED TO GET FIXED PhyloRank THRESHOLDS INTO THE MIX."
+            print "THERE RESULTS SHOULD BE REFINED TO SEE IF A GENOME CAN BE ASSIGNED TO ANY SISTER TAXON"
+            print "EX: PERHAPS THIS GENOME BELONGS TO A SISTER CLASS!"
+            print "NEED TO GET FIXED PhyloRank THRESHOLDS INTO THE MIX."
         
     def _get_closest_red_rank(self,red_value):
         """Compare the absolute difference between the user genome edge length and the list of 
@@ -353,7 +331,6 @@ class Classify():
         -------
         string
             Taxonomy string.
-        
         """
         
         # read tree
@@ -363,19 +340,11 @@ class Classify():
                                             rooting='force-rooted', 
                                             preserve_underscores=True)
 
-        input_tree_name = os.path.splitext(os.path.basename(input_tree))[0]
-
         self.logger.info('Reading taxonomy from file.')
         taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
-            
-        gtdb_parent_ranks = Taxonomy().parents(taxonomy)
 
-        # read trusted taxa
-        trusted_taxa = None
-        
-        rd = RelativeDistance()
-        
         # determine taxa to be used for inferring distribution
+        trusted_taxa = None
         taxa_for_dist_inference = self._filter_taxa_for_dist_inference(tree, 
                                                                  taxonomy, 
                                                                  trusted_taxa, 
@@ -392,30 +361,40 @@ class Classify():
             n.rel_dist = np_median(rel_node_dists[n.id])
             rd_to_parent = n.rel_dist - n.parent_node.rel_dist
             if rd_to_parent < 0:
-                self.logger.warning('Not all branches are positive after scaling.')
+                # This can occur since we are setting all nodes
+                # to their median RED value.
+                #self.logger.warning('Not all branches are positive after scaling.')
+                pass
             n.edge_length = rd_to_parent
-            
-        plot_file = os.path.join(out_dir, '%s.png' % input_tree_name)
-        rd._distribution_summary_plot(phylum_rel_dists, taxa_for_dist_inference, plot_file)
+        
+        if False:
+            # These plots can be useful for debugging and internal use,
+            # but are likely to be confusing to users.
+            rd = RelativeDistance()
 
-        median_outlier_table = os.path.join(out_dir, '%s.tsv' % input_tree_name)
-        median_rank_file = os.path.join(out_dir, '%s.dict' % input_tree_name)
-        rd._median_summary_outlier_file(phylum_rel_dists, 
-                                             taxa_for_dist_inference, 
-                                             gtdb_parent_ranks, 
-                                             median_outlier_table, 
-                                             median_rank_file, 
-                                             False)
+            input_tree_name = os.path.splitext(os.path.basename(input_tree))[0]
+            plot_file = os.path.join(out_dir, '%s.png' % input_tree_name)
+            rd._distribution_summary_plot(phylum_rel_dists, taxa_for_dist_inference, plot_file)
+
+            gtdb_parent_ranks = Taxonomy().parents(taxonomy)
+            median_outlier_table = os.path.join(out_dir, '%s.tsv' % input_tree_name)
+            median_rank_file = os.path.join(out_dir, '%s.dict' % input_tree_name)
+            rd._median_summary_outlier_file(phylum_rel_dists, 
+                                                 taxa_for_dist_inference, 
+                                                 gtdb_parent_ranks, 
+                                                 median_outlier_table, 
+                                                 median_rank_file, 
+                                                 False)
                                             
-        output_tree = os.path.join(out_dir, '%s.scaled.tree' % input_tree_name)
-        tree.write_to_path(output_tree, 
-                        schema='newick', 
-                        suppress_rooting=True, 
-                        unquoted_underscores=True)
         
+            output_tree = os.path.join(out_dir, '%s.scaled.tree' % input_tree_name)
+            tree.write_to_path(output_tree, 
+                            schema='newick', 
+                            suppress_rooting=True, 
+                            unquoted_underscores=True)
         
-        return tree     
-        
+        return tree
+
     def _calculate_mash_distance(self,list_leaf,genomes):
 
         """ Calculate the Mash distance between all user genomes and the reference to classfy them at the species level
@@ -438,6 +417,7 @@ class Classify():
             for leaf in list_leaf:
                 if not leaf.startswith('GB_') and not leaf.startswith('RS_'):
                     shutil.copy(genomes.get(leaf), usr_genome_dir)
+                    
             cmd = 'mash sketch -s 5000 -k 16 -o {0}/user_genomes {1}/* -p {2} > /dev/null 2>&1'.format(self.tmp_output_dir, usr_genome_dir, self.cpus)
             os.system(cmd)
             reference_db = os.path.join(Config.MASH_DIR,Config.MASH_DB)
@@ -465,9 +445,6 @@ class Classify():
         -------
         dictionary
             dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
-        
-        
-        
         """
         dict_results = {}
         with open(distance_file) as distfile:
@@ -589,7 +566,7 @@ class Classify():
         self.logger.info('Identified %d phyla.' % len(all_phyla))
         
         phyla = [p for p in all_phyla if p in taxa_for_dist_inference]
-        self.logger.info('Using %d phyla as rootings for inferring distributions.' % len(phyla))
+        self.logger.info('Using %d phyla as rootings for inferring RED distributions.' % len(phyla))
         if len(phyla) < 2:
             self.logger.error('Rescaling requires at least 2 valid phyla.')
             sys.exit(-1)
@@ -604,8 +581,10 @@ class Classify():
         rd = RelativeDistance()
         for p in phyla:
             phylum = p.replace('p__', '').replace(' ', '_').lower()
-            self.logger.info('Calculating information with rooting on %s.' % phylum.capitalize())
-            
+            status_msg = '==> Calculating information with rooting on %s.              ' % phylum.capitalize()
+            sys.stdout.write('%s\r' % status_msg)
+            sys.stdout.flush()
+
             cur_tree = self.root_with_outgroup(tree, taxonomy, p)
             
             # calculate relative distance to taxa
@@ -635,9 +614,11 @@ class Classify():
                     break
             
             # do a preorder traversal of 'ingroup' and record relative divergence to nodes
-            for n in ingroup_subtree.preorder_iter():                        
+            for n in ingroup_subtree.preorder_iter():
                 rel_node_dists[n.id].append(n.rel_dist)
-                                                           
+
+        sys.stdout.write('\n')
+        
         return phylum_rel_dists, rel_node_dists
     
     def _get_phyla_lineages(self,tree):
@@ -690,8 +671,7 @@ class Classify():
         for genome_id, taxa in taxonomy.iteritems():
             if outgroup_taxa in taxa:
                 outgroup.add(genome_id)
-        self.logger.info('Identifying %d genomes in the outgroup.' % len(outgroup))
-
+                
         outgroup_in_tree = set()
         ingroup_in_tree = set()
         for n in new_tree.leaf_node_iter():
@@ -699,7 +679,6 @@ class Classify():
                 outgroup_in_tree.add(n.taxon)
             else:
                 ingroup_in_tree.add(n)
-        self.logger.info('Identified %d outgroup taxa in the tree.' % len(outgroup_in_tree))
 
         if len(outgroup_in_tree) == 0:
             self.logger.warning('No outgroup taxa identified in the tree.')
@@ -726,20 +705,16 @@ class Classify():
             if leaves_in_mrca != leaves_in_tree:
                 break
 
-        if leaves_in_mrca != len(outgroup_in_tree):
-            self.logger.info('Outgroup is not monophyletic. Tree will be rerooted at the MRCA of the outgroup.')
-            self.logger.info('The outgroup consisted of %d taxa, while the MRCA has %d leaf nodes.' % (len(outgroup_in_tree), leaves_in_mrca))
-            if leaves_in_mrca == leaves_in_tree:
-                self.logger.warning('The MRCA spans all taxa in the tree.')
-                self.logger.warning('This indicating the selected outgroup is likely polyphyletic in the current tree.')
-                self.logger.warning('Polyphyletic outgroups are not suitable for rooting. Try another outgroup.')
-        else:
-            self.logger.info('Outgroup is monophyletic.')
+        if leaves_in_mrca == leaves_in_tree:
+            self.logger.error('The MRCA spans all taxa in the tree.')
+            self.logger.error('This indicating the selected outgroup is likely polyphyletic in the current tree.')
+            self.logger.error('This should never occur. Please report this as a bug.')
+            sys.exit(-1)
 
         if mrca.edge_length is None:
-            self.logger.info('Tree appears to already be rooted on this outgroup.')
+            #self.logger.info('Tree appears to already be rooted on this outgroup.')
+            pass
         else:
-            self.logger.info('Rerooting tree.')
             new_tree.reroot_at_edge(mrca.edge,
                                 length1=0.5 * mrca.edge_length,
                                 length2=0.5 * mrca.edge_length)

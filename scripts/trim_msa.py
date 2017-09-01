@@ -18,7 +18,7 @@
 ###############################################################################
 
 __prog_name__ = 'trim_msa.py'
-__prog_desc__ = 'Take randomly a subset a column from the MSA for each marker.'
+__prog_desc__ = 'Take randomly a subset of columns from the MSA of each marker.'
 
 __author__ = 'Pierre Chaumeil'
 __copyright__ = 'Copyright 2017'
@@ -36,12 +36,15 @@ import tempfile
 import ntpath
 import random
 from biolib.seq_io import read_fasta
+from collections import defaultdict, Counter
 
 class MSATrimmer(object):
     def __init__(self):
         """Initialization."""
+        
         self.subset = 42
-        pass
+        self.max_gaps = 0.10            # only consider columns with less than this percentage of gaps
+        self.max_indentical_aa = 0.95   # only consider columns with less than this percentage of identical amino acids
 
     def run(self, msa, mask, marker_list, taxonomy_file,metadata_file, output):
         dict_marker ={}
@@ -58,7 +61,10 @@ class MSATrimmer(object):
                 list_info = line.split("\t")
                 dict_marker[list_info[0]] = int(list_info[3])
                 
-        new_mask,output_seqs = self.trim_seqs(dict_genomes,sub_list_genomes,maskstr,dict_marker)
+        new_mask, output_seqs = self.trim_seqs(dict_genomes,
+                                                sub_list_genomes,
+                                                maskstr,
+                                                dict_marker)
         
         os.mkdir(output)
         
@@ -79,7 +85,6 @@ class MSATrimmer(object):
         trimmed_file.close()
         nbr_aa_seqs.close()
         
-    
     def selectGenomes(self,list_genomes,taxonomy_file,metadata_file):
         dictgenusspecies = {}
         listgid = []
@@ -104,7 +109,6 @@ class MSATrimmer(object):
                                           "quality":quality
                                           }
             
-            
         with open(taxonomy_file,'r') as f:
             for line in f:
                 info = line.split("\t")
@@ -122,29 +126,62 @@ class MSATrimmer(object):
                             dictgenusspecies[genusspecies] = gid
                         elif dict_metadata[gid]['quality'] >= dict_metadata[oldgid]['quality']:
                             dictgenusspecies[genusspecies] = gid
-                        else: continue               
+                        else: 
+                            continue
+                        
         for k,v in dictgenusspecies.iteritems():
             listgid.append(v)
+            
         return listgid
+        
+    def identify_valid_columns(self, start, end, seqs, sublistgid):
+        """Identify columns meeting gap and amino acid ubiquity criteria."""
+        
+        gap_count = defaultdict(int)
+        amino_acids = [list() for _ in xrange(end-start)]
+        for seq_id, seq in seqs.iteritems():
+            if seq_id not in sublistgid:
+                continue
+                
+            gene_seq = seq[start:end]
+            for i, ch in enumerate(gene_seq):
+                if ch == '_' or ch == '.':
+                    gap_count[i] += 1
+                else:
+                    amino_acids[i].append(ch)
+
+        valid_cols = set()
+        for i in xrange(0, end-start):
+            if float(gap_count.get(i, 0)) / len(sublistgid) <= self.max_gaps:
+                c = Counter(amino_acids[i])
+                if not c.most_common(1):
+                    aa_ratio = 0
+                else:
+                    _letter, count = c.most_common(1)[0]
+                    aa_ratio = float(count) / len(sublistgid)
+                
+                if aa_ratio <= self.aa_ratio:
+                    valid_cols.add(i)
                     
-    def trim_seqs(self,seqs,sublistgid,mask,dict_marker ):
+        return valid_cols
+                    
+    def trim_seqs(self, seqs, sublistgid, mask, dict_marker):
         """Trim multiple sequence alignment."""
 
-
         alignment_length = len(seqs.values()[0])
-        start = 0
-        
         list_selected_columns = [0] * alignment_length
         all_coords =[]
-        
+        start = 0
         for marker in sorted(dict_marker):
             end = start + dict_marker[marker]
             submask = mask[start:end]
             
-            coords = [] 
-            for i,presence in enumerate(submask):
+            valid_cols = self.identify_valid_columns(start, end, seqs, sublistgid)
+            print end - start, len(valid_cols)
             
-                if presence == '1':
+            coords = [] 
+            for i, presence in enumerate(submask):
+                if presence == '1' and i in valid_cols:
                     coords.append(start + i)
             
             if len(coords) < self.subset:
