@@ -428,7 +428,6 @@ class Markers(object):
             else:
                 self.logger.error('Unrecognized marker set: %s' % marker_set_id)
                 sys.exit()
-
             hmm_aligner = HmmAligner(self.cpus,
                                         self.pfam_top_hit_suffix,
                                         self.tigrfam_top_hit_suffix,
@@ -440,7 +439,6 @@ class Markers(object):
                                         Config.RPS23_MARKERS)
             user_msa = hmm_aligner.align_marker_set(genomic_files, 
                                                     marker_set_id)
-
             # filter columns without sufficient representation across taxa
             aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
             if custom_msa_filters:
