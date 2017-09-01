@@ -92,8 +92,8 @@ class OptionsParser():
         marker_set_id = self._marker_set_id(options.bac120_ms,
                                             options.ar122_ms,
                                             options.rps23_ms)
-          
-        markers = Markers(options.threads)
+        
+        markers = Markers(options.cpus)
         markers.align(options.genome_dir,
                         options.batchfile,
                         options.identify_dir,
