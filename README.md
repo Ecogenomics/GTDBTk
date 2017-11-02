@@ -6,6 +6,10 @@
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
 efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. However, it can equally be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
 
+Please note that GTDB-Tk is **still under active development** and is not ready for external users.
+notifications about GTDB-Tk releases will be available through ACE Twitter account (https://twitter.com/ace_uq).
+
+
 ## Installation
 
 GTDB-Tk requires the following Python libraries:
