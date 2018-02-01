@@ -264,7 +264,7 @@ class Markers(object):
                                 }
         return genomic_files
         
-    def _msa_filter_by_taxa(self, concatenated_file, gtdb_taxonomy, taxa_filter):
+    def _msa_filter_by_taxa(self, concatenated_file, gtdb_taxonomy, taxa_filter, outgroup_taxon):
         """Filter GTDB MSA filtered to specified taxa."""
         
         msa = read_fasta(concatenated_file)
@@ -272,6 +272,9 @@ class Markers(object):
         
         if taxa_filter is not None:
             taxa_to_keep = set(taxa_filter.split(','))
+            
+            if outgroup_taxon not in taxa_to_keep and outgroup_taxon is not None:
+                taxa_to_keep.add(outgroup_taxon)
 
             filtered_genomes = 0
             for genome_id, taxa in gtdb_taxonomy.iteritems():
@@ -360,7 +363,8 @@ class Markers(object):
                 consensus, 
                 min_per_taxa, 
                 out_dir, 
-                prefix):
+                prefix,
+                outgroup_taxon):
         """Align marker genes in genomes."""
 
         try:
@@ -384,15 +388,13 @@ class Markers(object):
                 else:
                     self.logger.info('Processing %d genomes identified as archaeal.' % len(gids))
                     
-                    ### HACK: archaeal alignment is not yet ready!
-                    self.logger.warning('ARCHAEAL ALIGNMENT IS NOT YET READY SO SKIPPING THIS ALIGNMENT!')
-                    continue
                     
                 cur_genome_files = {gid: f for gid, f in genomic_files.iteritems() if gid in gids}
                     
                 gtdb_msa = self._msa_filter_by_taxa(msa_file,
                                                     gtdb_taxonomy,
-                                                    taxa_filter)
+                                                    taxa_filter,
+                                                    outgroup_taxon)
                 gtdb_msa_mask = os.path.join(Config.MASK_DIR, mask_file)
 
                 hmm_aligner = HmmAligner(self.cpus,

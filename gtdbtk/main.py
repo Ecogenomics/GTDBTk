@@ -153,6 +153,10 @@ class OptionsParser():
 
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
+        
+        if not hasattr(options, 'outgroup_taxon'):
+            options.outgroup_taxon = None
+           
 
 
         markers = Markers(options.cpus)
@@ -163,7 +167,8 @@ class OptionsParser():
                         options.consensus,
                         options.min_perc_taxa,
                         options.out_dir,
-                        options.prefix)
+                        options.prefix,
+                        options.outgroup_taxon)
                        
         self.logger.info('Done.')
         
@@ -181,7 +186,7 @@ class OptionsParser():
         self.logger.info('Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
         fasttree = FastTree(multithreaded=(options.cpus > 1))
 
-        tree_unrooted_output = os.path.join(options.out_dir, options.prefix + '.unrooted.tree')
+        tree_unrooted_output = os.path.join(options.out_dir, options.prefix +options.suffix+ '.unrooted.tree')
         tree_log = os.path.join(options.out_dir, options.prefix + '.tree.log')
         tree_output_log = os.path.join(options.out_dir, 'fasttree.log')
         fasttree.run(options.msa_file, 
@@ -248,20 +253,26 @@ class OptionsParser():
                 check_dependencies(['FastTreeMP'])
             else:
                 check_dependencies(['FastTree'])
-                
+                              
             self.identify(options)
             
             options.identify_dir = options.out_dir
             self.align(options)
             
+            if options.bac120_ms :
+                options.suffix = ".bac120"
+            else:
+                options.suffix = ".ar122"
+            
+            
             options.msa_file = os.path.join(options.out_dir, 
-                                            options.prefix + ".msa.faa")
+                                            options.prefix + options.suffix +".msa.fasta")
             self.infer(options)
             
             options.input_tree = os.path.join(options.out_dir, 
-                                                options.prefix + ".unrooted.tree")
+                                                options.prefix + options.suffix + ".unrooted.tree")
             options.output_tree = os.path.join(options.out_dir, 
-                                                options.prefix + ".rooted.tree")
+                                                options.prefix + options.suffix + ".rooted.tree")
             self.root(options)
             
             self.decorate(options)
