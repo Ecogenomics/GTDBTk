@@ -94,7 +94,7 @@ class Classify():
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        os.system(cmd)
+        #os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(out_dir, prefix + ".%s.classify.tree" % marker_set_id)
@@ -133,7 +133,7 @@ class Classify():
             fout = open(os.path.join(out_dir, prefix + '.%s.classification.tsv' % marker_set_id), 'w')
             mashfout = open(os.path.join(out_dir, prefix + '.%s.mash_distance.tsv' % marker_set_id), 'w')
             redfout = open(os.path.join(out_dir, prefix + '.%s.red_value.tsv' % marker_set_id), 'w')
-            parchiinfo = open(os.path.join(out_dir, prefix + '.%s.parentinfo.tsv' % marker_set_id), 'w')
+            #parchiinfo = open(os.path.join(out_dir, prefix + '.%s.parentinfo.tsv' % marker_set_id), 'w')
 
             reddictfile = open(os.path.join(out_dir, prefix + '.%s.red_dictionary.tsv' % marker_set_id), 'w')
             
@@ -150,8 +150,8 @@ class Classify():
             reddictfile.close()
             
             mashfout.write("User genome\tReference genome\tMash distance\n")
-            redfout.write("User genome\tRed value\n")
-            parchiinfo.write("User genome\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\n")
+            redfout.write("User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\n")
+            #parchiinfo.write("User genome\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\n")
             
             # Genomes can be classified by using Mash or RED values
             # We go through all leaves of the tree. if the leaf is a user genome we take it's parent node and look at all the leaves for this node.
@@ -332,8 +332,8 @@ class Classify():
                         #Case a,b,d
                         red_taxonomy = self._get_redtax_multi_ref(list_subnode,closest_rank,gtdb_taxonomy)
                     fout.write('{0}\t{1}\n'.format(leaf.taxon.label, red_taxonomy,))
-                    redfout.write('{0}\t{1}\n'.format(leaf.taxon.label,1-edge_length))
-                    parchiinfo.write('{0}\n'.format('\t'.join(str(x) for x in genome_parent_child)))
+                    del genome_parent_child[0]
+                    redfout.write('{0}\t{1}\t{2}\n'.format(leaf.taxon.label,1-edge_length,'\t'.join(str(x) for x in genome_parent_child)))
 
             print "count a: {0}".format(counta)
             print "count b: {0}".format(countb)
