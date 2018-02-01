@@ -45,12 +45,17 @@ class MSATrimmer(object):
         self.subset = 42
         self.max_gaps = 0.10            # only consider columns with less than this percentage of gaps
         self.max_indentical_aa = 0.95   # only consider columns with less than this percentage of identical amino acids
+        self.consensus = 0.25
 
     def run(self, msa, mask, marker_list, taxonomy_file,metadata_file, output):
         dict_marker ={}
         dict_genomes = read_fasta(msa,False)
         
+        print len(dict_genomes)
+        
         sub_list_genomes = self.selectGenomes(dict_genomes,taxonomy_file,metadata_file)
+        
+        print len(sub_list_genomes)
             
         with open(mask, 'r') as f:
             maskstr = f.readline()
@@ -66,7 +71,8 @@ class MSATrimmer(object):
                                                 maskstr,
                                                 dict_marker)
         
-        os.mkdir(output)
+        if not os.path.exists(output):
+            os.makedirs(output)
         
         #Write mask
         mask_file =  open(os.path.join(output,"mask.txt"),'w')
@@ -93,7 +99,6 @@ class MSATrimmer(object):
         dict_metadata = {}
         with open(metadata_file,'r') as mf:
             headers= mf.readline().strip().split("\t")
-            print headers
             ncbi_type_strain_index = headers.index('ncbi_type_strain')
             checkm_completeness_index =  headers.index('checkm_completeness')
             checkm_contamination_index = headers.index('checkm_contamination')
@@ -102,9 +107,9 @@ class MSATrimmer(object):
                 info = line.split('\t')
                 quality = float(info[checkm_completeness_index]) - 5*float(info[checkm_contamination_index])
                 if info[ncbi_type_strain_index] != '' and info[ncbi_type_strain_index] != 'yes' and info[ncbi_type_strain_index] != 'none':
-                   print info[0]
-                   print info[ncbi_type_strain_index]
-                   sys.exit()
+                    print info[0]
+                    print info[ncbi_type_strain_index]
+                    sys.exit()
                 dict_metadata[info[0]] = { "strain":info[ncbi_type_strain_index],
                                           "quality":quality
                                           }
@@ -115,22 +120,28 @@ class MSATrimmer(object):
                 gid = info[0]
                 genusspecies = info[1].split(";")[5]+info[1].split(";")[6].strip()
                 if gid in list_genomes:
-                    if genusspecies not in dictgenusspecies:
-                        dictgenusspecies[genusspecies] = gid
+                    if info[1].split(";")[6].strip() != 's__':
+                        if genusspecies not in dictgenusspecies:
+                            dictgenusspecies[genusspecies] = gid
+                        else:
+                            oldgid = dictgenusspecies.get(genusspecies)
+                            
+                            if dict_metadata[oldgid]['strain'] =='yes' and (dict_metadata[gid]['strain'] =='' or dict_metadata[gid]['strain'] == 'none'):
+                                continue
+                            if dict_metadata[gid]['strain'] =='yes' and (dict_metadata[oldgid]['strain'] =='' or dict_metadata[oldgid]['strain'] == 'none'):
+                                dictgenusspecies[genusspecies] = gid
+                            elif dict_metadata[gid]['quality'] >= dict_metadata[oldgid]['quality']:
+                                dictgenusspecies[genusspecies] = gid
+                            else: 
+                                continue
                     else:
-                        oldgid = dictgenusspecies.get(genusspecies)
+                        listgid.append(gid)
                         
-                        if dict_metadata[oldgid]['strain'] =='yes' and (dict_metadata[gid]['strain'] =='' or dict_metadata[gid]['strain'] == 'none'):
-                            continue
-                        if dict_metadata[gid]['strain'] =='yes' and (dict_metadata[oldgid]['strain'] =='' or dict_metadata[oldgid]['strain'] == 'none'):
-                            dictgenusspecies[genusspecies] = gid
-                        elif dict_metadata[gid]['quality'] >= dict_metadata[oldgid]['quality']:
-                            dictgenusspecies[genusspecies] = gid
-                        else: 
-                            continue
                         
+        print len(listgid)
         for k,v in dictgenusspecies.iteritems():
             listgid.append(v)
+        print len(listgid)
             
         return listgid
         
@@ -160,9 +171,8 @@ class MSATrimmer(object):
                     _letter, count = c.most_common(1)[0]
                     aa_ratio = float(count) / len(sublistgid)
                 
-                if aa_ratio <= self.aa_ratio:
+                if aa_ratio >= self.consensus and c.most_common(1)[0][0] != '-':
                     valid_cols.add(i)
-                    
         return valid_cols
                     
     def trim_seqs(self, seqs, sublistgid, mask, dict_marker):
@@ -177,7 +187,10 @@ class MSATrimmer(object):
             submask = mask[start:end]
             
             valid_cols = self.identify_valid_columns(start, end, seqs, sublistgid)
-            print end - start, len(valid_cols)
+            
+            print start,end,end - start, len(valid_cols)
+            #if len(valid_cols) == 0:
+            #    sys.exit()
             
             coords = [] 
             for i, presence in enumerate(submask):

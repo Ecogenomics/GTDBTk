@@ -9,7 +9,6 @@ efficient and designed to work with recent advances that allow hundreds or thous
 Please note that GTDB-Tk is **still under active development** and is not ready for external users.
 notifications about GTDB-Tk releases will be available through ACE Twitter account (https://twitter.com/ace_uq).
 
-
 ## Installation
 
 GTDB-Tk requires the following Python libraries:

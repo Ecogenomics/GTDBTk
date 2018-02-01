@@ -116,10 +116,10 @@ class HmmAligner(object):
                                                 os.path.join(marker_paths[db_marker], marker) 
                                                 for marker in self.bac120_markers[db_marker]})
         elif marker_set_id == "ar122":
-            for db_marker in sorted(self.ar120_markers):
+            for db_marker in sorted(self.ar122_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): 
                                                 os.path.join(marker_paths[db_marker], marker) 
-                                                for marker in self.ar120_markers[db_marker]})
+                                                for marker in self.ar122_markers[db_marker]})
         elif marker_set_id == "rps23":
             for db_marker in sorted(self.rps23_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): 
@@ -140,6 +140,12 @@ class HmmAligner(object):
             protein_file = tophit_path.replace(
                 marker_suffix, self.protein_file_suffix)
             all_genes_dict = read_fasta(protein_file, False)
+            
+            # Prodigal adds an asterisks at the end of each called genes,
+            # These asterisks sometimes appear in the MSA, which can be an issue for some softwares downstream
+            for seq_id, seq in all_genes_dict.iteritems():
+                if seq[-1] == '*':
+                    all_genes_dict[seq_id] = seq[:-1]
             
             # we store the tophit file line by line and store the
             # information in a dictionary
