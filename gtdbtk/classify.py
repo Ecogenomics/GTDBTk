@@ -38,6 +38,7 @@ import config.config as Config
 import dendropy
 
 from numpy import median as np_median
+import cmd
 
 sys.setrecursionlimit(1500)
 
@@ -47,7 +48,7 @@ class Classify():
     def __init__(self, cpus=1):
         """Initialize."""
                 
-        check_dependencies(['pplacer', 'guppy', 'mash'])
+        check_dependencies(['pplacer', 'guppy', 'fastani'])
         
         self.taxonomy_file = Config.TAXONOMY_FILE
         
@@ -131,7 +132,7 @@ class Classify():
             
             
             fout = open(os.path.join(out_dir, prefix + '.%s.classification.tsv' % marker_set_id), 'w')
-            mashfout = open(os.path.join(out_dir, prefix + '.%s.mash_distance.tsv' % marker_set_id), 'w')
+            fastaniout = open(os.path.join(out_dir, prefix + '.%s.fastani_results.tsv' % marker_set_id), 'w')
             redfout = open(os.path.join(out_dir, prefix + '.%s.red_value.tsv' % marker_set_id), 'w')
             #parchiinfo = open(os.path.join(out_dir, prefix + '.%s.parentinfo.tsv' % marker_set_id), 'w')
 
@@ -149,43 +150,44 @@ class Classify():
             reddictfile.write('Genus\t{0}\n'.format(marker_dict.get('g__')))
             reddictfile.close()
             
-            mashfout.write("User genome\tReference genome\tMash distance\n")
-            redfout.write("User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\n")
+            fastaniout.write("User genome\tReference genome\tANI\n")
+            redfout.write("User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\tTool\n")
             #parchiinfo.write("User genome\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\n")
             
             # Genomes can be classified by using Mash or RED values
             # We go through all leaves of the tree. if the leaf is a user genome we take it's parent node and look at all the leaves for this node.
             # If the parent node has only one Reference genome ( GB or RS ) we calculate the mash distance between the user genome and the reference genome
             analysed_nodes = []
-            mash_dict = {}
+            fastani_dict = {}
             # some genomes of Case C are handled here, if Mash distance is close enough 
-            self.logger.info('Calculating Mash distances.')
+            self.logger.info('Calculating Average Nucleotide Identity using FastANI.')
             
             
-            for nd in tree:
+            for nd in tree.preorder_node_iter():
                 #We store the prefixes of each leaves to check if one starts with GB_ or RS_
                 list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in nd.leaf_iter()]
                 list_subnode = [subnd.taxon.label.replace("'",'') for subnd in nd.leaf_iter()]
                 #if only one genome is a reference genome
                 if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 and len(list_subnode_initials) > 1 and list_subnode[0] not in analysed_nodes:
-                    results = self._calculate_mash_distance(list_subnode, genomes)
-                    mash_dict = merge_two_dicts(mash_dict,results)
+                    #results = self._calculate_mash_distance(list_subnode, genomes)
+                    results = self._calculate_fastani_distance(list_subnode, genomes)
+                    fastani_dict = merge_two_dicts(fastani_dict,results)
                     analysed_nodes.extend(list_subnode)
                
                     
-            for k,v in mash_dict.iteritems():
+            for k,v in fastani_dict.iteritems():
                 suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
                 taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
                 fout.write('%s\t%s\n' % (k, taxa_str))
-                mashfout.write("{0}\t{1}\t{2}\n".format(k,v.get("ref_genome"),v.get("mash_dist")))    
-            mashfout.close()
+                fastaniout.write("{0}\t{1}\t{2}\n".format(k,v.get("ref_genome"),v.get("ani")))    
+            fastaniout.close()
             
-            self.logger.info('{0} genomes have been classify with Mash.'.format(len(mash_dict)))
+            self.logger.info('{0} genomes have been classify with FastANI.'.format(len(fastani_dict)))
 
             scaled_tree = self._calculate_red_distances(classify_tree, out_dir)
             
             user_genome_ids = set(read_fasta(user_msa_file).keys())
-            user_genome_ids = user_genome_ids.difference(set(mash_dict.keys()))
+            user_genome_ids = user_genome_ids.difference(set(fastani_dict.keys()))
             # for all other cases we measure the RED distance between a leaf and a parent node ( RED = 1-edge_length). This RED value will tell us
             # the rank level that can be associated with a User genome. 
             # As an example if the RED value is close to the order level, the user genome will take the order level of the Reference genome under the same parent node.
@@ -197,143 +199,127 @@ class Classify():
             countb =0
             countc =0
             countg =0
-            for leaf in scaled_tree.leaf_node_iter():
-                
+            for leaf in scaled_tree.leaf_node_iter(): 
                 if leaf.taxon.label in user_genome_ids:
                     taxa = []
                     # In some cases , pplacer can associate 2 user genomes on the same parent node so we need to go up the tree to find a node with a reference genome as leaf.
-                    edge_length = leaf.edge_length
                     cur_node = leaf.parent_node
                     list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in cur_node.leaf_iter()]
                     while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials:
-                        edge_length += cur_node.edge_length
                         cur_node = cur_node.parent_node
                         list_subnode_initials = [subnd.taxon.label.replace("'",'')[0:3] for subnd in cur_node.leaf_iter()]
                     
-                    red_from_root = cur_node.distance_from_root()
+                    current_rel_list = cur_node.rel_dist
                     
-                    red_parent_node  = cur_node.parent_node
+                    parent_taxon_node  = cur_node.parent_node
+                    _support, parent_taxon, _aux_info = parse_label(parent_taxon_node.label)
+
                     
-                    while red_parent_node is not None and red_parent_node.label is None:
-                            red_parent_node =red_parent_node.parent_node
-                            
-                    higher_rank = red_parent_node.label.split(";")[-1][0:3]
-                    higher_rk_val = 0 if higher_rank.startswith('d__') else red_parent_node.distance_from_root()
+                    while parent_taxon_node is not None and not parent_taxon:
+                            parent_taxon_node =parent_taxon_node.parent_node
+                            _support, parent_taxon, _aux_info = parse_label(parent_taxon_node.label)
+
+                    parent_rank = parent_taxon.split(";")[-1][0:3]
+                    parent_rel_dist = parent_taxon_node.rel_dist
                     
-                    genome_parent_child = [leaf.taxon.label,higher_rank,higher_rk_val,'','','','']
                     
+                    genome_parent_child = [leaf.taxon.label,parent_rank,parent_rel_dist,'','','','']
                     
-                    lower_rank = []
-                    # if the genome is placed between the genus and specie ranks , it will be associated with the genus when _get_closest_red_rank is called
-                    if higher_rank != 'g__':
-                        subrank = self.order_rank[self.order_rank.index(higher_rank)+1]
-                        list_subnode = [subnd.taxon.label.replace("'",'') for subnd in cur_node.leaf_iter() if (subnd.taxon.label.startswith('RS_') or subnd.taxon.label.startswith('GB_'))]
-                        list_ranks = ["".join([rank for rank in gtdb_taxonomy.get(name) if rank.startswith(subrank)]) for name in list_subnode]
-                        if len(set(list_ranks)) == 1:
-                            for subranknd in cur_node.postorder_iter():
-                                if subranknd.is_internal() and subranknd.label is not None and subranknd.label.startswith(subrank):
-                                    lower_rank = subranknd.label.split(";")
-                                    lower_rk_val = subranknd.distance_from_root()
-                                    break                             
+                    child_taxons = []
                     closest_rank = None;
-                    
-                    if len(lower_rank) == 1 :
-                        #if there is only rank on the lower node (i.e genome between p__Nitrospirae and c__Nitrospiria)
-                        lrank = lower_rank[0]
-                        # if abs(lower_red - genome_red) < abs(higher_red-genome_red) and abs (genome_red - median lower_rank ) < 0.1:
-                        if abs(lower_rk_val - (red_from_root)) < abs(higher_rk_val - (red_from_root)) and abs((red_from_root) - marker_dict.get(lrank[:3])) < 0.1:
-                            counta += 1
-                            genome_parent_child[3]=lrank
-                            genome_parent_child[4]=lower_rk_val
-                            genome_parent_child[5]='case a'
-                            closest_rank = lrank[0:3]
-                        # else if abs (genome_red - median higher_rank ) < 0.1:   
-                        elif abs((red_from_root) - marker_dict.get(higher_rank[:3])) < 0.1:
-                            countb += 1
-                            closest_rank = higher_rank[0:3]
-                            genome_parent_child[3]=lrank
-                            genome_parent_child[4]=lower_rk_val
-                            genome_parent_child[5]='case b'               
-                        else:
-                            closest_rank = self._get_closest_red_rank(red_from_root, marker_dict)
-                            genome_parent_child[3]=lrank
-                            genome_parent_child[4]=lower_rk_val
-                            genome_parent_child[5]='case c'
-                            countc += 1 
-                    elif len(lower_rank) > 1 :
-                        #if there is only rank on the lower node (i.e genome between p__Nitrospirae and c__Nitrospiria;o__Nitrospirales;f__Nitropiraceae)
-                        #we loop through the list of rank from lower to higher rank
-                        for lrank in reversed(lower_rank):
-                            # if lower rank is c__Nitropiria
-                            if lrank == lower_rank[0]:
-                                # if abs(p__Nitrospirae red - genome_red) < abs(c__Nitrospiria red - genome_red) OR abs(genome_red - median p__Nitrospirae)< abs(genome_red - median c__Nitrospiria)
-                                # AND abs(genome_red - median p__Nitrospirae) < 0.1                                                                                   
-                                if ((abs(red_from_root-higher_rk_val) < abs(red_from_root - lower_rk_val) )
-                                     or abs(red_from_root - marker_dict.get(higher_rank)) < abs(red_from_root-marker_dict.get(lrank[:3]))
-                                    and abs(red_from_root - marker_dict.get(higher_rank)) < 0.1):
-                                    countd += 1 
-                                    closest_rank= higher_rank
-                                    genome_parent_child[3]=lrank
-                                    genome_parent_child[5]='case d'
-                            # if lower rank is o__Nitrospirales 
-                            elif lrank != lower_rank[-1]:
-                                hsubrank = lower_rank[lower_rank.index(lrank)-1]
-                                # if abs(genome_red - median o__Nitrospirales) < abs(genome_red - median c__Nitrospiria) 
-                                # and abs(genome_red - median o__Nitrospirales) < 0.1
-                                if (abs(red_from_root - marker_dict.get(lrank[:3])) < abs(red_from_root-marker_dict.get(hsubrank[:3]))
-                                 and abs(red_from_root - marker_dict.get(lrank[:3])) < 0.1):
-                                    counte += 1
-                                    closest_rank = lrank[0:3]
-                                    genome_parent_child[3]=lrank
-                                    genome_parent_child[5]='case e'                                    
-                                    
+                    detection = "Red"
+                    # if the genome is placed between the genus and specie ranks , it will be associated with the genus when _get_closest_red_rank is called
+                    if parent_rank != 'g__':
+                        child_rk = self.order_rank[self.order_rank.index(parent_rank)+1]
+                        list_subnode = [childnd.taxon.label.replace("'",'') for childnd in cur_node.leaf_iter() if (childnd.taxon.label.startswith('RS_') or childnd.taxon.label.startswith('GB_'))]
+                        list_ranks = [gtdb_taxonomy.get(name)[self.order_rank.index(child_rk)] for name in list_subnode]
+                        if len(set(list_ranks)) == 1:
+                            for subranknd in cur_node.preorder_iter():
+                                _support, subranknd_taxon, _aux_info = parse_label(subranknd.label)
+                                if subranknd.is_internal() and subranknd_taxon is not None and subranknd_taxon.startswith(child_rk):
+                                    child_taxons = subranknd_taxon.split(";")
+                                    child_taxon_node = subranknd
+                                    child_rel_dist = child_taxon_node.rel_dist
                                     break
-                            
-                            #else rank is f__Nitropiraceae
+                        else:                        
+                            closest_rank = parent_rank;
+                            detection = "Topology"
+                    else:
+                        closest_rank = parent_rank;
+                        detection = "Topology"
+                                            
+                    #if there is multiple ranks on the child node (i.e genome between p__Nitrospirae and c__Nitrospiria;o__Nitrospirales;f__Nitropiraceae)
+                    #we loop through the list of rank from f_ to c_ rank
+                    for child_taxon in reversed(child_taxons):
+                        # if lower rank is c__Nitropiria
+                        if child_taxon == child_taxons[0]:
+                            # if abs(p__Nitrospirae red - genome_red) < abs(c__Nitrospiria red - genome_red) OR abs(genome_red - median p__Nitrospirae)< abs(genome_red - median c__Nitrospiria)
+                            # AND abs(genome_red - median p__Nitrospirae) < 0.1                                                                                   
+                            if (abs(child_rel_dist - current_rel_list) < abs(current_rel_list - parent_rel_dist ) 
+                                and abs(current_rel_list - marker_dict.get(child_taxon[:3])) < 0.1):
+                                counta += 1
+                                genome_parent_child[3]=child_taxon
+                                genome_parent_child[4]=child_rel_dist
+                                genome_parent_child[5]='case a'
+                                closest_rank = child_taxon[:3]
+                            elif abs((current_rel_list) - marker_dict.get(parent_rank[:3])) < 0.1:
+                                countb += 1
+                                closest_rank = parent_rank[0:3]
+                                genome_parent_child[3]=child_taxon
+                                genome_parent_child[4]=child_rel_dist
+                                genome_parent_child[5]='case b'               
                             else:
-                                hsubrank = lower_rank[lower_rank.index(lrank)-1]
-                                if leaf.taxon.label.startswith('U_65484'):
-                                    print 'l:'+lrank
-                                    print 'low:'+lower_rank[-1]
-                                    print 'h:'+hsubrank
+                                valid_ranks =[parent_rank[0:3]]+[x[0:3] for x in child_taxons]
+                                closest_rank = self._get_closest_red_rank(current_rel_list, marker_dict,valid_ranks)
+                                genome_parent_child[3]=child_taxon
+                                genome_parent_child[4]=child_rel_dist
+                                genome_parent_child[5]='case c'
+                                countc += 1 
+                        # if lower rank is o__Nitrospirales 
+                        elif child_taxon != child_taxons[-1]:
+                            pchildrank = child_taxons[child_taxons.index(child_taxon)-1]
+                            # if abs(genome_red - median o__Nitrospirales) < abs(genome_red - median c__Nitrospiria) 
+                            # and abs(genome_red - median o__Nitrospirales) < 0.1
+                            if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(current_rel_list-marker_dict.get(pchildrank[:3]))
+                             and abs(current_rel_list - marker_dict.get(child_taxon[:3])) < 0.1):
+                                countd += 1
+                                closest_rank = child_taxon[0:3]
+                                genome_parent_child[3]=child_taxon
+                                genome_parent_child[5]='case d'                                    
                                 
-                                #if ( abs( genome red - median f__Nitropiraceae)  < abs(genome red - median o__Nitrospirales) 
-                                #    OR abs (genome red - f__Nitropiraceae red ) <  abs(genome red - median o__Nitrospirales) 
-                                # AND  abs( genome red - median f__Nitropiraceae) < 0.1
-                                if ( (abs(red_from_root-marker_dict.get(lrank[:3])) < abs(red_from_root-marker_dict.get(hsubrank[:3]))
-                                      or abs(red_from_root - lower_rk_val) < abs(red_from_root-marker_dict.get(hsubrank[:3])) )
-                                     and abs(red_from_root - marker_dict.get(lrank[:3])) < 0.1):
-                                    if leaf.taxon.label.startswith('U_65484'):
-                                        print abs(red_from_root-lower_rk_val)
-                                        print abs(red_from_root-marker_dict.get(hsubrank[:3]))
-                                        print abs(red_from_root - marker_dict.get(lrank[:3]))       
-                                    countf += 1 
-                                    closest_rank = lrank[0:3]
-                                    genome_parent_child[3]=lrank
-                                    genome_parent_child[4]=lower_rk_val
-                                    genome_parent_child[5]='case f'   
-                                    break
+                                break
+                        #else rank is f__Nitropiraceae
+                        else:
+                            pchildrank = child_taxons[child_taxons.index(child_taxon)-1]                              
+                            #if ( abs( genome red - median f__Nitropiraceae)  < abs(genome red - median o__Nitrospirales) 
+                            #    OR abs (genome red - f__Nitropiraceae red ) <  abs(genome red - median o__Nitrospirales) 
+                            # AND  abs( genome red - median f__Nitropiraceae) < 0.1
+                            if ( (abs(current_rel_list-marker_dict.get(child_taxon[:3])) < abs(current_rel_list-marker_dict.get(pchildrank[:3]))
+                                  or abs(current_rel_list - child_rel_dist) < abs(current_rel_list-marker_dict.get(pchildrank[:3])) )
+                                 and abs(current_rel_list - marker_dict.get(child_taxon[:3])) < 0.1):     
+                                counte += 1 
+                                closest_rank = child_taxon[0:3]
+                                genome_parent_child[3]=child_taxon
+                                genome_parent_child[4]=child_rel_dist
+                                genome_parent_child[5]='case e'   
+                                break
                            
                     if closest_rank is None:
-                        countg += 1
-                        closest_rank = self._get_closest_red_rank((1-edge_length), marker_dict)
+                        countf += 1
+                        valid_ranks =[parent_rank[0:3]]+[x[0:3] for x in child_taxons]
+                        closest_rank = self._get_closest_red_rank(current_rel_list, marker_dict,valid_ranks)
                         genome_parent_child[3]=closest_rank
-                        genome_parent_child[5]='case g'
+                        genome_parent_child[5]='case f'
                         
                     genome_parent_child[6]=closest_rank                   
                     
                                         
                     list_subnode = [subnd.taxon.label.replace("'",'') for subnd in cur_node.leaf_iter()]
+                    red_taxonomy = self._get_redtax(list_subnode,closest_rank,gtdb_taxonomy)
                     
-                    if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 : 
-                        # Case c,d,e in the manuscripts
-                        red_taxonomy = self._get_redtax_single_ref(list_subnode,closest_rank,gtdb_taxonomy)
-                    else :
-                        #Case a,b,d
-                        red_taxonomy = self._get_redtax_multi_ref(list_subnode,closest_rank,gtdb_taxonomy)
-                    fout.write('{0}\t{1}\n'.format(leaf.taxon.label, red_taxonomy,))
+                    fout.write('{0}\t{1}\n'.format(leaf.taxon.label, red_taxonomy))
                     del genome_parent_child[0]
-                    redfout.write('{0}\t{1}\t{2}\n'.format(leaf.taxon.label,1-edge_length,'\t'.join(str(x) for x in genome_parent_child)))
+                    redfout.write('{0}\t{1}\t{2}\t{3}\n'.format(leaf.taxon.label,current_rel_list,'\t'.join(str(x) for x in genome_parent_child),detection))
 
             print "count a: {0}".format(counta)
             print "count b: {0}".format(countb)
@@ -341,7 +327,6 @@ class Classify():
             print "count d: {0}".format(countd)
             print "count e: {0}".format(counte)
             print "count f: {0}".format(countf)
-            print "count g: {0}".format(countg)
 
             redfout.close()
             fout.close()
@@ -376,7 +361,7 @@ class Classify():
         return dict_subrank
             
         
-    def _get_closest_red_rank(self,red_value,marker_dict):
+    def _get_closest_red_rank(self,red_value,marker_dict,valid_ranks):
         """Compare the absolute difference between the user genome edge length and the list of 
         RED value for each rank of the reference tree.
         The smallest difference is chosen and the rank of preference is returned.
@@ -391,42 +376,13 @@ class Classify():
             Chosen rank prefix (p__,c__,o__...).
         
         """
-        key, value = min(marker_dict.items(), key=lambda (_, v): abs(v - red_value))
-        #print value-red_value
+        temp_dict = {k:v for k,v in marker_dict.iteritems() if k in valid_ranks}
+        key, value = min(temp_dict.items(), key=lambda (_, v): abs(v - red_value))
         return key
     
-    def _get_redtax_single_ref(self,list_subnode,closest_rank,gtdb_taxonomy):
-        """
-        Get the taxonomy of the selected reference genome.
-        The taxonomy will stop at a specific rank
-        
-        Parameters
-        ----------
-        list_subnode : list of leaf nodes including one reference genome.
-        closest_rank : last rank of the reference taxonomy
-        gtdb_taxonomy : dictionary storing all the reference taxonomies
-        
+
     
-        Returns
-        -------
-        string
-            Taxonomy string.
-        
-        """
-        taxonomy = ''
-        subtax = []
-        for item in list_subnode:
-            if item.startswith('RS_') or item.startswith('GB_'):
-                taxonomy_from_file = gtdb_taxonomy.get(item)
-                for rank in taxonomy_from_file:
-                    if rank.startswith(closest_rank):
-                        subtax.append(rank)
-                        break
-                    else:
-                        subtax.append(rank)
-        return ';'.join(subtax)
-    
-    def _get_redtax_multi_ref(self,list_subnode,closest_rank,gtdb_taxonomy):
+    def _get_redtax(self,list_subnode,closest_rank,gtdb_taxonomy):
         """
         Provide a taxonomy string to a user genome based on the reference genomes of the same clade.
         If the clade contains multiple reference genomes we are comparing their taxonomies.
@@ -563,6 +519,82 @@ class Classify():
                             unquoted_underscores=True)
         
         return tree
+    
+    def _calculate_fastani_distance(self,list_leaf,genomes):
+        """ Calculate the FastANI distance between all user genomes and the reference to classfy them at the species level
+        
+        Parameters
+        ----------
+        list_leaf : List of leaves uncluding one or many user genomes and one reference genome.
+        genomes : Dictionary of user genomes d[genome_id] -> FASTA file
+    
+        Returns
+        -------
+        dictionary
+            dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
+        
+        """
+        try:
+            self.tmp_output_dir = tempfile.mkdtemp()
+            query_list_file = open(os.path.join(self.tmp_output_dir, 'query_list.txt'),'w')
+            ref_list_file = open(os.path.join(self.tmp_output_dir, 'ref_list.txt'),'w')
+            make_sure_path_exists(self.tmp_output_dir)
+            for leaf in list_leaf:
+                if not leaf.startswith('GB_') and not leaf.startswith('RS_'):
+                    query_list_file.write('{0}\n'.format(genomes.get(leaf)))
+                else:
+                    shortleaf = leaf[3:]
+                    ref_list_file.write('{0}{1}{2}\n'.format(Config.FASTANI_GENOMES,shortleaf,Config.FASTANI_GENOMES_EXT))
+                    
+            query_list_file.close()
+            ref_list_file.close()
+            
+            if not os.path.isfile(os.path.join(self.tmp_output_dir, 'query_list.txt')) or not os.path.isfile(os.path.join(self.tmp_output_dir, 'ref_list.txt')):
+                raise
+              
+            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>&1'.format(os.path.join(self.tmp_output_dir, 'query_list.txt'), 
+                                                                           os.path.join(self.tmp_output_dir, 'ref_list.txt'), 
+                                                                           os.path.join(self.tmp_output_dir, 'results.tab'))
+            os.system(cmd)
+            if not os.path.isfile(os.path.join(self.tmp_output_dir,'results.tab')):
+                raise
+            
+            dict_parser_distance = self._parse_fastani_results(os.path.join(self.tmp_output_dir,'results.tab'),list_leaf)
+            shutil.rmtree(self.tmp_output_dir)
+            return dict_parser_distance
+              
+        except:
+            if os.path.exists(self.tmp_output_dir):
+                shutil.rmtree(self.tmp_output_dir)
+            raise
+        
+    def _parse_fastani_results(self,fastout_file,list_leaf):
+        """ Parse the fastani output file
+        
+        
+        Parameters
+        ----------
+        fastout_file : fastani output file.
+    
+        Returns
+        -------
+        dictionary
+            dict_results[user_g]={"ref_genome":ref_genome,"ani":ani}
+        """
+        dict_results = {}
+        with open(fastout_file) as fastfile:
+            for line in fastfile:
+                info = line.strip().split(" ")
+                ref_genome = os.path.basename(info[1]).replace(Config.FASTANI_GENOMES_EXT,"")
+                user_g = remove_extension(os.path.basename(info[0]))
+                ani = float(info[2])
+                if user_g in dict_results:
+                    if ani < dict_results.get(user_g).get("ani") and Config.FASTANI_SPECIES_THRESHOLD < ani:
+                        dict_results[user_g]={"ref_genome":ref_genome,"ani":ani}
+                elif Config.FASTANI_SPECIES_THRESHOLD < ani:
+                    dict_results[user_g]={"ref_genome":ref_genome,"ani":ani}
+        
+        return dict_results    
 
     def _calculate_mash_distance(self,list_leaf,genomes):
 
@@ -601,6 +633,8 @@ class Classify():
             if os.path.exists(self.tmp_output_dir):
                 shutil.rmtree(self.tmp_output_dir)
             raise
+        
+    
         
     def _parse_mash_results(self,distance_file,list_leaf):
         """ Parse the mash output file

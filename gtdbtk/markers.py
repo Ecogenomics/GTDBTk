@@ -65,6 +65,7 @@ class Markers(object):
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
         
+        
     def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
         """Report statistics for identified marker genes."""
 
@@ -460,6 +461,12 @@ class Markers(object):
                 user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
                 trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
                 self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
+                
+                all_user_msa_file = os.path.join(out_dir, prefix + ".%s.all_user_msa.fasta" % marker_set_id)
+                trimmed_all_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                pruned_all_user_msa = {k:v for k, v in pruned_seqs.iteritems() if k in user_msa}
+                all_user_msa = merge_two_dicts(trimmed_all_user_msa,pruned_all_user_msa)
+                self._write_msa(all_user_msa, all_user_msa_file, gtdb_taxonomy)
 
         except IOError as e:
             self.logger.error(str(e))
