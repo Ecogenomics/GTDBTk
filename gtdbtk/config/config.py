@@ -75,9 +75,14 @@ PPLACER_BAC120_REF_PKG = "gtdb_r80_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_r80_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_r80_rps23.refpkg"
 
-MASH_DIR = GENERIC_PATH + "mash/"
-MASH_DB = 'reference/reference_r80_database.msh'
-MASH_SPECIES_THRESHOLD = 0.05
+#MASH_DIR = GENERIC_PATH + "mash/"
+#MASH_DB = 'reference/reference_r80_database.msh'
+#MASH_SPECIES_THRESHOLD = 0.05
+
+FASTANI_DIR = GENERIC_PATH + "fastani/"
+FASTANI_SPECIES_THRESHOLD = 95.0
+FASTANI_GENOMES = FASTANI_DIR + "database/"
+FASTANI_GENOMES_EXT = '_genomic.fna'
 
 #Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
