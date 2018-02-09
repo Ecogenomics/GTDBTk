@@ -95,7 +95,7 @@ class Classify():
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        #os.system(cmd)
+        os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(out_dir, prefix + ".%s.classify.tree" % marker_set_id)
