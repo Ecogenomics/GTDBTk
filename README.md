@@ -11,6 +11,8 @@ notifications about GTDB-Tk releases will be available through ACE Twitter accou
 
 ## Installation
 
+GTDB-Tk requires 60G of disk.
+
 GTDB-Tk requires the following Python libraries:
 * [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
 * [mpld3](http://mpld3.github.io/) >= 0.2: D3 viewer for Matplotlib.
@@ -23,7 +25,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
-* [Mash](https://github.com/marbl/mash) >= 1.1.1: Ondov BD, et al. 2016. Mash: fast genome and metagenome distance estimation using MinHash. <i>Genome Biol.</i>, 17, 132.
+* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.
@@ -42,7 +44,7 @@ The functionality provided by GTDB-Tk can be accessed through the help menu:
 
 Usage information about specific methods can also be accessed through the help menu, e.g.:
 ```
-> gtdbtk classify_wf –h
+> gtdbtk classify_wf -h
 ```
 
 ## Classify Workflow
@@ -72,7 +74,7 @@ Here is an example run of this workflow:
 
 ## Validating Species Assignments
 
-The GTDB-Tk uses Mash distances to estimate the ANI between genomes. Mash is computationally favourable, but is primarily used for practical considerations as it removes the need to have all references genomes avaliable to the GTDB-Tk in order to calculate ANI values. We recommend that species assignments made by the GTDB-Tk be validate using ANI distances against a suitably set of reference genomes. ANI values can be calculated using [ANIcalculator](https://ani.jgi-psf.org/html/home.php).
+The GTDB-Tk uses FastANI to estimate the ANI between genomes.We recommend that species assignments made by the GTDB-Tk be validate using ANI distances against a suitably set of reference genomes. ANI values can be calculated using [ANIcalculator](https://ani.jgi-psf.org/html/home.php).
 
 ## De Novo Workflow
 

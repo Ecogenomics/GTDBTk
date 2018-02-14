@@ -27,6 +27,12 @@ def splitchunks(d, n):
     it = iter(d)
     for _ in xrange(0, len(d), chunksize):
         yield {k: d[k] for k in islice(it, chunksize)}
+        
+def splitchunks_list(l, n):
+    """Yield successive n-sized chunks from l."""
+    chunksize = int(math.ceil(len(l) / float(n)))
+    for i in range(0, len(l), chunksize):
+        yield l[i:i + chunksize]
 
 
 def generateTempTableName():
