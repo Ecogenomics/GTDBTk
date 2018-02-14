@@ -21,24 +21,21 @@ import shutil
 import logging
 import tempfile
 import random
+import multiprocessing
+import config.config as Config
+import dendropy
+import cmd
 
 from collections import defaultdict
-
 from biolib.common import remove_extension, make_sure_path_exists
 from biolib.seq_io import read_seq, read_fasta
 from biolib.newick import parse_label
 from biolib.external.execute import check_dependencies
 from biolib.taxonomy import Taxonomy
-
-from tools import add_ncbi_prefix, merge_two_dicts
-from relative_distance import RelativeDistance
-
-import config.config as Config
-
-import dendropy
-
 from numpy import median as np_median
-import cmd
+from tools import add_ncbi_prefix, merge_two_dicts,splitchunks_list
+from relative_distance import RelativeDistance
+from multiprocessing.pool import ThreadPool as Pool
 
 sys.setrecursionlimit(1500)
 
@@ -56,6 +53,7 @@ class Classify():
         
         self.logger = logging.getLogger('timestamp') 
         self.cpus = cpus
+
 
     def place_genomes(self, 
                         user_msa_file, 
@@ -95,7 +93,7 @@ class Classify():
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        os.system(cmd)
+        #os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(out_dir, prefix + ".%s.classify.tree" % marker_set_id)
@@ -159,6 +157,7 @@ class Classify():
             # If the parent node has only one Reference genome ( GB or RS ) we calculate the mash distance between the user genome and the reference genome
             analysed_nodes = []
             fastani_dict = {}
+            fastani_list = []
             # some genomes of Case C are handled here, if Mash distance is close enough 
             self.logger.info('Calculating Average Nucleotide Identity using FastANI.')
             
@@ -169,10 +168,36 @@ class Classify():
                 list_subnode = [subnd.taxon.label.replace("'",'') for subnd in nd.leaf_iter()]
                 #if only one genome is a reference genome
                 if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_')) == 1 and len(list_subnode_initials) > 1 and list_subnode[0] not in analysed_nodes:
-                    #results = self._calculate_mash_distance(list_subnode, genomes)
-                    results = self._calculate_fastani_distance(list_subnode, genomes)
-                    fastani_dict = merge_two_dicts(fastani_dict,results)
+                    fastani_list.append(list_subnode)
                     analysed_nodes.extend(list_subnode)
+                    
+            print ('fastanilist',len(fastani_list))
+            
+            
+            manager = multiprocessing.Manager()
+            out_q = manager.dict()
+            procs = []
+            nprocs = self.cpus
+            for item in splitchunks_list(fastani_list, nprocs):
+                p = multiprocessing.Process(
+                    target=self._fastaniWorker,
+                    args=(item, genomes, out_q))
+                procs.append(p)
+                p.start()
+                
+            # Collect all results into a single result dict. We know how many dicts
+            # with results to expect.
+            #while out_q.empty():
+            #    time.sleep(1)
+        
+            # Wait for all worker processes to finish
+            for p in procs:
+                p.join()
+                    
+            fastani_dict = dict(out_q)
+
+            #outf.close()
+            #fastani_dict = merge_two_dicts(fastani_dict,results)
                
                     
             for k,v in fastani_dict.iteritems():
@@ -349,6 +374,17 @@ class Classify():
                     pplaceout.write('%s\t%s\n' % (leaf.taxon.label, taxa_str))
             pplaceout.close()
             
+
+    def _fastaniWorker(self, sublist_genomes, genomes, out_q):
+
+
+        for items in sublist_genomes:
+            dict_parser_distance = self._calculate_fastani_distance(items, genomes)
+            for k,v in dict_parser_distance.iteritems():
+                out_q[k]=v
+        return True
+
+            
     def _parse_subtree(self,cur_node,dict_subrank,lower_rank):
         
         for childn in cur_node.child_nodes():
@@ -379,9 +415,7 @@ class Classify():
         temp_dict = {k:v for k,v in marker_dict.iteritems() if k in valid_ranks}
         key, value = min(temp_dict.items(), key=lambda (_, v): abs(v - red_value))
         return key
-    
-
-    
+      
     def _get_redtax(self,list_subnode,closest_rank,gtdb_taxonomy):
         """
         Provide a taxonomy string to a user genome based on the reference genomes of the same clade.
@@ -555,12 +589,15 @@ class Classify():
             cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>&1'.format(os.path.join(self.tmp_output_dir, 'query_list.txt'), 
                                                                            os.path.join(self.tmp_output_dir, 'ref_list.txt'), 
                                                                            os.path.join(self.tmp_output_dir, 'results.tab'))
+            #print cmd
             os.system(cmd)
+
             if not os.path.isfile(os.path.join(self.tmp_output_dir,'results.tab')):
                 raise
             
             dict_parser_distance = self._parse_fastani_results(os.path.join(self.tmp_output_dir,'results.tab'),list_leaf)
             shutil.rmtree(self.tmp_output_dir)
+            #print len(dict_parser_distance)
             return dict_parser_distance
               
         except:
