@@ -1,17 +1,13 @@
 # GTDB-Tk
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
-[![downloads](https://img.shields.io/pypi/dm/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
-efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. However, it can equally be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
+efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
 
-Please note that GTDB-Tk is **still under active development** and is not ready for external users.
-notifications about GTDB-Tk releases will be available through ACE Twitter account (https://twitter.com/ace_uq).
+GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bringing any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the ACE Twitter account (https://twitter.com/ace_uq).
 
 ## Installation
-
-GTDB-Tk requires 70G+ of disk.
 
 GTDB-Tk requires the following Python libraries:
 * [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
@@ -20,7 +16,7 @@ GTDB-Tk requires the following Python libraries:
 * [dendropy](http://dendropy.org/)  >= 4.1.0: A Python library for phylogenetics and phylogenetic computing: reading, writing, simulation, processing and manipulation of phylogenetic trees (phylogenies) and characters.
 * [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries
 
-Jinja2, mpld3,dendropy and biolib should install as part of the GTDB-Tk if you install it via pip as described below. The SciPy Stack must be install seperately of GTDB-Tk.
+Jinja2, mpld3, dendropy and biolib will be install as part of GTDB-Tk when installing via pip as described below. The SciPy Stack must be install seperately.
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
@@ -31,7 +27,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.
 
-GTDB-Tk requires external data that need to be downloaded and unarchived (preferably in the same folder):
+GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
 ```
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/fastani.tar.gz
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/markers.tar.gz
@@ -46,14 +42,13 @@ Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.pyth
 > pip install gtdbtk
 ```
 
-GTDB-Tk requires a config file.
-In the python lib/site-packages folder, go to the gtdbtk directory; once there :
+GTDB-Tk requires a config file. In the Python lib/site-packages directory, go to the gtdbtk directory and setup this config file:
 ```
 cd config
 cp config_template.py config.py
 ```
-Edit the config.py file and modify different variables :
--GENERIC_PATH should point to the folder where data from the https://data.ace.uq.edu.au/public/gtdbtk/ has been downloaded. Make sure the variable finishes with a slash '/'.
+Edit the config.py file and modify different variables:
+-GENERIC_PATH should point to the directory containing the data downloaded from the https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
 
 ## Quick Start
 
@@ -62,39 +57,40 @@ The functionality provided by GTDB-Tk can be accessed through the help menu:
 > gtdbtk -h
 ```
 
-Usage information about specific methods can also be accessed through the help menu, e.g.:
+Usage information about each methods can also be accessed through their species help menu, e.g.:
 ```
 > gtdbtk classify_wf -h
 ```
 
 ## Classify Workflow
 
-The classify workflow consists of three steps: identify, align, and classify. The identify step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. As part of this search marker genes are aligned to their respective HMM model. The align step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment. Finally, the classify step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome into the GTDB-Tk reference tree based on its concatenated multiple sequence alignment. GTDB-Tk classify each genome based on its placement in the reference tree, relative evolutionary distance, and Mash distance (see Chaumeil PA et al., 2017 for details).
+The classify workflow consists of three steps: identify, align, and classify. The *identify* step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome's concatenated protein alignment in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary distance, and FastANI distance (see Chaumeil PA et al., 2018 for details).
  
 The classify workflow can be run as follows:
 ```
 > gtdbtk classify_wf --genome_dir <my_genomes> --out_dir <output_dir>
 ```
-This will process all genomes in <my_genomes> using both bacterial and archaeal marker sets and place the results in <output_dir>. Genomes must be in FASTA format. The location of genomes can also be specified using a batch file with the --batchfile flag. The batch file is simply a two column file indicating the location of each genome and the desired genome identified (i.e., a Newick compatible alphanumeric string). These fields must be seperated by a tab.
+This will process all genomes in <my_genomes> using both bacterial and archaeal marker sets and place the results in <output_dir>. Genomes must be in FASTA format. The location of genomes can also be specified using a batch file with the --batchfile flag. The batch file is simply a two column file indicating the location of each genome and the desired genome identifier (i.e., a Newick compatible alphanumeric string). These fields must be seperated by a tab.
 
 The workflow supports several optional flags, including:
 * cpus: maximum number of CPUs to use
-* proteins: indicates genome  files contain called proteins as amino acids and gene calling can be skipped
+* proteins: indicates genome files contain called proteins as amino acids and gene calling can be skipped
 
 For other flags please consult the command line interface.
 
 Here is an example run of this workflow:
 ```
-> gtdbtk classify_wf --cpus 24 --genome_dir ./my_genomes --out_dir de_novo_output
+> gtdbtk classify_wf --cpus 24 --genome_dir ./my_genomes --out_dir gtdbtk_output
 ```
 
 ##### Output files 
-Each step of the Classify workflow generates a number of different files that would give users additional information on GTDB-Tk pipeline
+
+Each step of the classify workflow generates a number of files that can be consulted for additional information about the processed genomes.
 
 Identify step:
-* gtdbtk_bac120_markers_summary.tsv: Summary of unique markers, missing markers and unique markers of the 120 bacterial markers for each a submitted genomes.
-* gtdbtk_ar122_markers_summary.tsv: Similar to gtdbtk_bac120_markers_summary.tsv but bases on the 122 archaeal markers.
-* marker_genes folder: lists individual genome results for Gene calling unsing Prodigal and Gene matching based on TigrFam and Pfam markers.
+* gtdbtk_bac120_markers_summary.tsv: summary of unique, missing, and duplicate markers within the 120 bacterial marker set for each submitted genome.
+* gtdbtk_ar122_markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set.
+* marker_genes direcotry: lists individual genome results for Gene calling using Prodigal and Gene matching based on TigrFam and Pfam markers.
 
 Align step:
 * *.user_msa.fasta: Multi sequence alignement  listing ONLY the submitted genomes
@@ -108,9 +104,6 @@ Classify step:
 * *.classify.tree: Reference tree with all user genomes placed with pplacer
 * *.summary.tsv: if user genomes have been classified using FastANI,Red values or only the topology of the tree.
 * *.red_dictionary: Median Red values for the ranks Phylum to Genus
-
-
-
 
 ## Validating Species Assignments
 
@@ -146,9 +139,11 @@ All steps comprising the classify and <i>de novo</i> workflows can be run indepe
 
 ## Cite
 
-If you find this package useful, please cite:
+A manuscript describing the GTDB-Tk is currently being prepared:
 
-Chaumeil PA, Parks DH, Hugenholtz P. 2017. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. <in prep>.
+Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. <in prep>.
+ 
+ In the meantime, if you find the GTDB-Tk useful please cite this GitHub page.
 
 
 ## Copyright
