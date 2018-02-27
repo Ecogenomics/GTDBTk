@@ -83,7 +83,7 @@ Here is an example run of this workflow:
 > gtdbtk classify_wf --cpus 24 --genome_dir ./my_genomes --out_dir gtdbtk_output
 ```
 
-The GTDB-Tk taxonomic classification of each bacterial and archaeal genome is contained in the \<prefix\>.bac120.classification.tsv and \<prefix\>.ar122.classification.tsv output files.
+The taxonomic classification of each bacterial and archaeal genome is contained in the \<prefix\>.bac120.classification.tsv and \<prefix\>.ar122.classification.tsv output files.
 
 ##### Additional output files 
 
