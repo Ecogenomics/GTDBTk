@@ -95,7 +95,7 @@ Identify step:
 * marker_genes directory: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs
 
 Align step:
-* <prefix>.user_msa.fasta: FASTA file containing MSA of the submitted genomes
+* \<prefix\>.user_msa.fasta: FASTA file containing MSA of the submitted genomes
 * <prefix>.msa.fasta: FASTA file containing MSA of submitted and reference genomes
 * <prefix>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
 
