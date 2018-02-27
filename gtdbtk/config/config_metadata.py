@@ -5,9 +5,6 @@ GFF_FILE_SUFFIX = "_protein.gff"
 TRANSLATION_TABLE_SUFFIX = "_translation_table.tsv"
 CHECKSUM_SUFFIX = ".sha256"
 
-TIGRFAM_HMMS = '/srv/db/gtdbtk/markers//tigrfam/tigrfam.hmm'
-PFAM_HMM_DIR = '/srv/db/gtdbtk/markers/pfam/'
-
 
 TIGRFAM_SUFFIX = "_tigrfam.tsv"
 TIGRFAM_TOP_HIT_SUFFIX = "_tigrfam_tophit.tsv"
