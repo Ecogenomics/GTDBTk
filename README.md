@@ -83,7 +83,7 @@ Here is an example run of this workflow:
 > gtdbtk classify_wf --cpus 24 --genome_dir ./my_genomes --out_dir gtdbtk_output
 ```
 
-The GTDB-Tk taxonomic classification of each bacterial and archaeal genome is contained in the <prefix>.bac120.classification.tsv and <prefix>.ar122.classification.tsv output files.
+The GTDB-Tk taxonomic classification of each bacterial and archaeal genome is contained in the \<prefix\>.bac120.classification.tsv and \<prefix\>.ar122.classification.tsv output files.
 
 ##### Additional output files 
 
@@ -96,16 +96,16 @@ Identify step:
 
 Align step:
 * \<prefix\>.user_msa.fasta: FASTA file containing MSA of the submitted genomes
-* <prefix>.msa.fasta: FASTA file containing MSA of submitted and reference genomes
-* <prefix>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
+* \<prefix\>.msa.fasta: FASTA file containing MSA of submitted and reference genomes
+* \<prefix\>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
 
 Classify step:
-* <prefix>.classification.tsv: classification of user genomes based on the FastANI, RED values, and pplacer. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend
- * <prefix>.summary.tsv: additional information regarding the criteria used to classify a genome
-* <prefix>.classification_pplacer.tsv: classification of user genomes based only on pplacer
-* <prefix>.fastani_results.tsv: tab delimited file indicating the average nucleotide identity (ANI) between a user and reference genome for cases where classification is based on the ANI statistic
-* <prefix>.classify.tree: reference tree in Newick format containing all user genomes placed with pplacer in the GTDB-Tk reference tree
-* <prefix>.red_dictionary: median RED values for taxonomic ranks
+* \<prefix\>.classification.tsv: classification of user genomes based on the FastANI, RED values, and pplacer. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend
+ * \<prefix\>.summary.tsv: additional information regarding the criteria used to classify a genome
+* \<prefix\>.classification_pplacer.tsv: classification of user genomes based only on pplacer
+* \<prefix\>.fastani_results.tsv: tab delimited file indicating the average nucleotide identity (ANI) between a user and reference genome for cases where classification is based on the ANI statistic
+* \<prefix\>.classify.tree: reference tree in Newick format containing all user genomes placed with pplacer in the GTDB-Tk reference tree
+* \<prefix\>.red_dictionary: median RED values for taxonomic ranks
 
 ## Validating Species Assignments
 
