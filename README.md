@@ -142,7 +142,7 @@ All steps comprising the classify and <i>de novo</i> workflows can be run indepe
 
 A manuscript describing the GTDB-Tk is currently being prepared:
 
-Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. <in prep>.
+Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
  
  In the meantime, if you find the GTDB-Tk useful please cite this GitHub page.
 
