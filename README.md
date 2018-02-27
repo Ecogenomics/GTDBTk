@@ -144,7 +144,8 @@ A manuscript describing the GTDB-Tk is currently being prepared:
 
 Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
  
- In the meantime, if you find the GTDB-Tk useful please cite this GitHub page.
+In the meantime, if you find the GTDB-Tk useful please cite this GitHub page. Please also consider citing the 3rd party applications required by GTDB-Tk such as [Prodigal](http://prodigal.ornl.gov/), [HMMER](http://http://hmmer.org/), [pplacer](http://matsen.fhcrc.org/pplacer/), [FastANI](https://github.com/ParBLiSS/FastANI), and
+[FastTree](http://www.microbesonline.org/fasttree/).
 
 ## Copyright
 
