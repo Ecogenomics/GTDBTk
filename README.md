@@ -64,7 +64,7 @@ Usage information about each methods can also be accessed through their species 
 
 ## Classify Workflow
 
-The classify workflow consists of three steps: identify, align, and classify. The *identify* step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome's concatenated protein alignment in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary distance, and FastANI distance (see Chaumeil PA et al., 2018 for details).
+The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment (MSA). Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome's concatenated protein alignment in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary distance, and FastANI distance (see Chaumeil PA et al., 2018 for details).
  
 The classify workflow can be run as follows:
 ```
@@ -83,41 +83,43 @@ Here is an example run of this workflow:
 > gtdbtk classify_wf --cpus 24 --genome_dir ./my_genomes --out_dir gtdbtk_output
 ```
 
-##### Output files 
+The GTDB-Tk taxonomic classification of each bacterial and archaeal genome is contained in the <prefix>.bac120.classification.tsv and <prefix>.ar122.classification.tsv output files.
+
+##### Additional output files 
 
 Each step of the classify workflow generates a number of files that can be consulted for additional information about the processed genomes.
 
 Identify step:
-* gtdbtk_bac120_markers_summary.tsv: summary of unique, missing, and duplicate markers within the 120 bacterial marker set for each submitted genome.
-* gtdbtk_ar122_markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set.
-* marker_genes direcotry: lists individual genome results for Gene calling using Prodigal and Gene matching based on TigrFam and Pfam markers.
+* gtdbtk_bac120_markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome
+* gtdbtk_ar122_markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set
+* marker_genes directory: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs
 
 Align step:
-* *.user_msa.fasta: Multi sequence alignement  listing ONLY the submitted genomes
-* *.msa.fasta: Multi sequence alignement  listing ALL genomes ( submitted + reference genomes)
-* *.filtered.tsv: Display the list of genomes with an insufficient number of amino acids in MSA.
+* <prefix>.user_msa.fasta: FASTA file containing MSA of the submitted genomes
+* <prefix>.msa.fasta: FASTA file containing MSA of submitted and reference genomes
+* <prefix>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
 
 Classify step:
-* *.classification_pplacer.tsv: Classification of user genomes based only on pplacer.
-* *.classification.tsv: Classification of user genomes based on the FastANI, RED Value and pplacer. 
-* *.fastani_results.tsv: Tab deleimited file listing the user genome, the reference genome and the Average nucleotide identity between the two
-* *.classify.tree: Reference tree with all user genomes placed with pplacer
-* *.summary.tsv: if user genomes have been classified using FastANI,Red values or only the topology of the tree.
-* *.red_dictionary: Median Red values for the ranks Phylum to Genus
+* <prefix>.classification.tsv: classification of user genomes based on the FastANI, RED values, and pplacer. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend
+ * <prefix>.summary.tsv: additional information regarding the criteria used to classify a genome
+* <prefix>.classification_pplacer.tsv: classification of user genomes based only on pplacer
+* <prefix>.fastani_results.tsv: tab delimited file indicating the average nucleotide identity (ANI) between a user and reference genome for cases where classification is based on the ANI statistic
+* <prefix>.classify.tree: reference tree in Newick format containing all user genomes placed with pplacer in the GTDB-Tk reference tree
+* <prefix>.red_dictionary: median RED values for taxonomic ranks
 
 ## Validating Species Assignments
 
-The GTDB-Tk uses FastANI to estimate the ANI between genomes.We recommend that species assignments made by the GTDB-Tk be validate using ANI distances against a suitably set of reference genomes. ANI values can be calculated using [ANIcalculator](https://ani.jgi-psf.org/html/home.php).
+The GTDB-Tk uses FastANI to estimate the average nucleotide identity (ANI) between genomes. Species assignments are made using an ANI criteria of 95%. Information about species assignments can be found in the <prefix>.fastani_results.tsv output file.
 
 ## De Novo Workflow
 
-The <i>de novo</i> workflow infers a new tree containing all reference GTDB-Tk genomes and user supply genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a <i>de novo</i> tree is desired. This workflow consists of five steps: identify, align, infer, root, and decorate. The first to are the same as in the classify workflow. The infer step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a <i>de novo</i> tree. This tree is then rooted using a user specified outgroup and then decorated with the GTDB taxonomy. 
+The *de novo* workflow infers a new tree containing all user supply and GTDB-Tk reference genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a *de novo* tree is desired. This workflow consists of five steps: *identify*, *align*, *infer*, *root*, and *decorate*. The *identify* and *align* steps are the same as in the classify workflow. The *infer* step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a *de novo* tree. This tree is then rooted using a user specified outgroup and decorated with the GTDB taxonomy. 
 
-The classify workflow can be run as follows:
+The *de novo* workflow can be run as follows:
 ```
 > gtdbtk de_novo_wf --genome_dir <my_genomes> --<marker_set> --outgroup_taxon <outgroup> --out_dir <output_dir>
 ```
-This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. The tree will thbe rooted with the <outgroup> taxon. Identical to the classify workflow, the location of genomes can also be specified using a batch file with the --batchfile flag and any of the 3 marker sets defined by GTDB-Tk used to infer the tree.
+This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. Only genomes previously identified as being bacterial (archaeal) should be included when using the bacterial (archaeal) marker set. The tree will be rooted with the <outgroup> taxon. Identical to the classify workflow, the location of genomes can also be specified using a batch file with the --batchfile flag.
 
 The workflow supports several optional flags, including:
 * cpus: maximum number of CPUs to use
@@ -136,7 +138,6 @@ Here is an example run of this workflow:
 
 All steps comprising the classify and <i>de novo</i> workflows can be run independently if desired. Please consult the command line interface for specific details on running each of these steps.
 
-
 ## Cite
 
 A manuscript describing the GTDB-Tk is currently being prepared:
@@ -144,7 +145,6 @@ A manuscript describing the GTDB-Tk is currently being prepared:
 Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. <in prep>.
  
  In the meantime, if you find the GTDB-Tk useful please cite this GitHub page.
-
 
 ## Copyright
 
