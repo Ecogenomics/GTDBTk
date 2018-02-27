@@ -1,0 +1,3 @@
+global-exclude config.py
+global-include pfam_search.pl
+global-include *.pm

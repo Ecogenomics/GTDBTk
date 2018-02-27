@@ -21,7 +21,7 @@ import logging
 import shutil
 from collections import defaultdict
 
-from gtdblib.trimming import trim_seqs
+from biolib.seq_tk import trim_seqs
 
 from biolib.common import remove_extension
 from biolib.seq_io import read_fasta
@@ -57,11 +57,11 @@ class Markers(object):
         
         self.taxonomy_file = Config.TAXONOMY_FILE
 
-        self.pfam_hmm_dir = ConfigMetadata.PFAM_HMM_DIR
+        self.pfam_hmm_dir = Config.PFAM_HMM_DIR
         self.pfam_suffix = ConfigMetadata.PFAM_SUFFIX
         self.pfam_top_hit_suffix = ConfigMetadata.PFAM_TOP_HIT_SUFFIX
 
-        self.tigrfam_hmms = ConfigMetadata.TIGRFAM_HMMS
+        self.tigrfam_hmms = Config.TIGRFAM_HMMS
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
         
@@ -424,7 +424,7 @@ class Markers(object):
                                                                     count_wrong_pa, 
                                                                     count_wrong_cons))
                                                                     
-                    self.logger.info('Pruned %d taxa with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                    self.logger.info('%d taxa have amino acids in <%.1f%% of columns in filtered MSA.' % (
                                                                                                 len(pruned_seqs), 
                                                                                                 min_perc_aa))
                                     
@@ -440,7 +440,7 @@ class Markers(object):
                     self.logger.info('Masked alignment from %d to %d AA.' % (len(gtdb_msa.values()[0]),
                                                                                 len(trimmed_seqs.values()[0])))
                                                                                 
-                    self.logger.info('Pruned %d user genomes with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                    self.logger.info('%d user genomes have amino acids in <%.1f%% of columns in filtered MSA.' % (
                                                                                                 len(pruned_seqs), 
                                                                                                 min_perc_aa))
 
@@ -458,11 +458,13 @@ class Markers(object):
                 msa_file = os.path.join(out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
                 self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
                 
-                user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
+                #===============================================================
+                # user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                # trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                # self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
+                #===============================================================
                 
-                all_user_msa_file = os.path.join(out_dir, prefix + ".%s.all_user_msa.fasta" % marker_set_id)
+                all_user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
                 trimmed_all_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
                 pruned_all_user_msa = {k:v for k, v in pruned_seqs.iteritems() if k in user_msa}
                 all_user_msa = merge_two_dicts(trimmed_all_user_msa,pruned_all_user_msa)

@@ -1,7 +1,7 @@
 # Annotation folder
-ANNOTATION_DIR = "prodigal/"
+MARKER_GENE_DIR = "marker_genes"
 
-BACTERIAL_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm", "PF01025.14.hmm", "PF02576.12.hmm", "PF03726.9.hmm"],
+BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm", "PF01025.14.hmm", "PF02576.12.hmm", "PF03726.9.hmm"],
                      "TIGRFAM": ["TIGR00006.HMM", "TIGR00019.HMM", "TIGR00020.HMM", "TIGR00029.HMM", "TIGR00043.HMM", "TIGR00054.HMM", "TIGR00059.HMM", "TIGR00061.HMM", "TIGR00064.HMM",
                                  "TIGR00065.HMM", "TIGR00082.HMM", "TIGR00083.HMM", "TIGR00084.HMM", "TIGR00086.HMM", "TIGR00088.HMM", "TIGR00090.HMM", "TIGR00092.HMM", "TIGR00095.HMM",
                                  "TIGR00115.HMM", "TIGR00116.HMM", "TIGR00138.HMM", "TIGR00158.HMM", "TIGR00166.HMM", "TIGR00168.HMM", "TIGR00186.HMM", "TIGR00194.HMM", "TIGR00250.HMM",
@@ -16,7 +16,7 @@ BACTERIAL_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hm
                                  "TIGR02191.HMM", "TIGR02273.HMM", "TIGR02350.HMM", "TIGR02386.HMM", "TIGR02397.HMM", "TIGR02432.HMM", "TIGR02729.HMM", "TIGR03263.HMM", "TIGR03594.HMM",
                                  "TIGR03625.HMM", "TIGR03632.HMM", "TIGR03654.HMM", "TIGR03723.HMM", "TIGR03725.HMM", "TIGR03953.HMM"]}
 
-ARCHAEAL_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm", "PF01092.14.hmm", "PF01000.21.hmm", "PF00368.13.hmm", "PF00827.12.hmm", "PF01269.12.hmm", "PF00466.15.hmm",
+AR122_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm", "PF01092.14.hmm", "PF01000.21.hmm", "PF00368.13.hmm", "PF00827.12.hmm", "PF01269.12.hmm", "PF00466.15.hmm",
                              "PF01015.13.hmm", "PF13685.1.hmm", "PF02978.14.hmm", "PF04919.7.hmm", "PF01984.15.hmm", "PF04104.9.hmm", "PF00410.14.hmm", "PF01798.13.hmm", "PF01864.12.hmm",
                              "PF01990.12.hmm", "PF07541.7.hmm", "PF04019.7.hmm", "PF00900.15.hmm", "PF01090.14.hmm", "PF02006.11.hmm", "PF01157.13.hmm", "PF01191.14.hmm", "PF01866.12.hmm",
                              "PF01198.14.hmm", "PF01496.14.hmm", "PF00687.16.hmm", "PF03874.11.hmm", "PF01194.12.hmm", "PF01200.13.hmm", "PF13656.1.hmm", "PF01280.15.hmm"],
@@ -30,40 +30,62 @@ ARCHAEAL_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm
                                 "TIGR01046.HMM", "TIGR01018.HMM", "TIGR00936.HMM", "TIGR00463.HMM", "TIGR01309.HMM", "TIGR03653.HMM", "TIGR00042.HMM", "TIGR02389.HMM", "TIGR00307.HMM", "TIGR03673.HMM",
                                 "TIGR00373.HMM", "TIGR01008.HMM", "TIGR00283.HMM", "TIGR00425.HMM", "TIGR00405.HMM", "TIGR03665.HMM", "TIGR00448.HMM"]}
 
-TIGRFAM_HMM_DIR = '/PATH/TO/TIGRFAM/individual_hmms/'
-PFAM_HMM_DIR = '/PATH/TO/TIGRFAM/individual_hmms/'
+RPS23_MARKERS = {"PFAM": ["PF00687.16.hmm","PF00466.15.hmm","PF00298.14.hmm","PF03946.9.hmm","PF00238.14.hmm",
+                            "PF00252.13.hmm","PF00861.17.hmm","PF00181.18.hmm","PF00237.14.hmm",
+                            "PF03947.13.hmm","PF00297.17.hmm","PF00573.17.hmm","PF00281.14.hmm",
+                            "PF00673.16.hmm","PF00338.17.hmm","PF00411.14.hmm","PF00416.17.hmm",
+                            "PF00312.17.hmm","PF00366.15.hmm","PF00203.16.hmm","PF00189.15.hmm",
+                            "PF00333.15.hmm","PF03719.10.hmm","PF00177.16.hmm","PF00410.14.hmm",
+                            "PF00380.14.hmm","PF00164.20.hmm"],
+                    "TIGRFAM": []}
+
+# Information for aligning genomes
+DEFAULT_DOMAIN_THRESHOLD = 10.0
+AR_MARKER_COUNT = 122
+BAC_MARKER_COUNT = 120
+
+
+############################
+#EDIT FROM HERE
+############################
 
 # Path to MSA and Taxonomy
-GENERIC_PATH = "/PATH/TO/GtdbTK/data/"
+GENERIC_PATH = "/PATH/To/GtdbTK/data/"
+
+
+TIGRFAM_HMMS = GENERIC_PATH + 'markers/tigrfam/tigrfam.hmm'
+PFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/'
 
 MSA_FOLDER = GENERIC_PATH + "msa/"
-CONCAT_BAC = MSA_FOLDER + "gtdb_concatenated_bacteria.faa"
-CONCAT_ARC = MSA_FOLDER + "gtdb_concatenated_archaea.faa"
+CONCAT_BAC120 = MSA_FOLDER + "gtdb_r80_bac120.faa"
+CONCAT_AR122 = MSA_FOLDER + "gtdb_r80_ar122.faa"
 
 TAX_FOLDER = GENERIC_PATH + "taxonomy/"
 TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
 
 # Path to canonical masks
 MASK_DIR = GENERIC_PATH + "masks/"
-MASK_BAC120 = "gtdb_bac120.mask"
-MASK_AR122 = "gtdb_ar122.mask"
-MASK_RPS23 = "gtdb_rps23.mask"
+MASK_BAC120 = "gtdb_r80_bac120.mask"
+MASK_AR122 = "gtdb_r80_ar122.mask"
+MASK_RPS23 = "gtdb_r80_rps23.mask"
 
 # Path to pplacer data
 PPLACER_DIR = GENERIC_PATH + "pplacer/"
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
+PPLACER_BAC120_REF_PKG = "gtdb_r80_bac120.refpkg"
+PPLACER_AR122_REF_PKG = "gtdb_r80_ar122.refpkg"
+PPLACER_RPS23_REF_PKG = "gtdb_r80_rps23.refpkg"
 
-PPLACER_BAC120_REF_PKG = "gtdb_bac120.refpkg"
-PPLACER_AR122_REF_PKG = "gtdb_ar122.refpkg"
-PPLACER_RPS23_REF_PKG = "gtdb_rps23.refpkg"
-
-MASH_DIR = GENERIC_PATH + "mash/"
-MASH_DB = 'reference/reference_database.msh'
-MASH_SPECIES_THRESHOLD = 0.05
+#Path to fastani data
+FASTANI_DIR = GENERIC_PATH + "fastani/"
+FASTANI_SPECIES_THRESHOLD = 95.0
+FASTANI_GENOMES = FASTANI_DIR + "database/"
+FASTANI_GENOMES_EXT = "_genomic.fna"
 
 #Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
-RED_MIN_CHILDREN = 2 
-RED_DIST_DICT = { 'RED dictionary generate by phylorank outliers'}
+RED_MIN_CHILDREN = 2
+RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.344460726186,"c__":0.492670538599,"o__":0.648322059106,"f__":0.78784418792,"g__":0.940152273956}
+RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.35531101963,"c__":0.508396357807,"o__":0.660914720355,"f__":0.728629307816,"g__":0.880665740097}
 

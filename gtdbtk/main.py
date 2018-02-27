@@ -41,6 +41,8 @@ class OptionsParser():
         
         self.logger = logging.getLogger('timestamp')
         
+        self.logger.warning("Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
+        
     def _verify_genome_id(self, genome_id):
         """Ensure genome ID will be valid in Newick tree."""
         

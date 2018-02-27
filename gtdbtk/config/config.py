@@ -42,9 +42,10 @@ RPS23_MARKERS = {"PFAM": ["PF00687.16.hmm","PF00466.15.hmm","PF00298.14.hmm","PF
                     "TIGRFAM": []}
 
 GENERIC_PATH = '/srv/db/gtdbtk/'
-                       
-TIGRFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/individual_hmms/'
-PFAM_HMM_DIR = GENERIC_PATH + 'markers/tigrfam/individual_hmms/'
+
+TIGRFAM_HMMS = '/srv/db/gtdbtk/markers//tigrfam/tigrfam.hmm'
+PFAM_HMM_DIR = '/srv/db/gtdbtk/markers/pfam/'
+
 
 # Information for aligning genomes
 DEFAULT_DOMAIN_THRESHOLD = 10.0
@@ -55,7 +56,7 @@ BAC_MARKER_COUNT = 120
 MSA_FOLDER = GENERIC_PATH + "msa/"
 CONCAT_BAC120 = MSA_FOLDER + "gtdb_r80_bac120.faa"
 CONCAT_AR122 = MSA_FOLDER + "gtdb_r80_ar122.faa"
-CONCAT_RPS23 = MSA_FOLDER + "gtdb_r80_rps23.faa"
+#CONCAT_RPS23 = MSA_FOLDER + "gtdb_r80_rps23.faa"
 
 TAX_FOLDER = GENERIC_PATH + "taxonomy/"
 TAXONOMY_FILE = TAX_FOLDER + "gtdb_r80_taxonomy.tsv"
@@ -68,29 +69,23 @@ MASK_AR122 = "gtdb_r80_ar122.mask"
 MASK_RPS23 = "gtdb_r80_rps23.mask"
 
 # Path to pplacer data
-PPLACER_DIR = GENERIC_PATH + "pplacer/pruned_trees/"
+PPLACER_DIR = GENERIC_PATH + "pplacer/"
 #PPLACER_DIR = GENERIC_PATH + "pplacer/notrimmed/"
 
 PPLACER_BAC120_REF_PKG = "gtdb_r80_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_r80_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_r80_rps23.refpkg"
 
-#MASH_DIR = GENERIC_PATH + "mash/"
-#MASH_DB = 'reference/reference_r80_database.msh'
-#MASH_SPECIES_THRESHOLD = 0.05
-
 FASTANI_DIR = GENERIC_PATH + "fastani/"
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = FASTANI_DIR + "database/"
-FASTANI_GENOMES_EXT = '_genomic.fna'
+FASTANI_GENOMES_EXT = GENOME_FILE_SUFFIX
 
 #Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
-RED_MIN_CHILDREN = 2 
-RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.344702024359,"c__":0.496212726141,"o__":0.644397112368,"f__":0.783804586295,"g__":0.939134465511}
-
-####TO REDO
-RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.35531101963,"c__":0.508396357807,"o__":0.660914720355,"f__":0.728629307816,"g__":0.882994232057}
+RED_MIN_CHILDREN = 2
+RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.344460726186,"c__":0.492670538599,"o__":0.648322059106,"f__":0.78784418792,"g__":0.940152273956}
+RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.35531101963,"c__":0.508396357807,"o__":0.660914720355,"f__":0.728629307816,"g__":0.880665740097}
 
 
 
