@@ -23,7 +23,7 @@ from biolib.checksum import sha256
 
 
 class TigrfamSearch(object):
-    """Runs TIGRfam HMMs over a set of genomes."""
+    """Runs TIGRFAM HMMs over a set of genomes."""
 
     def __init__(self, 
                     threads, 

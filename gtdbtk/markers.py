@@ -213,8 +213,8 @@ class Markers(object):
                                 self.gff_file_suffix)
             genome_dictionary = prodigal.run(genomes)
             
-            # annotated genes against TIGRfam and Pfam databases
-            self.logger.info("Identifying TIGRfam protein families.")
+            # annotated genes against TIGRFAM and Pfam databases
+            self.logger.info("Identifying TIGRFAM protein families.")
             gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
                           for db_genome_id in genome_dictionary.keys()]
 
@@ -326,13 +326,13 @@ class Markers(object):
             fout.write('%s\n' % alignment)
         fout.close()
         
-    def _genome_domain(self, identity_dir):
+    def _genome_domain(self, identity_dir,prefix):
         """Determine domain of User genomes based on identified marker genes."""
         
         bac_count = defaultdict(int)
         ar_count = defaultdict(int)
-        for d, marker_file in ((bac_count, 'gtdbtk_bac120_markers_summary.tsv'),
-                                (ar_count, 'gtdbtk_ar122_markers_summary.tsv')):
+        for d, marker_file in ((bac_count, prefix+'_bac120_markers_summary.tsv'),
+                                (ar_count, prefix+'_ar122_markers_summary.tsv')):
             with open(os.path.join(identity_dir, marker_file)) as f:
                 f.readline()
                 
@@ -374,7 +374,7 @@ class Markers(object):
                                                                                         self.cpus))
                                                                                         
             # determine marker set for each user genome
-            bac_gids, ar_gids = self._genome_domain(identify_dir)
+            bac_gids, ar_gids = self._genome_domain(identify_dir,prefix)
             
             # align user genomes
             gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
@@ -439,10 +439,11 @@ class Markers(object):
                                                                     min_perc_aa / 100.0)
                     self.logger.info('Masked alignment from %d to %d AA.' % (len(gtdb_msa.values()[0]),
                                                                                 len(trimmed_seqs.values()[0])))
-                                                                                
-                    self.logger.info('%d user genomes have amino acids in <%.1f%% of columns in filtered MSA.' % (
-                                                                                                len(pruned_seqs), 
-                                                                                                min_perc_aa))
+                    
+                    if min_perc_aa > 0:                                                                               
+                        self.logger.info('%d user genomes have amino acids in <%.1f%% of columns in filtered MSA.' % (
+                                                                                                    len(pruned_seqs), 
+                                                                                                    min_perc_aa))
 
                 # write out filtering information
                 fout = open(os.path.join(out_dir, prefix + ".%s.filtered.tsv" % marker_set_id), 'w')
@@ -458,17 +459,17 @@ class Markers(object):
                 msa_file = os.path.join(out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
                 self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
                 
-                #===============================================================
-                # user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                # trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                # self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
-                #===============================================================
+                user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                trimmed_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
                 
-                all_user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                trimmed_all_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                pruned_all_user_msa = {k:v for k, v in pruned_seqs.iteritems() if k in user_msa}
-                all_user_msa = merge_two_dicts(trimmed_all_user_msa,pruned_all_user_msa)
-                self._write_msa(all_user_msa, all_user_msa_file, gtdb_taxonomy)
+                #===============================================================
+                # #all_user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                # trimmed_all_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                # pruned_all_user_msa = {k:v for k, v in pruned_seqs.iteritems() if k in user_msa}
+                # all_user_msa = merge_two_dicts(trimmed_all_user_msa,pruned_all_user_msa)
+                # self._write_msa(all_user_msa, all_user_msa_file, gtdb_taxonomy)
+                #===============================================================
 
         except IOError as e:
             self.logger.error(str(e))

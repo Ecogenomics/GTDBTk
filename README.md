@@ -74,7 +74,6 @@ This will process all genomes in <my_genomes> using both bacterial and archaeal 
 
 The workflow supports several optional flags, including:
 * cpus: maximum number of CPUs to use
-* proteins: indicates genome files contain called proteins as amino acids and gene calling can be skipped
 
 For other flags please consult the command line interface.
 
@@ -90,8 +89,8 @@ The taxonomic classification of each bacterial and archaeal genome is contained 
 Each step of the classify workflow generates a number of files that can be consulted for additional information about the processed genomes.
 
 Identify step:
-* gtdbtk_bac120_markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome
-* gtdbtk_ar122_markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set
+* \<prefix\>_bac120_markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome
+* \<prefix\>_ar122_markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set
 * marker_genes directory: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs
 
 Align step:
@@ -112,7 +111,7 @@ Classify step:
 The GTDB-Tk uses FastANI to estimate the average nucleotide identity (ANI) between genomes. Species assignments are made using an ANI criteria of 95%. Information about species assignments can be found in the <prefix>.fastani_results.tsv output file.
 
 ## De Novo Workflow
-
+**under active development**
 The *de novo* workflow infers a new tree containing all user supply and GTDB-Tk reference genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a *de novo* tree is desired. This workflow consists of five steps: *identify*, *align*, *infer*, *root*, and *decorate*. The *identify* and *align* steps are the same as in the classify workflow. The *infer* step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a *de novo* tree. This tree is then rooted using a user specified outgroup and decorated with the GTDB taxonomy. 
 
 The *de novo* workflow can be run as follows:

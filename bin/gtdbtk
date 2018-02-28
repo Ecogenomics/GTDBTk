@@ -49,15 +49,15 @@ def printHelp():
     classify_wf -> Classify genomes by placement in GTDB reference tree
                      (identify -> align -> classify)
     de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
-                     (identify -> align -> infer -> root -> decorate)
+                     (identify -> align -> infer -> root -> decorate) [In Development]
 
     
   Methods:
     identify -> Identify marker genes in genome
     align    -> Create multiple sequence alignment
-    infer    -> Infer tree from multiple sequence alignment
+    infer    -> Infer tree from multiple sequence alignment [In Development]
     classify -> Determine taxonomic classification of genomes
-    root     -> Root tree using an outgroup
+    root     -> Root tree using an outgroup [In Development]
     decorate -> Decorate tree with GTDB taxonomy
       
   Use: gtdbtk <command> -h for command specific help
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                                        help=('Filter genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
                                             + 'or p__Proteobacteria, p__Actinobacteria).'))
-    optional_denovo_wf.add_argument('--min_perc_aa', type=float, default=50,
+    optional_denovo_wf.add_argument('--min_perc_aa', type=float, default=0,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_denovo_wf.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with consensus '
