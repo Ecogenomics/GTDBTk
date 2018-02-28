@@ -1,5 +1,33 @@
-# Annotation folder
-MARKER_GENE_DIR = "marker_genes"
+############################
+#EDIT FROM HERE
+############################
+
+# Path to MSA and Taxonomy
+GENERIC_PATH = "/PATH/To/GtdbTK/data/"
+
+############################
+#If all downloaded data is in the same folder 
+# There is no need of editing variable below this point 
+############################
+
+
+TIGRFAM_HMMS = GENERIC_PATH + 'markers/tigrfam/tigrfam.hmm'
+PFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/'
+MSA_FOLDER = GENERIC_PATH + "msa/"
+MASK_DIR = GENERIC_PATH + "masks/"
+PPLACER_DIR = GENERIC_PATH + "pplacer/"
+FASTANI_DIR = GENERIC_PATH + "fastani/"
+TAX_FOLDER = GENERIC_PATH + "taxonomy/"
+
+
+
+############################
+#STOP EDIT
+############################
+
+
+
+
 
 BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm", "PF01025.14.hmm", "PF02576.12.hmm", "PF03726.9.hmm"],
                      "TIGRFAM": ["TIGR00006.HMM", "TIGR00019.HMM", "TIGR00020.HMM", "TIGR00029.HMM", "TIGR00043.HMM", "TIGR00054.HMM", "TIGR00059.HMM", "TIGR00061.HMM", "TIGR00064.HMM",
@@ -44,41 +72,31 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
-
-############################
-#EDIT FROM HERE
-############################
-
-# Path to MSA and Taxonomy
-GENERIC_PATH = "/PATH/To/GtdbTK/data/"
+# Annotation folder
+MARKER_GENE_DIR = "marker_genes"
 
 
-TIGRFAM_HMMS = GENERIC_PATH + 'markers/tigrfam/tigrfam.hmm'
-PFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/'
-
-MSA_FOLDER = GENERIC_PATH + "msa/"
+#MSA file names
 CONCAT_BAC120 = MSA_FOLDER + "gtdb_r80_bac120.faa"
 CONCAT_AR122 = MSA_FOLDER + "gtdb_r80_ar122.faa"
 
-TAX_FOLDER = GENERIC_PATH + "taxonomy/"
+#Taxonomy file name
 TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
 
-# Path to canonical masks
-MASK_DIR = GENERIC_PATH + "masks/"
+#Mask file names
 MASK_BAC120 = "gtdb_r80_bac120.mask"
 MASK_AR122 = "gtdb_r80_ar122.mask"
 MASK_RPS23 = "gtdb_r80_rps23.mask"
 
-# Path to pplacer data
-PPLACER_DIR = GENERIC_PATH + "pplacer/"
+
+#Pplacer configuration
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
 PPLACER_BAC120_REF_PKG = "gtdb_r80_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_r80_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_r80_rps23.refpkg"
 
-#Path to fastani data
-FASTANI_DIR = GENERIC_PATH + "fastani/"
+#Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = FASTANI_DIR + "database/"
 FASTANI_GENOMES_EXT = "_genomic.fna"

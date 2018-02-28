@@ -177,6 +177,8 @@ class OptionsParser():
     def infer(self, options):
         """Infer tree from MSA."""
         
+        self.logger.warning("Tree inference is still under development!")
+        
         check_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
         
@@ -218,6 +220,7 @@ class OptionsParser():
         
     def root(self, options):
         """Root tree using outgroup."""
+        self.logger.warning("Tree rooting is still under development!")
         
         check_file_exists(options.input_tree)
         
@@ -279,7 +282,7 @@ class OptionsParser():
             
             self.decorate(options)
         elif(options.subparser_name == 'classify_wf'):
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy', 'mash'])               
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastani'])               
             self.identify(options)
             
             options.identify_dir = options.out_dir

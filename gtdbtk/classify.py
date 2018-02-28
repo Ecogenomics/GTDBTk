@@ -110,7 +110,7 @@ class Classify():
         """Classify genomes based on position in reference tree."""
         
         for marker_set_id in ('bac120', 'ar122'):
-            user_msa_file = os.path.join(align_dir, 'gtdbtk.%s.user_msa.fasta' % marker_set_id)
+            user_msa_file = os.path.join(align_dir, prefix+'.%s.user_msa.fasta' % marker_set_id)
             if not os.path.exists(user_msa_file):
                 # file will not exist if there are no User genomes from a given domain
                 continue 
@@ -248,7 +248,7 @@ class Classify():
                     
                     child_taxons = []
                     closest_rank = None;
-                    detection = "Red"
+                    detection = "RED"
                     # if the genome is placed between the genus and specie ranks , it will be associated with the genus when _get_closest_red_rank is called
                     if parent_rank != 'g__':
                         child_rk = self.order_rank[self.order_rank.index(parent_rank)+1]
@@ -320,17 +320,6 @@ class Classify():
                                 genome_parent_child[5]='case 3b - III'          
                         else:
                             pchildrank = child_taxons[child_taxons.index(child_taxon)-1]
-                            #===================================================
-                            # print "#################"
-                            # print (child_taxon,pchildrank,parent_rank)
-                            # print (current_rel_list,marker_dict.get(child_taxon[:3]),marker_dict.get(pchildrank[:3]))
-                            # print (current_rel_list,marker_dict.get(child_taxon[:3]),child_rel_dist)
-                            # print "abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(current_rel_list - marker_dict.get(pchildrank[:3]))"
-                            # print (abs(current_rel_list - marker_dict.get(child_taxon[:3])),abs(current_rel_list - marker_dict.get(pchildrank[:3])))
-                            # print "abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(child_rel_dist -marker_dict.get(child_taxon[:3]))"
-                            # print (abs(current_rel_list - marker_dict.get(child_taxon[:3])),abs(child_rel_dist -marker_dict.get(child_taxon[:3])))
-                            # print "###################"
-                            #===================================================
                             if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(current_rel_list - marker_dict.get(pchildrank[:3]))
                                 and abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(child_rel_dist -marker_dict.get(child_taxon[:3]))) :
                                 closest_rank = child_taxon
