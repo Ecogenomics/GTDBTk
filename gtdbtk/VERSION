@@ -1,4 +1,6 @@
-0.0.4
+0.0.4b1
+- FastAni comparison bug fixing 
+0.0.4-beta
 - Code cleaning
 0.0.3
 - FastAni multithreaded.

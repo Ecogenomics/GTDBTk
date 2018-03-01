@@ -136,7 +136,7 @@ if __name__ == '__main__':
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
     optional_classify_wf.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process')
-    optional_classify_wf.add_argument('--min_perc_aa', type=float, default=50,
+    optional_classify_wf.add_argument('--min_perc_aa', type=float, default=0,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_classify_wf.add_argument('--prefix', required=False, default='gtdbtk',
                                     help='desired prefix for output files')
@@ -187,7 +187,7 @@ if __name__ == '__main__':
                                        help=('Filter genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
                                             + 'or p__Proteobacteria, p__Actinobacteria).'))
-    optional_align.add_argument('--min_perc_aa', type=float, default=50,
+    optional_align.add_argument('--min_perc_aa', type=float, default=0,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_align.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with consensus '
