@@ -93,7 +93,7 @@ class Classify():
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        os.system(cmd)
+        #os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(out_dir, prefix + ".%s.classify.tree" % marker_set_id)
@@ -159,11 +159,11 @@ class Classify():
             # If the parent node has only one Reference genome ( GB or RS ) we calculate the mash distance between the user genome and the reference genome
             analysed_nodes = []
             fastani_dict = {}
+            all_fastani_dict = {}
                           
             fastani_list = []
             # some genomes of Case C are handled here, if Mash distance is close enough 
-            self.logger.info('Calculating Average Nucleotide Identity using FastANI.')
-            
+            self.logger.info('Calculating Average Nucleotide Identity using FastANI.')            
              
             for nd in tree.preorder_node_iter():
                 #We store the prefixes of each leaves to check if one starts with GB_ or RS_
@@ -185,26 +185,28 @@ class Classify():
                         args=(item, genomes, out_q))
                     procs.append(p)
                     p.start()
-                     
+                      
                 # Collect all results into a single result dict. We know how many dicts
                 # with results to expect.
                 #while out_q.empty():
                 #    time.sleep(1)
-             
+              
                 # Wait for all worker processes to finish
                 for p in procs:
                     p.join()
-                         
-                fastani_dict = dict(out_q)
+                          
+                all_fastani_dict = dict(out_q)
             
                 
    
-            for k,v in fastani_dict.iteritems():
-                suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
-                taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
-                fout.write('%s\t%s\n' % (k, taxa_str))
+            for k,v in all_fastani_dict.iteritems():
                 fastaniout.write("{0}\t{1}\t{2}\n".format(k,v.get("ref_genome"),v.get("ani")))
-                redfout.write("{0}\tani\tNone\n".format(k))
+                if Config.FASTANI_SPECIES_THRESHOLD < v.get("ani"):
+                    suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
+                    taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
+                    fout.write('%s\t%s\n' % (k, taxa_str))
+                    fastani_dict[k]=v
+                    redfout.write("{0}\tani\tNone\n".format(k))
             fastaniout.close()
             
             self.logger.info('{0} genomes have been classify with FastANI.'.format(len(fastani_dict)))
@@ -373,6 +375,8 @@ class Classify():
         for items in sublist_genomes:
             dict_parser_distance = self._calculate_fastani_distance(items, genomes)
             for k,v in dict_parser_distance.iteritems():
+                if k in out_q:
+                    print "It should not happen (if k in out_q)"
                 out_q[k]=v
         return True
 
@@ -618,82 +622,12 @@ class Classify():
                 user_g = remove_extension(os.path.basename(info[0]))
                 ani = float(info[2])
                 if user_g in dict_results:
-                    if ani < dict_results.get(user_g).get("ani") and Config.FASTANI_SPECIES_THRESHOLD < ani:
-                        dict_results[user_g]={"ref_genome":ref_genome,"ani":ani}
-                elif Config.FASTANI_SPECIES_THRESHOLD < ani:
+                    print "it should not happen! (if user_g in dict_results)"
+                else:
                     dict_results[user_g]={"ref_genome":ref_genome,"ani":ani}
         
         return dict_results    
 
-    def _calculate_mash_distance(self,list_leaf,genomes):
-
-        """ Calculate the Mash distance between all user genomes and the reference to classfy them at the species level
-        
-        Parameters
-        ----------
-        list_leaf : List of leaves uncluding one or many user genomes and one reference genome.
-        genomes : Dictionary of user genomes d[genome_id] -> FASTA file
-    
-        Returns
-        -------
-        dictionary
-            dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
-        
-        """
-        try:
-            self.tmp_output_dir = tempfile.mkdtemp()
-            usr_genome_dir = os.path.join(self.tmp_output_dir, 'input_genomes')
-            make_sure_path_exists(usr_genome_dir)
-            for leaf in list_leaf:
-                if not leaf.startswith('GB_') and not leaf.startswith('RS_'):
-                    shutil.copy(genomes.get(leaf), usr_genome_dir)
-                    
-            cmd = 'mash sketch -s 5000 -k 16 -o {0}/user_genomes {1}/* -p {2} > /dev/null 2>&1'.format(self.tmp_output_dir, usr_genome_dir, self.cpus)
-            os.system(cmd)
-            reference_db = os.path.join(Config.MASH_DIR,Config.MASH_DB)
-            cmd = 'mash dist {0} {1}/user_genomes.msh -p {2} -d {3}> {1}/distances.tab'.format(reference_db,self.tmp_output_dir,self.cpus,Config.MASH_SPECIES_THRESHOLD) 
-            os.system(cmd)
-            if not os.path.isfile(os.path.join(self.tmp_output_dir,'user_genomes.msh')) or not os.path.isfile(os.path.join(self.tmp_output_dir,'distances.tab')):
-                raise
-            dict_parser_distance = self._parse_mash_results(os.path.join(self.tmp_output_dir,'distances.tab'),list_leaf)
-            return dict_parser_distance
-              
-        except:
-            if os.path.exists(self.tmp_output_dir):
-                shutil.rmtree(self.tmp_output_dir)
-            raise
-        
-    
-        
-    def _parse_mash_results(self,distance_file,list_leaf):
-        """ Parse the mash output file
-        
-        
-        Parameters
-        ----------
-        distance_file : Mash output file.
-    
-        Returns
-        -------
-        dictionary
-            dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
-        """
-        dict_results = {}
-        with open(distance_file) as distfile:
-            for line in distfile:
-                info = line.strip().split("\t")
-                ref_genome = "_".join(info[0].split("_", 2)[:2])
-                suffixed_name = add_ncbi_prefix(ref_genome)
-                if suffixed_name not in list_leaf:
-                    continue
-                user_g = remove_extension(os.path.basename(info[1]))
-                mash_dist = float(info[2])
-                if user_g in dict_results:
-                    if mash_dist < dict_results.get(user_g).get("mash_dist"):
-                        dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
-                else:
-                    dict_results[user_g]={"ref_genome":ref_genome,"mash_dist":mash_dist}
-        return dict_results
     
     def _filter_taxa_for_dist_inference(self,tree, taxonomy, trusted_taxa, min_children, min_support):
         """Determine taxa to use for inferring distribution of relative divergences.
