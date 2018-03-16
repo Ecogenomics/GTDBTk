@@ -25,7 +25,13 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
-GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.
+GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.    
+_NOTE_ : You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.
+If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
+i.e:
+```
+export PERL5LIB=/path/to/moose/directory
+```
 
 GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
 ```
