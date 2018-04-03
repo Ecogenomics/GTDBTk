@@ -282,7 +282,7 @@ class OptionsParser():
             
             self.decorate(options)
         elif(options.subparser_name == 'classify_wf'):
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastani'])               
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])               
             self.identify(options)
             
             options.identify_dir = options.out_dir

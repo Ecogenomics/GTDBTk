@@ -49,6 +49,7 @@ class MSATrimmer(object):
 
     def run(self, msa, mask, marker_list, taxonomy_file,metadata_file, output):
         dict_marker ={}
+        print "readmsa"
         dict_genomes = read_fasta(msa,False)
         
         print len(dict_genomes)
@@ -99,18 +100,19 @@ class MSATrimmer(object):
         dict_metadata = {}
         with open(metadata_file,'r') as mf:
             headers= mf.readline().strip().split("\t")
-            ncbi_type_strain_index = headers.index('ncbi_type_strain')
+            ncbi_type_strain_index = headers.index('ncbi_type_material')
             checkm_completeness_index =  headers.index('checkm_completeness')
             checkm_contamination_index = headers.index('checkm_contamination')
             
             for line in mf:
                 info = line.split('\t')
                 quality = float(info[checkm_completeness_index]) - 5*float(info[checkm_contamination_index])
-                if info[ncbi_type_strain_index] != '' and info[ncbi_type_strain_index] != 'yes' and info[ncbi_type_strain_index] != 'none':
-                    print info[0]
-                    print info[ncbi_type_strain_index]
-                    sys.exit()
-                dict_metadata[info[0]] = { "strain":info[ncbi_type_strain_index],
+                print info[ncbi_type_strain_index]
+                tm = False
+                if info[ncbi_type_strain_index] == 't':
+                    tm = True
+                    
+                dict_metadata[info[0]] = { "strain":tm,
                                           "quality":quality
                                           }
             
@@ -126,9 +128,9 @@ class MSATrimmer(object):
                         else:
                             oldgid = dictgenusspecies.get(genusspecies)
                             
-                            if dict_metadata[oldgid]['strain'] =='yes' and (dict_metadata[gid]['strain'] =='' or dict_metadata[gid]['strain'] == 'none'):
+                            if dict_metadata[oldgid]['strain'] is True and dict_metadata[gid]['strain'] is False:
                                 continue
-                            if dict_metadata[gid]['strain'] =='yes' and (dict_metadata[oldgid]['strain'] =='' or dict_metadata[oldgid]['strain'] == 'none'):
+                            if dict_metadata[gid]['strain'] is True and dict_metadata[oldgid]['strain'] is False:
                                 dictgenusspecies[genusspecies] = gid
                             elif dict_metadata[gid]['quality'] >= dict_metadata[oldgid]['quality']:
                                 dictgenusspecies[genusspecies] = gid

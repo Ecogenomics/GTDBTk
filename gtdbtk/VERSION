@@ -1,3 +1,9 @@
+0.0.5
+- stable version for pip 
+0.0.4b3
+- fastANI dependency fix
+0.0.4b2
+- fastANI dependency fix
 0.0.4b1
 - FastAni comparison bug fixing 
 0.0.4-beta
