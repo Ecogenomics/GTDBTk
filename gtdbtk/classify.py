@@ -45,7 +45,7 @@ class Classify():
     def __init__(self, cpus=1):
         """Initialize."""
                 
-        check_dependencies(['pplacer', 'guppy', 'fastani'])
+        check_dependencies(['pplacer', 'guppy', 'fastANI'])
         
         self.taxonomy_file = Config.TAXONOMY_FILE
         
@@ -93,7 +93,7 @@ class Classify():
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        #os.system(cmd)
+        os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(out_dir, prefix + ".%s.classify.tree" % marker_set_id)
@@ -204,6 +204,8 @@ class Classify():
                 if Config.FASTANI_SPECIES_THRESHOLD < v.get("ani"):
                     suffixed_name = add_ncbi_prefix(v.get("ref_genome"))
                     taxa_str = ";".join(gtdb_taxonomy.get(suffixed_name))
+                    if taxa_str.endswith("s__"):
+                        taxa_str = taxa_str+v.get("ref_genome")
                     fout.write('%s\t%s\n' % (k, taxa_str))
                     fastani_dict[k]=v
                     redfout.write("{0}\tani\tNone\n".format(k))
@@ -585,7 +587,6 @@ class Classify():
             cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>&1'.format(os.path.join(self.tmp_output_dir, 'query_list.txt'), 
                                                                            os.path.join(self.tmp_output_dir, 'ref_list.txt'), 
                                                                            os.path.join(self.tmp_output_dir, 'results.tab'))
-            #print cmd
             os.system(cmd)
 
             if not os.path.isfile(os.path.join(self.tmp_output_dir,'results.tab')):
@@ -593,7 +594,6 @@ class Classify():
             
             dict_parser_distance = self._parse_fastani_results(os.path.join(self.tmp_output_dir,'results.tab'),list_leaf)
             shutil.rmtree(self.tmp_output_dir)
-            #print len(dict_parser_distance)
             return dict_parser_distance
               
         except:
