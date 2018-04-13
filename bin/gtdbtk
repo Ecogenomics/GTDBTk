@@ -142,6 +142,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_classify_wf.add_argument('--debug', action="store_true",
+                                    help='create intermediate files for debugging purposes.')
     optional_classify_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
     
@@ -249,6 +251,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_classify.add_argument('--debug', action="store_true",
+                                    help='create intermediate files for debugging purposes.')
     optional_classify.add_argument('-h', '--help', action="help",
                                     help="show help message")
                                        

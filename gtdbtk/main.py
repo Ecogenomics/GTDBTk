@@ -105,8 +105,8 @@ class OptionsParser():
                 genomic_files[genome_id] = genome_file
 
         for genome_key in genomic_files.iterkeys():
-            if genome_key.startswith("RS_") or genome_key.startswith("GB_"):
-                self.logger.error("Submitted genomes start with the same prefix (RS_,GB_) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.") 
+            if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
+                self.logger.error("Submitted genomes start with the same prefix (RS_,GB_,UBA) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.") 
                 sys.exit(-1)
                 
         if len(genomic_files) == 0:
@@ -190,7 +190,7 @@ class OptionsParser():
         self.logger.info('Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
         fasttree = FastTree(multithreaded=(options.cpus > 1))
 
-        tree_unrooted_output = os.path.join(options.out_dir, options.prefix +options.suffix+ '.unrooted.tree')
+        tree_unrooted_output = os.path.join(options.out_dir, options.prefix +'.unrooted.tree')
         tree_log = os.path.join(options.out_dir, options.prefix + '.tree.log')
         tree_output_log = os.path.join(options.out_dir, 'fasttree.log')
         fasttree.run(options.msa_file, 
@@ -214,7 +214,8 @@ class OptionsParser():
         classify.run(genomes,
                         options.align_dir,
                         options.out_dir,
-                        options.prefix)
+                        options.prefix,
+                        options.debug)
         
         self.logger.info('Done.')
         
