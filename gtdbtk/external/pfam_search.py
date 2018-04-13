@@ -101,34 +101,39 @@ class PfamSearch(object):
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
-        while True:
-            gene_file = queueIn.get(block=True, timeout=None)
-            if gene_file is None:
-                break
-                
-            genome_dir, filename = os.path.split(gene_file)
-            genome_id = filename.replace(self.protein_file_suffix, '')
-            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                        self.pfam_suffix))
-            dir_path = os.path.dirname(os.path.realpath(__file__))
-            pfam_search_script = os.path.join(dir_path, 'pfam_search.pl')
-            cmd = '%s -outfile %s -cpu %d -fasta %s -dir %s' % (pfam_search_script,
-                                                                    output_hit_file,
-                                                                    self.cpus_per_genome,
-                                                                    gene_file,
-                                                                    self.pfam_hmm_dir)
-            os.system(cmd)
-
-            # calculate checksum
-            checksum = sha256(output_hit_file)
-            fout = open(output_hit_file + self.checksum_suffix, 'w')
-            fout.write(checksum)
-            fout.close()
-
-            # identify top hit for each gene
-            self._topHit(output_hit_file)
-
-            queueOut.put(gene_file)
+        try:
+            while True:
+                gene_file = queueIn.get(block=True, timeout=None)
+                if gene_file is None:
+                    break
+                    
+                genome_dir, filename = os.path.split(gene_file)
+                genome_id = filename.replace(self.protein_file_suffix, '')
+                output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
+                                                                                            self.pfam_suffix))
+                dir_path = os.path.dirname(os.path.realpath(__file__))
+                pfam_search_script = os.path.join(dir_path, 'pfam_search.pl')
+                cmd = '%s -outfile %s -cpu %d -fasta %s -dir %s' % (pfam_search_script,
+                                                                        output_hit_file,
+                                                                        self.cpus_per_genome,
+                                                                        gene_file,
+                                                                        self.pfam_hmm_dir)
+                osexitcode = os.system(cmd)
+                if osexitcode == 1:
+                    raise RuntimeError("Pfam_search has crashed")
+    
+                # calculate checksum
+                checksum = sha256(output_hit_file)
+                fout = open(output_hit_file + self.checksum_suffix, 'w')
+                fout.write(checksum)
+                fout.close()
+    
+                # identify top hit for each gene
+                self._topHit(output_hit_file)
+    
+                queueOut.put(gene_file)
+        except Exception as error:
+            raise error
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
@@ -179,6 +184,9 @@ class PfamSearch(object):
 
             for p in workerProc:
                 p.join()
+                if p.exitcode == 1:
+                    raise ValueError("Pfam Error")
+                
 
             writerQueue.put(None)
             writeProc.join()

@@ -1,7 +1,33 @@
-# Annotation folder
-MARKER_GENE_DIR = "marker_genes"
+############################
+#EDIT FROM HERE
+############################
 
-GENOME_FILE_SUFFIX = "_genomic.fna"
+# Path to MSA and Taxonomy
+GENERIC_PATH = "/srv/db/gtdbtk/official/release83/"
+
+############################
+#If all downloaded data is in the same folder 
+# There is no need of editing variable below this point 
+############################
+
+
+TIGRFAM_HMMS = GENERIC_PATH + 'markers/tigrfam/tigrfam.hmm'
+PFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/'
+MSA_FOLDER = GENERIC_PATH + "msa/"
+MASK_DIR = GENERIC_PATH + "masks/"
+PPLACER_DIR = GENERIC_PATH + "pplacer/"
+FASTANI_DIR = GENERIC_PATH + "fastani/"
+TAX_FOLDER = GENERIC_PATH + "taxonomy/"
+
+
+
+############################
+#STOP EDIT
+############################
+
+
+
+
 
 BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm", "PF01025.14.hmm", "PF02576.12.hmm", "PF03726.9.hmm"],
                      "TIGRFAM": ["TIGR00006.HMM", "TIGR00019.HMM", "TIGR00020.HMM", "TIGR00029.HMM", "TIGR00043.HMM", "TIGR00054.HMM", "TIGR00059.HMM", "TIGR00061.HMM", "TIGR00064.HMM",
@@ -41,52 +67,44 @@ RPS23_MARKERS = {"PFAM": ["PF00687.16.hmm","PF00466.15.hmm","PF00298.14.hmm","PF
                             "PF00380.14.hmm","PF00164.20.hmm"],
                     "TIGRFAM": []}
 
-GENERIC_PATH = '/srv/db/gtdbtk/'
-
-TIGRFAM_HMMS = '/srv/db/gtdbtk/markers//tigrfam/tigrfam.hmm'
-PFAM_HMM_DIR = '/srv/db/gtdbtk/markers/pfam/'
-
-
 # Information for aligning genomes
 DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
-# Path to MSA and Taxonomy
-MSA_FOLDER = GENERIC_PATH + "msa/"
-CONCAT_BAC120 = MSA_FOLDER + "gtdb_r80_bac120.faa"
-CONCAT_AR122 = MSA_FOLDER + "gtdb_r80_ar122.faa"
-#CONCAT_RPS23 = MSA_FOLDER + "gtdb_r80_rps23.faa"
+# Annotation folder
+MARKER_GENE_DIR = "marker_genes"
 
-TAX_FOLDER = GENERIC_PATH + "taxonomy/"
-TAXONOMY_FILE = TAX_FOLDER + "gtdb_r80_taxonomy.tsv"
 
-# Path to canonical masks
-MASK_DIR = GENERIC_PATH + "masks/"
-MASK_BAC120 = "gtdb_r80_bac120.mask"
-#MASK_BAC120 = "gtdb_r80_bac120_untrimmed.mask"
-MASK_AR122 = "gtdb_r80_ar122.mask"
-MASK_RPS23 = "gtdb_r80_rps23.mask"
+#MSA file names
+CONCAT_BAC120 = MSA_FOLDER + "gtdb_r83_bac120.faa"
+CONCAT_AR122 = MSA_FOLDER + "gtdb_r83_ar122.faa"
 
-# Path to pplacer data
-PPLACER_DIR = GENERIC_PATH + "pplacer/"
-#PPLACER_DIR = GENERIC_PATH + "pplacer/notrimmed/"
+#Taxonomy file name
+TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
 
-PPLACER_BAC120_REF_PKG = "gtdb_r80_bac120.refpkg"
-PPLACER_AR122_REF_PKG = "gtdb_r80_ar122.refpkg"
-PPLACER_RPS23_REF_PKG = "gtdb_r80_rps23.refpkg"
+#Mask file names
+MASK_BAC120 = "gtdb_r83_bac120.mask"
+MASK_AR122 = "gtdb_r83_ar122.mask"
+MASK_RPS23 = "gtdb_r83_rps23.mask"
 
-FASTANI_DIR = GENERIC_PATH + "fastani/"
+
+#Pplacer configuration
+PPLACER_OUT = "pplacer.out"
+PPLACER_JSON_OUT = "pplacer.json"
+PPLACER_BAC120_REF_PKG = "gtdb_r83_bac120.refpkg"
+PPLACER_AR122_REF_PKG = "gtdb_r83_ar122.refpkg"
+PPLACER_RPS23_REF_PKG = "gtdb_r83_rps23.refpkg"
+
+#Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = FASTANI_DIR + "database/"
-FASTANI_GENOMES_EXT = GENOME_FILE_SUFFIX
+FASTANI_GENOMES_EXT = "_genomic.fna"
 
 #Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
 RED_MIN_CHILDREN = 2
-RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.344460726186,"c__":0.492670538599,"o__":0.648322059106,"f__":0.78784418792,"g__":0.940152273956}
-RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.35531101963,"c__":0.508396357807,"o__":0.660914720355,"f__":0.728629307816,"g__":0.880665740097}
-
-
+RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.325108639371,"c__":0.469996864411,"o__":0.634217579236,"f__":0.777062142455,"g__":0.93671712357}
+RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.227534847987,"c__":0.353206001760,"o__":0.553905413445,"f__":0.732652342427,"g__":0.910973866402}
 
 
