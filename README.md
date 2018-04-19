@@ -34,7 +34,7 @@ GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system p
 _NOTE_ :Perl interpreter requires Moose and IPC::Run modules. you can install those modules using CPAN:
 ```
 perl -MCPAN -e"install Moose"
-perl -MCPAN -e"install IPC::Run modules"
+perl -MCPAN -e"install IPC::Run"
 ```
 You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.    
 If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
