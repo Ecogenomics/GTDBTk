@@ -31,11 +31,16 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.    
-_NOTE_ :Perl interpreter requires Moose and IPC::Run modules. You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.
+_NOTE_ :Perl interpreter requires Moose and IPC::Run modules. you can install those modules using CPAN:
+```
+perl -MCPAN -e"install Moose"
+perl -MCPAN -e"install IPC::Run modules"
+```
+You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.    
 If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
 i.e:
 ```
-export PERL5LIB=/path/to/moose/directory
+export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module"
 ```
 
 GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
@@ -47,10 +52,11 @@ wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/msa.tar.gz
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/pplacer.tar.gz
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/taxonomy.tar.gz
 ```
-Or alternatively:
+Or alternatively, all the data at once using:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_83/gtdbtk_r83_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/gtdbtk_rxx_data.tar.gz
 ```
+
 
 Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
