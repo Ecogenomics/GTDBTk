@@ -40,12 +40,16 @@ export PERL5LIB=/path/to/moose/directory
 
 GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/fastani.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/markers.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/masks.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/msa.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/pplacer.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/taxonomy.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/fastani.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/markers.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/masks.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/msa.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/pplacer.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/taxonomy.tar.gz
+```
+Or alternatively:
+```
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_83/gtdbtk_r83_data.tar.gz
 ```
 
 Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
