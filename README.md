@@ -12,6 +12,10 @@ efficient and designed to work with recent advances that allow hundreds or thous
 
 GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bringing any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the ACE Twitter account (https://twitter.com/ace_uq).
 
+## Hardware requirements
+- ~90Gb of memory to run.
+- ~70Gb of Storage.
+
 ## Installation
 
 GTDB-Tk requires the following Python libraries:
@@ -31,16 +35,17 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.    
-_NOTE_ :Perl interpreter requires Moose and IPC::Run modules. you can install those modules using CPAN:
+_NOTE_ :Perl interpreter requires Moose,Bundle::BioPerl and IPC::Run modules. you can install those modules using CPAN:
 ```
 perl -MCPAN -e"install Moose"
 perl -MCPAN -e"install IPC::Run"
+perl -MCPAN -e"install Bundle::BioPerl"
 ```
 You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.    
 If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
 i.e:
 ```
-export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module"
+export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module:/path/to/bioperl/module"
 ```
 
 GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
@@ -68,7 +73,7 @@ GTDB-Tk requires a config file. In the Python lib/site-packages directory, go to
 cd config
 cp config_template.py config.py
 ```
-Edit the config.py file and modify different variables:
+Edit the config.py file and modify different variables:    
 -GENERIC_PATH should point to the directory containing the data downloaded from the https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
 
 ## Quick Start
