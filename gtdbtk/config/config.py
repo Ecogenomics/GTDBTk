@@ -3,7 +3,8 @@
 ############################
 
 # Path to MSA and Taxonomy
-GENERIC_PATH = "/srv/db/gtdbtk/official/release83/"
+GENERIC_PATH = "/srv/home/uqpchaum/gtdbtk/release83/test_package_no_UBA/"
+#GENERIC_PATH = "/srv/db/gtdbtk/official/release83/"
 
 ############################
 #If all downloaded data is in the same folder 
@@ -92,8 +93,10 @@ MASK_RPS23 = "gtdb_r83_rps23.mask"
 #Pplacer configuration
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
-PPLACER_BAC120_REF_PKG = "gtdb_r83_bac120.refpkg"
-PPLACER_AR122_REF_PKG = "gtdb_r83_ar122.refpkg"
+#PPLACER_BAC120_REF_PKG = "gtdb_r83_bac120.refpkg"
+#PPLACER_AR122_REF_PKG = "gtdb_r83_ar122.refpkg"
+PPLACER_BAC120_REF_PKG = "gtdbtk.bac120.r83.noUBA.refpkg"
+PPLACER_AR122_REF_PKG = "gtdbtk.ar122.r83.noUBA.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_r83_rps23.refpkg"
 
 #Fastani configuration
@@ -104,7 +107,9 @@ FASTANI_GENOMES_EXT = "_genomic.fna"
 #Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
 RED_MIN_CHILDREN = 2
-RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.325108639371,"c__":0.469996864411,"o__":0.634217579236,"f__":0.777062142455,"g__":0.93671712357}
-RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.227534847987,"c__":0.353206001760,"o__":0.553905413445,"f__":0.732652342427,"g__":0.910973866402}
+#RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.325108639371,"c__":0.469996864411,"o__":0.634217579236,"f__":0.777062142455,"g__":0.93671712357}
+RED_DIST_BAC_DICT = {"d__":0.00,"p__":0.341412026506,"c__":0.481663049485,"o__":0.650819687409,"f__":0.787922789376,"g__":0.941789689141}
+#RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.227534847987,"c__":0.353206001760,"o__":0.553905413445,"f__":0.732652342427,"g__":0.910973866402}
+RED_DIST_ARC_DICT = {"d__":0.00,"p__":0.241075673667,"c__":0.353497056707,"o__":0.565465410647,"f__":0.750467915096,"g__":0.922043440656}
 
 
