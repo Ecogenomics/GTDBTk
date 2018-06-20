@@ -2,10 +2,19 @@
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
 
+**Note (19/04/2018)** :
+- A new version of the data (release 83) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_83/).
+- This new version is recommended to run GTDB-Tk v0.0.6+
+
+
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
 efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
 
 GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bringing any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the ACE Twitter account (https://twitter.com/ace_uq).
+
+## Hardware requirements
+- ~90Gb of memory to run.
+- ~70Gb of Storage.
 
 ## Installation
 
@@ -26,22 +35,33 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.    
-_NOTE_ :Perl interpreter requires Moose and IPC::Run modules. You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.
+_NOTE_ :Perl interpreter requires Moose,Bundle::BioPerl and IPC::Run modules. you can install those modules using CPAN:
+```
+perl -MCPAN -e"install Moose"
+perl -MCPAN -e"install IPC::Run"
+perl -MCPAN -e"install Bundle::BioPerl"
+```
+You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.    
 If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
 i.e:
 ```
-export PERL5LIB=/path/to/moose/directory
+export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module:/path/to/bioperl/module"
 ```
 
 GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/fastani.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/markers.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/masks.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/msa.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/pplacer.tar.gz
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_80/taxonomy.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/fastani.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/markers.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/masks.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/msa.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/pplacer.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/taxonomy.tar.gz
 ```
+Or alternatively, all the data at once using:
+```
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/gtdbtk_rxx_data.tar.gz
+```
+
 
 Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
@@ -53,7 +73,7 @@ GTDB-Tk requires a config file. In the Python lib/site-packages directory, go to
 cd config
 cp config_template.py config.py
 ```
-Edit the config.py file and modify different variables:
+Edit the config.py file and modify different variables:    
 -GENERIC_PATH should point to the directory containing the data downloaded from the https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
 
 ## Quick Start
