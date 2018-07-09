@@ -450,20 +450,20 @@ class Classify():
 
         # We get the pplacer taxonomy for comparison
 
-            user_genome_ids = set(read_fasta(user_msa_file).keys())
-            for leaf in tree.leaf_node_iter():
-                if leaf.taxon.label in user_genome_ids:
-                    taxa = []
-                    cur_node = leaf
-                    while cur_node.parent_node:
-                        _support, taxon, _aux_info = parse_label(cur_node.label)      
-                        if taxon:
-                            for t in taxon.split(';')[::-1]:
-                                taxa.append(t.strip())                           
-                        cur_node = cur_node.parent_node
-                    taxa_str = ';'.join(taxa[::-1])
-                    pplaceout.write('{}\t{}\n'.format(leaf.taxon.label, self.standardise_taxonomy(taxa_str,marker_set_id)))
-            pplaceout.close()
+        user_genome_ids = set(read_fasta(user_msa_file).keys())
+        for leaf in tree.leaf_node_iter():
+            if leaf.taxon.label in user_genome_ids:
+                taxa = []
+                cur_node = leaf
+                while cur_node.parent_node:
+                    _support, taxon, _aux_info = parse_label(cur_node.label)      
+                    if taxon:
+                        for t in taxon.split(';')[::-1]:
+                            taxa.append(t.strip())                           
+                    cur_node = cur_node.parent_node
+                taxa_str = ';'.join(taxa[::-1])
+                pplaceout.write('{}\t{}\n'.format(leaf.taxon.label, self.standardise_taxonomy(taxa_str,marker_set_id)))
+        pplaceout.close()
         return True
             
     def _formatnote(self,sorted_dict,labels):
