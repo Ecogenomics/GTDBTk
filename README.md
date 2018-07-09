@@ -41,6 +41,9 @@ perl -MCPAN -e"install Moose"
 perl -MCPAN -e"install IPC::Run"
 perl -MCPAN -e"install Bundle::BioPerl"
 ```
+
+if ```perl -MCPAN -e"install Bundle::BioPerl"``` does not run on your server, please install BioPerl following the steps under [this link](https://bioperl.org/INSTALL.html)
+
 You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.    
 If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
 i.e:
@@ -174,4 +177,4 @@ In the meantime, if you find the GTDB-Tk useful please cite this GitHub page. Pl
 
 ## Copyright
 
-Copyright Â© 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
+Copyright © 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
