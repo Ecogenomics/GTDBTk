@@ -1,3 +1,8 @@
+0.0.8b2
+- bug fixing 
+0.0.8b1
+- Using .fna.gz reference genome for FastANI
+- Pplacer placement are verified by FastANI  
 0.0.7
 0.0.6
 - Migration to R83 and integration of UBA genomes
