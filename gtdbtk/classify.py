@@ -795,7 +795,7 @@ class Classify():
         dict_results = {}
         with open(fastout_file) as fastfile:
             for line in fastfile:
-                info = line.strip().split(" ")
+                info = line.strip().split()
                 ref_genome = os.path.basename(info[1]).replace(Config.FASTANI_GENOMES_EXT,"")
                 user_g = remove_extension(os.path.basename(info[0]))
                 ani = round(float(info[2]),2)
