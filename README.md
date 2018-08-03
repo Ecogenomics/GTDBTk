@@ -30,7 +30,7 @@ GTDB-Tk requires the following Python libraries:
 
 Jinja2, mpld3, dendropy and biolib will be installed as part of GTDB-Tk when installing it via pip ( method described below). 
 The **SciPy Stack** must be installed separately.
-<br>
+
 2. **Third party software**
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
@@ -39,7 +39,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
 * [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
-<br>
+
 3. **Perl modules**
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.    
@@ -194,4 +194,4 @@ In the meantime, if you find the GTDB-Tk useful please cite this GitHub page. Pl
 
 ## Copyright
 
-Copyright © 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
+Copyright Â© 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
