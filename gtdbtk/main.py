@@ -21,6 +21,7 @@ import sys
 
 from markers import Markers
 from classify import Classify
+from misc import Misc
 from reroot_tree import RerootTree
 import config.config as Config
 
@@ -30,7 +31,7 @@ from biolib.common import (check_dir_exists,
                             remove_extension)
 from biolib.taxonomy import Taxonomy
 from biolib.external.execute import check_dependencies
-from biolib.external.fasttree import FastTree 
+from biolib.external.fasttree import FastTree
 
 class OptionsParser():
 
@@ -219,6 +220,18 @@ class OptionsParser():
         
         self.logger.info('Done.')
         
+    def trim_msa(self,options):
+        """ Trim an untrimmed archaea or bacterial MSA file."""
+        if options.reference_mask in ['bac','arc']:
+            mask_type = "reference"
+            mask_id = options.reference_mask
+        else:
+            mask_type = "file"
+            mask_id = options.mask_file
+        Misc.trim_msa(options.untrimmed_msa,mask_type,mask_id,options.output)
+        self.logger.info('Done.')
+        
+        
     def root(self, options):
         """Root tree using outgroup."""
         self.logger.warning("Tree rooting is still under development!")
@@ -307,6 +320,8 @@ class OptionsParser():
             self.root(options)
         elif(options.subparser_name == 'decorate'):
             self.decorate(options)
+        elif(options.subparser_name == 'trim_msa'):
+            self.trim_msa(options)
         else:
             self.logger.error('Unknown GTDB-Tk command: "' + options.subparser_name + '"\n')
             sys.exit()

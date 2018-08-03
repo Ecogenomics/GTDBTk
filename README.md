@@ -18,6 +18,9 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Installation
 
+#### Dependencies
+1. **Python libraries**
+
 GTDB-Tk requires the following Python libraries:
 * [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
 * [mpld3](http://mpld3.github.io/) >= 0.2: D3 viewer for Matplotlib.
@@ -25,7 +28,10 @@ GTDB-Tk requires the following Python libraries:
 * [dendropy](http://dendropy.org/)  >= 4.1.0: A Python library for phylogenetics and phylogenetic computing: reading, writing, simulation, processing and manipulation of phylogenetic trees (phylogenies) and characters.
 * [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries
 
-Jinja2, mpld3, dendropy and biolib will be install as part of GTDB-Tk when installing via pip as described below. The SciPy Stack must be install seperately.
+Jinja2, mpld3, dendropy and biolib will be installed as part of GTDB-Tk when installing it via pip ( method described below). 
+The **SciPy Stack** must be installed separately.
+<br>
+2. **Third party software**
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
@@ -33,24 +39,28 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
 * [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
+<br>
+3. **Perl modules**
 
 GTDB-Tk also assumes the Python 2.7.x and Perl interpreters are on your system path.    
-_NOTE_ :Perl interpreter requires Moose,Bundle::BioPerl and IPC::Run modules. you can install those modules using CPAN:
+<u>**note:**</u>  Perl interpreter requires Moose, Bundle::BioPerl and IPC::Run modules. you can install those modules using CPAN:
 ```
 perl -MCPAN -e"install Moose"
 perl -MCPAN -e"install IPC::Run"
 perl -MCPAN -e"install Bundle::BioPerl"
 ```
-
-if ```perl -MCPAN -e"install Bundle::BioPerl"``` does not run on your server, please install BioPerl following the steps under [this link](https://bioperl.org/INSTALL.html)
-
-You need to make sure that the folder where perl modules (*.pm) are located is part the @inc variable.    
-If it is not , you can set the PERL5LIB ( or PERLIB) environment variable the same way you set PATH environment variable. Every directory listed in this variable will be added to @inc.
+if ```perl -MCPAN -e"install Bundle::BioPerl"``` does not run on your server, please install BioPerl following the steps under [this link](https://bioperl.org/INSTALL.html).
+Make sure that the installed Perl modules (.pm) paths are part of the @inc variable.
+If not , The PERL5LIB ( or PERLIB) environment variable need to be updated the same way the PATH environment variable is updated. Every directory listed in this variable will be added to @inc.
 i.e:
 ```
 export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module:/path/to/bioperl/module"
 ```
+<br>
 
+4. **GTDB-Tk reference data**
+
+<u>*for version < 0.0.8*</u>
 GTDB-Tk requires ~70G+ of external data that need to be downloaded and unarchived (preferably in the same directory):
 ```
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/fastani.tar.gz
@@ -64,7 +74,15 @@ Or alternatively, all the data at once using:
 ```
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/gtdbtk_rxx_data.tar.gz
 ```
+<u>*for version 0.0.8+*</u>
+GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived :
+```
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_xx/gtdbtk_rxx_archived_data.tar.gz
+tar xvzf gtdbtk_rxx_archived_data.tar.gz
+```
+<br>
 
+5. **pip installation**
 
 Once these are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
@@ -77,7 +95,8 @@ cd config
 cp config_template.py config.py
 ```
 Edit the config.py file and modify different variables:    
--GENERIC_PATH should point to the directory containing the data downloaded from the https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
+-GENERIC_PATH should point to the directory containing the data downloaded from the https://data.ace.uq.edu.au/public/gtdbtk/. 
+**note:** Make sure the variable finishes with a slash '/'.
 
 ## Quick Start
 
@@ -128,16 +147,14 @@ Align step:
 * \<prefix\>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
 
 Classify step:
-* \<prefix\>.classification.tsv: classification of user genomes based on the FastANI, RED values, and pplacer. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend
- * \<prefix\>.summary.tsv: additional information regarding the criteria used to classify a genome
-* \<prefix\>.classification_pplacer.tsv: classification of user genomes based only on pplacer
-* \<prefix\>.fastani_results.tsv: tab delimited file indicating the average nucleotide identity (ANI) between a user and reference genome for cases where classification is based on the ANI statistic
-* \<prefix\>.classify.tree: reference tree in Newick format containing all user genomes placed with pplacer in the GTDB-Tk reference tree
-* \<prefix\>.red_dictionary: median RED values for taxonomic ranks
+ * \<prefix>.summary.tsv: classification of user genomes based on the FastANI, RED values, and pplacer. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to classify a genome
+* \<prefix>.classification_pplacer.tsv: classification of user genomes based only on pplacer
+* \<prefix>.classify.tree: reference tree in Newick format containing all user genomes placed with pplacer in the GTDB-Tk reference tree
+* \<prefix>.red_dictionary: median RED values for taxonomic ranks
 
 ## Validating Species Assignments
 
-The GTDB-Tk uses FastANI to estimate the average nucleotide identity (ANI) between genomes. Species assignments are made using an ANI criteria of 95%. Information about species assignments can be found in the <prefix>.fastani_results.tsv output file.
+The GTDB-Tk uses FastANI to estimate the average nucleotide identity (ANI) between genomes. Species assignments are made using an ANI criteria of 95%. Information about species assignments can be found in the \<prefix>.fastani_results.tsv output file.
 
 ## De Novo Workflow
 **under active development**

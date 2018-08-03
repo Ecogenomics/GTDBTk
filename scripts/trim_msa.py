@@ -49,15 +49,11 @@ class MSATrimmer(object):
 
     def run(self, msa, mask, marker_list, taxonomy_file,metadata_file, output):
         dict_marker ={}
-        print "readmsa"
+        
         dict_genomes = read_fasta(msa,False)
-        
-        print len(dict_genomes)
-        
+                
         sub_list_genomes = self.selectGenomes(dict_genomes,taxonomy_file,metadata_file)
-        
-        print len(sub_list_genomes)
-            
+                    
         with open(mask, 'r') as f:
             maskstr = f.readline()
         
@@ -107,7 +103,6 @@ class MSATrimmer(object):
             for line in mf:
                 info = line.split('\t')
                 quality = float(info[checkm_completeness_index]) - 5*float(info[checkm_contamination_index])
-                print info[ncbi_type_strain_index]
                 tm = False
                 if info[ncbi_type_strain_index] == 't':
                     tm = True
@@ -139,11 +134,8 @@ class MSATrimmer(object):
                     else:
                         listgid.append(gid)
                         
-                        
-        print len(listgid)
         for k,v in dictgenusspecies.iteritems():
             listgid.append(v)
-        print len(listgid)
             
         return listgid
         
