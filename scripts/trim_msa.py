@@ -48,8 +48,7 @@ class MSATrimmer(object):
         self.consensus = 0.25
 
     def run(self, msa, mask, marker_list, taxonomy_file,metadata_file, output):
-        dict_marker ={}
-        
+        dict_marker ={}        
         dict_genomes = read_fasta(msa,False)
                 
         sub_list_genomes = self.selectGenomes(dict_genomes,taxonomy_file,metadata_file)

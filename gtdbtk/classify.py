@@ -37,9 +37,9 @@ from tools import add_ncbi_prefix, splitchunks, merge_two_dicts,splitchunks_list
 from relative_distance import RelativeDistance
 from multiprocessing.pool import ThreadPool as Pool
 from operator import itemgetter
-from platform import node
 
 sys.setrecursionlimit(15000)
+
 
 class Classify():
     """Determine taxonomic classification of genomes by ML placement."""
@@ -98,7 +98,7 @@ class Classify():
                                                      pplacer_json_out,
                                                      user_msa_file,
                                                      pplacer_out)
-        #os.system(cmd)
+        os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(out_dir, prefix + ".{}.classify.tree".format(marker_set_id))
@@ -129,6 +129,7 @@ class Classify():
         new_taxstring = ";".join(taxlist)
         return new_taxstring
     
+
     def _write_red_dict(self,out_dir,prefix,marker_set_id):
         """Write the RED value for each rank to a file
         
@@ -217,8 +218,7 @@ class Classify():
                         if len(leaf_ref_genomes) == 1:
                             leaf_ref_genome = leaf_ref_genomes[0]
                         
-                        _support, parent_taxon, _aux_info = parse_label(par_node.label)
- 
+                        _support, parent_taxon, _aux_info = parse_label(par_node.label) 
                         #while par_node is not None and (par_node.distance_from_root() > marker_dict.get('f__') or (parent_taxon is not None and parent_taxon.split(";")[-1].startswith('g__'))):
                         while par_node is not None and not parent_taxon:
                                 par_node =par_node.parent_node
@@ -227,6 +227,7 @@ class Classify():
                                     if len(leaf_ref_genomes) == 1:
                                         leaf_ref_genome = leaf_ref_genomes[0]
                                 _support, parent_taxon, _aux_info = parse_label(par_node.label)
+
                                  
                         # if the parent node is at the genus level
                         parent_rank = parent_taxon.split(";")[-1]
@@ -238,7 +239,6 @@ class Classify():
                             else:
                                 dict_dist_refgenomes = {}
                                 list_ref_genomes = [subnd for subnd in par_node.leaf_iter() if subnd.taxon.label.replace("'",'')[0:3] in ['RS_','GB_','UBA']]
-
                                 #we pick the first 100 genomes closest to the user genome under the same genus
                                   
                                 for ref_genome in list_ref_genomes:
@@ -255,12 +255,13 @@ class Classify():
                                 fastani_verification[userleaf]={"potential_g":[(leaf_ref_genome,0.0)],"pplacer_g":leaf_ref_genome}
                             
                 #self.logger.info('{} need to be compared.'.format(number_comparison))
+
                                           
                 manager = multiprocessing.Manager()
                 out_q = manager.dict()
                 procs = []
                 nprocs = self.cpus
- 
+
                 if len(fastani_verification) > 0:
                     for item in splitchunks(fastani_verification, nprocs):
                         p = multiprocessing.Process(
@@ -268,13 +269,13 @@ class Classify():
                             args=(item, genomes, out_q))
                         procs.append(p)
                         p.start()
-                   
+
                     # Wait for all worker processes to finish
                     for p in procs:
                         p.join()
                         if p.exitcode == 1:
                             raise ValueError("Stop!!")
-                               
+            
                     all_fastani_dict = dict(out_q)
                      
                 classified_user_genomes = self._sort_fastani_results(fastani_verification,all_fastani_dict,summaryfout)
@@ -455,7 +456,6 @@ class Classify():
             else:
                 return False
                 
-        
     def _get_pplacer_taxonomy(self,out_dir,prefix,marker_set_id,user_msa_file,tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements 
                

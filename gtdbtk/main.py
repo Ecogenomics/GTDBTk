@@ -231,7 +231,6 @@ class OptionsParser():
         Misc.trim_msa(options.untrimmed_msa,mask_type,mask_id,options.output)
         self.logger.info('Done.')
         
-        
     def root(self, options):
         """Root tree using outgroup."""
         self.logger.warning("Tree rooting is still under development!")
