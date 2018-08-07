@@ -53,15 +53,16 @@ def printHelp():
 
     
   Methods:
-    identify -> Identify marker genes in genome
-    align    -> Create multiple sequence alignment
-    infer    -> Infer tree from multiple sequence alignment [In Development]
-    classify -> Determine taxonomic classification of genomes
-    root     -> Root tree using an outgroup [In Development]
-    decorate -> Decorate tree with GTDB taxonomy
+    identify      -> Identify marker genes in genome
+    align         -> Create multiple sequence alignment
+    infer         -> Infer tree from multiple sequence alignment [In Development]
+    classify      -> Determine taxonomic classification of genomes
+    root          -> Root tree using an outgroup [In Development]
+    decorate      -> Decorate tree with GTDB taxonomy
     
   Tools:
-    trim_msa -> Trim an untrimmed MSA file based on a mask
+    trim_msa      -> Trim an untrimmed MSA file based on a mask.
+    check_install -> Verify is all gtdb data files are present.  
       
   Use: gtdbtk <command> -h for command specific help
     ''' % version()
@@ -311,6 +312,14 @@ if __name__ == '__main__':
     
     optional_msa = msa_parser.add_argument_group('optional arguments')
     optional_msa.add_argument('-h', '--help', action="help",
+                                    help="show help message")
+                                    
+    # verify install
+    check_install_parser = subparsers.add_parser('check_install', conflict_handler='resolve',
+                                                formatter_class=CustomHelpFormatter,
+                                                help='Verify is all gtdb data files are present to run GTDB-Tk.',)
+    optional_check_install = check_install_parser.add_argument_group('optional arguments')
+    optional_check_install.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
     #-------------------------------------------------

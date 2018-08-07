@@ -37,24 +37,24 @@ class OptionsParser():
 
     def __init__(self, version):
         """Initialization."""
-        
+
         self.version = version
-        
+
         self.logger = logging.getLogger('timestamp')
-        
+
         self.logger.warning("Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
-        
+
     def _verify_genome_id(self, genome_id):
         """Ensure genome ID will be valid in Newick tree."""
-        
+
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error('Invalid genome ID: %s' % genome_id)
             self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
             sys.exit(-1)
-                
+
         return True
-        
+
     def _genomes_to_process(self, genome_dir, batchfile, extension):
         """Get genomes to process.
 
@@ -66,33 +66,33 @@ class OptionsParser():
           File describing genomes.
         extension : str
           Extension of files to process.
-          
+
         Returns
         -------
         genomic_files : d[genome_id] -> FASTA file
             Map of genomes to their genomic FASTA files.
         """
-        
+
         genomic_files = {}
         if genome_dir:
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
                     genome_id = remove_extension(f)
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
-                    
+
         elif batchfile:
             for line_no, line in enumerate(open(batchfile, "rb")):
                 line_split = line.strip().split("\t")
                 if line_split[0] == '':
                     continue # blank line
-                    
+
                 if len(line_split) != 2:
                     self.logger.error('Batch file must contain exactly 2 columns.')
                     sys.exit(-1)
 
                 genome_file, genome_id  = line_split
                 self._verify_genome_id(genome_id)
-                    
+
                 if genome_file is None or genome_file == '':
                     self.logger.error('Missing genome file on line %d.' % line_no+1)
                     self.exit(-1)
@@ -109,7 +109,7 @@ class OptionsParser():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
                 self.logger.error("Submitted genomes start with the same prefix (RS_,GB_,UBA) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.") 
                 sys.exit(-1)
-                
+
         if len(genomic_files) == 0:
             if genome_dir:
                 self.logger.warning('No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
@@ -217,9 +217,10 @@ class OptionsParser():
                         options.out_dir,
                         options.prefix,
                         options.debug)
-        
+
+
         self.logger.info('Done.')
-        
+
     def trim_msa(self,options):
         """ Trim an untrimmed archaea or bacterial MSA file."""
         if options.reference_mask in ['bac','arc']:
@@ -228,17 +229,18 @@ class OptionsParser():
         else:
             mask_type = "file"
             mask_id = options.mask_file
-        Misc.trim_msa(options.untrimmed_msa,mask_type,mask_id,options.output)
+        misc = Misc()
+        misc.trim_msa(options.untrimmed_msa,mask_type,mask_id,options.output)
         self.logger.info('Done.')
-        
+
     def root(self, options):
         """Root tree using outgroup."""
         self.logger.warning("Tree rooting is still under development!")
-        
+
         check_file_exists(options.input_tree)
-        
+
         gtdb_taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
-        
+
         self.logger.info('Identifying genomes from the specified outgroup.')
         outgroup = set()
         for genome_id, taxa in gtdb_taxonomy.iteritems():
@@ -246,58 +248,63 @@ class OptionsParser():
                 outgroup.add(genome_id)
 
         reroot = RerootTree()
-        reroot.root_with_outgroup(options.input_tree, 
-                                    options.output_tree, 
-                                    outgroup)
-        
+        reroot.root_with_outgroup(options.input_tree,
+                                  options.output_tree,
+                                  outgroup)
+
         self.logger.info('Done.')
         
+    def check_install(self):
+        """ Verify is all gtdb data files are present to run GTDB-Tk."""
+        self.logger.warning("Running install verification")
+        misc = Misc()
+        misc.check_install()
+        self.logger.info('Done.')
+
     def decorate(self, options):
         """Decorate tree with GTDB taxonomy."""
-        
+
         check_file_exists(options.input_tree)
-        
+
         #Config.TAXONOMY_FILE
         self.logger.warning('NOT YET IMPLEMENTED!')
-        
         self.logger.info('Done.')
-        
+
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)"""
-        
+
         if(options.subparser_name == 'de_novo_wf'):
             check_dependencies(['prodigal', 'hmmalign'])
             if (options.cpus > 1):
                 check_dependencies(['FastTreeMP'])
             else:
                 check_dependencies(['FastTree'])
-                              
+
             self.identify(options)
-            
+
             options.identify_dir = options.out_dir
             self.align(options)
-            
-            if options.bac120_ms :
+
+            if options.bac120_ms:
                 options.suffix = ".bac120"
             else:
                 options.suffix = ".ar122"
-            
-            
-            options.msa_file = os.path.join(options.out_dir, 
-                                            options.prefix + options.suffix +".msa.fasta")
+
+            options.msa_file = os.path.join(options.out_dir,
+                                            options.prefix + options.suffix + ".msa.fasta")
             self.infer(options)
-            
-            options.input_tree = os.path.join(options.out_dir, 
-                                                options.prefix + options.suffix + ".unrooted.tree")
-            options.output_tree = os.path.join(options.out_dir, 
-                                                options.prefix + options.suffix + ".rooted.tree")
+
+            options.input_tree = os.path.join(options.out_dir,
+                                              options.prefix + options.suffix + ".unrooted.tree")
+            options.output_tree = os.path.join(options.out_dir,
+                                               options.prefix + options.suffix + ".rooted.tree")
             self.root(options)
-            
+
             self.decorate(options)
         elif(options.subparser_name == 'classify_wf'):
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])               
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])
             self.identify(options)
-            
+
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
             options.taxa_filter = None
@@ -305,7 +312,7 @@ class OptionsParser():
             options.consensus = None
             options.min_perc_taxa = None
             self.align(options)
-            
+
             self.classify(options)
         elif (options.subparser_name == 'identify'):
             self.identify(options)
@@ -321,8 +328,10 @@ class OptionsParser():
             self.decorate(options)
         elif(options.subparser_name == 'trim_msa'):
             self.trim_msa(options)
+        elif(options.subparser_name == 'check_install'):
+            self.check_install()
         else:
             self.logger.error('Unknown GTDB-Tk command: "' + options.subparser_name + '"\n')
             sys.exit()
-            
+
         return 0

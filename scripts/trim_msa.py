@@ -36,7 +36,11 @@ import tempfile
 import ntpath
 import random
 from biolib.seq_io import read_fasta
-from collections import defaultdict, Counter
+from collections import defaultdict,Counter
+
+
+
+
 
 class MSATrimmer(object):
     def __init__(self):
