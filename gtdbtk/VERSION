@@ -1,3 +1,10 @@
+0.1.0
+- GTDB-Tk is now using archived (.gz) fna files
+- summary.tsv file is now the main output file.
+- fastani.tsv file is now combined with summary.tsv.
+- red_value.tsv file has been removed.
+- Each Pplacer placement on a species branch is now verify by FastANI and the ANI is compared with all other species in the same genus to check Pplacer accuracy.
+- New functionality: "trim_msa" allows to trim an untrimmed MSA (41155AA for bac120 and 32675AA for ar122) based on GTDB-Tk masks
 0.0.8b4
 - bug fixing 
 0.0.8b3
