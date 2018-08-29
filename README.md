@@ -2,6 +2,10 @@
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
 
+**Note (30/08/2018)** :
+- A new version of the data (release 86) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
+- This new version is required to run GTDB-Tk v0.1.0+
+
 **Note (19/04/2018)** :
 - A new version of the data (release 83) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_83/).
 - This new version is recommended to run GTDB-Tk v0.0.6+
