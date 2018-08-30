@@ -19,7 +19,6 @@ PPLACER_DIR = GENERIC_PATH + "pplacer/"
 FASTANI_DIR = GENERIC_PATH + "fastani/"
 TAX_FOLDER = GENERIC_PATH + "taxonomy/"
 
-
 ############################
 # STOP EDIT
 ############################

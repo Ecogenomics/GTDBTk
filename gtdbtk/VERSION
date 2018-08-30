@@ -1,3 +1,6 @@
+0.1.1
+- config_template.py updated
+- rooting of the tree is now fixed.
 0.1.0
 - GTDB-Tk is now using archived (.gz) fna files
 - summary.tsv file is now the main output file.

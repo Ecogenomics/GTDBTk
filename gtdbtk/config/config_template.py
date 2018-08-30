@@ -72,34 +72,34 @@ MARKER_GENE_DIR = "marker_genes"
 
 
 # MSA file names
-CONCAT_BAC120 = MSA_FOLDER + "gtdb_r83_bac120.faa"
-CONCAT_AR122 = MSA_FOLDER + "gtdb_r83_ar122.faa"
+CONCAT_BAC120 = MSA_FOLDER + "gtdb_r86_bac120.faa"
+CONCAT_AR122 = MSA_FOLDER + "gtdb_r86_ar122.faa"
 
 # Taxonomy file name
 TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
 
 # Mask file names
-MASK_BAC120 = "gtdb_r83_bac120.mask"
-MASK_AR122 = "gtdb_r83_ar122.mask"
-MASK_RPS23 = "gtdb_r83_rps23.mask"
+MASK_BAC120 = "gtdb_r86_bac120.mask"
+MASK_AR122 = "gtdb_r86_ar122.mask"
+MASK_RPS23 = "gtdb_r86_rps23.mask"
 
 
 # Pplacer configuration
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
-PPLACER_BAC120_REF_PKG = "gtdb_r83_bac120.refpkg"
-PPLACER_AR122_REF_PKG = "gtdb_r83_ar122.refpkg"
-PPLACER_RPS23_REF_PKG = "gtdb_r83_rps23.refpkg"
+PPLACER_BAC120_REF_PKG = "gtdb_r86_bac120.refpkg"
+PPLACER_AR122_REF_PKG = "gtdb_r86_ar122.refpkg"
+PPLACER_RPS23_REF_PKG = "gtdb_r86_rps23.refpkg"
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = FASTANI_DIR + "database/"
-FASTANI_GENOMES_EXT = "_genomic.fna"
+FASTANI_GENOMES_EXT = "_genomic.fna.gz"
 
 # Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
 RED_MIN_CHILDREN = 2
 RED_DIST_BAC_DICT = {"d__": 0.00, "p__": 0.318988232537, "c__": 0.473592766536,
                      "o__": 0.631939494307, "f__": 0.776495919093, "g__": 0.940062093841}
-RED_DIST_ARC_DICT = {"d__": 0.00, "p__": 0.21808083151, "c__": 0.336319557132,
-                     "o__": 0.530690467865, "f__": 0.723179419966, "g__": 0.907458116396}
+RED_DIST_ARC_DICT = {"d__": 0.00, "p__": 0.219745045527, "c__": 0.348416500728,
+                     "o__": 0.51768679785, "f__": 0.714706411191, "g__": 0.909385795176}

@@ -202,7 +202,7 @@ class OptionsParser():
         fasttree = FastTree(multithreaded=(options.cpus > 1))
 
         tree_unrooted_output = os.path.join(
-            options.out_dir, options.prefix + '.unrooted.tree')
+            options.out_dir, options.prefix + options.suffix + '.unrooted.tree')
         tree_log = os.path.join(options.out_dir, options.prefix + '.tree.log')
         tree_output_log = os.path.join(options.out_dir, 'fasttree.log')
         fasttree.run(options.msa_file,
