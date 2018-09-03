@@ -192,6 +192,16 @@ All steps comprising the classify and <i>de novo</i> workflows can be run indepe
 A manuscript describing the GTDB-Tk is currently being prepared:
 
 Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
+
+The GTDB taxonomy is described in:
+
+Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nat. Biotechnol.</i>, http://dx.doi.org/10.1038/nbt.4229
+ 
+ We also strongly encourage you to cite the following 3rd party dependencies:
+
+Matsen FA, Kodner RB, Armbrust EV. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
+
+Jain C, et al. 2017. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.biorxiv.org/content/early/2017/11/27/225342). <i>bioRxiv</i>, https://doi.org/10.1101/225342. 
  
 In the meantime, if you find the GTDB-Tk useful please cite this GitHub page. Please also consider citing the 3rd party applications required by GTDB-Tk such as [Prodigal](http://prodigal.ornl.gov/), [HMMER](http://http://hmmer.org/), [pplacer](http://matsen.fhcrc.org/pplacer/), [FastANI](https://github.com/ParBLiSS/FastANI), and
 [FastTree](http://www.microbesonline.org/fasttree/).
