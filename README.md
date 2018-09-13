@@ -8,7 +8,7 @@
 
 **Note (19/04/2018)** :
 - A new version of the data (release 83) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_83/).
-- This new version is recommended to run GTDB-Tk v0.0.6+
+- This new version is recommended to run GTDB-Tk v0.0.6
 
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
@@ -18,7 +18,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Hardware requirements
 - ~90Gb of memory to run.
-- ~70Gb of Storage.
+- ~70Gb of Storage(for v0.0.6) / 25Gb of Storage (for v0.1.0+)
 
 ## Installation
 
