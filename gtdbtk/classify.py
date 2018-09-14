@@ -242,7 +242,7 @@ class Classify():
                         # and parent_taxon.split(";")[-1].startswith('g__'))):
                         while par_node is not None and not parent_taxon:
                             par_node = par_node.parent_node
-                            if leaf_ref_genome == '':
+                            if leaf_ref_genome is None:
                                 leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
                                 ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
                                 if len(leaf_ref_genomes) == 1:

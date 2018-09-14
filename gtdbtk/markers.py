@@ -133,8 +133,8 @@ class Markers(object):
                             sublist = each_mark.split(",")
                             markerid = sublist[0]
 
-                            if (markerid not in marker_bac_list_original
-                                    and markerid not in marker_arc_list_original):
+                            if (markerid not in marker_bac_list_original and
+                                    markerid not in marker_arc_list_original):
                                 continue
 
                             if markerid in marker_bac_list_original:
