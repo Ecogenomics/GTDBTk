@@ -46,6 +46,7 @@ class removeUserGenomes(object):
                     output_file.write(line)
         output_file.close()
 
+
 if __name__ == "__main__":
     print __prog_name__ + ' v' + __version__ + ': ' + __prog_desc__
     print '  by ' + __author__ + ' (' + __email__ + ')' + '\n'

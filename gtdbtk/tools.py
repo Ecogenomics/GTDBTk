@@ -15,9 +15,9 @@ from biolib.common import remove_extension
 
 def add_ncbi_prefix(refname):
     if refname.startswith("GCF_"):
-        return "RS_"+refname
+        return "RS_" + refname
     elif refname.startswith("GCA_"):
-        return "GB_"+refname
+        return "GB_" + refname
     else:
         return refname
 
@@ -27,7 +27,8 @@ def splitchunks(d, n):
     it = iter(d)
     for _ in xrange(0, len(d), chunksize):
         yield {k: d[k] for k in islice(it, chunksize)}
-        
+
+
 def splitchunks_list(l, n):
     """Yield successive n-sized chunks from l."""
     chunksize = int(math.ceil(len(l) / float(n)))
@@ -60,12 +61,14 @@ def list_genomes_dir(userdir):
     if not os.path.exists(userdir):
         raise ValueError('{0} does not exist.'.format(userdir))
     else:
-        onlygenomefiles = {f: os.path.join(userdir, f) for f in os.listdir(userdir) if os.path.isfile(os.path.join(userdir, f))}
+        onlygenomefiles = {f: os.path.join(userdir, f) for f in os.listdir(
+            userdir) if os.path.isfile(os.path.join(userdir, f))}
         for potential_file in onlygenomefiles:
             try:
                 read_fasta(os.path.join(userdir, potential_file))
             except:
-                raise IOError("{0} is not a fasta file." .format(os.path.join(userdir, potential_file)))
+                raise IOError("{0} is not a fasta file." .format(
+                    os.path.join(userdir, potential_file)))
         return onlygenomefiles
 
 
