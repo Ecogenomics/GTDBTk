@@ -1,3 +1,5 @@
+0.1.2
+- resolve bug that would occasionally cause genomes to not be correctly associated with a reference genome in the pplacer tree. FastANI was still identifying correct species assignments.
 0.1.1
 - config_template.py updated
 - rooting of the tree is now fixed.
