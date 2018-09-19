@@ -17,8 +17,8 @@ efficient and designed to work with recent advances that allow hundreds or thous
 GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bringing any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the ACE Twitter account (https://twitter.com/ace_uq).
 
 ## Hardware requirements
-- ~90Gb of memory to run.
-- ~70Gb of Storage(for v0.0.6) / 25Gb of Storage (for v0.1.0+)
+- ~90Gb of memory to run
+- ~70Gb of storage (for v0.0.6) / 25Gb of storage (for v0.1.0+)
 
 ## Installation
 
@@ -41,7 +41,8 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
-* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
+* [FastANI](https://github.com/ParBLiSS/
+) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 3. **Perl modules**
@@ -158,7 +159,7 @@ Classify step:
 
 ## Validating Species Assignments
 
-The GTDB-Tk uses FastANI to estimate the average nucleotide identity (ANI) between genomes. Species assignments are made using an ANI criteria of 95%. Information about species assignments can be found in the \<prefix>.fastani_results.tsv output file.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. Species assignments are made using an ANI criteria of 95%. Information about species assignments can be found in the \<prefix>.fastani_results.tsv output file.
 
 ## De Novo Workflow
 **under active development**
