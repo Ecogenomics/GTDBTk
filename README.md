@@ -87,7 +87,7 @@ cp config_template.py config.py
 ```
 Edit the config.py file and modify the GENERIC_PATH variables so it point to the directory containing the data downloaded from https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
 
-## Quick Start
+## Quick start
 
 The functionality provided by GTDB-Tk can be accessed through the help menu:
 ```
@@ -99,7 +99,7 @@ Usage information about each methods can also be accessed through their species 
 > gtdbtk classify_wf -h
 ```
 
-## Classify Workflow
+## Classify workflow
 
 The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment (MSA). Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and ANI to reference genomes.
  
@@ -142,11 +142,29 @@ Classify step:
 * \<prefix>.classify.tree: reference tree in Newick format containing user genomes placed with pplacer
 * \<prefix>.red_dictionary.tsv: median RED values for taxonomic ranks
 
-## Validating Species Assignments with Average Nucleotide Identity
+## Validating species assignments with average nucleotide identity
 
 The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. GTDB-Tk reports reference genomes with an ANI <=95% to a query genome and uses the closest reference genome to validate species assignments.
 
-## De Novo Workflow
+## Classification summary file 
+
+Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar122.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
+
+* user_genome: Unique identifer of genome taken from the FASTA file for the genome
+* classification: GTDB taxonomy string inferred by the GTDB-Tk
+* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in the genus.
+* fastani_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
+* fastani_ani: Indicates the ANI between the query and above reference genome.
+* fastani_af: Indicates the AF between the query and above reference genome.
+* closest_placement_reference: Indicates the accession number of the reference genome when a genome is placed on a terminal branch. This genome is used along with the ANI information to determine the species assignment on the genome.
+* closest_placement_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
+* closest_placement_ani: Indicates the ANI between the query and above reference genome.
+* closest_placement_af: Indicates the AF between the query and above reference genome.
+* classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI/Placement, indicating a species assignment was made based on both the calculate ANI and placement of the genome in the reference tree; ii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iii) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
+* note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). The GTDB-Tk will leave the species field empty (i.e., s__) when the two methods are incongruent.
+* other_related_references: Lists the top 100 closest reference genomes with an ANI>=95% when (and only when) ANI must be calculated to determine the species assignment of a genome.
+
+## De novo workflow
 **under active development**
 The *de novo* workflow infers a new tree containing all user supplied and GTDB-Tk reference genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a *de novo* tree is desired. This workflow consists of five steps: *identify*, *align*, *infer*, *root*, and *decorate*. The *identify* and *align* steps are the same as in the classify workflow. The *infer* step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a *de novo* tree. This tree is then rooted using a user specified outgroup and decorated with the GTDB taxonomy. 
 
@@ -169,11 +187,11 @@ Here is an example run of this workflow:
 > gtdbtk de_novo_wf --genome_dir ./genomes --bac120_ms --outgroup_taxon p__Chloroflexota --taxa_filter p__Firmicutes --out_dir de_novo_output
 ```
 
-## Individual Steps
+## Individual steps
 
 All steps comprising the classify and <i>de novo</i> workflows can be run independently if desired. Please consult the command line interface for specific details on running each of these steps.
 
-## Cite
+## References
 
 A manuscript describing the GTDB-Tk is currently being prepared:
 
