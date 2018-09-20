@@ -19,6 +19,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
 ## Hardware requirements
 - ~90Gb of memory to run
 - ~70Gb of storage (for v0.0.6) / 25Gb of storage (for v0.1.0+)
+- ~1 hour per 1,000 genomes when using 64 CPUs
 
 ## Installation
 
