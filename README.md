@@ -165,7 +165,9 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * other_related_references: Lists the top 100 closest reference genomes with an ANI>=95% when (and only when) ANI must be calculated to determine the species assignment of a genome.
 
 ## De novo workflow
+
 **under active development**
+
 The *de novo* workflow infers a new tree containing all user supplied and GTDB-Tk reference genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a *de novo* tree is desired. This workflow consists of five steps: *identify*, *align*, *infer*, *root*, and *decorate*. The *identify* and *align* steps are the same as in the classify workflow. The *infer* step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a *de novo* tree. This tree is then rooted using a user specified outgroup and decorated with the GTDB taxonomy. 
 
 The *de novo* workflow can be run as follows:
