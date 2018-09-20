@@ -150,8 +150,8 @@ The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the 
 
 Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar122.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
 
-* user_genome: Unique identifer of genome taken from the FASTA file for the genome
-* classification: GTDB taxonomy string inferred by the GTDB-Tk
+* user_genome: Unique identifer of genome taken from the FASTA file for the genome.
+* classification: GTDB taxonomy string inferred by the GTDB-Tk. The GTDB does not provide species assignments for all reference genomes (e.g., taxonomic groups composed entirely of metagenome-assembled genomes). In such cases, species assignments will reflect the accession number of the reference genome (e.g., s__GCA_001940855.1). A unassigned species (i.e., s__) indicates that either the genome represents a novel species or that a species assignment could not be reliably established as indicated by the following fields.
 * fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in the genus.
 * fastani_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
 * fastani_ani: Indicates the ANI between the query and above reference genome.
