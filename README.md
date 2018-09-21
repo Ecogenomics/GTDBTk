@@ -68,7 +68,7 @@ wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk_r86_data.tar.gz
 tar xvzf gtdbtk_r86_archived_data.tar.gz
 ```
 
-Reference data for prior releases of GTDB-Tk are avaliable at:
+Reference data for prior releases of GTDB-Tk are available at:
 ```
 wget https://data.ace.uq.edu.au/public/gtdbtk
 ```
@@ -144,7 +144,7 @@ Classify step:
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. GTDB-Tk reports reference genomes with an ANI <=95% to a query genome and uses the closest reference genome to validate species assignments.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. GTDB-Tk reports reference genomes with an ANI >= 95% to a query genome and uses the closest reference genome to validate species assignments.
 
 ## Classification summary file 
 
@@ -162,7 +162,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * closest_placement_af: Indicates the AF between the query and above reference genome.
 * classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI/Placement, indicating a species assignment was made based on both the calculate ANI and placement of the genome in the reference tree; ii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iii) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). The GTDB-Tk will leave the species field empty (i.e., s__) when the two methods are incongruent.
-* other_related_references: Lists the top 100 closest reference genomes with an ANI>=95% when (and only when) ANI must be calculated to determine the species assignment of a genome.
+* other_related_references: Lists the top 100 closest reference genomes with an ANI >= 95% when (and only when) ANI must be calculated to determine the species assignment of a genome.
 
 ## De novo workflow
 
