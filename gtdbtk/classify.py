@@ -613,10 +613,10 @@ class Classify():
                     else:
                         taxa_str = taxa_str[0:taxa_str.rindex(';')]
                         summary_list[1] = self.standardise_taxonomy(taxa_str)
+                        summary_list[6] = pplacer_leafnode
+                        summary_list[7] = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(pplacer_leafnode)))
                         if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
-                            summary_list[6] = pplacer_leafnode
-                            summary_list[7] = ";".join(self.gtdb_taxonomy.get(
-                                add_ncbi_prefix(pplacer_leafnode)))
                             summary_list[8] = all_fastani_dict.get(
                                 userleaf.taxon.label).get(pplacer_leafnode).get('ani')
                             summary_list[9] = all_fastani_dict.get(
