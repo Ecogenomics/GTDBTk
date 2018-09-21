@@ -1,3 +1,5 @@
+0.1.3
+- v0.1.3 resolves bug that would occur when a user genome has a FastANI >= 95% with reference genomes but not with the closest pplacer leaf node. 
 0.1.2
 - resolve bug that would occasionally cause genomes to not be correctly associated with a reference genome in the pplacer tree. FastANI was still identifying correct species assignments.
 0.1.1
