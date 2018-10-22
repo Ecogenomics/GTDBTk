@@ -20,9 +20,8 @@ GTDB-Tk is **under active development and validation**. Please independently con
 - ~25Gb of storage
 - ~1 hour per 1,000 genomes when using 64 CPUs
 
-## Installation
+## Dependencies
 
-#### Dependencies
 1. **Python libraries**
 
 GTDB-Tk requires the following Python libraries:
@@ -34,7 +33,7 @@ GTDB-Tk requires the following Python libraries:
 
 Jinja2, mpld3, dendropy and biolib will be installed as part of GTDB-Tk when installing it via pip (see below). The **SciPy Stack** must be installed separately.
 
-2. **Third party software**
+2. **Third-party software**
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
