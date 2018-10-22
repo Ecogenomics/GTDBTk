@@ -2,6 +2,30 @@
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
 
+GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
+efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
+
+GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
+
+
+* [Announcements](#announcements)
+* [Hardware requirements](#hardware-requirements)
+* [Dependencies](#dependencies)
+  * [Python libraries](#python-libraries)
+  * [Third-party software](#third-party-software)
+  * [Perl modules](#perl-modules)
+  * [GTDB-Tk reference data](#gtdb-tk-reference-data)
+* [pip installation](#pip-installation)
+* [Bioconda installation](#bioconda-installation)
+* [Quick start](#quick-start)
+* [Classify workflow](#classify-workflow)
+* [Validating species assignments with ANI](#validating-species-assignments-with-average-nucleotide-identity)
+* [Classification summary file](#classification-summary-file)
+* [<i>De novo</i> workflow](#de-novo-workflow)
+* [Individual steps](#individual-steps)
+* [References](#references)
+
+## Announcements
 **Note (Sept. 20, 2018)**:
 - GTDB-Tk v0.1.3 has been released and addresses an issue with species assignments based on the placement of genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes. Species assignments reported by ANI were not impacted.
 - We recommend all users update to this version.
@@ -9,11 +33,6 @@
 **Note (Aug. 30, 2018)**:
 - A new version of the data (release 86) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
 - This new version is required to run GTDB-Tk v0.1.0+
-
-GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
-efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
-
-GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
 
 ## Hardware requirements
 - ~90Gb of memory to run
