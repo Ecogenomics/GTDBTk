@@ -73,9 +73,9 @@ Reference data for prior releases of GTDB-Tk are available at:
 wget https://data.ace.uq.edu.au/public/gtdbtk
 ```
 
-5. **pip installation**
+## pip installation
 
-Once these dependencies are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
+Once dependencies are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
 > pip install gtdbtk
 ```
@@ -86,6 +86,13 @@ cd config
 cp config_template.py config.py
 ```
 Edit the config.py file and modify the GENERIC_PATH variables so it point to the directory containing the data downloaded from https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
+
+## Bioconda installation
+
+A Bioconda receipe has been put together by [Natasha](https://github.com/npavlovikj) (thanks!). You can find the receipe at:
+https://anaconda.org/bioconda/gtdbtk
+
+The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
 
 ## Quick start
 
