@@ -22,7 +22,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Dependencies
 
-1. **Python libraries**
+### Python libraries
 
 GTDB-Tk requires the following Python libraries:
 * [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
@@ -33,7 +33,7 @@ GTDB-Tk requires the following Python libraries:
 
 Jinja2, mpld3, dendropy and biolib will be installed as part of GTDB-Tk when installing it via pip (see below). The **SciPy Stack** must be installed separately.
 
-2. **Third-party software**
+### Third-party software
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
@@ -43,7 +43,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 ) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
-3. **Perl modules**
+### Perl modules
 
 GTDB-Tk assumes the Python 2.7.x and Perl interpreters are on your system path.    
 <u>**note:**</u>  Perl interpreter requires Moose, Bundle::BioPerl and IPC::Run modules. You can install those modules using CPAN:
@@ -59,7 +59,7 @@ Make sure that the installed Perl modules (.pm) paths are part of the @inc varia
 export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module:/path/to/bioperl/module"
 ```
 
-4. **GTDB-Tk reference data**
+### GTDB-Tk reference data
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
