@@ -18,13 +18,13 @@
 ###############################################################################
 
 __prog_name__ = 'trim_msa.py'
-__prog_desc__ = 'Take randomly a subset of columns from the MSA of each marker.'
+__prog_desc__ = 'Randomly select a subset of columns from the MSA of each marker.'
 
-__author__ = 'Pierre Chaumeil'
+__author__ = 'Pierre Chaumeil and Donovan Parks'
 __copyright__ = 'Copyright 2017'
-__credits__ = ['Pierre Chaumeil']
+__credits__ = ['Pierre Chaumeil', 'Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
@@ -33,111 +33,164 @@ import os
 import sys
 import argparse
 import random
+import logging
 from biolib.seq_io import read_fasta
+from biolib.logger import logger_setup
 from collections import defaultdict, Counter
+
+from numpy import (mean as np_mean,
+                    std as np_std)
 
 
 class MSATrimmer(object):
-    def __init__(self):
+    """Randomly select a subset of columns from the MSA of each marker."""
+    
+    def __init__(self, output_dir):
         """Initialization."""
+        
+        self.output_dir = output_dir
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
 
-        self.subset = 42
+        self.subset = 42    # 42 * ~120 genes ~= 5,000 columns
+                            # also, meaning of life so seems good
+        
         # only consider columns with less than this percentage of gaps
-        self.max_gaps = 0.10
-        # only consider columns with less than this percentage of identical
-        # amino acids
-        self.max_indentical_aa = 0.95
-        self.consensus = 0.25
+        self.max_gaps = 0.50
+        
+        # only consider columns where the most common amino acid is
+        # between these two percent boundaries
+        self.max_identical_aa = 0.95
+        self.min_identical_aa = 0.25
+        
+        logger_setup(output_dir, "trim_msa.log", "trim_msa", __version__, False)
+        self.logger = logging.getLogger('timestamp')
 
-    def run(self, msa, mask, marker_list, taxonomy_file, metadata_file, output):
-        dict_marker = {}
-        dict_genomes = read_fasta(msa, False)
+    def run(self, msa_file, marker_list, taxonomy_file, metadata_file):
+        """Randomly select a subset of columns from the MSA of each marker."""
+        
+        # read multiple sequence alignment
+        self.logger.info('Reading multiple sequence alignment.')
+        msa = read_fasta(msa_file, False)
+        self.logger.info('Read MSA for %d genomes.' % len(msa))
 
-        sub_list_genomes = self.selectGenomes(
-            dict_genomes, taxonomy_file, metadata_file)
-
-        with open(mask, 'r') as f:
-            maskstr = f.readline()
-
+        # select genomes from species
+        self.logger.info('Selecting single genome per species.')
+        sub_list_genomes = self.select_genomes(msa, 
+                                                taxonomy_file, 
+                                                metadata_file)
+        self.logger.info('Selected %d genomes.' % len(sub_list_genomes))
+        
+        # get marker info
+        self.logger.info('Reading marker info.')
+        markers = {}
+        total_msa_len = 0
         with open(marker_list, 'r') as f:
             f.readline()
             for line in f:
                 list_info = line.split("\t")
-                dict_marker[list_info[0]] = int(list_info[3])
+                marker_id = list_info[0]
+                marker_name = '%s: %s' % (list_info[1], list_info[2])
+                marker_len = int(list_info[3])
+                markers[marker_id] = (marker_name, marker_len)
+                total_msa_len += marker_len
+                
+        if len(msa.values()[0]) == total_msa_len:
+            self.logger.info('Length of MSA and length of marker genes both equal %d columns' % total_msa_len)
+        else:
+            self.logger.error('Length of MSA (%d columns) does not equal length of marker genes (%d columns).' % (
+                                    len(msa.values()[0]), 
+                                    total_msa_len))
+            sys.exit(-1)
 
-        new_mask, output_seqs = self.trim_seqs(dict_genomes,
+        # randomly select columns meeting filtering criteria
+        self.logger.info('Randomly sampling %d columns passing filtering criteria from each marker gene.' % self.subset)
+        mask, output_seqs = self.subsample_msa(msa,
                                                sub_list_genomes,
-                                               maskstr,
-                                               dict_marker)
+                                               markers)
 
-        if not os.path.exists(output):
-            os.makedirs(output)
-
-        # Write mask
-        mask_file = open(os.path.join(output, "mask.txt"), 'w')
-        mask_file.write(''.join([str(n) for n in new_mask]))
+        # write mask to file
+        mask_file = open(os.path.join(self.output_dir, "mask.txt"), 'w')
+        mask_file.write(''.join([str(n) for n in mask]))
         mask_file.close()
 
-        # Write MSA
-        trimmed_file = open(os.path.join(output, "trimmed_sequences.fa"), 'w')
-        nbr_aa_seqs = open(os.path.join(output, "number_AA_genomes.tsv"), 'w')
+        # write subsampled MSA to file
+        trimmed_file = open(os.path.join(self.output_dir, "trimmed_sequences.faa"), 'w')
+        nbr_aa_seqs = open(os.path.join(self.output_dir, "genome_msa_stats.tsv"), 'w')
+        nbr_aa_seqs.write('Genome ID\tMSA length\tAmino acids\tAmino acids (%)\n')
         for genome_id, aligned_seq in output_seqs.iteritems():
             fasta_outstr = ">%s\n%s\n" % (genome_id, aligned_seq)
             trimmed_file.write(fasta_outstr)
             lenaa = len(aligned_seq) - (len(aligned_seq) -
                                         len(aligned_seq.replace('-', '')))
-            len_outstr = "%s\t%s\t%s\n" % (genome_id, lenaa, len(aligned_seq))
+            len_outstr = "%s\t%d\t%d\t%.2f\n" % (
+                            genome_id, 
+                            len(aligned_seq), 
+                            lenaa, 
+                            lenaa*100.0/len(aligned_seq))
             nbr_aa_seqs.write(len_outstr)
         trimmed_file.close()
         nbr_aa_seqs.close()
+        
+        self.logger.info('Done.')
 
-    def selectGenomes(self, list_genomes, taxonomy_file, metadata_file):
-        dictgenusspecies = {}
-        listgid = []
+    def select_genomes(self, list_genomes, taxonomy_file, metadata_file):
+        """Select single genome for each species."""
 
-        # parse metadata_file:
-        dict_metadata = {}
+        # parse metadata_file
+        metadata = {}
         with open(metadata_file, 'r') as mf:
             headers = mf.readline().strip().split("\t")
+            
+            # *** Note: should revisit this once type material selection
+            # for GTDB r89 is finished
             ncbi_type_strain_index = headers.index('ncbi_type_material')
             checkm_completeness_index = headers.index('checkm_completeness')
             checkm_contamination_index = headers.index('checkm_contamination')
 
             for line in mf:
                 info = line.split('\t')
-                quality = float(info[checkm_completeness_index]) - \
-                    5 * float(info[checkm_contamination_index])
+                
+                comp = float(info[checkm_completeness_index])
+                cont = float(info[checkm_contamination_index])
+                quality =  comp - 5*cont
+                
                 tm = False
                 if info[ncbi_type_strain_index] == 't':
                     tm = True
 
-                dict_metadata[info[0]] = {"strain": tm,
-                                          "quality": quality
-                                          }
+                metadata[info[0]] = {"strain": tm,
+                                          "quality": quality}
 
-        with open(taxonomy_file, 'r') as f:
-            for line in f:
-                info = line.split("\t")
-                gid = info[0]
-                genusspecies = info[1].split(
-                    ";")[5] + info[1].split(";")[6].strip()
-                if gid in list_genomes:
-                    if info[1].split(";")[6].strip() != 's__':
-                        if genusspecies not in dictgenusspecies:
+        # Parse taxonomy file and select 1 genome per species
+        # and all genomes without a species assignments. Give 
+        # preference to genomes that are assembled from ype material, 
+        # and otherwise to high-quality genomes.
+        dictgenusspecies = {}
+        listgid = []
+        for line in open(taxonomy_file, 'r'):
+            info = line.strip().split("\t")
+            gid = info[0]
+            taxa = info[1].split(";")
+            genusspecies = taxa[5] + taxa[6]
+            if gid in list_genomes:
+                if taxa[6] != 's__':
+                    if genusspecies not in dictgenusspecies:
+                        dictgenusspecies[genusspecies] = gid
+                    else:
+                        oldgid = dictgenusspecies.get(genusspecies)
+
+                        if metadata[oldgid]['strain'] is True and metadata[gid]['strain'] is False:
+                            continue
+                            
+                        if metadata[gid]['strain'] is True and metadata[oldgid]['strain'] is False:
+                            dictgenusspecies[genusspecies] = gid
+                        elif metadata[gid]['quality'] >= metadata[oldgid]['quality']:
                             dictgenusspecies[genusspecies] = gid
                         else:
-                            oldgid = dictgenusspecies.get(genusspecies)
-
-                            if dict_metadata[oldgid]['strain'] is True and dict_metadata[gid]['strain'] is False:
-                                continue
-                            if dict_metadata[gid]['strain'] is True and dict_metadata[oldgid]['strain'] is False:
-                                dictgenusspecies[genusspecies] = gid
-                            elif dict_metadata[gid]['quality'] >= dict_metadata[oldgid]['quality']:
-                                dictgenusspecies[genusspecies] = gid
-                            else:
-                                continue
-                    else:
-                        listgid.append(gid)
+                            continue
+                else:
+                    listgid.append(gid)
 
         for _k, v in dictgenusspecies.iteritems():
             listgid.append(v)
@@ -146,16 +199,19 @@ class MSATrimmer(object):
 
     def identify_valid_columns(self, start, end, seqs, sublistgid):
         """Identify columns meeting gap and amino acid ubiquity criteria."""
-
+        
+        GAP_CHARS = set(['-', '.', '_', '*'])
+        STANDARD_AMINO_ACIDS = set('ACDEFGHIKLMNPQRSTVWY')
+        
         gap_count = defaultdict(int)
         amino_acids = [list() for _ in xrange(end - start)]
         for seq_id, seq in seqs.iteritems():
             if seq_id not in sublistgid:
                 continue
 
-            gene_seq = seq[start:end]
+            gene_seq = seq[start:end].upper()
             for i, ch in enumerate(gene_seq):
-                if ch == '_' or ch == '.':
+                if ch in GAP_CHARS:
                     gap_count[i] += 1
                 else:
                     amino_acids[i].append(ch)
@@ -165,79 +221,101 @@ class MSATrimmer(object):
             if float(gap_count.get(i, 0)) / len(sublistgid) <= self.max_gaps:
                 c = Counter(amino_acids[i])
                 if not c.most_common(1):
-                    aa_ratio = 0
-                else:
-                    _letter, count = c.most_common(1)[0]
-                    aa_ratio = float(count) / len(sublistgid)
+                    continue
+                
+                letter, count = c.most_common(1)[0]
+                if letter not in STANDARD_AMINO_ACIDS:
+                    self.logger.error('Most common amino acid was not in standard alphabet: %s' % letter)
+                    sys.exit(-1)
 
-                if aa_ratio >= self.consensus and c.most_common(1)[0][0] != '-':
+                aa_ratio = float(count) / (len(sublistgid) - gap_count.get(i, 0))
+                if self.min_identical_aa <= aa_ratio <= self.max_identical_aa:
                     valid_cols.add(i)
+
         return valid_cols
 
-    def trim_seqs(self, seqs, sublistgid, mask, dict_marker):
-        """Trim multiple sequence alignment."""
+    def subsample_msa(self, seqs, sublistgid, markers):
+        """Sample columns from each marker in multiple sequence alignment."""
 
         alignment_length = len(seqs.values()[0])
-        all_coords = []
+        sampled_cols = []
         start = 0
-        for marker in sorted(dict_marker):
-            end = start + dict_marker[marker]
-            submask = mask[start:end]
+        lack_sufficient_cols = 0
+        lack_cols_marker_ids = []
+        avg_perc_cols = []
+        for marker_id in markers:
+            marker_name, marker_len = markers[marker_id]
+            end = start + marker_len
 
-            valid_cols = self.identify_valid_columns(
-                start, end, seqs, sublistgid)
-
-            print start, end, end - start, len(valid_cols)
-            # if len(valid_cols) == 0:
-            #    sys.exit()
-
-            coords = []
-            for i, presence in enumerate(submask):
-                if presence == '1' and i in valid_cols:
-                    coords.append(start + i)
-
-            if len(coords) < self.subset:
-                all_coords.extend(coords)
-            else:
-                all_coords.extend(random.sample(coords, self.subset))
+            valid_cols = self.identify_valid_columns(start, 
+                                                        end, 
+                                                        seqs, 
+                                                        sublistgid)
+            assert(len(valid_cols) <= marker_len) # sanity check
+            
+            self.logger.info('%s: S:%d, E:%d, LEN:%d, COLS:%d, PERC:%.1f' % (
+                                marker_name, 
+                                start, 
+                                end, 
+                                marker_len, 
+                                len(valid_cols),
+                                len(valid_cols)*100.0/marker_len))
+                                
+            avg_perc_cols.append(len(valid_cols)*100.0/marker_len)
+                                
+            if len(valid_cols) < self.subset:
+                self.logger.warning('Marker has <%d columns after filtering.' % self.subset)
+                lack_sufficient_cols += 1
+                lack_cols_marker_ids.append(marker_id)
+                
+            offset_valid_cols = [i+start for i in valid_cols]
+            sampled_cols.extend(random.sample(offset_valid_cols, min(self.subset, len(offset_valid_cols))))
+            
             start = end
-
-        new_mask = [
-            1 if x in all_coords else 0 for x in range(alignment_length)]
+ 
+        mask = [1 if i in sampled_cols else 0 for i in range(alignment_length)]
+        
+        self.logger.info('Identified %d of %d marker genes with <%d columns for sampling:' % (
+                            lack_sufficient_cols, 
+                            len(markers),
+                            self.subset))
+        self.logger.info('  %s' % ', '.join(lack_cols_marker_ids))
+        self.logger.info('Marker genes had %.1f+/-%.1f%% of columns available for selection on average.' % (
+                            np_mean(avg_perc_cols),
+                            np_std(avg_perc_cols)))
+        self.logger.info('Final MSA contains %d columns.' % len(sampled_cols))
 
         # trim columns
         output_seqs = {}
         for seq_id, seq in seqs.iteritems():
             if seq_id not in sublistgid:
                 continue
+                
             masked_seq = ''.join([seq[i]
-                                  for i in xrange(0, len(mask)) if new_mask[i]])
+                                  for i in xrange(0, len(mask)) if mask[i]])
             output_seqs[seq_id] = masked_seq
 
-        return new_mask, output_seqs
-
+        return mask, output_seqs
 
 if __name__ == '__main__':
     print __prog_name__ + ' v' + __version__ + ': ' + __prog_desc__
     print '  by ' + __author__ + ' (' + __email__ + ')' + '\n'
 
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--msa', help='Untrimmed multi sequence alignment.')
-    parser.add_argument('--mask', help='Mask file generated by gtdb.')
-    parser.add_argument(
-        '--marker_list', help='File listing the metadata for each markers.')
-    parser.add_argument('--taxonomy_file', help='Taxonomy file from GTDB.')
-    parser.add_argument('--metadata_file', help='Metadata file from GTDB.')
-
-    parser.add_argument('--output', help='Output directory.')
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--msa', help='unfiltered multiple sequence alignment')
+    parser.add_argument('--marker_list', help='file with metadata for each marker gene')
+    parser.add_argument('--taxonomy_file', help='GTDB taxonomy file for genomes in reference tree')
+    parser.add_argument('--metadata_file', help='GTDB metadata file (TSV format)')
+    parser.add_argument('--output', help='output directory')
 
     args = parser.parse_args()
 
     try:
-        msatrimmer = MSATrimmer()
-        msatrimmer.run(args.msa, args.mask, args.marker_list,
-                       args.taxonomy_file, args.metadata_file, args.output)
+        p = MSATrimmer(args.output)
+        p.run(args.msa, 
+                args.marker_list,
+                args.taxonomy_file, 
+                args.metadata_file)
     except SystemExit:
         print "\nControlled exit resulting from an unrecoverable error or warning."
     except:
