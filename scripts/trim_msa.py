@@ -24,7 +24,7 @@ __author__ = 'Pierre Chaumeil and Donovan Parks'
 __copyright__ = 'Copyright 2017'
 __credits__ = ['Pierre Chaumeil', 'Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
@@ -66,20 +66,13 @@ class MSATrimmer(object):
         logger_setup(output_dir, "trim_msa.log", "trim_msa", __version__, False)
         self.logger = logging.getLogger('timestamp')
 
-    def run(self, msa_file, marker_list, taxonomy_file, metadata_file):
+    def run(self, msa_file, marker_list, metadata_file):
         """Randomly select a subset of columns from the MSA of each marker."""
         
         # read multiple sequence alignment
         self.logger.info('Reading multiple sequence alignment.')
         msa = read_fasta(msa_file, False)
         self.logger.info('Read MSA for %d genomes.' % len(msa))
-
-        # select genomes from species
-        self.logger.info('Selecting single genome per species.')
-        sub_list_genomes = self.select_genomes(msa, 
-                                                taxonomy_file, 
-                                                metadata_file)
-        self.logger.info('Selected %d genomes.' % len(sub_list_genomes))
         
         # get marker info
         self.logger.info('Reading marker info.')
@@ -134,70 +127,7 @@ class MSATrimmer(object):
         
         self.logger.info('Done.')
 
-    def select_genomes(self, list_genomes, taxonomy_file, metadata_file):
-        """Select single genome for each species."""
-
-        # parse metadata_file
-        metadata = {}
-        with open(metadata_file, 'r') as mf:
-            headers = mf.readline().strip().split("\t")
-            
-            # *** Note: should revisit this once type material selection
-            # for GTDB r89 is finished
-            ncbi_type_strain_index = headers.index('ncbi_type_material')
-            checkm_completeness_index = headers.index('checkm_completeness')
-            checkm_contamination_index = headers.index('checkm_contamination')
-
-            for line in mf:
-                info = line.split('\t')
-                
-                comp = float(info[checkm_completeness_index])
-                cont = float(info[checkm_contamination_index])
-                quality =  comp - 5*cont
-                
-                tm = False
-                if info[ncbi_type_strain_index] == 't':
-                    tm = True
-
-                metadata[info[0]] = {"strain": tm,
-                                          "quality": quality}
-
-        # Parse taxonomy file and select 1 genome per species
-        # and all genomes without a species assignments. Give 
-        # preference to genomes that are assembled from ype material, 
-        # and otherwise to high-quality genomes.
-        dictgenusspecies = {}
-        listgid = []
-        for line in open(taxonomy_file, 'r'):
-            info = line.strip().split("\t")
-            gid = info[0]
-            taxa = info[1].split(";")
-            genusspecies = taxa[5] + taxa[6]
-            if gid in list_genomes:
-                if taxa[6] != 's__':
-                    if genusspecies not in dictgenusspecies:
-                        dictgenusspecies[genusspecies] = gid
-                    else:
-                        oldgid = dictgenusspecies.get(genusspecies)
-
-                        if metadata[oldgid]['strain'] is True and metadata[gid]['strain'] is False:
-                            continue
-                            
-                        if metadata[gid]['strain'] is True and metadata[oldgid]['strain'] is False:
-                            dictgenusspecies[genusspecies] = gid
-                        elif metadata[gid]['quality'] >= metadata[oldgid]['quality']:
-                            dictgenusspecies[genusspecies] = gid
-                        else:
-                            continue
-                else:
-                    listgid.append(gid)
-
-        for _k, v in dictgenusspecies.iteritems():
-            listgid.append(v)
-
-        return listgid
-
-    def identify_valid_columns(self, start, end, seqs, sublistgid):
+    def identify_valid_columns(self, start, end, seqs):
         """Identify columns meeting gap and amino acid ubiquity criteria."""
         
         GAP_CHARS = set(['-', '.', '_', '*'])
@@ -205,10 +135,9 @@ class MSATrimmer(object):
         
         gap_count = defaultdict(int)
         amino_acids = [list() for _ in xrange(end - start)]
+        num_genomes = 0
         for seq_id, seq in seqs.iteritems():
-            if seq_id not in sublistgid:
-                continue
-
+            num_genomes += 1
             gene_seq = seq[start:end].upper()
             for i, ch in enumerate(gene_seq):
                 if ch in GAP_CHARS:
@@ -218,7 +147,7 @@ class MSATrimmer(object):
 
         valid_cols = set()
         for i in xrange(0, end - start):
-            if float(gap_count.get(i, 0)) / len(sublistgid) <= self.max_gaps:
+            if float(gap_count.get(i, 0)) / num_genomes <= self.max_gaps:
                 c = Counter(amino_acids[i])
                 if not c.most_common(1):
                     continue
@@ -228,13 +157,13 @@ class MSATrimmer(object):
                     self.logger.error('Most common amino acid was not in standard alphabet: %s' % letter)
                     sys.exit(-1)
 
-                aa_ratio = float(count) / (len(sublistgid) - gap_count.get(i, 0))
+                aa_ratio = float(count) / (num_genomes - gap_count.get(i, 0))
                 if self.min_identical_aa <= aa_ratio <= self.max_identical_aa:
                     valid_cols.add(i)
 
         return valid_cols
 
-    def subsample_msa(self, seqs, sublistgid, markers):
+    def subsample_msa(self, seqs, markers):
         """Sample columns from each marker in multiple sequence alignment."""
 
         alignment_length = len(seqs.values()[0])
@@ -249,8 +178,7 @@ class MSATrimmer(object):
 
             valid_cols = self.identify_valid_columns(start, 
                                                         end, 
-                                                        seqs, 
-                                                        sublistgid)
+                                                        seqs)
             assert(len(valid_cols) <= marker_len) # sanity check
             
             self.logger.info('%s: S:%d, E:%d, LEN:%d, COLS:%d, PERC:%.1f' % (
@@ -288,9 +216,6 @@ class MSATrimmer(object):
         # trim columns
         output_seqs = {}
         for seq_id, seq in seqs.iteritems():
-            if seq_id not in sublistgid:
-                continue
-                
             masked_seq = ''.join([seq[i]
                                   for i in xrange(0, len(mask)) if mask[i]])
             output_seqs[seq_id] = masked_seq
