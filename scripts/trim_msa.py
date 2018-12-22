@@ -66,7 +66,7 @@ class MSATrimmer(object):
         logger_setup(output_dir, "trim_msa.log", "trim_msa", __version__, False)
         self.logger = logging.getLogger('timestamp')
 
-    def run(self, msa_file, marker_list, metadata_file):
+    def run(self, msa_file, marker_list):
         """Randomly select a subset of columns from the MSA of each marker."""
         
         # read multiple sequence alignment
@@ -98,9 +98,7 @@ class MSATrimmer(object):
 
         # randomly select columns meeting filtering criteria
         self.logger.info('Randomly sampling %d columns passing filtering criteria from each marker gene.' % self.subset)
-        mask, output_seqs = self.subsample_msa(msa,
-                                               sub_list_genomes,
-                                               markers)
+        mask, output_seqs = self.subsample_msa(msa, markers)
 
         # write mask to file
         mask_file = open(os.path.join(self.output_dir, "mask.txt"), 'w')
@@ -229,18 +227,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--msa', help='unfiltered multiple sequence alignment')
     parser.add_argument('--marker_list', help='file with metadata for each marker gene')
-    parser.add_argument('--taxonomy_file', help='GTDB taxonomy file for genomes in reference tree')
-    parser.add_argument('--metadata_file', help='GTDB metadata file (TSV format)')
     parser.add_argument('--output', help='output directory')
 
     args = parser.parse_args()
 
     try:
         p = MSATrimmer(args.output)
-        p.run(args.msa, 
-                args.marker_list,
-                args.taxonomy_file, 
-                args.metadata_file)
+        p.run(args.msa, args.marker_list)
     except SystemExit:
         print "\nControlled exit resulting from an unrecoverable error or warning."
     except:
