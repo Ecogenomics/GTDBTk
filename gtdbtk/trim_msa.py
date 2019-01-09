@@ -42,28 +42,34 @@ from numpy import (mean as np_mean,
                     std as np_std)
 
 
-class MSATrimmer(object):
+class TrimMSA(object):
     """Randomly select a subset of columns from the MSA of each marker."""
     
-    def __init__(self, output_dir):
+    def __init__(self, cols_per_gene,
+                        min_perc_aa,
+                        min_consensus,
+                        max_consensus,
+                        min_perc_taxa,
+                        out_dir):
         """Initialization."""
         
-        self.output_dir = output_dir
+        self.output_dir = out_dir
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-        self.subset = 42    # 42 * ~120 genes ~= 5,000 columns
-                            # also, meaning of life so seems good
+        self.subset = cols_per_gene     # default: 42 * ~120 genes ~= 5,000 columns
         
         # only consider columns with less than this percentage of gaps
-        self.max_gaps = 0.50
+        self.max_gaps = min_perc_taxa
         
         # only consider columns where the most common amino acid is
         # between these two percent boundaries
-        self.max_identical_aa = 0.95
-        self.min_identical_aa = 0.25
+        self.min_identical_aa = min_consensus
+        self.max_identical_aa = max_consensus
         
-        logger_setup(output_dir, "trim_msa.log", "trim_msa", __version__, False)
+        # remove genomes without sufficient number of amino acids in MSA
+        self.min_perc_aa = min_perc_aa
+
         self.logger = logging.getLogger('timestamp')
 
     def run(self, msa_file, marker_list):
@@ -74,9 +80,27 @@ class MSATrimmer(object):
         msa = read_fasta(msa_file, False)
         self.logger.info('Read MSA for %d genomes.' % len(msa))
         
+        filtered_seqs, pruned_seqs = self.trim(msa, marker_list)
+        
+        self.logger.info('Removed %d taxa have amino acids in <%.1f%% of columns in filtered MSA.' % (
+                        len(pruned_seqs),
+                        self.min_perc_aa))
+        
+        # write out trimmed sequences
+        filter_file = open(os.path.join(self.output_dir, "filtered_msa.faa"), 'w')
+        for gid, seq in filtered_seqs:
+            fasta_outstr = ">%s\n%s\n" % (gid, seq)
+            filter_file.write(fasta_outstr)
+        filter_file.close()
+        
+        self.logger.info('Done.')
+        
+    def trim(self, msa, marker_list):
+        """Randomly select a subset of columns from the MSA of each marker."""
+        
         # get marker info
         self.logger.info('Reading marker info.')
-        markers = {}
+        markers = []
         total_msa_len = 0
         with open(marker_list, 'r') as f:
             f.readline()
@@ -85,7 +109,7 @@ class MSATrimmer(object):
                 marker_id = list_info[0]
                 marker_name = '%s: %s' % (list_info[1], list_info[2])
                 marker_len = int(list_info[3])
-                markers[marker_id] = (marker_name, marker_len)
+                markers.append((marker_id, marker_name, marker_len))
                 total_msa_len += marker_len
                 
         if len(msa.values()[0]) == total_msa_len:
@@ -106,24 +130,31 @@ class MSATrimmer(object):
         mask_file.close()
 
         # write subsampled MSA to file
-        trimmed_file = open(os.path.join(self.output_dir, "trimmed_sequences.faa"), 'w')
         nbr_aa_seqs = open(os.path.join(self.output_dir, "genome_msa_stats.tsv"), 'w')
         nbr_aa_seqs.write('Genome ID\tMSA length\tAmino acids\tAmino acids (%)\n')
+        filtered_msa = {}
+        pruned_seqs = {}
         for genome_id, aligned_seq in output_seqs.iteritems():
-            fasta_outstr = ">%s\n%s\n" % (genome_id, aligned_seq)
-            trimmed_file.write(fasta_outstr)
-            lenaa = len(aligned_seq) - (len(aligned_seq) -
-                                        len(aligned_seq.replace('-', '')))
+            aa_len = sum([1 for c in aligned_seq if c.isalpha()])
+            if aa_len != 0:
+                aa_perc = aa_len*100.0/len(aligned_seq)
+            else:
+                aa_perc = 0
             len_outstr = "%s\t%d\t%d\t%.2f\n" % (
                             genome_id, 
                             len(aligned_seq), 
-                            lenaa, 
-                            lenaa*100.0/len(aligned_seq))
+                            aa_len, 
+                            aa_perc)
             nbr_aa_seqs.write(len_outstr)
-        trimmed_file.close()
+            
+            if aa_perc >= self.min_perc_aa:
+                filtered_msa[genome_id] = aligned_seq
+            else:
+                pruned_seqs[genome_id] = aligned_seq
+                
         nbr_aa_seqs.close()
         
-        self.logger.info('Done.')
+        return filtered_msa, pruned_seqs
 
     def identify_valid_columns(self, start, end, seqs):
         """Identify columns meeting gap and amino acid ubiquity criteria."""
@@ -152,11 +183,10 @@ class MSATrimmer(object):
                 
                 letter, count = c.most_common(1)[0]
                 if letter not in STANDARD_AMINO_ACIDS:
-                    self.logger.error('Most common amino acid was not in standard alphabet: %s' % letter)
-                    sys.exit(-1)
+                    self.logger.warning('Most common amino acid was not in standard alphabet: %s' % letter)
 
                 aa_ratio = float(count) / (num_genomes - gap_count.get(i, 0))
-                if self.min_identical_aa <= aa_ratio <= self.max_identical_aa:
+                if self.min_identical_aa <= aa_ratio < self.max_identical_aa:
                     valid_cols.add(i)
 
         return valid_cols
@@ -170,8 +200,7 @@ class MSATrimmer(object):
         lack_sufficient_cols = 0
         lack_cols_marker_ids = []
         avg_perc_cols = []
-        for marker_id in markers:
-            marker_name, marker_len = markers[marker_id]
+        for marker_id, marker_name, marker_len in markers:
             end = start + marker_len
 
             valid_cols = self.identify_valid_columns(start, 
@@ -205,7 +234,7 @@ class MSATrimmer(object):
                             lack_sufficient_cols, 
                             len(markers),
                             self.subset))
-        self.logger.info('  %s' % ', '.join(lack_cols_marker_ids))
+        self.logger.info('%s' % ', '.join(lack_cols_marker_ids))
         self.logger.info('Marker genes had %.1f+/-%.1f%% of columns available for selection on average.' % (
                             np_mean(avg_perc_cols),
                             np_std(avg_perc_cols)))
@@ -227,12 +256,29 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--msa', help='unfiltered multiple sequence alignment')
     parser.add_argument('--marker_list', help='file with metadata for each marker gene')
-    parser.add_argument('--output', help='output directory')
-
+    parser.add_argument('--cols_per_gene', type=int, default=42,
+                                       help='maximum number of columns to retain per gene')
+    parser.add_argument('--min_perc_aa', type=float, default=0.5,
+                                       help='filter genomes with an insufficient percentage of AA in the MSA')
+    parser.add_argument('--min_consensus', type=float, default=0.25,
+                                       help='minimum percentage of the same amino acid required to retain column')
+    parser.add_argument('--max_consensus', type=float, default=0.95,
+                                       help='maximum percentage of the same amino acid required to retain column')
+    parser.add_argument('--min_perc_taxa', type=float, default=0.50,
+                                       help='minimum percentage of taxa required to retain column')
+    parser.add_argument('--out_dir', help='output directory')
+    
     args = parser.parse_args()
+    
+    logger_setup(args.out_dir, "trim_msa.log", "trim_msa", __version__, False)
 
     try:
-        p = MSATrimmer(args.output)
+        p = TrimMSA(args.cols_per_gene,
+                        args.min_perc_aa,
+                        args.min_consensus,
+                        args.max_consensus,
+                        args.min_perc_taxa,
+                        args.out_dir)
         p.run(args.msa, args.marker_list)
     except SystemExit:
         print "\nControlled exit resulting from an unrecoverable error or warning."

@@ -31,7 +31,6 @@ from biolib.common import (check_dir_exists,
                            remove_extension)
 from biolib.taxonomy import Taxonomy
 from biolib.external.execute import check_dependencies
-from biolib.external.fasttree import FastTree
 
 
 class OptionsParser():
@@ -173,10 +172,13 @@ class OptionsParser():
 
         markers = Markers(options.cpus)
         markers.align(options.identify_dir,
+                      options.skip_gtdb_refs,
                       options.taxa_filter,
                       options.min_perc_aa,
                       options.custom_msa_filters,
-                      options.consensus,
+                      options.cols_per_gene,
+                      options.min_consensus,
+                      options.max_consensus,
                       options.min_perc_taxa,
                       options.out_dir,
                       options.prefix,
@@ -187,30 +189,49 @@ class OptionsParser():
     def infer(self, options):
         """Infer tree from MSA."""
 
-        self.logger.warning("Tree inference is still under development!")
-
         check_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
 
-        if (options.cpus > 1):
+        if options.cpus > 1:
             check_dependencies(['FastTreeMP'])
         else:
             check_dependencies(['FastTree'])
 
         self.logger.info(
             'Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
-        fasttree = FastTree(multithreaded=(options.cpus > 1))
 
-        tree_unrooted_output = os.path.join(
-            options.out_dir, options.prefix + options.suffix + '.unrooted.tree')
+        output_tree = os.path.join(options.out_dir, options.prefix + '.unrooted.tree')
         tree_log = os.path.join(options.out_dir, options.prefix + '.tree.log')
-        tree_output_log = os.path.join(options.out_dir, 'fasttree.log')
-        fasttree.run(options.msa_file,
-                     'prot',
-                     options.prot_model,
-                     tree_unrooted_output,
-                     tree_log,
-                     tree_output_log)
+        fasttree_log = os.path.join(options.out_dir, options.prefix + '.fasttree.log')
+        
+        if options.prot_model == 'JTT':
+            model_str = ''
+        elif options.prot_model == 'WAG':
+            model_str = ' -wag'
+        elif options.prot_model == 'LG':
+            model_str = ' -lg'
+        
+        support_str = ''
+        if options.no_support:
+            support_str = ' -nosupport'
+            
+        gamma_str = ' -gamma'
+        if options.no_gamma:
+            gamma_str = ''
+
+        cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
+                                                                model_str,
+                                                                gamma_str,
+                                                                tree_log,
+                                                                options.msa_file,
+                                                                output_tree,
+                                                                fasttree_log)
+        if options.cpus > 1:
+            cmd = 'FastTreeMP ' + cmd
+        else:
+            cmd = 'FastTree ' + cmd
+        self.logger.info('Running: %s' % cmd)
+        os.system(cmd)
 
         self.logger.info('Done.')
 
@@ -267,7 +288,7 @@ class OptionsParser():
         self.logger.info('Done.')
 
     def check_install(self):
-        """ Verify is all gtdb data files are present to run GTDB-Tk."""
+        """ Verify all GTDB-Tk data files are present."""
         self.logger.warning("Running install verification")
         misc = Misc()
         misc.check_install()
