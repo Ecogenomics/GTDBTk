@@ -55,10 +55,10 @@ def printHelp():
   Methods:
     identify      -> Identify marker genes in genome
     align         -> Create multiple sequence alignment
-    infer         -> Infer tree from multiple sequence alignment [In Development]
+    infer         -> Infer tree from multiple sequence alignment
     classify      -> Determine taxonomic classification of genomes
     root          -> Root tree using an outgroup [In Development]
-    decorate      -> Decorate tree with GTDB taxonomy
+    decorate      -> Decorate tree with GTDB taxonomy [In Development]
     
   Tools:
     trim_msa      -> Trim an untrimmed MSA file based on a mask.
@@ -189,19 +189,26 @@ if __name__ == '__main__':
                                        help='directory to output files')
 
     optional_align = align_parser.add_argument_group('optional arguments')
+    optional_align.add_argument('--skip_gtdb_refs',
+                                    action="store_true",
+                                    help='Do not include GTDB reference genomes in multiple sequence alignment.')
     optional_align.add_argument('--taxa_filter',
-                                       help=('Filter genomes to taxa (comma separated) within '
+                                       help=('Filter GTDB genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
                                             + 'or p__Proteobacteria, p__Actinobacteria).'))
-    optional_align.add_argument('--min_perc_aa', type=float, default=0,
-                                       help='filter genomes with an insufficient percentage of AA in the MSA')
+    optional_align.add_argument('--min_perc_aa', type=float, default=10,
+                                       help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
     optional_align.add_argument('--custom_msa_filters', action="store_true",
-                                       help=('perform custom filtering of MSA with consensus '
-                                                + 'and min_perc_taxa parameters instead of using canonical mask'))
-    optional_align.add_argument('--consensus', type=float, default=25,
-                                       help='minimum percentage of the same amino acid required to retain column')
+                                       help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
+                                                + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+    optional_align.add_argument('--cols_per_gene', type=int, default=42,
+                                       help='maximum number of columns to retain per gene')
+    optional_align.add_argument('--min_consensus', type=float, default=25,
+                                       help='minimum percentage of the same amino acid required to retain column (inclusive bound)')
+    optional_align.add_argument('--max_consensus', type=float, default=95,
+                                       help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_align.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required required to retain column')
+                                       help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                        help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
@@ -221,8 +228,12 @@ if __name__ == '__main__':
                                     help='directory to output files')
 
     optional_infer = infer_parser.add_argument_group('optional arguments')
-    optional_infer.add_argument('--prot_model', choices=['WAG', 'LG'], 
+    optional_infer.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
                                     help='protein substitution model for tree inference', default='WAG')
+    optional_infer.add_argument('--no_support', action="store_true", 
+                                    help="do not compute local support values using the Shimodaira-Hasegawa test")
+    optional_infer.add_argument('--no_gamma', action="store_true", 
+                                    help="do not rescale branch lengths to optimize the Gamma20 likelihood")
     optional_infer.add_argument('--prefix', required=False, default='gtdbtk',
                                     help='desired prefix for output files')
     optional_infer.add_argument('--cpus', default=1, type=int,

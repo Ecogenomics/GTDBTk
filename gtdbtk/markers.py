@@ -20,8 +20,6 @@ import sys
 import logging
 from collections import defaultdict
 
-from biolib.seq_tk import trim_seqs
-
 from biolib.common import remove_extension
 from biolib.seq_io import read_fasta
 from biolib.taxonomy import Taxonomy
@@ -36,6 +34,8 @@ import config.config as Config
 import config.config_metadata as ConfigMetadata
 
 from tools import merge_two_dicts
+
+from trim_msa import TrimMSA
 
 
 class Markers(object):
@@ -365,13 +365,43 @@ class Markers(object):
                 ar_gids.add(gid)
 
         return bac_gids, ar_gids
+        
+    def _write_marker_info(self, marker_db, marker_file):
+        """Write out information about markers comprising MSA."""
+        
+        marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir,'individual_hmms'),
+                        "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmms),'individual_hmms')}
+        
+        fout = open(marker_file, 'w')
+        fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
+        for db_marker in sorted(marker_db):
+            for marker in marker_db[db_marker]:
+                marker_id = marker[0:marker.rfind('.')]
+                marker_path = os.path.join(marker_paths[db_marker], marker)
+                
+                # get marker name, description, and size
+                with open(marker_path) as fp:
+                    for line in fp:
+                        if line.startswith("NAME  "):
+                            marker_name = line.split("  ")[1].strip()
+                        elif line.startswith("DESC  "):
+                            marker_desc = line.split("  ")[1].strip()
+                        elif line.startswith("LENG  "):
+                            marker_size = line.split("  ")[1].strip()
+                            break
+
+                fout.write('%s\t%s\t%s\t%s\n' % (marker_id, marker_name, marker_desc, marker_size))
+        fout.close()
 
     def align(self,
               identify_dir,
+              skip_gtdb_refs,
               taxa_filter,
               min_perc_aa,
               custom_msa_filters,
-              consensus,
+              cols_per_gene,
+              min_consensus,
+              max_consensus,
               min_per_taxa,
               out_dir,
               prefix,
@@ -379,6 +409,12 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         try:
+            # write out files with marker information
+            bac120_marker_info_file = os.path.join(out_dir, prefix + '.bac120.marker_info.tsv')
+            self._write_marker_info(Config.BAC120_MARKERS, bac120_marker_info_file)
+            ar122_marker_info_file =os.path.join(out_dir, prefix + '.ar122.marker_info.tsv')
+            self._write_marker_info(Config.AR122_MARKERS, ar122_marker_info_file)
+
             genomic_files = self._path_to_identify_data(identify_dir)
             self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
                                                                                   self.cpus))
@@ -397,17 +433,22 @@ class Markers(object):
                 if marker_set_id == 'bac120':
                     self.logger.info(
                         'Processing %d genomes identified as bacterial.' % len(gids))
+                    marker_info_file = bac120_marker_info_file
                 else:
                     self.logger.info(
                         'Processing %d genomes identified as archaeal.' % len(gids))
+                    marker_info_file = ar122_marker_info_file
 
                 cur_genome_files = {
                     gid: f for gid, f in genomic_files.iteritems() if gid in gids}
 
-                gtdb_msa = self._msa_filter_by_taxa(msa_file,
-                                                    gtdb_taxonomy,
-                                                    taxa_filter,
-                                                    outgroup_taxon)
+                if skip_gtdb_refs:
+                    gtdb_msa = {}
+                else:
+                    gtdb_msa = self._msa_filter_by_taxa(msa_file,
+                                                        gtdb_taxonomy,
+                                                        taxa_filter,
+                                                        outgroup_taxon)
                 gtdb_msa_mask = os.path.join(Config.MASK_DIR, mask_file)
 
                 hmm_aligner = HmmAligner(self.cpus,
@@ -425,36 +466,38 @@ class Markers(object):
                 # filter columns without sufficient representation across taxa
                 if custom_msa_filters:
                     aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-                    self.logger.info(
-                        'Trimming columns with insufficient taxa or poor consensus.')
-                    trimmed_seqs, pruned_seqs, count_wrong_pa, count_wrong_cons = trim_seqs(aligned_genomes,
-                                                                                            min_per_taxa / 100.0,
-                                                                                            consensus / 100.0,
-                                                                                            min_perc_aa / 100.0)
-                    self.logger.info(('Trimmed alignment from %d to %d AA (%d by minimum taxa percent, ' +
-                                      '%d by consensus).') % (len(aligned_genomes.values()[0]),
-                                                              len(trimmed_seqs.values()[
-                                                                  0]),
-                                                              count_wrong_pa,
-                                                              count_wrong_cons))
+                    self.logger.info('Performing custom filtering and selection of columns.')
 
-                    self.logger.info('%d taxa have amino acids in <%.1f%% of columns in filtered MSA.' % (
-                        len(pruned_seqs),
-                        min_perc_aa))
+                    trim_msa = TrimMSA(cols_per_gene,
+                                        min_perc_aa / 100.0,
+                                        min_consensus / 100.0,
+                                        max_consensus / 100.0,
+                                        min_per_taxa / 100.0,
+                                        os.path.join(out_dir, 'filter_%s' % marker_set_id))
 
-                    pruned_user_genomes = set(
-                        pruned_seqs).intersection(user_msa)
-                    if len(pruned_user_genomes):
-                        self.logger.info(
-                            'Pruned genomes include %d user submitted genomes.' % len(pruned_user_genomes))
+                    trimmed_seqs, pruned_seqs = trim_msa.trim(aligned_genomes,
+                                                                    marker_info_file)
+
+                    if trimmed_seqs:
+                        self.logger.info('Filtered MSA from %d to %d AAs.' % (
+                                            len(aligned_genomes.values()[0]),
+                                            len(trimmed_seqs.values()[0])))
+
+                    self.logger.info('Filtered %d genomes with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                                    len(pruned_seqs),
+                                    min_perc_aa))
+
+                    filtered_user_genomes = set(pruned_seqs).intersection(user_msa)
+                    if len(filtered_user_genomes):
+                        self.logger.info('Filtered genomes include %d user submitted genomes.' % len(filtered_user_genomes))
                 else:
                     self.logger.info(
-                        'Masking columns of multiple sequence alignment.')
+                        'Masking columns of multiple sequence alignment using canonical mask.')
                     trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa,
                                                                  user_msa,
                                                                  gtdb_msa_mask,
                                                                  min_perc_aa / 100.0)
-                    self.logger.info('Masked alignment from %d to %d AA.' % (len(gtdb_msa.values()[0]),
+                    self.logger.info('Masked alignment from %d to %d AA.' % (len(user_msa.values()[0]),
                                                                              len(trimmed_seqs.values()[0])))
 
                     if min_perc_aa > 0:
@@ -466,24 +509,24 @@ class Markers(object):
                 fout = open(os.path.join(out_dir, prefix +
                                          ".%s.filtered.tsv" % marker_set_id), 'w')
                 for pruned_seq_id, pruned_seq in pruned_seqs.items():
-                    valid_bases = len(
-                        pruned_seq) - pruned_seq.count('.') - pruned_seq.count('-')
-                    perc_alignment = valid_bases * 100.0 / len(pruned_seq)
+                    if len(pruned_seq) == 0:
+                        perc_alignment = 0
+                    else:
+                        valid_bases = sum([1 for c in pruned_seq if c.isalpha()])
+                        perc_alignment = valid_bases * 100.0 / len(pruned_seq)
                     fout.write('%s\t%s\n' % (pruned_seq_id,
                                              'Insufficient number of amino acids in MSA (%.1f%%)' % perc_alignment))
                 fout.close()
 
-                # write out MSA
-                self.logger.info(
-                    'Creating concatenated alignment for %d taxa.' % len(trimmed_seqs))
-                msa_file = os.path.join(
-                    out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
-                self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
+                # write out MSAs
+                if not skip_gtdb_refs:
+                    self.logger.info('Creating concatenated alignment for %d GTDB and user genomes.' % len(trimmed_seqs))
+                    msa_file = os.path.join(out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
+                    self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
 
-                user_msa_file = os.path.join(
-                    out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                trimmed_user_msa = {
-                    k: v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                trimmed_user_msa = {k: v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                self.logger.info('Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
+                user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
                 self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
 
                 #==============================================================
