@@ -2,28 +2,46 @@
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
 
+GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
+efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
+
+GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
+
+
+* [Announcements](#announcements)
+* [Hardware requirements](#hardware-requirements)
+* [Dependencies](#dependencies)
+  * [Python libraries](#python-libraries)
+  * [Third-party software](#third-party-software)
+  * [Perl modules](#perl-modules)
+  * [GTDB-Tk reference data](#gtdb-tk-reference-data)
+* [pip installation](#pip-installation)
+* [Bioconda installation](#bioconda-installation)
+* [Quick start](#quick-start)
+* [Classify workflow](#classify-workflow)
+* [Validating species assignments with ANI](#validating-species-assignments-with-average-nucleotide-identity)
+* [Classification summary file](#classification-summary-file)
+* [<i>De novo</i> workflow](#de-novo-workflow)
+* [Individual steps](#individual-steps)
+* [References](#references)
+
+## Announcements
 **Note (Sept. 20, 2018)**:
-- GTDB-Tk v0.1.2 has been released and addresses an issue with species assignments based on the placement of genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes. Species assignments reported by ANI were not impacted.
+- GTDB-Tk v0.1.3 has been released and addresses an issue with species assignments based on the placement of genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes. Species assignments reported by ANI were not impacted.
 - We recommend all users update to this version.
 
 **Note (Aug. 30, 2018)**:
 - A new version of the data (release 86) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
 - This new version is required to run GTDB-Tk v0.1.0+
 
-GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
-efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
-
-GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepencies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
-
 ## Hardware requirements
 - ~90Gb of memory to run
 - ~25Gb of storage
 - ~1 hour per 1,000 genomes when using 64 CPUs
 
-## Installation
+## Dependencies
 
-#### Dependencies
-1. **Python libraries**
+### Python libraries
 
 GTDB-Tk requires the following Python libraries:
 * [jinja2](http://jinja.pocoo.org/) >=2.7.3: a full featured template engine for Python.
@@ -34,7 +52,7 @@ GTDB-Tk requires the following Python libraries:
 
 Jinja2, mpld3, dendropy and biolib will be installed as part of GTDB-Tk when installing it via pip (see below). The **SciPy Stack** must be installed separately.
 
-2. **Third party software**
+### Third-party software
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes these are on your system path:
 * [Prodigal](http://prodigal.ornl.gov/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
@@ -44,7 +62,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 ) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
-3. **Perl modules**
+### Perl modules
 
 GTDB-Tk assumes the Python 2.7.x and Perl interpreters are on your system path.    
 <u>**note:**</u>  Perl interpreter requires Moose, Bundle::BioPerl and IPC::Run modules. You can install those modules using CPAN:
@@ -60,7 +78,7 @@ Make sure that the installed Perl modules (.pm) paths are part of the @inc varia
 export PERL5LIB="$PERL5LIB:/path/to/moose/module:/path/to/ipc/module:/path/to/bioperl/module"
 ```
 
-4. **GTDB-Tk reference data**
+### GTDB-Tk reference data
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
@@ -73,9 +91,9 @@ Reference data for prior releases of GTDB-Tk are available at:
 wget https://data.ace.uq.edu.au/public/gtdbtk
 ```
 
-5. **pip installation**
+## pip installation
 
-Once these dependencies are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
+Once dependencies are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
 > pip install gtdbtk
 ```
@@ -86,6 +104,13 @@ cd config
 cp config_template.py config.py
 ```
 Edit the config.py file and modify the GENERIC_PATH variables so it point to the directory containing the data downloaded from https://data.ace.uq.edu.au/public/gtdbtk/. Make sure the variable finishes with a slash '/'.
+
+## Bioconda installation
+
+A Bioconda receipe has been put together by [Natasha](https://github.com/npavlovikj) (thanks!). You can find the receipe at:
+https://anaconda.org/bioconda/gtdbtk
+
+The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
 
 ## Quick start
 
@@ -101,7 +126,7 @@ Usage information about each methods can also be accessed through their species 
 
 ## Classify workflow
 
-The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://prodigal.ornl.gov/) and then uses HMM models and the [HMMER](http://http://hmmer.org/) package to identify the marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and applies all necessary filtering to the concatenated multiple sequence alignment (MSA). Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and ANI to reference genomes.
+The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://prodigal.ornl.gov/), and HMM models and the [HMMER](http://http://hmmer.org/) package to identify the 120 bacterial and 122 archaeal marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and filters the concatenated multiple sequence alignment (MSA) to approximately 5,000 amino acids. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and ANI to reference genomes.
  
 The classify workflow can be run as follows:
 ```
@@ -162,7 +187,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * closest_placement_af: Indicates the AF between the query and above reference genome.
 * classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI/Placement, indicating a species assignment was made based on both the calculate ANI and placement of the genome in the reference tree; ii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iii) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). The GTDB-Tk will leave the species field empty (i.e., s__) when the two methods are incongruent.
-* other_related_references: Lists the top 100 closest reference genomes with an ANI >= 95% when (and only when) ANI must be calculated to determine the species assignment of a genome.
+* other_related_references: Lists the top 100 closest reference genomes.
 
 ## De novo workflow
 
