@@ -177,7 +177,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 
 * user_genome: Unique identifer of genome taken from the FASTA file for the genome.
 * classification: GTDB taxonomy string inferred by the GTDB-Tk. The GTDB does not provide species assignments for all reference genomes (e.g., taxonomic groups composed entirely of metagenome-assembled genomes). In such cases, species assignments will reflect the accession number of the reference genome (e.g., s__GCA_001940855.1). A unassigned species (i.e., s__) indicates that either the genome represents a novel species or that a species assignment could not be reliably established as indicated by the following fields.
-* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus, are calculated for all reference genomes in the genus, and only reported if the closest reference genome has an ANI >=95%.
+* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in the genus.
 * fastani_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
 * fastani_ani: Indicates the ANI between the query and above reference genome.
 * fastani_af: Indicates the AF between the query and above reference genome.
@@ -187,7 +187,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * closest_placement_af: Indicates the AF between the query and above reference genome.
 * classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI/Placement, indicating a species assignment was made based on both the calculate ANI and placement of the genome in the reference tree; ii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iii) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). The GTDB-Tk will leave the species field empty (i.e., s__) when the two methods are incongruent.
-* other_related_references: Lists the top 100 closest reference genomes with an ANI >= 95% when (and only when) ANI must be calculated to determine the species assignment of a genome.
+* other_related_references: Lists the top 100 closest reference genomes.
 
 ## De novo workflow
 
