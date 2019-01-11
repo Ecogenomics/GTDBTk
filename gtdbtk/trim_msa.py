@@ -24,7 +24,7 @@ __author__ = 'Pierre Chaumeil and Donovan Parks'
 __copyright__ = 'Copyright 2017'
 __credits__ = ['Pierre Chaumeil', 'Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
@@ -88,7 +88,7 @@ class TrimMSA(object):
         
         # write out trimmed sequences
         filter_file = open(os.path.join(self.output_dir, "filtered_msa.faa"), 'w')
-        for gid, seq in filtered_seqs:
+        for gid, seq in filtered_seqs.items():
             fasta_outstr = ">%s\n%s\n" % (gid, seq)
             filter_file.write(fasta_outstr)
         filter_file.close()
@@ -137,14 +137,14 @@ class TrimMSA(object):
         for genome_id, aligned_seq in output_seqs.iteritems():
             aa_len = sum([1 for c in aligned_seq if c.isalpha()])
             if aa_len != 0:
-                aa_perc = aa_len*100.0/len(aligned_seq)
+                aa_perc = float(aa_len)/len(aligned_seq)
             else:
                 aa_perc = 0
             len_outstr = "%s\t%d\t%d\t%.2f\n" % (
                             genome_id, 
                             len(aligned_seq), 
                             aa_len, 
-                            aa_perc)
+                            aa_perc*100.0)
             nbr_aa_seqs.write(len_outstr)
             
             if aa_perc >= self.min_perc_aa:
