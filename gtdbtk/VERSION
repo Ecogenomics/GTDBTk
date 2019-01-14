@@ -1,6 +1,8 @@
 0.1.6
-- align step in classify_wf function has been fixed
-- improve summary file output  
+- align step in classify_wf and de_novo_wf function has been fixed.
+- improve summary file output.
+- "align" function now supports the same custom trimming GTDB will be performing.
+- returns closest reference genome to summary file (even if the ANI is less than 95%)
 0.1.5
 - bug fixing 
 0.1.4
