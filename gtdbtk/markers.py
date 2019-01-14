@@ -543,14 +543,6 @@ class Markers(object):
                     out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
                 self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
 
-                #==============================================================
-                # #all_user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                # trimmed_all_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                # pruned_all_user_msa = {k:v for k, v in pruned_seqs.iteritems() if k in user_msa}
-                # all_user_msa = merge_two_dicts(trimmed_all_user_msa,pruned_all_user_msa)
-                # self._write_msa(all_user_msa, all_user_msa_file, gtdb_taxonomy)
-                #==============================================================
-
         except IOError as e:
             self.logger.error(str(e))
             self.logger.error("GTDB-Tk has encountered an error.")

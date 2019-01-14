@@ -200,12 +200,20 @@ class OptionsParser():
         self.logger.info(
             'Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
 
-        output_tree = os.path.join(
-            options.out_dir, options.prefix + options.suffix + '.unrooted.tree')
-        tree_log = os.path.join(
-            options.out_dir, options.prefix + options.suffix + '.tree.log')
-        fasttree_log = os.path.join(
-            options.out_dir, options.prefix + options.suffix + '.fasttree.log')
+        if hasattr(options, 'suffix'):
+            output_tree = os.path.join(
+                options.out_dir, options.prefix + options.suffix + '.unrooted.tree')
+            tree_log = os.path.join(
+                options.out_dir, options.prefix + options.suffix + '.tree.log')
+            fasttree_log = os.path.join(
+                options.out_dir, options.prefix + options.suffix + '.fasttree.log')
+        else:
+            output_tree = os.path.join(
+                options.out_dir, options.prefix + '.unrooted.tree')
+            tree_log = os.path.join(
+                options.out_dir, options.prefix + '.tree.log')
+            fasttree_log = os.path.join(
+                options.out_dir, options.prefix + '.fasttree.log')
 
         if options.prot_model == 'JTT':
             model_str = ''
