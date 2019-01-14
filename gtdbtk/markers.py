@@ -365,20 +365,20 @@ class Markers(object):
                 ar_gids.add(gid)
 
         return bac_gids, ar_gids
-        
+
     def _write_marker_info(self, marker_db, marker_file):
         """Write out information about markers comprising MSA."""
-        
-        marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir,'individual_hmms'),
-                        "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmms),'individual_hmms')}
-        
+
+        marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
+                        "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmms), 'individual_hmms')}
+
         fout = open(marker_file, 'w')
         fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
         for db_marker in sorted(marker_db):
             for marker in marker_db[db_marker]:
                 marker_id = marker[0:marker.rfind('.')]
                 marker_path = os.path.join(marker_paths[db_marker], marker)
-                
+
                 # get marker name, description, and size
                 with open(marker_path) as fp:
                     for line in fp:
@@ -390,7 +390,8 @@ class Markers(object):
                             marker_size = line.split("  ")[1].strip()
                             break
 
-                fout.write('%s\t%s\t%s\t%s\n' % (marker_id, marker_name, marker_desc, marker_size))
+                fout.write('%s\t%s\t%s\t%s\n' %
+                           (marker_id, marker_name, marker_desc, marker_size))
         fout.close()
 
     def align(self,
@@ -410,10 +411,14 @@ class Markers(object):
 
         try:
             # write out files with marker information
-            bac120_marker_info_file = os.path.join(out_dir, prefix + '.bac120.marker_info.tsv')
-            self._write_marker_info(Config.BAC120_MARKERS, bac120_marker_info_file)
-            ar122_marker_info_file =os.path.join(out_dir, prefix + '.ar122.marker_info.tsv')
-            self._write_marker_info(Config.AR122_MARKERS, ar122_marker_info_file)
+            bac120_marker_info_file = os.path.join(
+                out_dir, prefix + '.bac120.marker_info.tsv')
+            self._write_marker_info(
+                Config.BAC120_MARKERS, bac120_marker_info_file)
+            ar122_marker_info_file = os.path.join(
+                out_dir, prefix + '.ar122.marker_info.tsv')
+            self._write_marker_info(
+                Config.AR122_MARKERS, ar122_marker_info_file)
 
             genomic_files = self._path_to_identify_data(identify_dir)
             self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
@@ -466,30 +471,33 @@ class Markers(object):
                 # filter columns without sufficient representation across taxa
                 if custom_msa_filters:
                     aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-                    self.logger.info('Performing custom filtering and selection of columns.')
+                    self.logger.info(
+                        'Performing custom filtering and selection of columns.')
 
                     trim_msa = TrimMSA(cols_per_gene,
-                                        min_perc_aa / 100.0,
-                                        min_consensus / 100.0,
-                                        max_consensus / 100.0,
-                                        min_per_taxa / 100.0,
-                                        os.path.join(out_dir, 'filter_%s' % marker_set_id))
+                                       min_perc_aa / 100.0,
+                                       min_consensus / 100.0,
+                                       max_consensus / 100.0,
+                                       min_per_taxa / 100.0,
+                                       os.path.join(out_dir, 'filter_%s' % marker_set_id))
 
                     trimmed_seqs, pruned_seqs = trim_msa.trim(aligned_genomes,
-                                                                    marker_info_file)
+                                                              marker_info_file)
 
                     if trimmed_seqs:
                         self.logger.info('Filtered MSA from %d to %d AAs.' % (
-                                            len(aligned_genomes.values()[0]),
-                                            len(trimmed_seqs.values()[0])))
+                            len(aligned_genomes.values()[0]),
+                            len(trimmed_seqs.values()[0])))
 
                     self.logger.info('Filtered %d genomes with amino acids in <%.1f%% of columns in filtered MSA.' % (
-                                    len(pruned_seqs),
-                                    min_perc_aa))
+                        len(pruned_seqs),
+                        min_perc_aa))
 
-                    filtered_user_genomes = set(pruned_seqs).intersection(user_msa)
+                    filtered_user_genomes = set(
+                        pruned_seqs).intersection(user_msa)
                     if len(filtered_user_genomes):
-                        self.logger.info('Filtered genomes include %d user submitted genomes.' % len(filtered_user_genomes))
+                        self.logger.info('Filtered genomes include %d user submitted genomes.' % len(
+                            filtered_user_genomes))
                 else:
                     self.logger.info(
                         'Masking columns of multiple sequence alignment using canonical mask.')
@@ -512,7 +520,8 @@ class Markers(object):
                     if len(pruned_seq) == 0:
                         perc_alignment = 0
                     else:
-                        valid_bases = sum([1 for c in pruned_seq if c.isalpha()])
+                        valid_bases = sum(
+                            [1 for c in pruned_seq if c.isalpha()])
                         perc_alignment = valid_bases * 100.0 / len(pruned_seq)
                     fout.write('%s\t%s\n' % (pruned_seq_id,
                                              'Insufficient number of amino acids in MSA (%.1f%%)' % perc_alignment))
@@ -520,22 +529,19 @@ class Markers(object):
 
                 # write out MSAs
                 if not skip_gtdb_refs:
-                    self.logger.info('Creating concatenated alignment for %d GTDB and user genomes.' % len(trimmed_seqs))
-                    msa_file = os.path.join(out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
+                    self.logger.info(
+                        'Creating concatenated alignment for %d GTDB and user genomes.' % len(trimmed_seqs))
+                    msa_file = os.path.join(
+                        out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
                     self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
 
-                trimmed_user_msa = {k: v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                self.logger.info('Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
-                user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                trimmed_user_msa = {
+                    k: v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                self.logger.info(
+                    'Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
+                user_msa_file = os.path.join(
+                    out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
                 self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
-
-                #==============================================================
-                # #all_user_msa_file = os.path.join(out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                # trimmed_all_user_msa = {k:v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                # pruned_all_user_msa = {k:v for k, v in pruned_seqs.iteritems() if k in user_msa}
-                # all_user_msa = merge_two_dicts(trimmed_all_user_msa,pruned_all_user_msa)
-                # self._write_msa(all_user_msa, all_user_msa_file, gtdb_taxonomy)
-                #==============================================================
 
         except IOError as e:
             self.logger.error(str(e))

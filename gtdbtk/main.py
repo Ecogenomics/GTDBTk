@@ -200,32 +200,43 @@ class OptionsParser():
         self.logger.info(
             'Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
 
-        output_tree = os.path.join(options.out_dir, options.prefix + '.unrooted.tree')
-        tree_log = os.path.join(options.out_dir, options.prefix + '.tree.log')
-        fasttree_log = os.path.join(options.out_dir, options.prefix + '.fasttree.log')
-        
+        if hasattr(options, 'suffix'):
+            output_tree = os.path.join(
+                options.out_dir, options.prefix + options.suffix + '.unrooted.tree')
+            tree_log = os.path.join(
+                options.out_dir, options.prefix + options.suffix + '.tree.log')
+            fasttree_log = os.path.join(
+                options.out_dir, options.prefix + options.suffix + '.fasttree.log')
+        else:
+            output_tree = os.path.join(
+                options.out_dir, options.prefix + '.unrooted.tree')
+            tree_log = os.path.join(
+                options.out_dir, options.prefix + '.tree.log')
+            fasttree_log = os.path.join(
+                options.out_dir, options.prefix + '.fasttree.log')
+
         if options.prot_model == 'JTT':
             model_str = ''
         elif options.prot_model == 'WAG':
             model_str = ' -wag'
         elif options.prot_model == 'LG':
             model_str = ' -lg'
-        
+
         support_str = ''
         if options.no_support:
             support_str = ' -nosupport'
-            
+
         gamma_str = ' -gamma'
         if options.no_gamma:
             gamma_str = ''
 
         cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
-                                                                model_str,
-                                                                gamma_str,
-                                                                tree_log,
-                                                                options.msa_file,
-                                                                output_tree,
-                                                                fasttree_log)
+                                                      model_str,
+                                                      gamma_str,
+                                                      tree_log,
+                                                      options.msa_file,
+                                                      output_tree,
+                                                      fasttree_log)
         if options.cpus > 1:
             cmd = 'FastTreeMP ' + cmd
         else:
@@ -323,8 +334,12 @@ class OptionsParser():
             else:
                 options.suffix = ".ar122"
 
-            options.msa_file = os.path.join(options.out_dir,
-                                            options.prefix + options.suffix + ".msa.fasta")
+            if options.skip_gtdb_refs:
+                options.msa_file = os.path.join(
+                    options.out_dir, options.prefix + options.suffix + ".user_msa.fasta")
+            else:
+                options.msa_file = os.path.join(options.out_dir,
+                                                options.prefix + options.suffix + ".msa.fasta")
             self.infer(options)
 
             options.input_tree = os.path.join(options.out_dir,
@@ -343,8 +358,11 @@ class OptionsParser():
             options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
-            options.consensus = None
+            options.min_consensus = None
             options.min_perc_taxa = None
+            options.skip_gtdb_refs = False
+            options.cols_per_gene = None
+            options.max_consensus = None
             self.align(options)
 
             self.classify(options)

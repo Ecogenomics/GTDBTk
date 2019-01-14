@@ -91,29 +91,44 @@ if __name__ == '__main__':
     mutex_group.add_argument('--ar122_ms', action='store_true', help='use 122 archaeal marker genes')
 
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
-    required_denovo_wf.add_argument('--outgroup_taxon', required=True,
-                                help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+    #required_denovo_wf.add_argument('--outgroup_taxon', required=True,
+    #                            help="taxon to use as outgroup (e.g., p__Patescibacteria)")
     required_denovo_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
 
     optional_denovo_wf = denovo_wf_parser.add_argument_group('optional arguments')
     optional_denovo_wf.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process')
+                                    
+    optional_denovo_wf.add_argument('--skip_gtdb_refs',
+                                    action="store_true",
+                                    help='Do not include GTDB reference genomes in multiple sequence alignment.')
     optional_denovo_wf.add_argument('--taxa_filter',
-                                       help=('Filter genomes to taxa (comma separated) within '
+                                       help=('Filter GTDB genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
                                             + 'or p__Proteobacteria, p__Actinobacteria).'))
-    optional_denovo_wf.add_argument('--min_perc_aa', type=float, default=0,
-                                       help='filter genomes with an insufficient percentage of AA in the MSA')
+    optional_denovo_wf.add_argument('--min_perc_aa', type=float, default=10,
+                                       help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
     optional_denovo_wf.add_argument('--custom_msa_filters', action="store_true",
-                                       help=('perform custom filtering of MSA with consensus '
-                                                + 'and min_perc_taxa parameters instead of using canonical mask'))
-    optional_denovo_wf.add_argument('--consensus', type=float, default=25,
-                                       help='minimum percentage of the same amino acid required to retain column')
+                                       help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
+                                                + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+    optional_denovo_wf.add_argument('--cols_per_gene', type=int, default=42,
+                                       help='maximum number of columns to retain per gene')
+    optional_denovo_wf.add_argument('--min_consensus', type=float, default=25,
+                                       help='minimum percentage of the same amino acid required to retain column (inclusive bound)')
+    optional_denovo_wf.add_argument('--max_consensus', type=float, default=95,
+                                       help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_denovo_wf.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required required to retain column')
-    optional_denovo_wf.add_argument('--prot_model', choices=['WAG', 'LG'], 
+                                       help='minimum percentage of taxa required to retain column (inclusive bound)')
+                                       
+                                       
+    optional_denovo_wf.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
                                     help='protein substitution model for tree inference', default='WAG')
+    optional_denovo_wf.add_argument('--no_support', action="store_true", 
+                                    help="do not compute local support values using the Shimodaira-Hasegawa test")
+    optional_denovo_wf.add_argument('--no_gamma', action="store_true", 
+                                    help="do not rescale branch lengths to optimize the Gamma20 likelihood")
+                                    
     optional_denovo_wf.add_argument('--prefix', default='gtdbtk',
                                     help='desired prefix for output files')
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,

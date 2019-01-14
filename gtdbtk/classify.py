@@ -470,6 +470,8 @@ class Classify():
                         if leaf.taxon.label in unclassified_user_genomes:
                             summary_list = unclassified_user_genomes.get(
                                 leaf.taxon.label)
+                            if summary_list[12] == '':
+                                summary_list[12] = None
                         summary_list[0] = leaf.taxon.label
                         summary_list[1] = self.standardise_taxonomy(
                             red_taxonomy)

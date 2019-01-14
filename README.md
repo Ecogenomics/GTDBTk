@@ -169,7 +169,7 @@ Classify step:
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. GTDB-Tk reports reference genomes with an ANI >= 95% to a query genome and uses the closest reference genome to validate species assignments.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. Reference genomes with an ANI >= 95% to a query genome are used to validate species assignments.
 
 ## Classification summary file 
 
