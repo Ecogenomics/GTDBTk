@@ -50,6 +50,7 @@ class TrimMSA(object):
                         min_consensus,
                         max_consensus,
                         min_perc_taxa,
+                        rnd_seed,
                         out_dir):
         """Initialization."""
         
@@ -69,6 +70,8 @@ class TrimMSA(object):
         
         # remove genomes without sufficient number of amino acids in MSA
         self.min_perc_aa = min_perc_aa
+        
+        random.seed(rnd_seed)
 
         self.logger = logging.getLogger('timestamp')
 
@@ -224,7 +227,8 @@ class TrimMSA(object):
                 lack_cols_marker_ids.append(marker_id)
                 
             offset_valid_cols = [i+start for i in valid_cols]
-            sampled_cols.extend(random.sample(offset_valid_cols, min(self.subset, len(offset_valid_cols))))
+            sel_cols = random.sample(offset_valid_cols, min(self.subset, len(offset_valid_cols)))
+            sampled_cols.extend(sel_cols)
             
             start = end
  
@@ -266,6 +270,8 @@ if __name__ == '__main__':
                                        help='maximum percentage of the same amino acid required to retain column')
     parser.add_argument('--min_perc_taxa', type=float, default=0.50,
                                        help='minimum percentage of taxa required to retain column')
+    parser.add_argument('--rnd_seed', type=int, default=None,
+                                       help='random seed to use for selecting columns')
     parser.add_argument('--out_dir', help='output directory')
     
     args = parser.parse_args()
@@ -278,6 +284,7 @@ if __name__ == '__main__':
                         args.min_consensus,
                         args.max_consensus,
                         args.min_perc_taxa,
+                        args.rnd_seed,
                         args.out_dir)
         p.run(args.msa, args.marker_list)
     except SystemExit:
