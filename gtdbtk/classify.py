@@ -307,7 +307,7 @@ class Classify():
 
                     all_fastani_dict = dict(out_q)
 
-                classified_user_genomes = self._sort_fastani_results(
+                classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
                     fastani_verification, all_fastani_dict, summaryfout)
 
                 self.logger.info('{0} genomes have been classify using FastANI and Pplacer.'.format(
@@ -467,6 +467,11 @@ class Classify():
                         del debug_info[0]
 
                         summary_list = [None] * 13
+                        if leaf.taxon.label in unclassified_user_genomes:
+                            summary_list = unclassified_user_genomes.get(
+                                leaf.taxon.label)
+                            if summary_list[12] == '':
+                                summary_list[12] = None
                         summary_list[0] = leaf.taxon.label
                         summary_list[1] = self.standardise_taxonomy(
                             red_taxonomy)
@@ -571,6 +576,7 @@ class Classify():
 
     def _sort_fastani_results(self, fastani_verification, all_fastani_dict, summaryfout):
         classified_user_genomes = []
+        unclassified_user_genomes = {}
         for userleaf, potential_nodes in fastani_verification.iteritems():
             summary_list = [None] * 13
             if potential_nodes.get("pplacer_g"):
@@ -588,48 +594,57 @@ class Classify():
                     summary_list[2] = fastani_matching_reference
                     summary_list[3] = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(fastani_matching_reference)))
-                    summary_list[4] = all_fastani_dict.get(userleaf.taxon.label).get(
+                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
                         fastani_matching_reference).get('ani')
+                    summary_list[4] = current_ani
                     summary_list[5] = all_fastani_dict.get(userleaf.taxon.label).get(
                         fastani_matching_reference).get('af')
                     summary_list[10] = 'ANI/Placement'
 
-                    if pplacer_leafnode == fastani_matching_reference:
-                        if taxa_str.endswith("s__"):
-                            taxa_str = taxa_str + pplacer_leafnode
-                        summary_list[1] = self.standardise_taxonomy(taxa_str)
-                        summary_list[6] = summary_list[2]
-                        summary_list[7] = summary_list[3]
-                        summary_list[8] = summary_list[4]
-                        summary_list[9] = summary_list[5]
-                        summary_list[11] = 'topological placement and ANI have congruent species assignments'
-                        if len(sorted_dict) > 0:
-                            summary_list[12] = '; '.join(self._formatnote(
-                                sorted_dict, [fastani_matching_reference]))
+                    if Config.FASTANI_SPECIES_THRESHOLD <= current_ani:
+                        if pplacer_leafnode == fastani_matching_reference:
+                            if taxa_str.endswith("s__"):
+                                taxa_str = taxa_str + pplacer_leafnode
+                            summary_list[1] = self.standardise_taxonomy(
+                                taxa_str)
+                            summary_list[6] = summary_list[2]
+                            summary_list[7] = summary_list[3]
+                            summary_list[8] = summary_list[4]
+                            summary_list[9] = summary_list[5]
+                            summary_list[11] = 'topological placement and ANI have congruent species assignments'
+                            if len(sorted_dict) > 0:
+                                summary_list[12] = '; '.join(self._formatnote(
+                                    sorted_dict, [fastani_matching_reference]))
 
-                        summaryfout.write("{}\n".format(
-                            '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
+                            summaryfout.write("{}\n".format(
+                                '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
 
+                        else:
+                            taxa_str = taxa_str[0:taxa_str.rindex(';')]
+                            summary_list[1] = self.standardise_taxonomy(
+                                taxa_str)
+                            summary_list[6] = pplacer_leafnode
+                            summary_list[7] = ";".join(self.gtdb_taxonomy.get(
+                                add_ncbi_prefix(pplacer_leafnode)))
+                            if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
+                                summary_list[8] = all_fastani_dict.get(
+                                    userleaf.taxon.label).get(pplacer_leafnode).get('ani')
+                                summary_list[9] = all_fastani_dict.get(
+                                    userleaf.taxon.label).get(pplacer_leafnode).get('af')
+                            summary_list[11] = 'topological placement and ANI have incongruent species assignments'
+                            if len(sorted_dict) > 0:
+                                summary_list[12] = '; '.join(self._formatnote(
+                                    sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
+
+                            summaryfout.write("{}\n".format(
+                                '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
+                        classified_user_genomes.append(userleaf.taxon.label)
                     else:
-                        taxa_str = taxa_str[0:taxa_str.rindex(';')]
-                        summary_list[1] = self.standardise_taxonomy(taxa_str)
-                        summary_list[6] = pplacer_leafnode
-                        summary_list[7] = ";".join(self.gtdb_taxonomy.get(
-                            add_ncbi_prefix(pplacer_leafnode)))
-                        if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
-                            summary_list[8] = all_fastani_dict.get(
-                                userleaf.taxon.label).get(pplacer_leafnode).get('ani')
-                            summary_list[9] = all_fastani_dict.get(
-                                userleaf.taxon.label).get(pplacer_leafnode).get('af')
-                        summary_list[11] = 'topological placement and ANI have incongruent species assignments'
                         if len(sorted_dict) > 0:
                             summary_list[12] = '; '.join(self._formatnote(
                                 sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
+                        unclassified_user_genomes[userleaf.taxon.label] = summary_list
 
-                        summaryfout.write("{}\n".format(
-                            '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
-
-                    classified_user_genomes.append(userleaf.taxon.label)
             elif userleaf.taxon.label in all_fastani_dict:
                 sorted_dict = sorted(all_fastani_dict.get(
                     userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
@@ -641,21 +656,28 @@ class Classify():
                 summary_list[2] = fastani_matching_reference
                 summary_list[3] = ";".join(self.gtdb_taxonomy.get(
                     add_ncbi_prefix(fastani_matching_reference)))
-                summary_list[4] = all_fastani_dict.get(userleaf.taxon.label).get(
+                current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('ani')
+                summary_list[4] = current_ani
                 summary_list[5] = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('af')
                 summary_list[10] = 'ANI/Placement'
-                summary_list[11] = 'topological placement and ANI have incongruent species assignments'
-                if len(sorted_dict) > 0:
-                    summary_list[12] = '; '.join(self._formatnote(
-                        sorted_dict, [fastani_matching_reference]))
+                if Config.FASTANI_SPECIES_THRESHOLD <= current_ani:
+                    summary_list[11] = 'topological placement and ANI have incongruent species assignments'
+                    if len(sorted_dict) > 0:
+                        summary_list[12] = '; '.join(self._formatnote(
+                            sorted_dict, [fastani_matching_reference]))
 
-                summaryfout.write("{}\n".format(
-                    '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
+                    summaryfout.write("{}\n".format(
+                        '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
 
-                classified_user_genomes.append(userleaf.taxon.label)
-        return classified_user_genomes
+                    classified_user_genomes.append(userleaf.taxon.label)
+                else:
+                    if len(sorted_dict) > 0:
+                        summary_list[12] = '; '.join(self._formatnote(
+                            sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
+                    unclassified_user_genomes[userleaf.taxon.label] = summary_list
+        return classified_user_genomes, unclassified_user_genomes
 
     def _fastaniWorker(self, sublist_genomes, genomes, out_q):
         """Multi thread worker to calculate FastANI"""
@@ -919,9 +941,9 @@ class Classify():
                 user_g = remove_extension(os.path.basename(info[0]))
                 ani = round(float(info[2]), 2)
                 af = round(float(info[3]) / float(info[4]), 2)
-                if user_g in dict_results and Config.FASTANI_SPECIES_THRESHOLD <= ani:
+                if user_g in dict_results:
                     dict_results[user_g][ref_genome] = {"ani": ani, 'af': af}
-                elif Config.FASTANI_SPECIES_THRESHOLD <= ani:
+                else:
                     dict_results[user_g] = {ref_genome: {"ani": ani, "af": af}}
 
         return dict_results
