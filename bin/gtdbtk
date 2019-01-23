@@ -111,7 +111,7 @@ if __name__ == '__main__':
     optional_denovo_wf.add_argument('--consensus', type=float, default=25,
                                        help='minimum percentage of the same amino acid required to retain column')
     optional_denovo_wf.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required required to retain column')
+                                       help='minimum percentage of taxa required to retain column')
     optional_denovo_wf.add_argument('--prot_model', choices=['WAG', 'LG'], 
                                     help='protein substitution model for tree inference', default='WAG')
     optional_denovo_wf.add_argument('--prefix', default='gtdbtk',

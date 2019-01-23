@@ -61,7 +61,7 @@ class TrimMSA(object):
         self.subset = cols_per_gene     # default: 42 * ~120 genes ~= 5,000 columns
         
         # only consider columns with less than this percentage of gaps
-        self.max_gaps = min_perc_taxa
+        self.max_gaps = 1.0 - min_perc_taxa
         
         # only consider columns where the most common amino acid is
         # between these two percent boundaries
