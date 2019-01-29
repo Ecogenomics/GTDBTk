@@ -20,14 +20,11 @@ import sys
 import logging
 from collections import defaultdict, namedtuple
 
-from biolib.taxonomy import Taxonomy
-from biolib.common import is_float
-from biolib.newick import parse_label
+from biolib_lite.taxonomy import Taxonomy
+from biolib_lite.common import is_float
+from biolib_lite.newick import parse_label
 
 import dendropy
-
-#import mpld3
-#from biolib.plots.abstract_plot import AbstractPlot
 
 from numpy import (mean as np_mean,
                    std as np_std,
@@ -40,18 +37,18 @@ from numpy import (mean as np_mean,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
 
-                   
+
 class RelativeDistance():
     """Determine relative rates of evolutionary divergence.
-    
+
     This code is based on Phylorank: https://github.com/dparks1134/PhyloRank 
-       
+
     """
-    
+
     def __init__(self):
         """Initialization."""
         self.logger = logging.getLogger()
-        
+
         #Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
         #options = Options(6, 6, 12, 12, 96)
         #AbstractPlot.__init__(self, options)
@@ -85,7 +82,8 @@ class RelativeDistance():
                 node.num_taxa = sum([1 for _ in node.leaf_iter()])
                 for c in node.child_node_iter():
                     num_tips = c.num_taxa
-                    avg_div += (float(c.num_taxa) / node.num_taxa) * (c.mean_dist + c.edge_length)
+                    avg_div += (float(c.num_taxa) / node.num_taxa) * \
+                        (c.mean_dist + c.edge_length)
 
             node.mean_dist = avg_div
 
@@ -160,10 +158,11 @@ class RelativeDistance():
                 taxon_name = taxon_name.split(';')[-1].strip()
 
             most_specific_rank = taxon_name[0:3]
-            rel_dists[Taxonomy.rank_index[most_specific_rank]][taxon_name] = node.rel_dist
+            rel_dists[Taxonomy.rank_index[most_specific_rank]
+                      ][taxon_name] = node.rel_dist
 
         return rel_dists
- 
+
     def _distribution_summary_plot(self, phylum_rel_dists, taxa_for_dist_inference, plot_file):
         """Summary plot showing the distribution of taxa at each taxonomic rank under different rootings.
 
@@ -187,15 +186,20 @@ class RelativeDistance():
         # create percentile and classification boundary lines
         percentiles = {}
         for i, rank in enumerate(sorted(medians_for_taxa.keys())):
-            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].iteritems() if taxon in taxa_for_dist_inference]
+            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].iteritems(
+            ) if taxon in taxa_for_dist_inference]
             if not v:
-                # not taxa at rank suitable for creating classification boundaries
+                # not taxa at rank suitable for creating classification
+                # boundaries
                 continue
-            
+
             p10, p50, p90 = np_percentile(v, [10, 50, 90])
-            ax.plot((p10, p10), (i, i + 0.25), c=(0.3, 0.3, 0.3), lw=2, zorder=2)
-            ax.plot((p50, p50), (i, i + 0.5), c=(0.3, 0.3, 0.3), lw=2, zorder=2)
-            ax.plot((p90, p90), (i, i + 0.25), c=(0.3, 0.3, 0.3), lw=2, zorder=2)
+            ax.plot((p10, p10), (i, i + 0.25),
+                    c=(0.3, 0.3, 0.3), lw=2, zorder=2)
+            ax.plot((p50, p50), (i, i + 0.5),
+                    c=(0.3, 0.3, 0.3), lw=2, zorder=2)
+            ax.plot((p90, p90), (i, i + 0.25),
+                    c=(0.3, 0.3, 0.3), lw=2, zorder=2)
 
             for b in [-0.2, -0.1, 0.1, 0.2]:
                 boundary = p50 + b
@@ -204,7 +208,8 @@ class RelativeDistance():
                         c = (1.0, 0.65, 0.0)  # orange
                     else:
                         c = (1.0, 0.0, 0.0)
-                    ax.plot((boundary, boundary), (i, i + 0.5), c=c, lw=2, zorder=2)
+                    ax.plot((boundary, boundary),
+                            (i, i + 0.5), c=c, lw=2, zorder=2)
 
             percentiles[i] = [p10, p50, p90]
 
@@ -216,7 +221,8 @@ class RelativeDistance():
         rank_labels = []
         for i, rank in enumerate(sorted(medians_for_taxa.keys())):
             rank_label = Taxonomy.rank_labels[rank]
-            rank_labels.append(rank_label + ' (%d)' % len(medians_for_taxa[rank]))
+            rank_labels.append(rank_label + ' (%d)' %
+                               len(medians_for_taxa[rank]))
 
             mono = []
             poly = []
@@ -228,7 +234,7 @@ class RelativeDistance():
                 labels.append(clade_label)
 
                 if self._is_integer(clade_label.split('^')[-1]):
-                    # taxa with a numerical suffix after a caret indicate 
+                    # taxa with a numerical suffix after a caret indicate
                     # polyphyletic groups when decorated with tax2tree
                     c.append((1.0, 0.0, 0.0))
                     poly.append(md)
@@ -251,38 +257,41 @@ class RelativeDistance():
                 mono_max_count = max(np_histogram(mono, bins=bins)[0])
                 mono_weights = np_ones_like(mono) * (1.0 / mono_max_count)
 
-                w = float(len(mono)) / (len(mono) + len(poly) + len(no_inference))
+                w = float(len(mono)) / (len(mono) +
+                                        len(poly) + len(no_inference))
                 n, b, p = ax.hist(mono, bins=bins,
-                          color=(0.0, 0.0, 1.0),
-                          alpha=0.25,
-                          weights=0.9 * w * mono_weights,
-                          bottom=i,
-                          lw=0,
-                          zorder=0)
-                      
+                                  color=(0.0, 0.0, 1.0),
+                                  alpha=0.25,
+                                  weights=0.9 * w * mono_weights,
+                                  bottom=i,
+                                  lw=0,
+                                  zorder=0)
+
             if len(no_inference) > 0:
-                no_inference_max_count = max(np_histogram(no_inference, bins=bins)[0])
-                no_inference_weights = np_ones_like(no_inference) * (1.0 / no_inference_max_count)
+                no_inference_max_count = max(
+                    np_histogram(no_inference, bins=bins)[0])
+                no_inference_weights = np_ones_like(
+                    no_inference) * (1.0 / no_inference_max_count)
 
                 ax.hist(no_inference, bins=bins,
-                          color=(0.3, 0.3, 0.3),
-                          alpha=0.25,
-                          weights=0.9 * (1.0 - w) * no_inference_weights,
-                          bottom=i + n,
-                          lw=0,
-                          zorder=0)
+                        color=(0.3, 0.3, 0.3),
+                        alpha=0.25,
+                        weights=0.9 * (1.0 - w) * no_inference_weights,
+                        bottom=i + n,
+                        lw=0,
+                        zorder=0)
 
             if len(poly) > 0:
                 poly_max_count = max(np_histogram(poly, bins=bins)[0])
                 poly_weights = np_ones_like(poly) * (1.0 / poly_max_count)
 
                 ax.hist(poly, bins=bins,
-                          color=(1.0, 0.0, 0.0),
-                          alpha=0.25,
-                          weights=0.9 * (1.0 - w) * poly_weights,
-                          bottom=i + n,
-                          lw=0,
-                          zorder=0)
+                        color=(1.0, 0.0, 0.0),
+                        alpha=0.25,
+                        weights=0.9 * (1.0 - w) * poly_weights,
+                        bottom=i + n,
+                        lw=0,
+                        zorder=0)
 
         scatter = ax.scatter(x, y, alpha=0.5, s=48, c=c, zorder=1)
 
@@ -302,19 +311,21 @@ class RelativeDistance():
 
         # make plot interactive
         mpld3.plugins.clear(self.fig)
-        mpld3.plugins.connect(self.fig, mpld3.plugins.PointLabelTooltip(scatter, labels=labels))
-        mpld3.plugins.connect(self.fig, mpld3.plugins.MousePosition(fontsize=10))
+        mpld3.plugins.connect(
+            self.fig, mpld3.plugins.PointLabelTooltip(scatter, labels=labels))
+        mpld3.plugins.connect(
+            self.fig, mpld3.plugins.MousePosition(fontsize=10))
         mpld3.save_html(self.fig, plot_file[0:plot_file.rfind('.')] + '.html')
 
         self.fig.tight_layout(pad=1)
         self.fig.savefig(plot_file, dpi=self.dpi)
-        
+
     def _median_summary_outlier_file(self, phylum_rel_dists,
-                                            taxa_for_dist_inference,
-                                            gtdb_parent_ranks,
-                                            outlier_table,
-                                            rank_file,
-                                            verbose_table):
+                                     taxa_for_dist_inference,
+                                     gtdb_parent_ranks,
+                                     outlier_table,
+                                     rank_file,
+                                     verbose_table):
         """Identify outliers relative to the median of rank distributions.
         Parameters
         ----------
@@ -331,28 +342,31 @@ class RelativeDistance():
         verbose_table : boolean
             Print additional columns in output table.
         """
-        
+
         # determine median relative distance for each taxa
         medians_for_taxa = self.taxa_median_rd(phylum_rel_dists)
-        
+
         # determine median relative distance for each rank
-        median_for_rank = self.rank_median_rd(phylum_rel_dists, taxa_for_dist_inference)
+        median_for_rank = self.rank_median_rd(
+            phylum_rel_dists, taxa_for_dist_inference)
 
         fout_rank = open(rank_file, 'w')
         median_str = []
         for rank in sorted(median_for_rank.keys()):
-            median_str.append('"' + Taxonomy.rank_labels[rank] + '":' + str(median_for_rank[rank]))
+            median_str.append(
+                '"' + Taxonomy.rank_labels[rank] + '":' + str(median_for_rank[rank]))
         fout_rank.write('{' + ','.join(median_str) + '}\n')
         fout_rank.close()
-            
+
         fout = open(outlier_table, 'w')
         if verbose_table:
             fout.write('Taxa\tGTDB taxonomy\tMedian distance')
             fout.write('\tMedian of rank\tMedian difference')
             fout.write('\tClosest rank\tClassifciation\n')
         else:
-            fout.write('Taxa\tGTDB taxonomy\tMedian distance\tMedian difference\tClosest rank\tClassification\n')
-        
+            fout.write(
+                'Taxa\tGTDB taxonomy\tMedian distance\tMedian difference\tClosest rank\tClassification\n')
+
         for rank in sorted(median_for_rank.keys()):
             for clade_label, dists in medians_for_taxa[rank].iteritems():
                 dists = np_array(dists)
@@ -379,7 +393,8 @@ class RelativeDistance():
 
                 if verbose_table:
                     fout.write('%s\t%s\t%.2f\t%.3f\t%.3f\t%s\t%s\n' % (clade_label,
-                                                                       ';'.join(gtdb_parent_ranks[clade_label]),
+                                                                       ';'.join(
+                                                                           gtdb_parent_ranks[clade_label]),
                                                                        taxon_median,
                                                                        median_for_rank[rank],
                                                                        delta,
@@ -387,16 +402,17 @@ class RelativeDistance():
                                                                        classification))
                 else:
                     fout.write('%s\t%s\t%.3f\t%.3f\t%s\t%s\n' % (clade_label,
-                                                                   ';'.join(gtdb_parent_ranks[clade_label]),
-                                                                   taxon_median,
-                                                                   delta,
-                                                                   closest_rank,
-                                                                   classification))
+                                                                 ';'.join(
+                                                                     gtdb_parent_ranks[clade_label]),
+                                                                 taxon_median,
+                                                                 delta,
+                                                                 closest_rank,
+                                                                 classification))
         fout.close()
 
     def rank_median_rd(self, phylum_rel_dists, taxa_for_dist_inference):
         """Calculate median relative divergence for each rank.
-        
+
         Parameters
         ----------
         phylum_rel_dists: phylum_rel_dists[phylum][rank_index][taxon] -> relative divergences
@@ -404,36 +420,37 @@ class RelativeDistance():
         taxa_for_dist_inference : iterable
             Taxa to considered when inferring distributions.
         """
-        
+
         medians_for_taxa = self.taxa_median_rd(phylum_rel_dists)
-    
+
         median_for_rank = {}
         for i, rank in enumerate(sorted(medians_for_taxa.keys())):
-                v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].iteritems() if taxon in taxa_for_dist_inference]
-                
-                if v:
-                    median_for_rank[rank] = np_median(v)
-                
+            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].iteritems(
+            ) if taxon in taxa_for_dist_inference]
+
+            if v:
+                median_for_rank[rank] = np_median(v)
+
         return median_for_rank
-    
+
     def taxa_median_rd(self, phylum_rel_dists):
         """Calculate the median relative divergence for each taxon.
-        
+
         Parameters
         ----------
         phylum_rel_dists: phylum_rel_dists[phylum][rank_index][taxon] -> relative divergences
             Relative divergence of taxon at each rank for different phylum-level rootings.    
         """
-        
+
         medians_for_taxa = defaultdict(lambda: defaultdict(list))
         for p in phylum_rel_dists:
             for rank, d in phylum_rel_dists[p].iteritems():
                 for taxon, dist in d.iteritems():
                     medians_for_taxa[rank][taxon].append(dist)
-                    
+
         return medians_for_taxa
 
-    def _is_integer(self,s):
+    def _is_integer(self, s):
         """Test if a string represents an integer."""
         try:
             int(s)

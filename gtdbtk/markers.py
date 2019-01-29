@@ -20,10 +20,10 @@ import sys
 import logging
 from collections import defaultdict
 
-from biolib.common import remove_extension
-from biolib.seq_io import read_fasta
-from biolib.taxonomy import Taxonomy
-from biolib.external.execute import check_dependencies
+from biolib_lite.common import remove_extension
+from biolib_lite.seq_io import read_fasta
+from biolib_lite.taxonomy import Taxonomy
+from biolib_lite.execute import check_dependencies
 
 from external.prodigal import Prodigal
 from external.tigrfam_search import TigrfamSearch
@@ -479,6 +479,7 @@ class Markers(object):
                                        min_consensus / 100.0,
                                        max_consensus / 100.0,
                                        min_per_taxa / 100.0,
+                                       rnd_seed,
                                        os.path.join(out_dir, 'filter_%s' % marker_set_id))
 
                     trimmed_seqs, pruned_seqs = trim_msa.trim(aligned_genomes,

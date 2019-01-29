@@ -25,12 +25,12 @@ from misc import Misc
 from reroot_tree import RerootTree
 import config.config as Config
 
-from biolib.common import (check_dir_exists,
-                           check_file_exists,
-                           make_sure_path_exists,
-                           remove_extension)
-from biolib.taxonomy import Taxonomy
-from biolib.external.execute import check_dependencies
+from biolib_lite.common import (check_dir_exists,
+                                check_file_exists,
+                                make_sure_path_exists,
+                                remove_extension)
+from biolib_lite.taxonomy import Taxonomy
+from biolib_lite.execute import check_dependencies
 
 
 class OptionsParser():

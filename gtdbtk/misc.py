@@ -20,7 +20,7 @@ import logging
 
 import config.config as Config
 
-from biolib.seq_io import read_fasta
+from biolib_lite.seq_io import read_fasta
 
 
 class Misc():
@@ -52,16 +52,20 @@ class Misc():
 
     def checkfile(self, file_path, file_name):
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-            self.logger.info("Check file {} ({}): OK".format(file_name, file_path))
+            self.logger.info(
+                "Check file {} ({}): OK".format(file_name, file_path))
         else:
-            self.logger.warning("Check file {} ({}): missing".format(file_name, file_path))
+            self.logger.warning(
+                "Check file {} ({}): missing".format(file_name, file_path))
             raise Exception("GTDB-Tk installation is incomplete.")
 
     def checkfolder(self, folder_path, folder_name):
         if os.path.isdir(folder_path) and len(os.listdir(folder_path)) > 0:
-            self.logger.info("Check folder {} ({}): OK".format(folder_name, folder_path))
+            self.logger.info("Check folder {} ({}): OK".format(
+                folder_name, folder_path))
         else:
-            self.logger.warning("Check folder {} ({}): missing".format(folder_name, folder_path))
+            self.logger.warning(
+                "Check folder {} ({}): missing".format(folder_name, folder_path))
             raise Exception("GTDB-Tk installation is incomplete.")
 
     def check_install(self):

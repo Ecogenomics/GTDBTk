@@ -20,20 +20,20 @@ import sys
 import multiprocessing as mp
 from collections import defaultdict
 
-from biolib.checksum import sha256
+from ..tools import sha256
 
 
 class PfamSearch(object):
     """Runs pfam_search.pl over a set of genomes."""
 
-    def __init__(self, 
-                    threads, 
-                    pfam_hmm_dir,
-                    protein_file_suffix, 
-                    pfam_suffix,
-                    pfam_top_hit_suffix, 
-                    checksum_suffix,
-                    output_dir):
+    def __init__(self,
+                 threads,
+                 pfam_hmm_dir,
+                 protein_file_suffix,
+                 pfam_suffix,
+                 pfam_top_hit_suffix,
+                 checksum_suffix,
+                 output_dir):
         """Initialization."""
 
         self.threads = threads
@@ -63,7 +63,7 @@ class PfamSearch(object):
         assembly_dir, filename = os.path.split(pfam_file)
         genome_id = filename.replace(self.pfam_suffix, '')
         output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
-                                                                                        self.pfam_top_hit_suffix))
+                                                                                       self.pfam_top_hit_suffix))
 
         tophits = defaultdict(dict)
         for line in open(pfam_file):
@@ -106,7 +106,7 @@ class PfamSearch(object):
                 gene_file = queueIn.get(block=True, timeout=None)
                 if gene_file is None:
                     break
-                    
+
                 genome_dir, filename = os.path.split(gene_file)
                 genome_id = filename.replace(self.protein_file_suffix, '')
                 output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
@@ -114,23 +114,23 @@ class PfamSearch(object):
                 dir_path = os.path.dirname(os.path.realpath(__file__))
                 pfam_search_script = os.path.join(dir_path, 'pfam_search.pl')
                 cmd = '%s -outfile %s -cpu %d -fasta %s -dir %s' % (pfam_search_script,
-                                                                        output_hit_file,
-                                                                        self.cpus_per_genome,
-                                                                        gene_file,
-                                                                        self.pfam_hmm_dir)
+                                                                    output_hit_file,
+                                                                    self.cpus_per_genome,
+                                                                    gene_file,
+                                                                    self.pfam_hmm_dir)
                 osexitcode = os.system(cmd)
                 if osexitcode == 1:
                     raise RuntimeError("Pfam_search has crashed")
-    
+
                 # calculate checksum
                 checksum = sha256(output_hit_file)
                 fout = open(output_hit_file + self.checksum_suffix, 'w')
                 fout.write(checksum)
                 fout.close()
-    
+
                 # identify top hit for each gene
                 self._topHit(output_hit_file)
-    
+
                 queueOut.put(gene_file)
         except Exception as error:
             raise error
@@ -174,8 +174,10 @@ class PfamSearch(object):
             workerQueue.put(None)
 
         try:
-            workerProc = [mp.Process(target=self._workerThread, args=(workerQueue, writerQueue)) for _ in range(self.threads)]
-            writeProc = mp.Process(target=self._writerThread, args=(len(gene_files), writerQueue))
+            workerProc = [mp.Process(target=self._workerThread, args=(
+                workerQueue, writerQueue)) for _ in range(self.threads)]
+            writeProc = mp.Process(target=self._writerThread, args=(
+                len(gene_files), writerQueue))
 
             writeProc.start()
 
@@ -186,7 +188,6 @@ class PfamSearch(object):
                 p.join()
                 if p.exitcode == 1:
                     raise ValueError("Pfam Error")
-                
 
             writerQueue.put(None)
             writeProc.join()

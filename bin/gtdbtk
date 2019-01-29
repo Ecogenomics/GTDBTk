@@ -119,7 +119,10 @@ if __name__ == '__main__':
     optional_denovo_wf.add_argument('--max_consensus', type=float, default=95,
                                        help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_denovo_wf.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required to retain column (inclusive bound)')                                 
+                                       help='minimum percentage of taxa required to retain column (inclusive bound)')
+    optional_denovo_wf.add_argument('--rnd_seed', type=int, default=None,
+                                       help='random seed to use for selecting columns.')
+                                                                        
     optional_denovo_wf.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
                                     help='protein substitution model for tree inference', default='WAG')
     optional_denovo_wf.add_argument('--no_support', action="store_true", 
@@ -222,6 +225,9 @@ if __name__ == '__main__':
                                        help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_align.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required to retain column (inclusive bound)')
+    optional_align.add_argument('--rnd_seed', type=int, default=None,
+                                       help='random seed to use for selecting columns.')
+                                       
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                        help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
