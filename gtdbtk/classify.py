@@ -27,11 +27,11 @@ import dendropy
 import cmd
 
 from collections import defaultdict
-from biolib.common import remove_extension, make_sure_path_exists
-from biolib.seq_io import read_seq, read_fasta
-from biolib.newick import parse_label
-from biolib.external.execute import check_dependencies
-from biolib.taxonomy import Taxonomy
+from biolib_lite.common import remove_extension, make_sure_path_exists
+from biolib_lite.seq_io import read_seq, read_fasta
+from biolib_lite.newick import parse_label
+from biolib_lite.execute import check_dependencies
+from biolib_lite.taxonomy import Taxonomy
 from numpy import median as np_median
 from tools import add_ncbi_prefix, splitchunks
 from relative_distance import RelativeDistance
@@ -675,7 +675,7 @@ class Classify():
                 else:
                     if len(sorted_dict) > 0:
                         summary_list[12] = '; '.join(self._formatnote(
-                            sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
+                            sorted_dict, [fastani_matching_reference]))
                     unclassified_user_genomes[userleaf.taxon.label] = summary_list
         return classified_user_genomes, unclassified_user_genomes
 

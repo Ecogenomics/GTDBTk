@@ -3,10 +3,11 @@ import math
 import time
 import random
 import os
+import hashlib
 
 from itertools import islice
-from biolib.seq_io import read_fasta
-from biolib.common import remove_extension
+from biolib_lite.seq_io import read_fasta
+from biolib_lite.common import remove_extension
 
 
 ##################################################
@@ -77,3 +78,26 @@ def merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
+
+def sha256(input_file):
+    """Determine SHA256 hash for file.
+    Parameters
+    ----------
+    input_file : str
+        Name of file.
+    Returns
+    -------
+    str
+        SHA256 hash.
+    """
+
+    BLOCKSIZE = 65536
+    hasher = hashlib.sha1()
+    with open(input_file, 'rb') as afile:
+        buf = afile.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(BLOCKSIZE)
+
+    return hasher.hexdigest()
