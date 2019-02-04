@@ -94,7 +94,7 @@ PPLACER_RPS23_REF_PKG = "gtdb_r86_rps23.refpkg"
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
-FASTANI_GENOMES = FASTANI_DIR + "database/"
+FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
 
 # Relative Evolution Distance
