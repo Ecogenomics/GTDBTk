@@ -5,6 +5,7 @@ __pycache__/
 
 #Config file
 src/gtdbtk/config/ConfigMetadata.py
+tests/data/results/
 
 # C extensions
 *.so
