@@ -213,7 +213,7 @@ class Classify():
 
                 # Genomes can be classified by using FastANI or RED values
                 # We go through all leaves of the tree. if the leaf is a user
-                # genome we take it's parent node and look at all the leaves
+                # genome we take its parent node and look at all the leaves
                 # for this node.
                 all_fastani_dict = {}
                 self.logger.info(
@@ -236,10 +236,8 @@ class Classify():
 
                         _support, parent_taxon, _aux_info = parse_label(
                             par_node.label)
-                        # while par_node is not None and
-                        # (par_node.distance_from_root() >
-                        # marker_dict.get('f__') or (parent_taxon is not None
-                        # and parent_taxon.split(";")[-1].startswith('g__'))):
+                        # while par_node is not None and parent_taxon is empty,
+                        # we go up the tree
                         while par_node is not None and not parent_taxon:
                             par_node = par_node.parent_node
                             if leaf_ref_genome is None:
@@ -263,7 +261,7 @@ class Classify():
                                 dict_dist_refgenomes = {}
                                 list_ref_genomes = [subnd for subnd in par_node.leaf_iter(
                                 ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
-                                # we pick the first 100 genomes closest to the
+                                # we pick the first 100 genomes closest (patristic distance) to the
                                 # user genome under the same genus
                                 for ref_genome in list_ref_genomes:
                                     taxon_labels = [
@@ -284,8 +282,8 @@ class Classify():
                                 fastani_verification[userleaf] = {"potential_g": [
                                     (leaf_ref_genome, 0.0)], "pplacer_g": leaf_ref_genome}
 
-                # self.logger.info('{} need to be compared.'.format(number_comparison))
-
+                # we run a fastani comparison for each user genomes against the
+                # selected genomes in the same genus
                 manager = multiprocessing.Manager()
                 out_q = manager.dict()
                 procs = []
@@ -313,11 +311,13 @@ class Classify():
                 self.logger.info('{0} genomes have been classify using FastANI and Pplacer.'.format(
                     len(classified_user_genomes)))
 
+                # If Fastani can't select a taxonomy for a genome, we use RED
+                # distances
                 scaled_tree = self._calculate_red_distances(
                     classify_tree, out_dir)
 
                 user_genome_ids = set(read_fasta(user_msa_file).keys())
-                # we remove ids aleady classified with FastANI
+                # we remove ids already classified with FastANI
                 user_genome_ids = user_genome_ids.difference(
                     set(classified_user_genomes))
                 for leaf in scaled_tree.leaf_node_iter():
@@ -400,13 +400,10 @@ class Classify():
                                     'There should be only one leaf.')
                                 sys.exit(-1)
                             list_leaf_ranks = self.gtdb_taxonomy.get(
-                                list_leaves[0])[self.order_rank.index(child_rk):-1]
+                                list_leaves[0])[self.order_rank.index(child_rk):-1]  # We remove the species name
                             for leaf_taxon in reversed(list_leaf_ranks):
                                 if leaf_taxon == list_leaf_ranks[0]:
                                     if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs((current_rel_list) - marker_dict.get(parent_rank)):
-                                        # and current_rel_list -
-                                        # marker_dict.get(leaf_taxon[:3]) > 0
-                                        # ):
                                         closest_rank = leaf_taxon[:3]
                                         debug_info[3] = leaf_taxon
                                         debug_info[5] = 'case 1b - III'
@@ -575,6 +572,21 @@ class Classify():
         return note_list
 
     def _sort_fastani_results(self, fastani_verification, all_fastani_dict, summaryfout):
+        """Format the note field by concatenating all information in a sorted dictionary
+
+        Parameters
+        ----------
+        fastani_verification : dictionary listing the potential genomes associated with a user genome d[user_genome] = {"potential_g": [
+                                    (potential_genome_in_same_genus,patristic distance)], "pplacer_g": genome_of_reference_selected_by_pplacer(if any)}
+        all_fastani_dict : dictionary listing the fastani ANI for each user genomes against the potential genomes d[user_genome]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
+        summaryfout: output file 
+
+        Returns
+        -------
+        classified_user_genomes: list of genomes where FastANI and Placement in the reference tree have predicted a taxonomy
+        unclassified_user_genomes: dictionary of genomes where FastANI and Placement in the reference tree have not  predicted a taxonomy
+
+        """
         classified_user_genomes = []
         unclassified_user_genomes = {}
         for userleaf, potential_nodes in fastani_verification.iteritems():

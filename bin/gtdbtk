@@ -36,8 +36,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
 
-from biolib.logger import logger_setup
-from biolib.misc.custom_help_formatter import CustomHelpFormatter
+from gtdbtk.biolib_lite.logger import logger_setup
+from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 
 
 def printHelp():
