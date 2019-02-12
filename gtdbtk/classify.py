@@ -56,6 +56,19 @@ class Classify():
         self.logger = logging.getLogger('timestamp')
         self.cpus = cpus
 
+        self.species_radius = self.parse_radius_file()
+
+    def parse_radius_file(self):
+        results = {}
+        with open(Config.RADII_FILE) as f:
+            for line in f:
+                infos = line.strip().split('\t')
+                gid = infos[1]
+                if infos[1].startswith('GB_') or infos[1].startswith('RS_'):
+                    gid = gid[3:]
+                results[gid] = float(infos[2])
+        return results
+
     def place_genomes(self,
                       user_msa_file,
                       marker_set_id,
@@ -180,8 +193,8 @@ class Classify():
                 user_msa_file = os.path.join(
                     align_dir, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
                 if not os.path.exists(user_msa_file):
-                    # file will not exist if there are no User genomes from a
-                    # given domain
+                        # file will not exist if there are no User genomes from a
+                        # given domain
                     continue
 
                 classify_tree = self.place_genomes(user_msa_file,
@@ -495,21 +508,6 @@ class Classify():
             print error
             raise
 
-    def _remove_named_nodes(self, node):
-        if node.is_internal():
-            for childnode in node.child_nodes():
-                _support, taxon, _aux_info = parse_label(childnode.label)
-                if childnode.is_internal() and taxon:
-                    node.remove_child(childnode)
-                elif childnode.is_internal():
-                    new_leaf_node = self._remove_named_nodes(childnode)
-                    if new_leaf_node:
-                        node.remove_child(childnode)
-            if node.is_leaf():
-                return node
-            else:
-                return False
-
     def _get_pplacer_taxonomy(self, out_dir, prefix, marker_set_id, user_msa_file, tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
 
@@ -613,7 +611,7 @@ class Classify():
                         fastani_matching_reference).get('af')
                     summary_list[10] = 'ANI/Placement'
 
-                    if Config.FASTANI_SPECIES_THRESHOLD <= current_ani:
+                    if self.species_radius.get(fastani_matching_reference) <= current_ani:
                         if pplacer_leafnode == fastani_matching_reference:
                             if taxa_str.endswith("s__"):
                                 taxa_str = taxa_str + pplacer_leafnode
@@ -674,7 +672,7 @@ class Classify():
                 summary_list[5] = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('af')
                 summary_list[10] = 'ANI/Placement'
-                if Config.FASTANI_SPECIES_THRESHOLD <= current_ani:
+                if self.species_radius.get(fastani_matching_reference) <= current_ani:
                     summary_list[11] = 'topological placement and ANI have incongruent species assignments'
                     if len(sorted_dict) > 0:
                         summary_list[12] = '; '.join(self._formatnote(

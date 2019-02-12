@@ -19,6 +19,8 @@ MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
 PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
 FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
+RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
+
 
 ############################
 # STOP EDIT
@@ -73,11 +75,14 @@ MARKER_GENE_DIR = "marker_genes"
 
 
 # MSA file names
-CONCAT_BAC120 = MSA_FOLDER + "gtdb_r86_bac120.faa"
-CONCAT_AR122 = MSA_FOLDER + "gtdb_r86_ar122.faa"
+CONCAT_BAC120 = os.path.join(MSA_FOLDER, "gtdb_r86_bac120.faa")
+CONCAT_AR122 = os.path.join(MSA_FOLDER, "gtdb_r86_ar122.faa")
 
 # Taxonomy file name
-TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
+TAXONOMY_FILE = os.path.join(TAX_FOLDER, "gtdb_taxonomy.tsv")
+
+# Type Strain radii file
+RADII_FILE = os.path.join(RADII_DIR, "gtdb_radii.tsv")
 
 # Mask file names
 MASK_BAC120 = "gtdb_r86_bac120.mask"
