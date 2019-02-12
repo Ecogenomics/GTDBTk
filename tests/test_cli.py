@@ -252,7 +252,7 @@ class TestCli(unittest.TestCase):
         self.optionparser.infer(de_novo_wf_options)
 
     def tearDown(self):
-        shutil.rmtree(self.options.out_dir)
+        shutil.rmtree(self.generic_out_path)
 
 
 if __name__ == '__main__':

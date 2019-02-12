@@ -53,9 +53,9 @@ class TestTools(unittest.TestCase):
         self.assertEqual(len(join_dict), 4)
 
     def test_sha256(self):
-        file = 'tests/data/genomes/genome_template.fna'
+        file = 'tests/data/genomes/genome_1.fna'
         self.assertEqual(tools.sha256(
-            file), '73b7b302834824568cfcc20f06d60e57e8bc9d6a')
+            file), '42f57853fd16516366e344befb737787654793d2')
 
 
 if __name__ == '__main__':
