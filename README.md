@@ -98,6 +98,8 @@ Once dependencies are installed, GTDB-Tk can be installed using [pip](https://py
 > pip install gtdbtk
 ```
 
+You can also install GTDB-Tk from the latest [source release](https://github.com/Ecogenomics/GTDBTk/releases). We *do not* recommend installing GTDB-Tk directly from the GitHub repository as this project is in active development and all branches.
+
 GTDB-Tk requires a config file. In the Python lib/site-packages directory, go to the gtdbtk directory and setup this config file:
 ```
 cd config
