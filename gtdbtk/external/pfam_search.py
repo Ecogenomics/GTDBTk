@@ -19,6 +19,7 @@ import os
 import sys
 import multiprocessing as mp
 from collections import defaultdict
+from .pypfam.Scan.PfamScan import PfamScan
 
 from ..tools import sha256
 
@@ -111,16 +112,10 @@ class PfamSearch(object):
                 genome_id = filename.replace(self.protein_file_suffix, '')
                 output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
                                                                                             self.pfam_suffix))
-                dir_path = os.path.dirname(os.path.realpath(__file__))
-                pfam_search_script = os.path.join(dir_path, 'pfam_search.pl')
-                cmd = '%s -outfile %s -cpu %d -fasta %s -dir %s' % (pfam_search_script,
-                                                                    output_hit_file,
-                                                                    self.cpus_per_genome,
-                                                                    gene_file,
-                                                                    self.pfam_hmm_dir)
-                osexitcode = os.system(cmd)
-                if osexitcode == 1:
-                    raise RuntimeError("Pfam_search has crashed")
+
+                pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
+                pfam_scan.search()
+                pfam_scan.write_results(output_hit_file, None, None, None, None)
 
                 # calculate checksum
                 checksum = sha256(output_hit_file)
