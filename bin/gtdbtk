@@ -156,7 +156,7 @@ if __name__ == '__main__':
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
     optional_classify_wf.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process')
-    optional_classify_wf.add_argument('--min_perc_aa', type=float, default=0,
+    optional_classify_wf.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_classify_wf.add_argument('--prefix', required=False, default='gtdbtk',
                                     help='desired prefix for output files')
