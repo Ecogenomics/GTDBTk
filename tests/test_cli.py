@@ -82,7 +82,7 @@ class TestCli(unittest.TestCase):
             for line in f:
                 infos = line.split('\t', 1)
                 results[infos[0]] = infos[1]
-        self.assertTrue(results.get('genome_1').startswith('97\t0\t25\t'))
+        self.assertTrue(results.get('genome_1').startswith('120\t2\t0\t'))
 
     def test_align(self):
         tmp_folder = ''.join(random.choice(
@@ -117,7 +117,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 13)
+        self.assertEquals(len(infos), 16)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_identify_align(self):
@@ -184,7 +184,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 13)
+        self.assertEquals(len(infos), 16)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_classify_wf(self):
@@ -213,7 +213,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 13)
+        self.assertEquals(len(infos), 16)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_infer(self):
