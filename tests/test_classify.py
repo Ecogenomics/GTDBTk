@@ -21,10 +21,12 @@ import random
 import os
 import shutil
 import dendropy
+import hashlib
 
 
 import gtdbtk
 from gtdbtk.classify import Classify
+
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 
 import gtdbtk.config.config as Config
@@ -115,6 +117,16 @@ class TestClassify(unittest.TestCase):
         self.assertTrue(first3genomes[2]in note_list[1])
         self.assertTrue(note_list[0].endswith(', 92.6, 1.0'))
         self.assertTrue(note_list[1].endswith(', 90.3, 1.3'))
+
+    def test_calculate_red_distances(self):
+        tree = os.path.join(self.pplacer_dir_reference,
+                            'gtdbtk.ar122.classify.tree')
+        result_tree = self.classify._calculate_red_distances(
+            tree, self.out_dir)
+        egs2 = [eg.length for eg in result_tree.postorder_edge_iter()
+                if eg.length is not None]
+
+        self.assertTrue(sum(egs2) / len(egs2) < 0.1)
 
     def tearDown(self):
         shutil.rmtree(self.generic_out_path)
