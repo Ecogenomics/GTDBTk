@@ -310,9 +310,15 @@ class ProdigalGeneFeatureParser():
         bGetTranslationTable = True
         for line in open(filename):
             if bGetTranslationTable and line.startswith('# Model Data'):
-                self.translationTable = line.split(';')[4]
+                data_model_info = line.split(':')[1].strip().split(';')
+                dict_data_model = {}
+                for item in data_model_info:
+                    k = item.split('=')[0]
+                    v = item.split('=')[1]
+                    dict_data_model[k] = v
+
                 self.translationTable = int(
-                    self.translationTable[self.translationTable.find('=') + 1:])
+                    dict_data_model.get('transl_table'))
                 bGetTranslationTable = False
 
             if line[0] == '#':

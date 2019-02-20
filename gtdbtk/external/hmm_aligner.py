@@ -27,7 +27,7 @@ from ..biolib_lite.execute import check_dependencies
 
 from ..biolib_lite.seq_io import read_fasta
 
-from ..tools import splitchunks, list_genomes_dir, merge_two_dicts, sha256
+from ..tools import splitchunks
 
 
 class HmmAligner(object):

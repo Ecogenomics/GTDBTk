@@ -46,33 +46,6 @@ def generateTempTableName():
     return "TEMP" + suffix + str(int(time.time()))
 
 
-def list_genomes_dir(userdir):
-    """List fasta files in a specified directory
-
-    Parameters
-    ----------
-    userdir : str
-        Directory path where all fasta files are
-
-    Returns
-    -------
-    dict
-        Dictionary indicating the genomic file for each genome.
-    """
-    if not os.path.exists(userdir):
-        raise ValueError('{0} does not exist.'.format(userdir))
-    else:
-        onlygenomefiles = {f: os.path.join(userdir, f) for f in os.listdir(
-            userdir) if os.path.isfile(os.path.join(userdir, f))}
-        for potential_file in onlygenomefiles:
-            try:
-                read_fasta(os.path.join(userdir, potential_file))
-            except:
-                raise IOError("{0} is not a fasta file." .format(
-                    os.path.join(userdir, potential_file)))
-        return onlygenomefiles
-
-
 def merge_two_dicts(x, y):
     '''Given two dicts, merge them into a new dict as a shallow copy.'''
     z = x.copy()

@@ -1,23 +1,26 @@
-############################
-# EDIT FROM HERE
-############################
+import os
+import sys
 
-# Path to MSA and Taxonomy
-GENERIC_PATH = "/srv/db/gtdbtk/official/release86/"
-
+try:
+    GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
+except KeyError, e:
+    print "'GTDBTK_DATA_PATH' environment variable is not defined"
+    sys.exit(1)
 ############################
 # If all downloaded data is in the same folder
 # There is no need of editing variable below this point
 ############################
 
 
-TIGRFAM_HMMS = GENERIC_PATH + 'markers/tigrfam/tigrfam.hmm'
-PFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/'
-MSA_FOLDER = GENERIC_PATH + "msa/"
-MASK_DIR = GENERIC_PATH + "masks/"
-PPLACER_DIR = GENERIC_PATH + "pplacer/"
-FASTANI_DIR = GENERIC_PATH + "fastani/"
-TAX_FOLDER = GENERIC_PATH + "taxonomy/"
+TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
+PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')
+MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
+MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
+PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
+FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
+TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
+RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
+
 
 ############################
 # STOP EDIT
@@ -72,11 +75,14 @@ MARKER_GENE_DIR = "marker_genes"
 
 
 # MSA file names
-CONCAT_BAC120 = MSA_FOLDER + "gtdb_r86_bac120.faa"
-CONCAT_AR122 = MSA_FOLDER + "gtdb_r86_ar122.faa"
+CONCAT_BAC120 = os.path.join(MSA_FOLDER, "gtdb_r86_bac120.faa")
+CONCAT_AR122 = os.path.join(MSA_FOLDER, "gtdb_r86_ar122.faa")
 
 # Taxonomy file name
-TAXONOMY_FILE = TAX_FOLDER + "gtdb_taxonomy.tsv"
+TAXONOMY_FILE = os.path.join(TAX_FOLDER, "gtdb_taxonomy.tsv")
+
+# Type Strain radii file
+RADII_FILE = os.path.join(RADII_DIR, "gtdb_radii.tsv")
 
 # Mask file names
 MASK_BAC120 = "gtdb_r86_bac120.mask"
@@ -93,7 +99,7 @@ PPLACER_RPS23_REF_PKG = "gtdb_r86_rps23.refpkg"
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
-FASTANI_GENOMES = FASTANI_DIR + "database/"
+FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
 
 # Relative Evolution Distance
