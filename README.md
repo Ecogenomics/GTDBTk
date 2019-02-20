@@ -224,4 +224,4 @@ The GTDB taxonomy is described in:
 
 ## Copyright
 
-Copyright © 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
+Copyright 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
