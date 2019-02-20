@@ -61,6 +61,7 @@ def printHelp():
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
     
   Tools:
+    test          -> Test the classify_wf pipeline with 3 archaeal genomes 
     trim_msa      -> Trim an untrimmed MSA file based on a mask.
     check_install -> Verify is all gtdb data files are present.  
       
@@ -322,6 +323,17 @@ if __name__ == '__main__':
     optional_decorate.add_argument('-h', '--help', action="help",
                                     help="show help message")
                                     
+    # test
+    test_parser = subparsers.add_parser('test', conflict_handler='resolve',
+                                                formatter_class=CustomHelpFormatter,
+                                                help='Test the classify_wf pipeline with 3 archaeal genomes.')
+    required_test = test_parser.add_argument_group('required named arguments')
+    required_test.add_argument('--out_dir', required=True,
+                                    help='directory to output files')
+    optional_test = test_parser.add_argument_group('optional arguments')
+    optional_test.add_argument('-h', '--help', action="help",
+                                    help="show help message")
+                   
     # trim MSA
     msa_parser = subparsers.add_parser('trim_msa', conflict_handler='resolve',
                                                 formatter_class=CustomHelpFormatter,
