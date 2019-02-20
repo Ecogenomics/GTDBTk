@@ -73,7 +73,8 @@ class Classify():
                       user_msa_file,
                       marker_set_id,
                       out_dir,
-                      prefix):
+                      prefix,
+                      scratch_dir=None):
         """Place genomes into reference tree using pplacer."""
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
@@ -83,6 +84,15 @@ class Classify():
 
         # run pplacer to place bins in reference genome tree
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
+
+        # check if a scratch file is to be created
+        if scratch_dir:
+            self.logger.info(
+                'Using a scratch file for pplacer allocations. This decreases memory usage and performance.')
+            pplacer_mmap_file = ' --mmap-file {}'.format(
+                os.path.join(scratch_dir, prefix + ".pplacer.scratch"))
+        else:
+            pplacer_mmap_file = ''
 
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
@@ -117,6 +127,7 @@ class Classify():
                                                               pplacer_json_out,
                                                               user_msa_file,
                                                               pplacer_out)
+
         os.system(cmd)
 
         # extract tree
@@ -192,6 +203,7 @@ class Classify():
             align_dir,
             out_dir,
             prefix,
+            scratch_dir=None,
             debugopt=False):
         try:
             """Classify genomes based on position in reference tree."""
@@ -209,7 +221,8 @@ class Classify():
                 classify_tree = self.place_genomes(user_msa_file,
                                                    marker_set_id,
                                                    out_dir,
-                                                   prefix)
+                                                   prefix,
+                                                   scratch_dir)
 
                 # get taxonomic classification of each user genome
                 tree = dendropy.Tree.get_from_path(classify_tree,

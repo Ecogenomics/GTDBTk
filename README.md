@@ -219,9 +219,9 @@ The GTDB taxonomy is described in:
 * Matsen FA, Kodner RB, Armbrust EV. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
 * Jain C, et al. 2017. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.biorxiv.org/content/early/2017/11/27/225342). <i>bioRxiv</i>, https://doi.org/10.1101/225342.
 * Hyatt D, et al. 2010. [Prodigal: prokaryotic gene recognition and translation initiation site identification](https://www.ncbi.nlm.nih.gov/pubmed/20211023). <i>BMC Bioinformatics</i>, 11:119. doi: 10.1186/1471-2105-11-119.
-* Price MN, Dehal PS, Arkin AP. [FastTree 2 – Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
+* Price MN, Dehal PS, Arkin AP. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
 * Eddy SR. 2011. [Accelerated profile HMM searches](https://www.ncbi.nlm.nih.gov/pubmed/22039361). <i>PLOS Comp. Biol.</i>, 7:e1002195.
 
 ## Copyright
 
-Copyright © 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
+Copyright � 2017 Pierre-Alain Chaumeil. See LICENSE for further details.
