@@ -251,6 +251,8 @@ class OptionsParser():
 
         check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
+        if options.scratch_dir:
+            make_sure_path_exists(options.scratch_dir)
 
         genomes = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
@@ -260,6 +262,7 @@ class OptionsParser():
                      options.align_dir,
                      options.out_dir,
                      options.prefix,
+                     options.scratch_dir,
                      options.debug)
 
         self.logger.info('Done.')
