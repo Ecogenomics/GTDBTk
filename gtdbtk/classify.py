@@ -510,6 +510,16 @@ class Classify():
                         summary_list[11] = 'Placement'
                         summary_list[12] = detection
                         summary_list[15] = current_rel_list
+                        summary_list[14] = self.aa_percent_msa(
+                            msa_dict.get(summary_list[0]))
+#=========================================================================
+#
+#                         if summary_list[0] == 'U_73798_genomic':
+#                             print "Toto"
+#                             print msa_dict.get(summary_list[0])
+#                             print self.aa_percent_msa(msa_dict.get(summary_list[0]))
+#=========================================================================
+
                         summaryfout.write("{0}\n".format(
                             '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
                         if debugopt:

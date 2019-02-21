@@ -53,6 +53,9 @@ class TestCli(unittest.TestCase):
         self.options.max_consensus = None
         self.options.min_perc_aa = 50
 
+        # classify options
+        self.options.scratch_dir = None
+
         # infer options
         self.options.prot_model = 'WAG'
         self.options.no_support = False

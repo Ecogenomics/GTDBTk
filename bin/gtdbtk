@@ -92,8 +92,8 @@ if __name__ == '__main__':
     mutex_group.add_argument('--ar122_ms', action='store_true', help='use 122 archaeal marker genes')
 
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
-    #required_denovo_wf.add_argument('--outgroup_taxon', required=True,
-    #                            help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+    required_denovo_wf.add_argument('--outgroup_taxon', required=True,
+                                help="taxon to use as outgroup (e.g., p__Patescibacteria)")
     required_denovo_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
 
