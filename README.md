@@ -47,11 +47,11 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ### Python libraries
 
-GTDB-Tk requires the following Python libraries:
+GTDB-Tk is designed for Python 2.7 and requires the following Python libraries:
 * [dendropy](http://dendropy.org/)  >=4.1.0: Python library for phylogenetics.
 * [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries.
 
-dendropy be installed as part of GTDB-Tk when installing it via pip (see below). The **SciPy Stack** must be installed separately.
+Dendropy will be installed as part of GTDB-Tk when installing via pip (see below). The **SciPy Stack** must be installed separately.
 
 ### Third-party software
 
@@ -62,6 +62,8 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [FastANI](https://github.com/ParBLiSS/
 ) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
+
+Please cite these tools if your use GTDB-Tk in your work.
 
 ### GTDB-Tk reference data
 
@@ -101,7 +103,7 @@ You can test your GTDB-Tk installation by running:
 ```
 gtdbtk test --out_dir <path>
 ```
-This runs a basic classify_wf pipeline for 3 archaeal genomes. It creates 2 folders in the output directory, the result directory and the genomes directory used as input.
+This applies the classify workflow (classify_wf) to three archaeal genomes. It creates two folders in the output directory, the result directory and the genomes directory which is used as input to GTDB-Tk.
 
 ## Quick start
 
@@ -110,14 +112,14 @@ The functionality provided by GTDB-Tk can be accessed through the help menu:
 > gtdbtk -h
 ```
 
-Usage information about each methods can also be accessed through their species help menu, e.g.:
+Usage information about each method can also be accessed through their specific help menu, e.g.:
 ```
 > gtdbtk classify_wf -h
 ```
 
 ## Classify workflow
 
-The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://compbio.ornl.gov/prodigal/), and uses HMM models and the [HMMER](http://hmmer.org/) package to identify the 120 bacterial and 122 archaeal marker genes used for phylogenetic inference. Multiple sequence alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and filters the concatenated multiple sequence alignment (MSA) to approximately 5,000 amino acids. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and/or ANI to reference genomes.
+The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://compbio.ornl.gov/prodigal/), and uses HMM models and the [HMMER](http://hmmer.org/) package to identify the 120 bacterial and 122 archaeal marker genes used for phylogenetic inference. Multiple sequence alignments (MSA) are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and filters the concatenated MSA to approximately 5,000 amino acids. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and/or average nucleotide identity (ANI) to reference genomes.
  
 The classify workflow can be run as follows:
 ```
@@ -153,35 +155,35 @@ Align step:
 * \<prefix\>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
 
 Classify step:
- * \<prefix>.summary.tsv: classification of user genomes based on their placement in the reference tree, relative evolutionary divergence, and ANI to reference genomes. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to assign genomes (see below)
-* \<prefix>.classification_pplacer.tsv: classification of user genomes based only on their pplacer placement in the reference tree
-* \<prefix>.classify.tree: reference tree in Newick format containing user genomes placed with pplacer
+ * \<prefix>.summary.tsv: classification of query genomes based on their placement in the reference tree, relative evolutionary divergence, and ANI to reference genomes. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to assign genomes (see below)
+* \<prefix>.classification_pplacer.tsv: classification of query genomes based only on their placement in the reference tree
+* \<prefix>.classify.tree: reference tree in Newick format containing query genomes placed with pplacer
 * \<prefix>.red_dictionary.tsv: median RED values for taxonomic ranks
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the average nucleotide identity (ANI) between genomes. Reference genomes with an ANI >= 95% to a query genome are used to validate species assignments.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is classified as belonging to the same species as a reference genome if the ANI between the genomes is >=95%. In exceptional circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 will strictly use ANI to circumscribe species and GTDB-Tk follows this methodology.
 
 ## Classification summary file 
 
 Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar122.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
 
-* user_genome: Unique identifer of genome taken from the FASTA file for the genome.
-* classification: GTDB taxonomy string inferred by the GTDB-Tk. The GTDB does not provide species assignments for all reference genomes (e.g., taxonomic groups composed entirely of metagenome-assembled genomes). In such cases, species assignments will reflect the accession number of the reference genome (e.g., s__GCA_001940855.1). A unassigned species (i.e., s__) indicates that either the genome represents a novel species or that a species assignment could not be reliably established as indicated by the following fields.
-* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in the genus.
-* fastani_reference_radius: Indicates,for each reference genome, the specific ANI threshold above which user genomes are automatically classified as same species, even if the ANI and placement in the reference tree are different. 
+* user_genome: Unique identifer of query genome taken from the FASTA file of the genome.
+* classification: GTDB taxonomy string inferred by the GTDB-Tk. The GTDB does not currently provide species assignments for all reference genomes (e.g., taxonomic groups composed entirely of metagenome-assembled genomes). In such cases, species assignments will reflect the accession number of the reference genome (e.g., s__GCA_001940855.1). An unassigned species (i.e., s__) indicates that the query genome is either i) placed outside a named genus or ii) has an ANI <95% to all reference genomes within the same genus as the query genome.
+* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in that genus.
+* fastani_reference_radius: Indicates the ANI threshold of the reference genomes used to determine if a query genome should be classified to the same species as the reference. Currently, all reference genomes have a ANI threshold of 95%. Species specific ANI thresholds will be implemented in GTDB r89.
 * fastani_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
 * fastani_ani: Indicates the ANI between the query and above reference genome.
-* fastani_af: Indicates the AF between the query and above reference genome.
+* fastani_af: Indicates the alignment fraction (AF) between the query and above reference genome.
 * closest_placement_reference: Indicates the accession number of the reference genome when a genome is placed on a terminal branch. This genome is used along with the ANI information to determine the species assignment on the genome.
 * closest_placement_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
 * closest_placement_ani: Indicates the ANI between the query and above reference genome.
 * closest_placement_af: Indicates the AF between the query and above reference genome.
-* classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was only based on the calculated ANI ii)ANI/Placement, indicating a species assignment was made based on both the calculate ANI and placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
-* note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). The GTDB-Tk will leave the species field empty (i.e., s__) when the two methods are incongruent.
-* other_related_references: Lists the top 100 closest reference genomes.
-* aa_percent: Indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid)
-* red_value: Indicates, when required, the Relative Evolutionary Divergence for a user genome.
+* classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
+* note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). 
+* other_related_references: Lists upto the top 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
+* aa_percent: Indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid).
+* red_value: Indicates, when required, the relative evolutionary divergence (RED) for a query genome. RED is not calculated when a query genome can be classified based on ANI.
 
 ## De novo workflow
 
@@ -218,9 +220,7 @@ A manuscript describing the GTDB-Tk is currently being prepared:
 
 * Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
 
-In the meantime, if you find the GTDB-Tk useful please cite this GitHub page. 
-
-The GTDB taxonomy is described in:
+In the meantime, if you find the GTDB-Tk useful please cite this GitHub page or the GTDB taxonomy:
 
 * Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nat. Biotechnol.</i>, http://dx.doi.org/10.1038/nbt.4229
  
