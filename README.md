@@ -82,11 +82,12 @@ Once dependencies are installed, GTDB-Tk can be installed using [pip](https://py
 ```
 > pip install gtdbtk
 ```
-GTDB-Tk requires to set the GTDBTK_DATA_PATH variable so it point to the directory containing the data downloaded from https://data.ace.uq.edu.au/public/gtdbtk/.
+GTDB-Tk requires an environmental variable named GTDBTK_DATA_PATH to be set to the directory containing the data downloaded from https://data.ace.uq.edu.au/public/gtdbtk/.
 ```
 export GTDBTK_DATA_PATH=/path/to/release/package/
 ```
-Alternatively, you can add permanently the variable to your .bash_profile: see methods [here](https://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
+Alternatively, you can permanently add this variable to your .bash_profile as described [here](https://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
+
 ## Bioconda installation
 
 A Bioconda recipe has been put together by [Natasha](https://github.com/npavlovikj) (thanks!). You can find the recipe at:
@@ -100,7 +101,7 @@ You can test your GTDB-Tk installation by running:
 ```
 gtdbtk test --out_dir <path>
 ```
-This runs a basic classify_wf pipeline for 3 archaeal genomes. It creates 2 folders in the output directory, the result directory and the genomes directory (used as input).
+This runs a basic classify_wf pipeline for 3 archaeal genomes. It creates 2 folders in the output directory, the result directory and the genomes directory used as input.
 
 ## Quick start
 
@@ -116,7 +117,7 @@ Usage information about each methods can also be accessed through their species 
 
 ## Classify workflow
 
-The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://compbio.ornl.gov/prodigal/), and HMM models and the [HMMER](http://hmmer.org/) package to identify the 120 bacterial and 122 archaeal marker genes used for phylogenetic inference. Consistent alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and filters the concatenated multiple sequence alignment (MSA) to approximately 5,000 amino acids. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and/or ANI to reference genomes.
+The classify workflow consists of three steps: *identify*, *align*, and *classify*. The *identify* step calls genes using [Prodigal](http://compbio.ornl.gov/prodigal/), and uses HMM models and the [HMMER](http://hmmer.org/) package to identify the 120 bacterial and 122 archaeal marker genes used for phylogenetic inference. Multiple sequence alignments are obtained by aligning marker genes to their respective HMM model. The *align* step concatenates the aligned marker genes and filters the concatenated multiple sequence alignment (MSA) to approximately 5,000 amino acids. Finally, the *classify* step uses [pplacer](http://matsen.fhcrc.org/pplacer/) to find the maximum-likelihood placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree, its relative evolutionary divergence, and/or ANI to reference genomes.
  
 The classify workflow can be run as follows:
 ```
