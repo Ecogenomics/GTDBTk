@@ -17,6 +17,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
   * [GTDB-Tk reference data](#gtdb-tk-reference-data)
 * [pip installation](#pip-installation)
 * [Bioconda installation](#bioconda-installation)
+* [Testing installation](#testing-installation)
 * [Quick start](#quick-start)
 * [Classify workflow](#classify-workflow)
 * [Validating species assignments with ANI](#validating-species-assignments-with-average-nucleotide-identity)
@@ -66,7 +67,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk_r86_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.v2_r86_data.tar.gz
 tar xvzf gtdbtk_r86_archived_data.tar.gz
 ```
 
@@ -92,6 +93,14 @@ A Bioconda recipe has been put together by [Natasha](https://github.com/npavlovi
 https://anaconda.org/bioconda/gtdbtk
 
 The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
+
+## Testing installation
+
+You can test your GTDB-Tk installation by running:
+```
+gtdbtk test --out_dir <path>
+```
+This runs a basic classify_wf pipeline for 3 archaeal genomes. It creates 2 folders in the output directory, the result directory and the genomes directory (used as input).
 
 ## Quick start
 
