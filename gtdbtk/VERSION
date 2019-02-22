@@ -1,5 +1,5 @@
-0.2.0
-- reomve Perl dependencies
+0.2.1.4
+- remove Perl dependencies
 - remove Biolib,mpdl3,jinja dependencies
 - add support for writing to a scratch file using pplacer (--mmap-file options)
 - add random seed to trim MSA step to allow for reproducible results.

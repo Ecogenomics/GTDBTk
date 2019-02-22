@@ -53,7 +53,7 @@ class TestTools(unittest.TestCase):
         self.assertEqual(len(join_dict), 4)
 
     def test_sha256(self):
-        file = 'tests/data/genomes/genome_1.fna'
+        file = 'gtdbtk/tests/data/genomes/genome_1.fna'
         self.assertEqual(tools.sha256(
             file), '64a8a537d4d964366d7eecefc7cb806f82db5544')
 

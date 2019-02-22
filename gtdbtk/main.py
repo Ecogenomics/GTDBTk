@@ -256,10 +256,12 @@ class OptionsParser():
         if os.path.isdir(genome_test_dir):
             shutil.rmtree(genome_test_dir)
 
-        current_path = os.path.dirname(
-            os.path.dirname(os.path.realpath(__file__)))
+        current_path = os.path.dirname(os.path.realpath(__file__))
         input_dir = os.path.join(
             current_path, 'tests', 'data', 'genomes')
+
+        print input_dir
+        print genome_test_dir
 
         shutil.copytree(input_dir, genome_test_dir)
 
@@ -272,7 +274,7 @@ class OptionsParser():
             output_dir, 'gtdbtk.ar122.summary.tsv')
 
         if not os.path.exists(summary_file):
-            print "{} is missing.\nTest has failed."
+            print "{} is missing.\nTest has failed.".format(summary_file)
             sys.exit(-1)
 
         self.logger.info('Test has successfully finished.')

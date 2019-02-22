@@ -33,7 +33,7 @@ class TestCli(unittest.TestCase):
     def setUp(self):
         self.identify_dir_reference = 'tests/data/identify_dir_reference/'
         self.align_dir_reference = 'tests/data/align_dir_reference/'
-        self.genome_dir = 'tests/data/genomes/'
+        self.genome_dir = 'gtdbtk/tests/data/genomes/'
 
         self.options = argparse.ArgumentParser()
         self.options.batchfile = None
