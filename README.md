@@ -28,15 +28,13 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Announcements
 **Note (Feb. XX, 2018)**:
-## Announcements
-**Note (Feb. XX, 2018)**:
 - GTDB-Tk v0.2.1 has been released    
 - In the version:    
 -- Perl dependencies has been removed.    
 -- Python libraries biolib,mpld3 and jinja have been removed.    
 -- New pplacer support for writing to a scratch file (--mmap-file option).    
 -- Random seed option MSA trimming step has been added. This allows reproducible results.    
--- The directory data configuration is now using a variable GTDBTK_DATA_PATH. see chapter  [GTDB-Tk reference data](#gtdb-tk-reference-data).    
+-- The directory data configuration is now using a variable GTDBTK_DATA_PATH. see chapter [pip installation](#pip-installation).    
 -- Species classification based on ANI threshold specific to each reference genomes.    
 -- summary.tsv outputs have 3 new new columns: aa_percent,red_values and fastani_reference_radius.     
 -- "align" function now supports the same custom trimming GTDB will be performing.    
