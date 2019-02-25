@@ -28,8 +28,21 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Announcements
 **Note (Feb. XX, 2018)**:
-- GTDB-Tk v0.2.0 has been released ...
+- GTDB-Tk v0.2.1 has been released
+- In the version:
+-- Perl dependencies has been removed.
+-- Python libraries biolib,mpld3 and jinja have been removed.
+-- New pplacer support for writing to a scratch file (--mmap-file option).
+-- Random seed option MSA trimming step has been added. This allows reproducible results.
+-- The directory data configuration is now using a variable GTDBTK_DATA_PATH. see  [GTDB-Tk reference data](#gtdb-tk-reference-data) chapter
+-- Species classification based on ANI threshold specific to each reference genomes.
+-- summary.tsv outputs have 3 new new columns: aa_percent,red_values and fastani_reference_radius.
+-- "align" function now supports the same custom trimming GTDB will be performing.
+-- returns closest reference genome to summary file (even if the ANI is less than 95%).
+- A new version of the data (release 86) is required to run this version under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.v2_r86_data.tar.gz).
+
 - We recommend all users update to this version.
+
 
 **Note (Sept. 20, 2018)**:
 - GTDB-Tk v0.1.3 has been released and addresses an issue with species assignments based on the placement of genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes. Species assignments reported by ANI were not impacted.
@@ -70,7 +83,7 @@ Please cite these tools if your use GTDB-Tk in your work.
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.v2_r86_data.tar.gz
-tar xvzf gtdbtk_r86_archived_data.tar.gz
+tar xvzf gtdbtk.v2_r86_data.tar.gz
 ```
 
 Reference data for prior releases of GTDB-Tk are available at:
