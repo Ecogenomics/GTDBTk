@@ -15,9 +15,11 @@ GTDB-Tk is **under active development and validation**. Please independently con
   * [Python libraries](#python-libraries)
   * [Third-party software](#third-party-software)
   * [GTDB-Tk reference data](#gtdb-tk-reference-data)
-* [pip installation](#pip-installation)
-* [Bioconda installation](#bioconda-installation)
-* [Testing installation](#testing-installation)
+* [Installation](#installation)
+  * [pip installation](#pip-installation)
+  * [Bioconda installation](#bioconda-installation)
+  * [Docker installation](#docker-installation)
+  * [Testing installation](#testing-installation)
 * [Quick start](#quick-start)
 * [Classify workflow](#classify-workflow)
 * [Validating species assignments with ANI](#validating-species-assignments-with-average-nucleotide-identity)
@@ -71,7 +73,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [Prodigal](http://compbio.ornl.gov/prodigal/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
-* [FastANI](https://github.com/ParBLiSS/
+* [FastANI](https://github.com/ParBLiSS/FastANI
 ) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
@@ -90,7 +92,9 @@ Reference data for prior releases of GTDB-Tk are available at:
 wget https://data.ace.uq.edu.au/public/gtdbtk
 ```
 
-## pip installation
+## Installation
+
+### pip installation
 
 Once dependencies are installed, GTDB-Tk can be installed using [pip](https://pypi.python.org/pypi/gtdbtk):
 ```
@@ -102,14 +106,38 @@ export GTDBTK_DATA_PATH=/path/to/release/package/
 ```
 Alternatively, you can permanently add this variable to your .bash_profile as described [here](https://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path).
 
-## Bioconda installation
+You may also wish to add the GTDB-Tk binary file to your .bash_profile:
+```
+echo 'alias gtdbtk="python ~/.local/bin/gtdbtk"' >> ~/.bashrc
+```
+
+### Bioconda installation
 
 A Bioconda recipe has been put together by [Natasha](https://github.com/npavlovikj) (thanks!). You can find the recipe at:
 https://anaconda.org/bioconda/gtdbtk
 
 The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
 
-## Testing installation
+### Docker installation
+
+The docker file doesn't automatically download the reference data. Instead, 
+it looks for it within the docker environment under the path `/refdata`.
+It is therefore required to mount the host file system in order to allow GTDB-Tk to access the reference data (and your genomic data).
+
+Running the docker container:
+```bash
+docker run --rm -v LOCAL_GENOME_PATH:/data -v LOCAL_REF_PATH:/refdata aaronmussig/gtdbtk gtdbtk
+```
+
+For example:
+```bash
+docker run --rm -v /local/genome:/data -v /local/release86:/refdata aaronmussig/gtdbtk gtdbtk classify_wf --genome_dir /data/genomes --out_dir /data/output
+```
+
+Visit [DockerHub](https://cloud.docker.com/repository/docker/aaronmussig/gtdbtk/) if you would like to build from the Dockerfile.
+
+
+### Testing installation
 
 You can test your GTDB-Tk installation by running:
 ```
