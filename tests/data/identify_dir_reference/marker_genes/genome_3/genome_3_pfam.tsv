@@ -1,0 +1,65 @@
+# pfam_scan.pl,  run at Fri Feb  8 10:57:48 2019
+#
+# Copyright (c) 2009 Genome Research Ltd
+# Freely distributed under the GNU 
+# General Public License
+#
+# Authors: Jaina Mistry (jm14@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+#          Rob Finn (rdf@sanger.ac.uk)
+#
+# This is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later version.
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>. 
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+#      query sequence file: tests/data/results/2M9T8FLSW5/identify/marker_genes/genome_3/genome_3_protein.faa
+#     cpu number specified: 1
+#        searching against: /srv/db/gtdbtk/official/release86/markers/pfam//Pfam-A.hmm, with cut off --cut_ga
+#    resolve clan overlaps: on
+#     predict active sites: off
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+#
+# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>
+
+contig_103902_1      17    128     16    132 PF04919.7   DUF655            Family    13   129   181     44.1   1.7e-12   1 CL0198   
+contig_103902_3       3     94      2     96 PF01157.13  Ribosomal_L21e    Family     2    97    99     91.3   2.5e-27   1 CL0107   
+contig_109358_2       9    199      6    201 PF01015.13  Ribosomal_S3Ae    Family     4   192   195    172.4   6.2e-52   1 No_clan  
+contig_12412_6      122    230    119    231 PF07541.7   EIF_2_alpha       Family     5   113   114     79.0   1.9e-23   1 No_clan  
+contig_134430_4      22    143      1    152 PF04104.9   DNA_primase_lrg   Family    86   251   260     51.4   8.4e-15   1 CL0242   
+contig_14979_2       37    109     34    126 PF01864.12  DUF46             Family     7    70   175     40.2   2.9e-11   1 CL0234   
+contig_14979_2      140    241    131    241 PF01864.12  DUF46             Family    85   175   175     57.6   1.3e-16   1 CL0234   
+contig_16957_4       65    178     59    178 PF01000.21  RNA_pol_A_bac     Domain     8   112   112     47.9   1.2e-13   1 No_clan  
+contig_21470_3        5    192      4    193 PF00827.12  Ribosomal_L15e    Family     2   191   192    262.1   2.1e-79   1 No_clan  
+contig_21526_5       11    219      3    222 PF01269.12  Fibrillarin       Domain    16   224   229    130.8   3.3e-39   1 CL0063   
+contig_21526_6      179    321    178    323 PF01798.13  Nop               Family     2   148   150    121.4   1.8e-36   1 No_clan  
+contig_21899_12       2    145      2    147 PF01090.14  Ribosomal_S19e    Family     1   138   140    161.1   9.8e-49   1 No_clan  
+contig_21899_13      15    120     15    122 PF01984.15  dsDNA_bind        Family     1   103   107     75.3   3.1e-22   1 No_clan  
+contig_21899_15       4     76      2     77 PF01198.14  Ribosomal_L31e    Family     5    74    83     84.0     4e-25   1 No_clan  
+contig_24641_7       29    103     29    123 PF01866.12  Diphthamide_syn   Family     1    75   307     63.1   2.4e-18   1 No_clan  
+contig_24641_7      151    367    134    367 PF01866.12  Diphthamide_syn   Family    86   307   307    201.8   1.4e-60   1 No_clan  
+contig_24641_9       13    147      7    149 PF01092.14  Ribosomal_S6e     Family     6   125   127     79.9   1.1e-23   1 No_clan  
+contig_33653_6        1     59      1     60 PF01194.12  RNA_pol_N         Domain     1    59    60     99.7   6.3e-30   1 No_clan  
+contig_33653_7       14    145     14    145 PF00380.14  Ribosomal_S9      Family     1   121   121    123.1   6.6e-37   1 No_clan  
+contig_34334_11      20    177     11    177 PF01025.14  GrpE              Family     5   166   166    136.4     6e-41   1 No_clan  
+contig_59495_7       73    188     65    196 PF01864.12  DUF46             Family    12   135   175     22.8   6.4e-06   1 CL0234   
+contig_5969_3        66    248     66    249 PF02006.11  DUF137            Family     1   177   178    183.6     2e-55   1 No_clan  
+contig_70139_2       21     91     20     93 PF13656.1   RNA_pol_L_2       Domain     2    72    77     48.3   4.6e-14   1 CL0509   
+contig_7056_6        15    389     13    389 PF00368.13  HMG-CoA_red       Family     3   373   373    282.8   2.9e-85   1 No_clan  
+contig_7300_1        39    399      6    409 PF01496.14  V_ATPase_I        Family    61   439   759    123.6   5.9e-37   1 No_clan  
+contig_7300_1       624    716    616    716 PF01496.14  V_ATPase_I        Family   663   759   759     56.3   1.3e-16   1 No_clan  
+contig_7300_5         3     84      3     93 PF01990.12  ATP-synt_F        Family     1    82    95     57.8     1e-16   1 No_clan  
+contig_76866_1      195    319    192    320 PF04019.7   DUF359            Family     3   120   121     85.6   1.5e-25   1 No_clan  
+contig_79570_2       94    192     94    192 PF01191.14  RNA_pol_Rpb5_C    Domain     1    74    74     47.7   7.9e-14   1 No_clan  
+contig_8015_4         3     69      1     70 PF01200.13  Ribosomal_S28e    Family     6    68    69     94.3   2.6e-28   1 No_clan  
+contig_9232_12       91    165     89    166 PF00900.15  Ribosomal_S4e     Family     3    76    77    104.0   2.3e-31   1 No_clan  
+contig_9232_16       13     81      5     82 PF01868.11  UPF0086           Family    16    88    89     48.4     5e-14   1 No_clan  
+contig_9232_6         1    145      1    147 PF01280.15  Ribosomal_L19e    Family     1   145   148    187.0   1.5e-56   1 No_clan  
+contig_9232_7         1     69      1     69 PF01655.13  Ribosomal_L32e    Family    40   110   110     74.6   5.5e-22   1 No_clan  
+contig_9232_9         4    129      4    129 PF00410.14  Ribosomal_S8      Domain     1   129   129     82.1   2.7e-24   1 No_clan  
+contig_9307_19      322    425    322    425 PF02978.14  SRP_SPB           Domain     1   104   104     94.9   2.9e-28   1 No_clan  

@@ -36,8 +36,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
 
-from biolib.logger import logger_setup
-from biolib.misc.custom_help_formatter import CustomHelpFormatter
+from gtdbtk.biolib_lite.logger import logger_setup
+from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 
 
 def printHelp():
@@ -61,6 +61,7 @@ def printHelp():
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
     
   Tools:
+    test          -> Test the classify_wf pipeline with 3 archaeal genomes 
     trim_msa      -> Trim an untrimmed MSA file based on a mask.
     check_install -> Verify is all gtdb data files are present.  
       
@@ -91,8 +92,8 @@ if __name__ == '__main__':
     mutex_group.add_argument('--ar122_ms', action='store_true', help='use 122 archaeal marker genes')
 
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
-    #required_denovo_wf.add_argument('--outgroup_taxon', required=True,
-    #                            help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+    required_denovo_wf.add_argument('--outgroup_taxon', required=True,
+                                help="taxon to use as outgroup (e.g., p__Patescibacteria)")
     required_denovo_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
 
@@ -120,8 +121,9 @@ if __name__ == '__main__':
                                        help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_denovo_wf.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required to retain column (inclusive bound)')
-                                       
-                                       
+    optional_denovo_wf.add_argument('--rnd_seed', type=int, default=None,
+                                       help='random seed to use for selecting columns.')
+                                                                        
     optional_denovo_wf.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
                                     help='protein substitution model for tree inference', default='WAG')
     optional_denovo_wf.add_argument('--no_support', action="store_true", 
@@ -161,6 +163,7 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
     optional_classify_wf.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
     optional_classify_wf.add_argument('-h', '--help', action="help",
@@ -224,6 +227,9 @@ if __name__ == '__main__':
                                        help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_align.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required to retain column (inclusive bound)')
+    optional_align.add_argument('--rnd_seed', type=int, default=None,
+                                       help='random seed to use for selecting columns.')
+                                       
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                        help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
@@ -281,6 +287,7 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_classify.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
     optional_classify.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
     optional_classify.add_argument('-h', '--help', action="help",
@@ -318,6 +325,19 @@ if __name__ == '__main__':
     optional_decorate.add_argument('-h', '--help', action="help",
                                     help="show help message")
                                     
+    # test
+    test_parser = subparsers.add_parser('test', conflict_handler='resolve',
+                                                formatter_class=CustomHelpFormatter,
+                                                help='Test the classify_wf pipeline with 3 archaeal genomes.')
+    required_test = test_parser.add_argument_group('required named arguments')
+    required_test.add_argument('--out_dir', required=True,
+                                    help='directory to output files')
+    optional_test = test_parser.add_argument_group('optional arguments')
+    optional_test.add_argument('--cpus', default=1, type=int,
+                                    help='number of CPUs to use')
+    optional_test.add_argument('-h', '--help', action="help",
+                                    help="show help message")
+                   
     # trim MSA
     msa_parser = subparsers.add_parser('trim_msa', conflict_handler='resolve',
                                                 formatter_class=CustomHelpFormatter,

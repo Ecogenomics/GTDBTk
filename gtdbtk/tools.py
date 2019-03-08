@@ -3,10 +3,11 @@ import math
 import time
 import random
 import os
+import hashlib
 
 from itertools import islice
-from biolib.seq_io import read_fasta
-from biolib.common import remove_extension
+from biolib_lite.seq_io import read_fasta
+from biolib_lite.common import remove_extension
 
 
 ##################################################
@@ -45,35 +46,31 @@ def generateTempTableName():
     return "TEMP" + suffix + str(int(time.time()))
 
 
-def list_genomes_dir(userdir):
-    """List fasta files in a specified directory
-
-    Parameters
-    ----------
-    userdir : str
-        Directory path where all fasta files are
-
-    Returns
-    -------
-    dict
-        Dictionary indicating the genomic file for each genome.
-    """
-    if not os.path.exists(userdir):
-        raise ValueError('{0} does not exist.'.format(userdir))
-    else:
-        onlygenomefiles = {f: os.path.join(userdir, f) for f in os.listdir(
-            userdir) if os.path.isfile(os.path.join(userdir, f))}
-        for potential_file in onlygenomefiles:
-            try:
-                read_fasta(os.path.join(userdir, potential_file))
-            except:
-                raise IOError("{0} is not a fasta file." .format(
-                    os.path.join(userdir, potential_file)))
-        return onlygenomefiles
-
-
 def merge_two_dicts(x, y):
     '''Given two dicts, merge them into a new dict as a shallow copy.'''
     z = x.copy()
     z.update(y)
     return z
+
+
+def sha256(input_file):
+    """Determine SHA256 hash for file.
+    Parameters
+    ----------
+    input_file : str
+        Name of file.
+    Returns
+    -------
+    str
+        SHA256 hash.
+    """
+
+    BLOCKSIZE = 65536
+    hasher = hashlib.sha1()
+    with open(input_file, 'rb') as afile:
+        buf = afile.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(BLOCKSIZE)
+
+    return hasher.hexdigest()

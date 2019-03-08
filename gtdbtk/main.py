@@ -18,6 +18,7 @@
 import os
 import logging
 import sys
+import shutil
 
 from markers import Markers
 from classify import Classify
@@ -25,12 +26,12 @@ from misc import Misc
 from reroot_tree import RerootTree
 import config.config as Config
 
-from biolib.common import (check_dir_exists,
-                           check_file_exists,
-                           make_sure_path_exists,
-                           remove_extension)
-from biolib.taxonomy import Taxonomy
-from biolib.external.execute import check_dependencies
+from biolib_lite.common import (check_dir_exists,
+                                check_file_exists,
+                                make_sure_path_exists,
+                                remove_extension)
+from biolib_lite.taxonomy import Taxonomy
+from biolib_lite.execute import check_dependencies
 
 
 class OptionsParser():
@@ -246,11 +247,42 @@ class OptionsParser():
 
         self.logger.info('Done.')
 
+    def run_test(self, options):
+        make_sure_path_exists(options.out_dir)
+
+        genome_test_dir = os.path.join(options.out_dir, 'genomes')
+        output_dir = os.path.join(options.out_dir, 'output')
+
+        if os.path.isdir(genome_test_dir):
+            shutil.rmtree(genome_test_dir)
+
+        current_path = os.path.dirname(os.path.realpath(__file__))
+        input_dir = os.path.join(
+            current_path, 'tests', 'data', 'genomes')
+
+        shutil.copytree(input_dir, genome_test_dir)
+
+        cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
+            genome_test_dir, output_dir, options.cpus)
+        print "Command:"
+        print cmd
+        os.system(cmd)
+        summary_file = os.path.join(
+            output_dir, 'gtdbtk.ar122.summary.tsv')
+
+        if not os.path.exists(summary_file):
+            print "{} is missing.\nTest has failed.".format(summary_file)
+            sys.exit(-1)
+
+        self.logger.info('Test has successfully finished.')
+
     def classify(self, options):
         """Determine taxonomic classification of genomes."""
 
         check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
+        if options.scratch_dir:
+            make_sure_path_exists(options.scratch_dir)
 
         genomes = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
@@ -260,6 +292,7 @@ class OptionsParser():
                      options.align_dir,
                      options.out_dir,
                      options.prefix,
+                     options.scratch_dir,
                      options.debug)
 
         self.logger.info('Done.')
@@ -380,6 +413,8 @@ class OptionsParser():
             self.decorate(options)
         elif(options.subparser_name == 'trim_msa'):
             self.trim_msa(options)
+        elif(options.subparser_name == 'test'):
+            self.run_test(options)
         elif(options.subparser_name == 'check_install'):
             self.check_install()
         else:

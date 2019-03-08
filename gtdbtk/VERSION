@@ -1,3 +1,13 @@
+0.2.1
+- remove Perl dependencies
+- remove Biolib,mpdl3,jinja dependencies
+- add support for writing to a scratch file using pplacer (--mmap-file options)
+- add random seed to trim MSA step to allow for reproducible results.
+- use GTDBTK_DATA_PATH variable to set data directory.
+- species classification based on ANI radii.
+- new columns ( aa_percent,red_values,fastani_reference_radius,warnings )
+- bug fixing
+- gtdbtk test options
 0.1.6
 - align step in classify_wf and de_novo_wf function has been fixed.
 - improve summary file output.

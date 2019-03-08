@@ -22,25 +22,25 @@ import shutil
 import multiprocessing as mp
 from collections import defaultdict
 
-from biolib.external.prodigal import (Prodigal as BioLibProdigal)
+from ..biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
 
 
 class Prodigal(object):
     """Perform ab initio gene prediction using Prodigal."""
 
     def __init__(self,
-                    threads,
-                    proteins,
-                    marker_gene_dir, 
-                    protein_file_suffix, 
-                    nt_gene_file_suffix, 
-                    gff_file_suffix):
+                 threads,
+                 proteins,
+                 marker_gene_dir,
+                 protein_file_suffix,
+                 nt_gene_file_suffix,
+                 gff_file_suffix):
         """Initialize."""
 
         self.logger = logging.getLogger('timestamp')
 
         self.threads = threads
-        
+
         self.proteins = proteins
 
         self.marker_gene_dir = marker_gene_dir
@@ -60,29 +60,38 @@ class Prodigal(object):
         output_dir = os.path.join(self.marker_gene_dir, genome_id)
 
         prodigal = BioLibProdigal(1, False)
-        summary_stats = prodigal.run([fasta_path], output_dir, called_genes=self.proteins)
+        summary_stats = prodigal.run(
+            [fasta_path], output_dir, called_genes=self.proteins)
         summary_stats = summary_stats[summary_stats.keys()[0]]
 
-        # rename output files to adhere to GTDB conventions and desired genome ID
-        aa_gene_file = os.path.join(output_dir, genome_id + self.protein_file_suffix)
+        # rename output files to adhere to GTDB conventions and desired genome
+        # ID
+        aa_gene_file = os.path.join(
+            output_dir, genome_id + self.protein_file_suffix)
         shutil.move(summary_stats.aa_gene_file, aa_gene_file)
 
         nt_gene_file = None
         gff_file = None
         translation_table_file = None
         if not self.proteins:
-            nt_gene_file = os.path.join(output_dir, genome_id + self.nt_gene_file_suffix)
+            nt_gene_file = os.path.join(
+                output_dir, genome_id + self.nt_gene_file_suffix)
             shutil.move(summary_stats.nt_gene_file, nt_gene_file)
 
-            gff_file = os.path.join(output_dir, genome_id + self.gff_file_suffix)
+            gff_file = os.path.join(
+                output_dir, genome_id + self.gff_file_suffix)
             shutil.move(summary_stats.gff_file, gff_file)
 
             # save translation table information
-            translation_table_file = os.path.join(output_dir, 'prodigal_translation_table.tsv')
+            translation_table_file = os.path.join(
+                output_dir, 'prodigal_translation_table.tsv')
             fout = open(translation_table_file, 'w')
-            fout.write('%s\t%d\n' % ('best_translation_table', summary_stats.best_translation_table))
-            fout.write('%s\t%.2f\n' % ('coding_density_4', summary_stats.coding_density_4 * 100))
-            fout.write('%s\t%.2f\n' % ('coding_density_11', summary_stats.coding_density_11 * 100))
+            fout.write('%s\t%d\n' % ('best_translation_table',
+                                     summary_stats.best_translation_table))
+            fout.write('%s\t%.2f\n' % ('coding_density_4',
+                                       summary_stats.coding_density_4 * 100))
+            fout.write('%s\t%.2f\n' % ('coding_density_11',
+                                       summary_stats.coding_density_11 * 100))
             fout.close()
 
         return (aa_gene_file, nt_gene_file, gff_file, translation_table_file)
@@ -133,7 +142,7 @@ class Prodigal(object):
         genomic_files : dict
             Dictionary indicating the genomic and gene file for each genome.
         """
-        
+
         # populate worker queue with data to process
         worker_queue = mp.Queue()
         writer_queue = mp.Queue()
@@ -148,10 +157,11 @@ class Prodigal(object):
             manager = mp.Manager()
             out_dict = manager.dict()
 
-            worker_proc = [mp.Process(target=self._worker, args=(out_dict, 
-                                                                    worker_queue, 
-                                                                    writer_queue)) for _ in range(self.threads)]
-            writer_proc = mp.Process(target=self._writer, args=(len(genomic_files), writer_queue))
+            worker_proc = [mp.Process(target=self._worker, args=(out_dict,
+                                                                 worker_queue,
+                                                                 writer_queue)) for _ in range(self.threads)]
+            writer_proc = mp.Process(target=self._writer, args=(
+                len(genomic_files), writer_queue))
 
             writer_proc.start()
             for p in worker_proc:
@@ -168,6 +178,6 @@ class Prodigal(object):
 
             writer_proc.terminate()
             raise
-            
+
         result_dict = {k: v for k, v in out_dict.items()}
         return result_dict

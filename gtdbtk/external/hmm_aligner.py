@@ -23,28 +23,28 @@ import tempfile
 import subprocess
 import shutil
 
-from biolib.external.execute import check_dependencies
-from biolib.checksum import sha256
-from biolib.seq_io import read_fasta
+from ..biolib_lite.execute import check_dependencies
 
-from ..tools import splitchunks, list_genomes_dir, merge_two_dicts
+from ..biolib_lite.seq_io import read_fasta
+
+from ..tools import splitchunks
 
 
 class HmmAligner(object):
     """Runs HMMalign over a set of genomes."""
 
-    def __init__(self, 
-                    threads,
-                    pfam_top_hit_suffix,
-                    tigrfam_top_hit_suffix,
-                    protein_file_suffix,
-                    pfam_hmm_dir,
-                    tigrfam_hmm_dir,
-                    bac120_markers,
-                    ar122_markers,
-                    rps23_markers):
+    def __init__(self,
+                 threads,
+                 pfam_top_hit_suffix,
+                 tigrfam_top_hit_suffix,
+                 protein_file_suffix,
+                 pfam_hmm_dir,
+                 tigrfam_hmm_dir,
+                 bac120_markers,
+                 ar122_markers,
+                 rps23_markers):
         """Initialization."""
-        
+
         check_dependencies(['hmmalign'])
 
         self.threads = threads
@@ -53,11 +53,11 @@ class HmmAligner(object):
         self.protein_file_suffix = protein_file_suffix
         self.pfam_hmm_dir = pfam_hmm_dir
         self.tigrfam_hmm_dir = tigrfam_hmm_dir
-        
+
         self.bac120_markers = bac120_markers
         self.ar122_markers = ar122_markers
         self.rps23_markers = rps23_markers
-        
+
     def align_marker_set(self, db_genome_ids, marker_set_id):
         manager = multiprocessing.Manager()
         out_q = manager.Queue()
@@ -83,7 +83,7 @@ class HmmAligner(object):
             results[id] = sequence
 
         return results
-    
+
     def _worker(self, subdict_genomes, out_q, marker_set_id):
         '''
         The worker function, invoked in a process.
@@ -91,12 +91,12 @@ class HmmAligner(object):
         :param out_q: manager.Queue()
         '''
         for db_genome_id, info in subdict_genomes.items():
-            sequence = self._run_multi_align(db_genome_id, 
-                                                info.get("aa_gene_path"), 
-                                                marker_set_id)
+            sequence = self._run_multi_align(db_genome_id,
+                                             info.get("aa_gene_path"),
+                                             marker_set_id)
             out_q.put((db_genome_id, sequence))
         return True
-     
+
     def _run_multi_align(self, db_genome_id, path, marker_set_id):
         '''
         Returns the concatenated marker sequence for a specific genome
@@ -104,27 +104,30 @@ class HmmAligner(object):
         :param path: Path to the genomic fasta file for the genome
         :param marker_set_id: Unique ID of marker set to use for alignment
         '''
-        
+
         # gather information for all marker genes
-        marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir,'individual_hmms'),
-                        "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmm_dir),'individual_hmms')}
-       
+        marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
+                        "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmm_dir), 'individual_hmms')}
+
         marker_dict_original = {}
         if marker_set_id == "bac120":
             for db_marker in sorted(self.bac120_markers):
-                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): 
-                                                os.path.join(marker_paths[db_marker], marker) 
-                                                for marker in self.bac120_markers[db_marker]})
+                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.bac120_markers[db_marker]})
         elif marker_set_id == "ar122":
             for db_marker in sorted(self.ar122_markers):
-                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): 
-                                                os.path.join(marker_paths[db_marker], marker) 
-                                                for marker in self.ar122_markers[db_marker]})
+                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.ar122_markers[db_marker]})
         elif marker_set_id == "rps23":
             for db_marker in sorted(self.rps23_markers):
-                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""): 
-                                                os.path.join(marker_paths[db_marker], marker) 
-                                                for marker in self.rps23_markers[db_marker]})
+                marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.rps23_markers[db_marker]})
 
         result_aligns = {}
         result_aligns[db_genome_id] = {}
@@ -134,19 +137,21 @@ class HmmAligner(object):
         for marker_db, marker_suffix in marker_dbs.iteritems():
             # get all gene sequences
             genome_path = str(path)
-            tophit_path = genome_path.replace(self.protein_file_suffix, marker_suffix)
+            tophit_path = genome_path.replace(
+                self.protein_file_suffix, marker_suffix)
 
             # we load the list of all the genes detected in the genome
             protein_file = tophit_path.replace(
                 marker_suffix, self.protein_file_suffix)
             all_genes_dict = read_fasta(protein_file, False)
-            
+
             # Prodigal adds an asterisks at the end of each called genes,
-            # These asterisks sometimes appear in the MSA, which can be an issue for some softwares downstream
+            # These asterisks sometimes appear in the MSA, which can be an
+            # issue for some softwares downstream
             for seq_id, seq in all_genes_dict.iteritems():
                 if seq[-1] == '*':
                     all_genes_dict[seq_id] = seq[:-1]
-            
+
             # we store the tophit file line by line and store the
             # information in a dictionary
             with open(tophit_path) as tp:
@@ -171,7 +176,8 @@ class HmmAligner(object):
                         bitscore = sublist[2].strip()
 
                         if markerid in gene_dict:
-                            oldbitscore = gene_dict.get(markerid).get("bitscore")
+                            oldbitscore = gene_dict.get(
+                                markerid).get("bitscore")
                             if oldbitscore < bitscore:
                                 gene_dict[markerid] = {"marker_path": marker_dict_original.get(markerid),
                                                        "gene": genename,
@@ -189,16 +195,18 @@ class HmmAligner(object):
                     result_aligns.get(db_genome_id).update({mid: "-" * size})
                     #final_genome.append((db_genome_id, mid, "-" * size))
 
-            result_aligns.get(db_genome_id).update(self._run_align(gene_dict, db_genome_id))
-        
-        # we concatenate the aligned markers together and associate them with the genome.
+            result_aligns.get(db_genome_id).update(
+                self._run_align(gene_dict, db_genome_id))
+
+        # we concatenate the aligned markers together and associate them with
+        # the genome.
         for gid, markids in result_aligns.iteritems():
             seq = ""
             for markid in sorted(markids.keys()):
                 seq = seq + markids.get(markid)
 
         return seq
-    
+
     def _run_align(self, marker_dict, genome):
         '''
         Run hmmalign for a set of genes for a specific genome. This is run in a temp folder.
@@ -225,11 +233,12 @@ class HmmAligner(object):
 
             for line in proc.stderr:
                 print line
-                
-            result = self._get_aligned_marker(marker_info.get("gene"), proc.stdout)                
+
+            result = self._get_aligned_marker(
+                marker_info.get("gene"), proc.stdout)
             if len(result) < 1:
                 return "TODO"
-                
+
             result_genomes_dict[markerid] = result
 
             input_count += 1
@@ -244,7 +253,7 @@ class HmmAligner(object):
                     size = line.split("  ")[1]
                     break
         return int(size)
-    
+
     def _get_aligned_marker(self, hit_name, result_file):
         '''
         Parse the output of Hmmalign
@@ -276,4 +285,3 @@ class HmmAligner(object):
                 continue
             aligned_marker += hit_seq[pos]
         return aligned_marker
-    

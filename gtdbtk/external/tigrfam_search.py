@@ -19,20 +19,20 @@ import os
 import sys
 import multiprocessing as mp
 
-from biolib.checksum import sha256
+from ..tools import sha256
 
 
 class TigrfamSearch(object):
     """Runs TIGRFAM HMMs over a set of genomes."""
 
-    def __init__(self, 
-                    threads, 
-                    tigrfam_hmms, 
-                    protein_file_suffix,
-                    tigrfam_suffix, 
-                    tigrfam_top_hit_suffix, 
-                    checksum_suffix,
-                    output_dir):
+    def __init__(self,
+                 threads,
+                 tigrfam_hmms,
+                 protein_file_suffix,
+                 tigrfam_suffix,
+                 tigrfam_top_hit_suffix,
+                 checksum_suffix,
+                 output_dir):
         """Initialization."""
 
         self.threads = threads
@@ -59,7 +59,7 @@ class TigrfamSearch(object):
         assembly_dir, filename = os.path.split(tigrfam_file)
         genome_id = filename.replace(self.tigrfam_suffix, '')
         output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.tigrfam_suffix,
-                                                                                self.tigrfam_top_hit_suffix))
+                                                                                       self.tigrfam_top_hit_suffix))
 
         tophits = {}
         for line in open(tigrfam_file):
@@ -102,8 +102,8 @@ class TigrfamSearch(object):
             output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
                                                                                         self.tigrfam_suffix))
 
-            hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix, 
-                                                                                        '_tigrfam.out'))
+            hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
+                                                                                      '_tigrfam.out'))
             cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
                                                                                              output_hit_file,
                                                                                              self.cpus_per_genome,
@@ -162,8 +162,10 @@ class TigrfamSearch(object):
             workerQueue.put(None)
 
         try:
-            workerProc = [mp.Process(target=self._workerThread, args=(workerQueue, writerQueue)) for _ in range(self.threads)]
-            writeProc = mp.Process(target=self._writerThread, args=(len(gene_files), writerQueue))
+            workerProc = [mp.Process(target=self._workerThread, args=(
+                workerQueue, writerQueue)) for _ in range(self.threads)]
+            writeProc = mp.Process(target=self._writerThread, args=(
+                len(gene_files), writerQueue))
 
             writeProc.start()
 
