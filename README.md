@@ -79,7 +79,7 @@ Please cite these tools if your use GTDB-Tk in your work.
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.v2_r86_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.r86_v2_data.tar.gz
 tar xvzf gtdbtk.r86_v2_data.tar.gz
 ```
 
