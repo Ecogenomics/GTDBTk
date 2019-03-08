@@ -3,8 +3,7 @@
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
 [![Downloads](https://pepy.tech/badge/gtdbtk/month)](https://pepy.tech/project/gtdbtk)
 
-GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is computationally 
-efficient and designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
+GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
 
 GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepancies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
 
@@ -30,20 +29,17 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Announcements
 **Note (March 03, 2018)**:
-- GTDB-Tk v0.2.1 has been released    
-- In the version:    
--- Perl dependencies has been removed.    
--- Python libraries biolib,mpld3 and jinja have been removed.    
--- New pplacer support for writing to a scratch file (--mmap-file option).    
--- Random seed option MSA trimming step has been added. This allows reproducible results.    
--- The directory data configuration is now using a variable GTDBTK_DATA_PATH. see chapter [pip installation](#pip-installation).    
--- Species classification based on ANI threshold specific to each reference genomes.    
--- summary.tsv outputs have 4 new new columns: aa_percent,red_values and fastani_reference_radius,warnings.     
--- "align" function now supports the same custom trimming GTDB will be performing.    
--- Classify function returns closest reference genome to summary file (even if the ANI is less than 95%).
--- This version requires a new version of the GTDB-Tk data package (gtdbtk.r86_v2_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/)
-- **We recommend all users update to this version**.    
-
+* GTDB-Tk v0.2.1 has been released (**we recommend all users update to this version**):
+  * Species classification is now based strictly on the ANI to reference genomes
+  * The "classify" function now reports the closest reference genome in the summary file even if the ANI is <95%
+  * The summary.tsv file has 4 new columns: aa_percent, red_values, fastani_reference_radius, and warnings
+  * By default, the "align" function now performs the same MSA trimming used by the GTDB
+  * New pplacer support for writing to a scratch file (--mmap-file option)
+  * Random seed option for MSA trimming has been added to allow for reproducible results 
+  * Configuration of the data directory is now set using the environmental variable GTDBTK_DATA_PATH (see [pip installation](#pip-installation))
+  * Perl dependencies has been removed
+  * Python libraries biolib, mpld3 and jinja have been removed
+  * This version requires a new version of the GTDB-Tk data package (gtdbtk.r86_v2_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/)  
 
 **Note (Sept. 20, 2018)**:
 - GTDB-Tk v0.1.3 has been released and addresses an issue with species assignments based on the placement of genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes. Species assignments reported by ANI were not impacted.
@@ -224,7 +220,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * other_related_references: Lists upto the top 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
 * aa_percent: Indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid).
 * red_value: Indicates, when required, the relative evolutionary divergence (RED) for a query genome. RED is not calculated when a query genome can be classified based on ANI.
-* warnings: Indicates unusual charastiristics of the query genome.
+* warnings: Indicates unusual characteristics of the query genome that may impact the taxonomic assignment
 
 ## De novo workflow
 
