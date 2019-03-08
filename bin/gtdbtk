@@ -333,6 +333,8 @@ if __name__ == '__main__':
     required_test.add_argument('--out_dir', required=True,
                                     help='directory to output files')
     optional_test = test_parser.add_argument_group('optional arguments')
+    optional_test.add_argument('--cpus', default=1, type=int,
+                                    help='number of CPUs to use')
     optional_test.add_argument('-h', '--help', action="help",
                                     help="show help message")
                    

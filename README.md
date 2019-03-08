@@ -29,7 +29,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
 * [References](#references)
 
 ## Announcements
-**Note (Feb. XX, 2018)**:
+**Note (March 03, 2018)**:
 - GTDB-Tk v0.2.1 has been released    
 - In the version:    
 -- Perl dependencies has been removed.    
@@ -38,11 +38,11 @@ GTDB-Tk is **under active development and validation**. Please independently con
 -- Random seed option MSA trimming step has been added. This allows reproducible results.    
 -- The directory data configuration is now using a variable GTDBTK_DATA_PATH. see chapter [pip installation](#pip-installation).    
 -- Species classification based on ANI threshold specific to each reference genomes.    
--- summary.tsv outputs have 3 new new columns: aa_percent,red_values and fastani_reference_radius.     
+-- summary.tsv outputs have 4 new new columns: aa_percent,red_values and fastani_reference_radius,warnings.     
 -- "align" function now supports the same custom trimming GTDB will be performing.    
--- returns closest reference genome to summary file (even if the ANI is less than 95%).    
-
-- We recommend all users update to this version.    
+-- Classify function returns closest reference genome to summary file (even if the ANI is less than 95%).
+-- This version requires a new version of the GTDB-Tk data package (gtdbtk.r86_v2_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/)
+- **We recommend all users update to this version**.    
 
 
 **Note (Sept. 20, 2018)**:
@@ -84,7 +84,7 @@ Please cite these tools if your use GTDB-Tk in your work.
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
 wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.v2_r86_data.tar.gz
-tar xvzf gtdbtk.v2_r86_data.tar.gz
+tar xvzf gtdbtk.r86_v2_data.tar.gz
 ```
 
 Reference data for prior releases of GTDB-Tk are available at:
@@ -224,6 +224,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * other_related_references: Lists upto the top 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
 * aa_percent: Indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid).
 * red_value: Indicates, when required, the relative evolutionary divergence (RED) for a query genome. RED is not calculated when a query genome can be classified based on ANI.
+* warnings: Indicates unusual charastiristics of the query genome.
 
 ## De novo workflow
 

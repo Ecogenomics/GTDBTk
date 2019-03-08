@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
@@ -20,11 +21,31 @@ PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
 FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
+METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
 
 
-############################
-# STOP EDIT
-############################
+RED_DIST_BAC_DICT = ''
+RED_DIST_ARC_DICT = ''
+VERSION_DATA = ''
+with open(os.path.join(METADATA_DIR, "metadata.txt")) as metadataData:
+    for line in metadataData:
+        try:
+            line_infos = line.strip().split('=')
+            if line_infos[0] == 'RED_DIST_BAC_DICT':
+                RED_DIST_BAC_DICT = json.loads(line_infos[1])
+            elif line_infos[0] == 'RED_DIST_ARC_DICT':
+                RED_DIST_ARC_DICT = json.loads(line_infos[1])
+            elif line_infos[0] == 'VERSION_DATA':
+                VERSION_DATA = line_infos[1]
+        except ValueError:
+            print "Skipping invalid line {0}".format(repr(line))
+
+
+# Relative Evolution Distance
+RED_MIN_SUPPORT = 0.0
+RED_MIN_CHILDREN = 2
+
+# Marker information
 
 
 BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm", "PF01025.14.hmm", "PF02576.12.hmm", "PF03726.9.hmm"],
@@ -65,6 +86,9 @@ RPS23_MARKERS = {"PFAM": ["PF00687.16.hmm", "PF00466.15.hmm", "PF00298.14.hmm", 
                           "PF00380.14.hmm", "PF00164.20.hmm"],
                  "TIGRFAM": []}
 
+# Information for Multiple hits markers:
+DEFAULT_MULTIHIT_THRESHOLD = 10.0
+
 # Information for aligning genomes
 DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
@@ -75,8 +99,9 @@ MARKER_GENE_DIR = "marker_genes"
 
 
 # MSA file names
-CONCAT_BAC120 = os.path.join(MSA_FOLDER, "gtdb_r86_bac120.faa")
-CONCAT_AR122 = os.path.join(MSA_FOLDER, "gtdb_r86_ar122.faa")
+CONCAT_BAC120 = os.path.join(
+    MSA_FOLDER, "gtdb_" + VERSION_DATA + "_bac120.faa")
+CONCAT_AR122 = os.path.join(MSA_FOLDER, "gtdb_" + VERSION_DATA + "_ar122.faa")
 
 # Taxonomy file name
 TAXONOMY_FILE = os.path.join(TAX_FOLDER, "gtdb_taxonomy.tsv")
@@ -85,27 +110,19 @@ TAXONOMY_FILE = os.path.join(TAX_FOLDER, "gtdb_taxonomy.tsv")
 RADII_FILE = os.path.join(RADII_DIR, "gtdb_radii.tsv")
 
 # Mask file names
-MASK_BAC120 = "gtdb_r86_bac120.mask"
-MASK_AR122 = "gtdb_r86_ar122.mask"
-MASK_RPS23 = "gtdb_r86_rps23.mask"
+MASK_BAC120 = "gtdb_" + VERSION_DATA + "_bac120.mask"
+MASK_AR122 = "gtdb_" + VERSION_DATA + "_ar122.mask"
+MASK_RPS23 = "gtdb_" + VERSION_DATA + "_rps23.mask"
 
 
 # Pplacer configuration
 PPLACER_OUT = "pplacer.out"
 PPLACER_JSON_OUT = "pplacer.json"
-PPLACER_BAC120_REF_PKG = "gtdb_r86_bac120.refpkg"
-PPLACER_AR122_REF_PKG = "gtdb_r86_ar122.refpkg"
-PPLACER_RPS23_REF_PKG = "gtdb_r86_rps23.refpkg"
+PPLACER_BAC120_REF_PKG = "gtdb_" + VERSION_DATA + "_bac120.refpkg"
+PPLACER_AR122_REF_PKG = "gtdb_" + VERSION_DATA + "_ar122.refpkg"
+PPLACER_RPS23_REF_PKG = "gtdb_" + VERSION_DATA + "_rps23.refpkg"
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
-
-# Relative Evolution Distance
-RED_MIN_SUPPORT = 0.0
-RED_MIN_CHILDREN = 2
-RED_DIST_BAC_DICT = {"d__": 0.00, "p__": 0.318988232537, "c__": 0.473592766536,
-                     "o__": 0.631939494307, "f__": 0.776495919093, "g__": 0.940062093841}
-RED_DIST_ARC_DICT = {"d__": 0.00, "p__": 0.219745045527, "c__": 0.348416500728,
-                     "o__": 0.51768679785, "f__": 0.714706411191, "g__": 0.909385795176}

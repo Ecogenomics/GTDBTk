@@ -260,13 +260,10 @@ class OptionsParser():
         input_dir = os.path.join(
             current_path, 'tests', 'data', 'genomes')
 
-        print input_dir
-        print genome_test_dir
-
         shutil.copytree(input_dir, genome_test_dir)
 
-        cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus 1'.format(
-            genome_test_dir, output_dir)
+        cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
+            genome_test_dir, output_dir, options.cpus)
         print "Command:"
         print cmd
         os.system(cmd)

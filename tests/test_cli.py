@@ -120,7 +120,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 16)
+        self.assertEquals(len(infos), 17)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_identify_align(self):
@@ -187,7 +187,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 16)
+        self.assertEquals(len(infos), 17)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_classify_wf(self):
@@ -216,7 +216,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 16)
+        self.assertEquals(len(infos), 17)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_infer(self):

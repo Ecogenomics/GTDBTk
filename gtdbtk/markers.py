@@ -37,6 +37,8 @@ from tools import merge_two_dicts
 
 from trim_msa import TrimMSA
 
+from shutil import copy
+
 
 class Markers(object):
     """Identify and align marker genes."""
@@ -336,7 +338,7 @@ class Markers(object):
             fout.write('%s\n' % alignment)
         fout.close()
 
-    def _genome_domain(self, identity_dir, prefix):
+    def genome_domain(self, identity_dir, prefix):
         """Determine domain of User genomes based on identified marker genes."""
 
         bac_count = defaultdict(int)
@@ -356,6 +358,7 @@ class Markers(object):
 
         bac_gids = set()
         ar_gids = set()
+        bac_ar_diff = {}
         for gid in bac_count:
             arc_aa_per = (ar_count[gid] * 100.0 / Config.AR_MARKER_COUNT)
             bac_aa_per = (bac_count[gid] * 100.0 / Config.BAC_MARKER_COUNT)
@@ -363,8 +366,11 @@ class Markers(object):
                 bac_gids.add(gid)
             else:
                 ar_gids.add(gid)
+            if abs(bac_aa_per - arc_aa_per) <= 10:
+                bac_ar_diff[gid] = {'bac120': round(
+                    bac_aa_per, 1), 'ar122': round(arc_aa_per, 1)}
 
-        return bac_gids, ar_gids
+        return bac_gids, ar_gids, bac_ar_diff
 
     def _write_marker_info(self, marker_db, marker_file):
         """Write out information about markers comprising MSA."""
@@ -410,6 +416,12 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         try:
+
+            if identify_dir != out_dir:
+                copy(os.path.join(
+                    identify_dir, prefix + "_bac120_markers_summary.tsv"), out_dir)
+                copy(os.path.join(
+                    identify_dir, prefix + "_ar122_markers_summary.tsv"), out_dir)
             # write out files with marker information
             bac120_marker_info_file = os.path.join(
                 out_dir, prefix + '.bac120.marker_info.tsv')
@@ -425,7 +437,8 @@ class Markers(object):
                                                                                   self.cpus))
 
             # determine marker set for each user genome
-            bac_gids, ar_gids = self._genome_domain(identify_dir, prefix)
+            bac_gids, ar_gids, _bac_ar_diff = self.genome_domain(
+                identify_dir, prefix)
 
             # align user genomes
             gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
