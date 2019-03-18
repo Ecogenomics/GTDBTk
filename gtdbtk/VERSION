@@ -1,3 +1,5 @@
+0.2.2
+- Fix support for writing to a scratch file using pplacer (--mmap-file options).
 0.2.1
 - remove Perl dependencies
 - remove Biolib,mpdl3,jinja dependencies

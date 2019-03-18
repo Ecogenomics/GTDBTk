@@ -123,11 +123,12 @@ class Classify():
         pplacer_json_out = os.path.join(
             pplacer_out_dir, 'pplacer.{}.json'.format(marker_set_id))
 
-        cmd = 'pplacer -j {} -c {} -o {} {} > {} 2>&1'.format(self.cpus,
-                                                              pplacer_ref_pkg,
-                                                              pplacer_json_out,
-                                                              user_msa_file,
-                                                              pplacer_out)
+        cmd = 'pplacer -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
+                                                           pplacer_ref_pkg,
+                                                           pplacer_mmap_file,
+                                                           pplacer_json_out,
+                                                           user_msa_file,
+                                                           pplacer_out)
 
         os.system(cmd)
 
