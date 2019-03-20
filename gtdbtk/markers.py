@@ -407,6 +407,7 @@ class Markers(object):
               min_perc_aa,
               custom_msa_filters,
               cols_per_gene,
+              rnd_seed,
               min_consensus,
               max_consensus,
               min_per_taxa,
