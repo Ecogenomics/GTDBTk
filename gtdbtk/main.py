@@ -397,6 +397,7 @@ class OptionsParser():
             options.skip_gtdb_refs = False
             options.cols_per_gene = None
             options.max_consensus = None
+            options.rnd_seed = None
             self.align(options)
 
             self.classify(options)
