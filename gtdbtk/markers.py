@@ -552,11 +552,20 @@ class Markers(object):
 
                 trimmed_user_msa = {
                     k: v for k, v in trimmed_seqs.iteritems() if k in user_msa}
-                self.logger.info(
-                    'Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
-                user_msa_file = os.path.join(
-                    out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
-                self._write_msa(trimmed_user_msa, user_msa_file, gtdb_taxonomy)
+                if len(trimmed_user_msa) > 0:
+                    self.logger.info(
+                        'Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
+                    user_msa_file = os.path.join(
+                        out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                    self._write_msa(trimmed_user_msa,
+                                    user_msa_file, gtdb_taxonomy)
+                else:
+                    if marker_set_id == 'bac120':
+                        self.logger.info(
+                            'All bacterial user genomes have been filtered out.')
+                    else:
+                        self.logger.info(
+                            'All archaeal user genomes have been filtered out.')
 
         except IOError as e:
             self.logger.error(str(e))

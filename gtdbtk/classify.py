@@ -123,12 +123,12 @@ class Classify():
         pplacer_json_out = os.path.join(
             pplacer_out_dir, 'pplacer.{}.json'.format(marker_set_id))
 
-        cmd = 'pplacer -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
-                                                           pplacer_ref_pkg,
-                                                           pplacer_mmap_file,
-                                                           pplacer_json_out,
-                                                           user_msa_file,
-                                                           pplacer_out)
+        cmd = 'pplacer -m WAG -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
+                                                                  pplacer_ref_pkg,
+                                                                  pplacer_mmap_file,
+                                                                  pplacer_json_out,
+                                                                  user_msa_file,
+                                                                  pplacer_out)
 
         os.system(cmd)
 
@@ -457,6 +457,7 @@ class Classify():
                             list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
                             ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
                             if len(list_leaves) != 1:
+                                print list_leaves
                                 raise Exception(
                                     'There should be only one leaf.')
                                 sys.exit(-1)
