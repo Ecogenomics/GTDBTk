@@ -18,6 +18,7 @@
 import os
 import logging
 import sys
+import shutil
 
 from markers import Markers
 from classify import Classify
@@ -176,6 +177,7 @@ class OptionsParser():
                       options.taxa_filter,
                       options.min_perc_aa,
                       options.custom_msa_filters,
+                      options.rnd_seed,
                       options.cols_per_gene,
                       options.min_consensus,
                       options.max_consensus,
@@ -245,6 +247,35 @@ class OptionsParser():
         os.system(cmd)
 
         self.logger.info('Done.')
+
+    def run_test(self, options):
+        make_sure_path_exists(options.out_dir)
+
+        genome_test_dir = os.path.join(options.out_dir, 'genomes')
+        output_dir = os.path.join(options.out_dir, 'output')
+
+        if os.path.isdir(genome_test_dir):
+            shutil.rmtree(genome_test_dir)
+
+        current_path = os.path.dirname(os.path.realpath(__file__))
+        input_dir = os.path.join(
+            current_path, 'tests', 'data', 'genomes')
+
+        shutil.copytree(input_dir, genome_test_dir)
+
+        cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
+            genome_test_dir, output_dir, options.cpus)
+        print "Command:"
+        print cmd
+        os.system(cmd)
+        summary_file = os.path.join(
+            output_dir, 'gtdbtk.ar122.summary.tsv')
+
+        if not os.path.exists(summary_file):
+            print "{} is missing.\nTest has failed.".format(summary_file)
+            sys.exit(-1)
+
+        self.logger.info('Test has successfully finished.')
 
     def classify(self, options):
         """Determine taxonomic classification of genomes."""
@@ -366,6 +397,7 @@ class OptionsParser():
             options.skip_gtdb_refs = False
             options.cols_per_gene = None
             options.max_consensus = None
+            options.rnd_seed = None
             self.align(options)
 
             self.classify(options)
@@ -383,6 +415,8 @@ class OptionsParser():
             self.decorate(options)
         elif(options.subparser_name == 'trim_msa'):
             self.trim_msa(options)
+        elif(options.subparser_name == 'test'):
+            self.run_test(options)
         elif(options.subparser_name == 'check_install'):
             self.check_install()
         else:

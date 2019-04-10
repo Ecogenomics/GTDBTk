@@ -4,8 +4,8 @@ __pycache__/
 *$py.class
 
 #Config file
-src/gtdbtk/config/Config.py
 src/gtdbtk/config/ConfigMetadata.py
+tests/data/results/
 
 # C extensions
 *.so

@@ -1,23 +1,24 @@
-############################
-# EDIT FROM HERE
-############################
+import os
+import sys
 
-# Path to MSA and Taxonomy
-GENERIC_PATH = "/PATH/To/GtdbTK/data/"
-
+try:
+    GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
+except KeyError, e:
+    print "'GTDBTK_DATA_PATH' environment variable is not defined"
+    sys.exit(1)
 ############################
 # If all downloaded data is in the same folder
 # There is no need of editing variable below this point
 ############################
 
 
-TIGRFAM_HMMS = GENERIC_PATH + 'markers/tigrfam/tigrfam.hmm'
-PFAM_HMM_DIR = GENERIC_PATH + 'markers/pfam/'
-MSA_FOLDER = GENERIC_PATH + "msa/"
-MASK_DIR = GENERIC_PATH + "masks/"
-PPLACER_DIR = GENERIC_PATH + "pplacer/"
-FASTANI_DIR = GENERIC_PATH + "fastani/"
-TAX_FOLDER = GENERIC_PATH + "taxonomy/"
+TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
+PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')
+MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
+MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
+PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
+FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
+TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 
 ############################
 # STOP EDIT
