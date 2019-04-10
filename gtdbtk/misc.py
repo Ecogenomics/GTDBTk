@@ -21,6 +21,10 @@ import logging
 import config.config as Config
 
 from biolib_lite.seq_io import read_fasta
+from biolib_lite.common import remove_extension, make_sure_path_exists
+
+
+from shutil import copyfile
 
 
 class Misc():
@@ -49,6 +53,14 @@ class Misc():
             outfwriter.write(fasta_outstr)
         outfwriter.close()
         return True
+
+    def export_msa(self, domain, output_file):
+        file_to_export = Config.CONCAT_BAC120
+        if domain == 'arc':
+            file_to_export = Config.CONCAT_AR122
+
+        make_sure_path_exists(os.path.dirname(output_file))
+        copyfile(file_to_export, output_file)
 
     def checkfile(self, file_path, file_name):
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:

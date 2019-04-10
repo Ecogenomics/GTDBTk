@@ -457,10 +457,17 @@ class Classify():
                             list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
                             ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
                             if len(list_leaves) != 1:
-                                print list_leaves
-                                raise Exception(
-                                    'There should be only one leaf.')
-                                sys.exit(-1)
+                                list_subrank = []
+                                for leaf in list_leaves:
+                                    list_subrank.append(self.gtdb_taxonomy.get(
+                                        leaf)[self.order_rank.index(parent_rank) + 1])
+                                if len(set(list_subrank)) == 1:
+                                    raise Exception(
+                                        'There should be only one leaf.')
+                                    sys.exit(-1)
+                                else:
+                                    closest_rank = parent_rank
+                                    detection = "taxonomic classification fully defined by topology"
                             list_leaf_ranks = self.gtdb_taxonomy.get(
                                 list_leaves[0])[self.order_rank.index(child_rk):-1]  # We remove the species name
                             for leaf_taxon in reversed(list_leaf_ranks):

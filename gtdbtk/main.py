@@ -311,6 +311,13 @@ class OptionsParser():
                       mask_id, options.output)
         self.logger.info('Done.')
 
+    def export_msa(self, options):
+        """Export the untrimmed archaeal or bacterial MSA file."""
+        misc = Misc()
+        misc.export_msa(options.domain, options.output)
+
+        self.logger.info('Done.')
+
     def root(self, options):
         """Root tree using outgroup."""
         self.logger.warning("Tree rooting is still under development!")
@@ -415,6 +422,8 @@ class OptionsParser():
             self.decorate(options)
         elif(options.subparser_name == 'trim_msa'):
             self.trim_msa(options)
+        elif(options.subparser_name == 'export_msa'):
+            self.export_msa(options)
         elif(options.subparser_name == 'test'):
             self.run_test(options)
         elif(options.subparser_name == 'check_install'):
