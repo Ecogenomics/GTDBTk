@@ -158,7 +158,8 @@ class OptionsParser():
         markers = Markers(options.cpus)
         markers.identify(genomes,
                          options.out_dir,
-                         options.prefix)
+                         options.prefix,
+                         options.force)
 
         self.logger.info('Done.')
 

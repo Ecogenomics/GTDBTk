@@ -135,6 +135,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
+                                      help='continue processing if an error occurrs on a single genome')
     optional_denovo_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
@@ -163,6 +165,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
+                                       help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
     optional_classify_wf.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
@@ -192,6 +196,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_identify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_identify.add_argument('--force', action='store_const', const=True, default=False,
+                                    help='continue processing if an error occurrs on a single genome')
     optional_identify.add_argument('-h', '--help', action="help",
                                     help="show help message")
     

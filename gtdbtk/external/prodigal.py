@@ -34,7 +34,8 @@ class Prodigal(object):
                  marker_gene_dir,
                  protein_file_suffix,
                  nt_gene_file_suffix,
-                 gff_file_suffix):
+                 gff_file_suffix,
+                 force):
         """Initialize."""
 
         self.logger = logging.getLogger('timestamp')
@@ -47,6 +48,7 @@ class Prodigal(object):
         self.protein_file_suffix = protein_file_suffix
         self.nt_gene_file_suffix = nt_gene_file_suffix
         self.gff_file_suffix = gff_file_suffix
+        self.force = force
 
     def _run_prodigal(self, genome_id, fasta_path):
         """Run Prodigal.
@@ -55,6 +57,8 @@ class Prodigal(object):
         ----------
         fasta_path : str
             Path to FASTA file to process.
+        :return
+            False if an error occurred.
         """
 
         output_dir = os.path.join(self.marker_gene_dir, genome_id)
@@ -62,6 +66,14 @@ class Prodigal(object):
         prodigal = BioLibProdigal(1, False)
         summary_stats = prodigal.run(
             [fasta_path], output_dir, called_genes=self.proteins)
+
+        # An error occured in BioLib Prodigal.
+        if not summary_stats:
+            if self.force:
+                return None
+            else:
+                raise Exception("An error was encountered while running Prodigal.")
+
         summary_stats = summary_stats[summary_stats.keys()[0]]
 
         # rename output files to adhere to GTDB conventions and desired genome
@@ -107,14 +119,17 @@ class Prodigal(object):
             genome_id, file_path = data
 
             rtn_files = self._run_prodigal(genome_id, file_path)
-            aa_gene_file, nt_gene_file, gff_file, translation_table_file = rtn_files
-            file_paths = {}
-            file_paths["aa_gene_path"] = aa_gene_file
-            file_paths["nt_gene_path"] = nt_gene_file
-            file_paths["gff_path"] = gff_file
-            file_paths["translation_table_path"] = translation_table_file
 
-            out_dict[genome_id] = file_paths
+            # Only proceed if an error didn't occur in BioLib Prodigal
+            if rtn_files:
+                aa_gene_file, nt_gene_file, gff_file, translation_table_file = rtn_files
+                file_paths = {}
+                file_paths["aa_gene_path"] = aa_gene_file
+                file_paths["nt_gene_path"] = nt_gene_file
+                file_paths["gff_path"] = gff_file
+                file_paths["translation_table_path"] = translation_table_file
+
+                out_dict[genome_id] = file_paths
             writer_queue.put(genome_id)
 
     def _writer(self, num_items, writer_queue):
@@ -169,6 +184,10 @@ class Prodigal(object):
 
             for p in worker_proc:
                 p.join()
+
+                # Gracefully terminate the program.
+                if p.exitcode != 0:
+                    raise Exception("An error was encountered while running Prodigal.")
 
             writer_queue.put(None)
             writer_proc.join()

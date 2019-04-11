@@ -79,9 +79,13 @@ class Prodigal(object):
             os.system('cp %s %s' %
                       (os.path.abspath(genome_file), aa_gene_file))
         else:
-            tmp_dir = tempfile.mkdtemp()
-
             seqs = read_fasta(genome_file)
+
+            if len(seqs) == 0:
+                self.logger.warn('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                return None
+
+            tmp_dir = tempfile.mkdtemp()
 
             # determine number of bases
             total_bases = 0
@@ -125,6 +129,12 @@ class Prodigal(object):
 
                 # determine coding density
                 prodigalParser = ProdigalGeneFeatureParser(gff_file_tmp)
+
+                # Skip if no genes were called.
+                if prodigalParser.n_genes_found() == 0:
+                    shutil.rmtree(tmp_dir)
+                    self.logger.warn('No genes were called! Check the quality of your genome. Skipped: {}'.format(genome_file))
+                    return None
 
                 codingBases = 0
                 for seq_id, _seq in seqs.items():
@@ -273,6 +283,10 @@ class Prodigal(object):
         summary_stats = parallel.run(
             self._producer, self._consumer, genome_files, progress_func)
 
+        # An error was encountered during Prodigal processing, clean up.
+        if not summary_stats:
+            shutil.rmtree(self.output_dir)
+
         return summary_stats
 
 
@@ -298,6 +312,16 @@ class ProdigalGeneFeatureParser():
         for seq_id in self.genes:
             self.coding_base_masks[seq_id] = self.__build_coding_base_mask(
                 seq_id)
+
+    def n_genes_found(self):
+        """Return how many genes were found.
+
+        Parameters
+        ----------
+        :return : int
+            The number of genes found.
+        """
+        return len(self.genes)
 
     def __parseGFF(self, filename):
         """Parse genes from GFF file.
