@@ -133,7 +133,8 @@ class Prodigal(object):
                 # Skip if no genes were called.
                 if prodigalParser.n_genes_found() == 0:
                     shutil.rmtree(tmp_dir)
-                    self.logger.warn('No genes were called! Check the quality of your genome. Skipped: {}'.format(genome_file))
+                    self.logger.warn(
+                        'No genes were called! Check the quality of your genome. Skipped: {}'.format(genome_file))
                     return None
 
                 codingBases = 0
