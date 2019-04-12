@@ -28,7 +28,12 @@ GTDB-Tk is **under active development and validation**. Please independently con
 * [References](#references)
 
 ## Announcements
-**Note (March 03, 2018)**:
+
+**Note (April 12, 2019)**:
+- A GTDB-Tk reference data package (gtdbtk.r86_v3_data.tar.gz) is available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
+- This package contains an additional set of genomes based on GTDB R86.
+
+**Note (March 03, 2019)**:
 * GTDB-Tk v0.2.1 has been released (**we recommend all users update to this version**):
   * Species classification is now based strictly on the ANI to reference genomes
   * The "classify" function now reports the closest reference genome in the summary file even if the ANI is <95%
