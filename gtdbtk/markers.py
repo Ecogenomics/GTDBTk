@@ -199,7 +199,8 @@ class Markers(object):
     def identify(self,
                  genomes,
                  out_dir,
-                 prefix):
+                 prefix,
+                 force):
         """Identify marker genes in genomes."""
 
         check_dependencies(['prodigal', 'hmmsearch'])
@@ -216,7 +217,8 @@ class Markers(object):
                                 self.marker_gene_dir,
                                 self.protein_file_suffix,
                                 self.nt_gene_file_suffix,
-                                self.gff_file_suffix)
+                                self.gff_file_suffix,
+                                force)
             genome_dictionary = prodigal.run(genomes)
 
             # annotated genes against TIGRFAM and Pfam databases
