@@ -79,7 +79,7 @@ class Classify():
         """Place genomes into reference tree using pplacer."""
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
-            t = os.path.join(out_dir, prefix + '.user_msa.fasta')
+            t = os.path.join(out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.user_msa.fasta')
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
 
@@ -113,7 +113,7 @@ class Classify():
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
 
         # create pplacer output directory
-        pplacer_out_dir = os.path.join(out_dir, 'pplacer')
+        pplacer_out_dir = os.path.join(out_dir, Config.INTERMEDIATE_RESULTS, 'pplacer')
         if not os.path.exists(pplacer_out_dir):
             os.makedirs(pplacer_out_dir)
 
@@ -185,7 +185,7 @@ class Classify():
         """
 
         reddictfile = open(os.path.join(
-            out_dir, prefix + '.{}.red_dictionary.tsv'.format(marker_set_id)), 'w')
+            out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.red_dictionary.tsv'.format(marker_set_id)), 'w')
 
         marker_dict = {}
         if marker_set_id == 'bac120':
@@ -231,7 +231,7 @@ class Classify():
 
             for marker_set_id in ('ar122', 'bac120'):
                 user_msa_file = os.path.join(
-                    align_dir, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
+                    align_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
                 if not os.path.exists(user_msa_file):
                         # file will not exist if there are no User genomes from a
                         # given domain
@@ -593,7 +593,7 @@ class Classify():
 
         """
         pplaceout = open(os.path.join(
-            out_dir, prefix + '.{}.classification_pplacer.tsv'.format(marker_set_id)), 'w')
+            out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.classification_pplacer.tsv'.format(marker_set_id)), 'w')
 
         # We get the pplacer taxonomy for comparison
 
