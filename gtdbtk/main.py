@@ -197,6 +197,7 @@ class OptionsParser():
 
         if options.cpus > 1:
             check_dependencies(['FastTreeMP'])
+            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
         else:
             check_dependencies(['FastTree'])
 
