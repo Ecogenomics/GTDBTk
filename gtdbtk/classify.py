@@ -973,49 +973,45 @@ class Classify():
             self.tmp_output_dir = tempfile.mkdtemp()
             make_sure_path_exists(self.tmp_output_dir)
 
-            # we write the two input files for fastani, the query file and
-            # reference file
-            query_list_file = open(os.path.join(
-                self.tmp_output_dir, 'query_list.txt'), 'w')
-            query_list_file.write('{0}\n'.format(
-                genomes.get(user_leaf.taxon.label)))
-            query_list_file.close()
+            # we write the two input files for fastani, the query file and reference file
+            path_query_list = os.path.join(self.tmp_output_dir, 'query_list.txt')
+            with open(path_query_list, 'w') as f:
+                f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
 
-            ref_list_file = open(os.path.join(
-                self.tmp_output_dir, 'ref_list.txt'), 'w')
-            leafnodes = list_leaf.get("potential_g")
-            for node in leafnodes:
-                leafnode = node[0]
-                shortleaf = leafnode.taxon.label
-                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
-                    shortleaf = leafnode.taxon.label[3:]
-                ref_list_file.write('{}\n'.format(os.path.join(
-                    Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
-            ref_list_file.close()
+            path_ref_list = os.path.join(self.tmp_output_dir, 'ref_list.txt')
+            with open(path_ref_list, 'w') as f:
+                leafnodes = list_leaf.get("potential_g")
+                for node in leafnodes:
+                    leafnode = node[0]
+                    shortleaf = leafnode.taxon.label
+                    if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
+                        shortleaf = leafnode.taxon.label[3:]
+                    f.write('{}\n'.format(os.path.join(
+                        Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
 
             # run fastANI
-            if not os.path.isfile(os.path.join(self.tmp_output_dir, 'query_list.txt')) or not os.path.isfile(os.path.join(self.tmp_output_dir, 'ref_list.txt')):
+            if not os.path.isfile(path_query_list) or not os.path.isfile(path_ref_list):
                 raise
 
-            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(os.path.join(self.tmp_output_dir, 'query_list.txt'),
-                                                                              os.path.join(
-                                                                                  self.tmp_output_dir, 'ref_list.txt'),
-                                                                              os.path.join(
-                                                                                  self.tmp_output_dir, 'results.tab'),
-                                                                              os.path.join(self.tmp_output_dir, 'error.log'))
+            path_results = os.path.join(self.tmp_output_dir, 'results.tab')
+            path_error = os.path.join(self.tmp_output_dir, 'error.log')
+
+            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_query_list,
+                                                                              path_ref_list,
+                                                                              path_results,
+                                                                              path_error)
             os.system(cmd)
 
-            if not os.path.isfile(os.path.join(self.tmp_output_dir, 'results.tab')):
+            if not os.path.isfile(path_results):
                 errstr = 'FastANI has stopped:\n'
-                if os.path.isfile(os.path.join(self.tmp_output_dir, 'error.log')):
-                    with open(os.path.join(self.tmp_output_dir, 'error.log')) as debug:
+                if os.path.isfile(path_error):
+                    with open(path_error) as debug:
                         for line in debug:
                             finalline = line
                         errstr += finalline
                 raise ValueError(errstr)
 
-            dict_parser_distance = self._parse_fastani_results(
-                os.path.join(self.tmp_output_dir, 'results.tab'))
+            dict_parser_distance = self._parse_fastani_results(path_results)
             shutil.rmtree(self.tmp_output_dir)
             return dict_parser_distance
 
