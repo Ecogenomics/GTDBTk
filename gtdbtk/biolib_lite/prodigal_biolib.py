@@ -34,7 +34,6 @@ from common import remove_extension, make_sure_path_exists
 from seq_io import read_fasta
 from parallel import Parallel
 from execute import check_on_path
-
 import numpy as np
 
 
@@ -86,8 +85,13 @@ class Prodigal(object):
                 self.logger.warn('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
                 return None
 
-            # Convert the genome file into the string representation, not as an object.
-            genome_file_str = ''.join(['>%s\n%s\n' % (k, v) for k, v in seqs.items()])
+            # Prepare the genome file as a wrapped (buffered) string prior for passing through stdin to prodigal
+            buffer_len = 80
+            genome_file_str = str()
+            for gid, gseq in seqs.items():
+                genome_file_str += '>%s\n' % gid
+                for i in range(0, len(gseq), buffer_len):
+                    genome_file_str += '%s\n' % gseq[i:i+buffer_len]
 
             tmp_dir = tempfile.mkdtemp()
 
@@ -166,7 +170,6 @@ class Prodigal(object):
 
             # clean up temporary files
             shutil.rmtree(tmp_dir)
-
         return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4], table_coding_density[11])
 
     def _consumer(self, produced_data, consumer_data):
