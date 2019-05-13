@@ -611,6 +611,18 @@ class Classify():
             raise
 
     def _assign_mrca_red(self, input_tree, marker_set_id):
+        """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
+
+        Parameters
+        ----------
+        input_tree : pplacer tree
+        marker_set_id : bacterial or archeal id (bac120 or ar122)
+
+        Returns
+        -------
+        tree: pplacer tree with RED value added to nodes of interest
+
+        """
         dict_ref_red = {}
         tree = dendropy.Tree.get_from_path(input_tree,
                                            schema='newick',
@@ -623,6 +635,8 @@ class Classify():
 
         reference_nodes = []
 
+        # Parse RED file and associate reference RED value to reference node in
+        # the tree
         with open(red_file) as rf:
             for line in rf:
                 infos = line.strip().split('\t')
@@ -635,45 +649,50 @@ class Classify():
                     leaf = tree.find_node_with_taxon_label(labels[0])
                     dict_ref_red[leaf] = float(infos[1])
                     reference_nodes.append(leaf)
-            for nd in tree.preorder_node_iter():
-                if nd in reference_nodes:
-                    nd.rel_dist = dict_ref_red.get(nd)
-            for nd in tree.leaf_nodes():
-                if nd not in reference_nodes:
-                    nd.rel_dist = 1.0
-                    pplacer_node = nd
+        for nd in tree.preorder_node_iter():
+            if nd in reference_nodes:
+                nd.rel_dist = dict_ref_red.get(nd)
+
+        # For all leaf nodes that are not reference genomes
+        # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
+        # The new red value for the pplacer node =
+        # RED_parent + (RED_child -RED_parent) * ( (pplacer_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
+        for nd in tree.leaf_nodes():
+            if nd not in reference_nodes:
+                nd.rel_dist = 1.0
+                pplacer_node = nd
+                pplacer_parent_node = pplacer_node.parent_node
+                while not bool(set(pplacer_node.leaf_nodes()) & set(reference_nodes)):
+                    pplacer_node = pplacer_parent_node
                     pplacer_parent_node = pplacer_node.parent_node
-                    while not bool(set(pplacer_node.leaf_nodes()) & set(reference_nodes)):
-                        pplacer_node = pplacer_parent_node
-                        pplacer_parent_node = pplacer_node.parent_node
 
-                    child_nodes = [ref_node for ref_node in pplacer_node.child_nodes(
-                    )]
-                    while not bool(set(child_nodes) & set(reference_nodes)):
-                        result = []
-                        for node in child_nodes:
-                            result.extend(node.child_nodes())
-                        child_nodes = result
-                    child_node = list(set(child_nodes) &
-                                      set(reference_nodes))[0]
+                child_nodes = [ref_node for ref_node in pplacer_node.child_nodes(
+                )]
+                while not bool(set(child_nodes) & set(reference_nodes)):
+                    result = []
+                    for node in child_nodes:
+                        result.extend(node.child_nodes())
+                    child_nodes = result
+                child_node = list(set(child_nodes) &
+                                  set(reference_nodes))[0]
 
-                    while not pplacer_parent_node in reference_nodes:
-                        pplacer_parent_node = pplacer_parent_node.parent_node
+                while not pplacer_parent_node in reference_nodes:
+                    pplacer_parent_node = pplacer_parent_node.parent_node
 
-                    parent_distance = pplacer_parent_node.distance_from_root()
-                    child_distance = child_node.distance_from_root()
-                    pplacer_node_distance = pplacer_node.distance_from_root()
-                    branch_length = child_distance - parent_distance
-                    branch_pplacer_length = pplacer_node_distance - parent_distance
+                parent_distance = pplacer_parent_node.distance_from_root()
+                child_distance = child_node.distance_from_root()
+                pplacer_node_distance = pplacer_node.distance_from_root()
+                branch_length = child_distance - parent_distance
+                branch_pplacer_length = pplacer_node_distance - parent_distance
 
-                    ratio = branch_pplacer_length / branch_length
+                ratio = branch_pplacer_length / branch_length
 
-                    branch_rel_dist = dict_ref_red.get(
-                        child_node) - dict_ref_red.get(pplacer_parent_node)
+                branch_rel_dist = dict_ref_red.get(
+                    child_node) - dict_ref_red.get(pplacer_parent_node)
 
-                    branch_rel_dist = dict_ref_red.get(
-                        pplacer_parent_node) + branch_rel_dist * ratio
-                    pplacer_node.rel_dist = branch_rel_dist
+                branch_rel_dist = dict_ref_red.get(
+                    pplacer_parent_node) + branch_rel_dist * ratio
+                pplacer_node.rel_dist = branch_rel_dist
 
         return tree
 

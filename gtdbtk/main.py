@@ -229,8 +229,13 @@ class OptionsParser():
             support_str = ' -nosupport'
 
         gamma_str = ' -gamma'
+        gamma_str_info = '+GAMMA'
         if options.no_gamma:
             gamma_str = ''
+            gamma_str_info = ''
+
+        self.logger.info(
+            'Inferring tree with FastTree using {}.'.format(options.prot_model, gamma_str_info))
 
         cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
                                                       model_str,
