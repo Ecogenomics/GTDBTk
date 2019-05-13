@@ -130,7 +130,7 @@ class Classify():
                                                                   user_msa_file,
                                                                   pplacer_out)
 
-        os.system(cmd)
+        # os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(
@@ -200,6 +200,25 @@ class Classify():
         reddictfile.close()
         return marker_dict
 
+    def _parse_red_dict(self, red_dist_dict):
+        results = {}
+        for k, v in red_dist_dict.iteritems():
+            if k in ['d__', 'domain']:
+                results['d__'] = v
+            elif k in ['p__', 'phylum']:
+                results['p__'] = v
+            elif k in ['c__', 'class']:
+                results['c__'] = v
+            elif k in ['o__', 'order']:
+                results['o__'] = v
+            elif k in ['f__', 'family']:
+                results['f__'] = v
+            elif k in ['g__', 'genus']:
+                results['g__'] = v
+            elif k in ['s__', 'species']:
+                results['s__'] = v
+        return results
+
     def parser_marker_summary_file(self, marker_summary_file, marker_set_id):
         results = {}
         with open(marker_summary_file, 'r') as msf:
@@ -223,6 +242,7 @@ class Classify():
             out_dir,
             prefix,
             scratch_dir=None,
+            keep_ref_red=None,
             debugopt=False):
         try:
             """Classify genomes based on position in reference tree."""
@@ -374,14 +394,19 @@ class Classify():
 
                 # If Fastani can't select a taxonomy for a genome, we use RED
                 # distances
-                scaled_tree = self._calculate_red_distances(
-                    classify_tree, out_dir)
+
+                if keep_ref_red:
+                    tree_to_process = self._assign_mrca_red(
+                        classify_tree, marker_set_id)
+                else:
+                    tree_to_process = self._calculate_red_distances(
+                        classify_tree, out_dir)
 
                 user_genome_ids = set(read_fasta(user_msa_file).keys())
                 # we remove ids already classified with FastANI
                 user_genome_ids = user_genome_ids.difference(
                     set(classified_user_genomes))
-                for leaf in scaled_tree.leaf_node_iter():
+                for leaf in tree_to_process.leaf_node_iter():
                     if leaf.taxon.label in user_genome_ids:
                         # In some cases , pplacer can associate 2 user genomes
                         # on the same parent node so we need to go up the tree
@@ -462,6 +487,8 @@ class Classify():
                                     list_subrank.append(self.gtdb_taxonomy.get(
                                         leaf)[self.order_rank.index(parent_rank) + 1])
                                 if len(set(list_subrank)) == 1:
+                                    print list_leaves
+                                    print list_subrank
                                     raise Exception(
                                         'There should be only one leaf.')
                                     sys.exit(-1)
@@ -582,6 +609,73 @@ class Classify():
             print "GTDB-Tk has stopped before finishing"
             print error
             raise
+
+    def _assign_mrca_red(self, input_tree, marker_set_id):
+        dict_ref_red = {}
+        tree = dendropy.Tree.get_from_path(input_tree,
+                                           schema='newick',
+                                           rooting='force-rooted',
+                                           preserve_underscores=True)
+
+        red_file = Config.MRCA_RED_BAC120
+        if marker_set_id == 'ar122':
+            red_file = Config.MRCA_RED_AR122
+
+        reference_nodes = []
+
+        with open(red_file) as rf:
+            for line in rf:
+                infos = line.strip().split('\t')
+                labels = infos[0].split('|')
+                if len(labels) == 2:
+                    mrca = tree.mrca(taxon_labels=labels)
+                    dict_ref_red[mrca] = float(infos[1])
+                    reference_nodes.append(mrca)
+                elif len(labels) == 1:
+                    leaf = tree.find_node_with_taxon_label(labels[0])
+                    dict_ref_red[leaf] = float(infos[1])
+                    reference_nodes.append(leaf)
+            for nd in tree.preorder_node_iter():
+                if nd in reference_nodes:
+                    nd.rel_dist = dict_ref_red.get(nd)
+            for nd in tree.leaf_nodes():
+                if nd not in reference_nodes:
+                    nd.rel_dist = 1.0
+                    pplacer_node = nd
+                    pplacer_parent_node = pplacer_node.parent_node
+                    while not bool(set(pplacer_node.leaf_nodes()) & set(reference_nodes)):
+                        pplacer_node = pplacer_parent_node
+                        pplacer_parent_node = pplacer_node.parent_node
+
+                    child_nodes = [ref_node for ref_node in pplacer_node.child_nodes(
+                    )]
+                    while not bool(set(child_nodes) & set(reference_nodes)):
+                        result = []
+                        for node in child_nodes:
+                            result.extend(node.child_nodes())
+                        child_nodes = result
+                    child_node = list(set(child_nodes) &
+                                      set(reference_nodes))[0]
+
+                    while not pplacer_parent_node in reference_nodes:
+                        pplacer_parent_node = pplacer_parent_node.parent_node
+
+                    parent_distance = pplacer_parent_node.distance_from_root()
+                    child_distance = child_node.distance_from_root()
+                    pplacer_node_distance = pplacer_node.distance_from_root()
+                    branch_length = child_distance - parent_distance
+                    branch_pplacer_length = pplacer_node_distance - parent_distance
+
+                    ratio = branch_pplacer_length / branch_length
+
+                    branch_rel_dist = dict_ref_red.get(
+                        child_node) - dict_ref_red.get(pplacer_parent_node)
+
+                    branch_rel_dist = dict_ref_red.get(
+                        pplacer_parent_node) + branch_rel_dist * ratio
+                    pplacer_node.rel_dist = branch_rel_dist
+
+        return tree
 
     def _get_pplacer_taxonomy(self, out_dir, prefix, marker_set_id, user_msa_file, tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements

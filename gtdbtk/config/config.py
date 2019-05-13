@@ -22,6 +22,7 @@ FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
 METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
+RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
 
 
 RED_DIST_BAC_DICT = ''
@@ -126,3 +127,9 @@ PPLACER_RPS23_REF_PKG = "gtdb_" + VERSION_DATA + "_rps23.refpkg"
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
+
+# MRCA RED VALUE
+MRCA_RED_BAC120 = os.path.join(
+    RED_DIR, "gtdbtk_{}_bac120.tsv".format(VERSION_DATA))
+MRCA_RED_AR122 = os.path.join(
+    RED_DIR, "gtdbtk_{}_ar122.tsv".format(VERSION_DATA))

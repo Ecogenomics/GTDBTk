@@ -186,13 +186,16 @@ class PackageChecker(object):
             print 'ERROR: len(radii_dict) != (len(ar_msa) + len(bac_msa))'
             print 'len(radii_dict): {}'.format(len(radii_dict))
             print 'len(ar_msa) + len(bac_msa): {}'.format(len(ar_msa) + len(bac_msa))
+        if len(set(radii_dict.keys()).symmetric_difference(tax_dict.keys())) != 0:
+            print 'ERROR: len(set(radii_dict.keys()).symmetric_difference(tax_dict.keys()))'
+            print 'set(radii_dict.keys()).symmetric_difference(tax_dict.keys()): {}'.format(set(radii_dict.keys()).symmetric_difference(tax_dict.keys()))
 
         if len(list_genomes) != len(radii_dict):
             print 'ERROR: len(list_genomes) != len(radii_dict)'
             print 'len(list_genomes): {}'.format(len(list_genomes))
             print 'len(radii_dict): {}'.format(len(radii_dict))
 
-        print 'VERSION: {}'.format(version)
+        print '\n\nVERSION: {}'.format(version)
         print 'Length trimmed bac120 MSA: {}'.format(len(bac_pplacer_msa.get(bac_pplacer_msa.keys()[0])))
         print 'Length trimmed ar122 MSA: {}'.format(len(ar_pplacer_msa.get(ar_pplacer_msa.keys()[0])))
         print ''

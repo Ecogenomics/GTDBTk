@@ -294,6 +294,7 @@ class OptionsParser():
                      options.out_dir,
                      options.prefix,
                      options.scratch_dir,
+                     options.keep_ref_red,
                      options.debug)
 
         self.logger.info('Done.')

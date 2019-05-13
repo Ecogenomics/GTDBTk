@@ -165,6 +165,7 @@ if __name__ == '__main__':
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
+    optional_classify_wf.add_argument('--keep_ref_red',action='store_true',help='Base RED value of new genomes on the reference tree.')
     optional_classify_wf.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
     optional_classify_wf.add_argument('-h', '--help', action="help",
@@ -289,6 +290,7 @@ if __name__ == '__main__':
     optional_classify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
     optional_classify.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
+    optional_classify.add_argument('--keep_ref_red',action='store_true',help='Base RED value of new genomes on the reference tree.')
     optional_classify.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
     optional_classify.add_argument('-h', '--help', action="help",
