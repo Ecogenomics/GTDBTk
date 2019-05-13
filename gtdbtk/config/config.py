@@ -94,6 +94,9 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
+# Intermediate results folder
+INTERMEDIATE_RESULTS = 'intermediate_results'
+
 # Annotation folder
 MARKER_GENE_DIR = "marker_genes"
 

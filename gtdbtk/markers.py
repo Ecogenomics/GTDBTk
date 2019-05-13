@@ -211,7 +211,7 @@ class Markers(object):
 
             self.logger.info("Running Prodigal to identify genes.")
             self.marker_gene_dir = os.path.join(
-                out_dir, Config.MARKER_GENE_DIR)
+                out_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR)
             prodigal = Prodigal(self.cpus,
                                 False,
                                 self.marker_gene_dir,
@@ -259,7 +259,7 @@ class Markers(object):
     def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
 
-        marker_gene_dir = os.path.join(identity_dir, Config.MARKER_GENE_DIR)
+        marker_gene_dir = os.path.join(identity_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR)
 
         genomic_files = {}
         for gid in os.listdir(marker_gene_dir):
@@ -427,11 +427,11 @@ class Markers(object):
                     identify_dir, prefix + "_ar122_markers_summary.tsv"), out_dir)
             # write out files with marker information
             bac120_marker_info_file = os.path.join(
-                out_dir, prefix + '.bac120.marker_info.tsv')
+                out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.bac120.marker_info.tsv')
             self._write_marker_info(
                 Config.BAC120_MARKERS, bac120_marker_info_file)
             ar122_marker_info_file = os.path.join(
-                out_dir, prefix + '.ar122.marker_info.tsv')
+                out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.ar122.marker_info.tsv')
             self._write_marker_info(
                 Config.AR122_MARKERS, ar122_marker_info_file)
 
@@ -531,7 +531,7 @@ class Markers(object):
                             min_perc_aa))
 
                 # write out filtering information
-                fout = open(os.path.join(out_dir, prefix +
+                fout = open(os.path.join(out_dir, Config.INTERMEDIATE_RESULTS, prefix +
                                          ".%s.filtered.tsv" % marker_set_id), 'w')
                 for pruned_seq_id, pruned_seq in pruned_seqs.items():
                     if len(pruned_seq) == 0:
@@ -549,7 +549,7 @@ class Markers(object):
                     self.logger.info(
                         'Creating concatenated alignment for %d GTDB and user genomes.' % len(trimmed_seqs))
                     msa_file = os.path.join(
-                        out_dir, prefix + ".%s.msa.fasta" % marker_set_id)
+                        out_dir, Config.INTERMEDIATE_RESULTS, prefix + ".%s.msa.fasta" % marker_set_id)
                     self._write_msa(trimmed_seqs, msa_file, gtdb_taxonomy)
 
                 trimmed_user_msa = {
@@ -558,7 +558,7 @@ class Markers(object):
                     self.logger.info(
                         'Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
                     user_msa_file = os.path.join(
-                        out_dir, prefix + ".%s.user_msa.fasta" % marker_set_id)
+                        out_dir, Config.INTERMEDIATE_RESULTS, prefix + ".%s.user_msa.fasta" % marker_set_id)
                     self._write_msa(trimmed_user_msa,
                                     user_msa_file, gtdb_taxonomy)
                 else:

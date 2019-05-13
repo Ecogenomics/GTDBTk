@@ -365,12 +365,15 @@ class PfamScan(object):
             else:
                 params = ['hmmsearch', '--notextw', ' '.join(hmmscan_cut_off), os.path.join(self._dir, hmmlib), self._fasta]
 
+            proc = subprocess.Popen(params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc_out, proc_err = proc.communicate()
+            proc_out_ascii = proc_out.decode().encode('utf-8')
 
-            run = subprocess.check_output(' '.join(params), shell=True)
+            if proc_err:
+                sys.exit('An error was encountered while running hmmsearch: %s' % proc_err)
 
             self._hmmresultIO = HMMResultsIO()
-            self._all_results = self._hmmresultIO.parseMultiHMMER3(run)
-
+            self._all_results = self._hmmresultIO.parseMultiHMMER3(proc_out_ascii)
             self._all_results = self._convert_results_search_to_scan(self._all_results)
 
             if not re_1.search(hmmlib):
