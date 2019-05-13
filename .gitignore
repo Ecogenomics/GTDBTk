@@ -47,4 +47,5 @@ coverage.xml
 # Django stuff:
 *.log
 
-
+# IDE files
+.idea

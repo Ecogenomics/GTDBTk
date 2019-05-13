@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     optional_denovo_wf = denovo_wf_parser.add_argument_group('optional arguments')
     optional_denovo_wf.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process')
+                                    help='extension of files to process, gz = gzipped')
                                     
     optional_denovo_wf.add_argument('--skip_gtdb_refs',
                                     action="store_true",
@@ -136,6 +136,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
+                                      help='continue processing if an error occurrs on a single genome')
     optional_denovo_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
@@ -157,13 +159,15 @@ if __name__ == '__main__':
 
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
     optional_classify_wf.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process')
+                                    help='extension of files to process, gz = gzipped')
     optional_classify_wf.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_classify_wf.add_argument('--prefix', required=False, default='gtdbtk',
                                     help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
+                                       help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
     optional_classify_wf.add_argument('--keep_ref_red',action='store_true',help='Base RED value of new genomes on the reference tree.')
     optional_classify_wf.add_argument('--debug', action="store_true",
@@ -189,11 +193,13 @@ if __name__ == '__main__':
 
     optional_identify = identify_parser.add_argument_group('optional arguments')
     optional_identify.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process')
+                                    help='extension of files to process, gz = gzipped')
     optional_identify.add_argument('--prefix', default='gtdbtk',
                                     help='desired prefix for output files')
     optional_identify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_identify.add_argument('--force', action='store_const', const=True, default=False,
+                                    help='continue processing if an error occurrs on a single genome')
     optional_identify.add_argument('-h', '--help', action="help",
                                     help="show help message")
     
@@ -284,7 +290,7 @@ if __name__ == '__main__':
 
     optional_classify = classify_parser.add_argument_group('optional arguments')
     optional_classify.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process')
+                                    help='extension of files to process, gz = gzipped')
     optional_classify.add_argument('--prefix', required=False, default='gtdbtk',
                                     help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
