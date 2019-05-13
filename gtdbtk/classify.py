@@ -130,7 +130,7 @@ class Classify():
                                                                   user_msa_file,
                                                                   pplacer_out)
 
-        # os.system(cmd)
+        os.system(cmd)
 
         # extract tree
         tree_file = os.path.join(
