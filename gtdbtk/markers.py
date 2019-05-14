@@ -66,8 +66,11 @@ class Markers(object):
         self.tigrfam_suffix = ConfigMetadata.TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = ConfigMetadata.TIGRFAM_TOP_HIT_SUFFIX
 
-    def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
+    def _report_identified_marker_genes(self, gene_dict, outdir, marker_gene_dir, prefix):
         """Report statistics for identified marker genes."""
+
+        translation_table_file = open(os.path.join(
+            marker_gene_dir, prefix + "_translation_table_summary.tsv"), "w")
 
         bac_outfile = open(os.path.join(
             outdir, prefix + "_bac120_markers_summary.tsv"), "w")
@@ -94,6 +97,7 @@ class Markers(object):
                                              for marker in Config.AR122_MARKERS[db_marker]])
 
         for db_genome_id, info in gene_dict.items():
+
             unique_genes_bac, multi_hits_bac, missing_genes_bac = [], [], []
             unique_genes_arc, multi_hits_arc, missing_genes_arc = [], [], []
 
@@ -193,8 +197,12 @@ class Markers(object):
                                                                                multi_hits_arc),
                                                                            ','.join(missing_genes_arc)))
 
+            translation_table_file.write('{}\t{}\n'.format(
+                db_genome_id, info.get("best_translation_table")))
+
         bac_outfile.close()
         arc_outfile.close()
+        translation_table_file.close()
 
     def identify(self,
                  genomes,
@@ -246,7 +254,7 @@ class Markers(object):
             pfam_search.run(gene_files)
 
             self._report_identified_marker_genes(
-                genome_dictionary, out_dir, prefix)
+                genome_dictionary, out_dir, self.marker_gene_dir, prefix)
 
         except IOError as e:
             self.logger.error(str(e))
@@ -259,7 +267,8 @@ class Markers(object):
     def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
 
-        marker_gene_dir = os.path.join(identity_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR)
+        marker_gene_dir = os.path.join(
+            identity_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR)
 
         genomic_files = {}
         for gid in os.listdir(marker_gene_dir):
@@ -425,6 +434,16 @@ class Markers(object):
                     identify_dir, prefix + "_bac120_markers_summary.tsv"), out_dir)
                 copy(os.path.join(
                     identify_dir, prefix + "_ar122_markers_summary.tsv"), out_dir)
+
+                identify_gene_file = os.path.join(
+                    identify_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR, prefix + "_translation_table_summary.tsv")
+
+                out_marker_gene_dir = os.path.join(
+                    out_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR)
+                if not os.path.exists(out_marker_gene_dir):
+                    os.makedirs(out_marker_gene_dir)
+                copy(identify_gene_file, out_marker_gene_dir)
+
             # write out files with marker information
             bac120_marker_info_file = os.path.join(
                 out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.bac120.marker_info.tsv')

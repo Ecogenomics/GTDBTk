@@ -79,7 +79,8 @@ class Classify():
         """Place genomes into reference tree using pplacer."""
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
-            t = os.path.join(out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.user_msa.fasta')
+            t = os.path.join(out_dir, Config.INTERMEDIATE_RESULTS,
+                             prefix + '.user_msa.fasta')
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
 
@@ -113,7 +114,8 @@ class Classify():
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
 
         # create pplacer output directory
-        pplacer_out_dir = os.path.join(out_dir, Config.INTERMEDIATE_RESULTS, 'pplacer')
+        pplacer_out_dir = os.path.join(
+            out_dir, Config.INTERMEDIATE_RESULTS, 'pplacer')
         if not os.path.exists(pplacer_out_dir):
             os.makedirs(pplacer_out_dir)
 
@@ -236,6 +238,14 @@ class Classify():
                     results[infos[0]] = round(multi_hits_percent, 1)
         return results
 
+    def parse_trans_table_file(self, trans_table_file):
+        results = {}
+        with open(trans_table_file, 'r') as msf:
+            for line in msf:
+                infos = line.strip().split('\t')
+                results[infos[0]] = infos[1]
+        return results
+
     def run(self,
             genomes,
             align_dir,
@@ -262,6 +272,11 @@ class Classify():
                 percent_multihit_dict = self.parser_marker_summary_file(
                     marker_summary_file, marker_set_id)
 
+                trans_table_file = os.path.join(
+                    align_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR, prefix + "_translation_table_summary.tsv")
+                trans_table_dict = self.parse_trans_table_file(
+                    trans_table_file)
+
                 msa_dict = read_fasta(user_msa_file)
 
                 classify_tree = self.place_genomes(user_msa_file,
@@ -287,7 +302,7 @@ class Classify():
 
                 summaryfout.write("user_genome\tclassification\tfastani_reference\tfastani_reference_radius\tfastani_taxonomy\tfastani_ani\tfastani_af\t" +
                                   "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\t" +
-                                  "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\tred_value\twarnings\n")
+                                  "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\ttranslation_table\tred_value\twarnings\n")
                 if debugopt:
                     debugfile.write(
                         "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
@@ -387,7 +402,7 @@ class Classify():
                     all_fastani_dict = dict(out_q)
 
                 classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
-                    fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, bac_ar_diff, summaryfout)
+                    fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout)
 
                 self.logger.info('{0} genomes have been classify using FastANI and Pplacer.'.format(
                     len(classified_user_genomes)))
@@ -559,7 +574,7 @@ class Classify():
 
                         del debug_info[0]
 
-                        summary_list = [None] * 17
+                        summary_list = [None] * 18
                         if leaf.taxon.label in unclassified_user_genomes:
                             summary_list = unclassified_user_genomes.get(
                                 leaf.taxon.label)
@@ -572,7 +587,9 @@ class Classify():
                         summary_list[12] = detection
                         summary_list[14] = self.aa_percent_msa(
                             msa_dict.get(summary_list[0]))
-                        summary_list[15] = current_rel_list
+                        summary_list[15] = trans_table_dict.get(
+                            summary_list[0])
+                        summary_list[16] = current_rel_list
 
                         notes = []
                         if summary_list[0] in percent_multihit_dict:
@@ -583,7 +600,7 @@ class Classify():
                                 bac_ar_diff.get(summary_list[0]).get('bac120'), bac_ar_diff.get(summary_list[0]).get('ar122')))
 
                         if len(notes) > 0:
-                            summary_list[16] = ';'.join(notes)
+                            summary_list[17] = ';'.join(notes)
                         summaryfout.write("{0}\n".format(
                             '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
                         if debugopt:
@@ -762,7 +779,7 @@ class Classify():
         aa_perc = float(aa_len) / len(aa_string)
         return round(aa_perc * 100, 2)
 
-    def _sort_fastani_results(self, fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, bac_ar_diff, summaryfout):
+    def _sort_fastani_results(self, fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -781,7 +798,7 @@ class Classify():
         classified_user_genomes = []
         unclassified_user_genomes = {}
         for userleaf, potential_nodes in fastani_verification.iteritems():
-            summary_list = [None] * 17
+            summary_list = [None] * 18
 
             notes = []
             if userleaf.taxon.label in percent_multihit_dict:
@@ -791,7 +808,7 @@ class Classify():
                 notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(userleaf.taxon.label).get('bac120'), bac_ar_diff.get(userleaf.taxon.label).get('ar122')))
             if len(notes) > 0:
-                summary_list[16] = ';'.join(notes)
+                summary_list[17] = ';'.join(notes)
 
             if potential_nodes.get("pplacer_g"):
                 pplacer_leafnode = potential_nodes.get("pplacer_g").taxon.label
@@ -805,8 +822,6 @@ class Classify():
                         add_ncbi_prefix(pplacer_leafnode)))
 
                     summary_list[0] = userleaf.taxon.label
-                    summary_list[14] = self.aa_percent_msa(
-                        msa_dict.get(summary_list[0]))
                     summary_list[2] = fastani_matching_reference
                     summary_list[3] = str(
                         self.species_radius.get(fastani_matching_reference))
@@ -818,6 +833,9 @@ class Classify():
                     summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                         fastani_matching_reference).get('af')
                     summary_list[11] = 'ANI/Placement'
+                    summary_list[14] = self.aa_percent_msa(
+                        msa_dict.get(summary_list[0]))
+                    summary_list[15] = trans_table_dict.get(summary_list[0])
 
                     if self.species_radius.get(fastani_matching_reference) <= current_ani:
                         if pplacer_leafnode == fastani_matching_reference:
@@ -1093,8 +1111,10 @@ class Classify():
             self.tmp_output_dir = tempfile.mkdtemp()
             make_sure_path_exists(self.tmp_output_dir)
 
-            # we write the two input files for fastani, the query file and reference file
-            path_query_list = os.path.join(self.tmp_output_dir, 'query_list.txt')
+            # we write the two input files for fastani, the query file and
+            # reference file
+            path_query_list = os.path.join(
+                self.tmp_output_dir, 'query_list.txt')
             with open(path_query_list, 'w') as f:
                 f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
 

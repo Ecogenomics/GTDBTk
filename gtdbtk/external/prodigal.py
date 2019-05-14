@@ -72,7 +72,8 @@ class Prodigal(object):
             if self.force:
                 return None
             else:
-                raise Exception("An error was encountered while running Prodigal.")
+                raise Exception(
+                    "An error was encountered while running Prodigal.")
 
         summary_stats = summary_stats[summary_stats.keys()[0]]
 
@@ -106,7 +107,7 @@ class Prodigal(object):
                                        summary_stats.coding_density_11 * 100))
             fout.close()
 
-        return (aa_gene_file, nt_gene_file, gff_file, translation_table_file)
+        return (aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table)
 
     def _worker(self, out_dict, worker_queue, writer_queue):
         """This worker function is invoked in a process."""
@@ -122,14 +123,15 @@ class Prodigal(object):
 
             # Only proceed if an error didn't occur in BioLib Prodigal
             if rtn_files:
-                aa_gene_file, nt_gene_file, gff_file, translation_table_file = rtn_files
-                file_paths = {}
-                file_paths["aa_gene_path"] = aa_gene_file
-                file_paths["nt_gene_path"] = nt_gene_file
-                file_paths["gff_path"] = gff_file
-                file_paths["translation_table_path"] = translation_table_file
+                aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table = rtn_files
+                prodigal_infos = {}
+                prodigal_infos["aa_gene_path"] = aa_gene_file
+                prodigal_infos["nt_gene_path"] = nt_gene_file
+                prodigal_infos["gff_path"] = gff_file
+                prodigal_infos["translation_table_path"] = translation_table_file
+                prodigal_infos["best_translation_table"] = best_translation_table
 
-                out_dict[genome_id] = file_paths
+                out_dict[genome_id] = prodigal_infos
             writer_queue.put(genome_id)
 
     def _writer(self, num_items, writer_queue):
@@ -187,7 +189,8 @@ class Prodigal(object):
 
                 # Gracefully terminate the program.
                 if p.exitcode != 0:
-                    raise Exception("An error was encountered while running Prodigal.")
+                    raise Exception(
+                        "An error was encountered while running Prodigal.")
 
             writer_queue.put(None)
             writer_proc.join()
