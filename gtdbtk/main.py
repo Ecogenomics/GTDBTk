@@ -158,7 +158,8 @@ class OptionsParser():
         markers = Markers(options.cpus)
         markers.identify(genomes,
                          options.out_dir,
-                         options.prefix)
+                         options.prefix,
+                         options.force)
 
         self.logger.info('Done.')
 
@@ -177,6 +178,7 @@ class OptionsParser():
                       options.taxa_filter,
                       options.min_perc_aa,
                       options.custom_msa_filters,
+                      options.rnd_seed,
                       options.cols_per_gene,
                       options.min_consensus,
                       options.max_consensus,
@@ -195,6 +197,7 @@ class OptionsParser():
 
         if options.cpus > 1:
             check_dependencies(['FastTreeMP'])
+            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
         else:
             check_dependencies(['FastTree'])
 
@@ -203,18 +206,18 @@ class OptionsParser():
 
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(
-                options.out_dir, options.prefix + options.suffix + '.unrooted.tree')
+                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + '.unrooted.tree')
             tree_log = os.path.join(
-                options.out_dir, options.prefix + options.suffix + '.tree.log')
+                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + '.tree.log')
             fasttree_log = os.path.join(
-                options.out_dir, options.prefix + options.suffix + '.fasttree.log')
+                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + '.fasttree.log')
         else:
             output_tree = os.path.join(
-                options.out_dir, options.prefix + '.unrooted.tree')
+                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + '.unrooted.tree')
             tree_log = os.path.join(
-                options.out_dir, options.prefix + '.tree.log')
+                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + '.tree.log')
             fasttree_log = os.path.join(
-                options.out_dir, options.prefix + '.fasttree.log')
+                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + '.fasttree.log')
 
         if options.prot_model == 'JTT':
             model_str = ''
@@ -369,13 +372,13 @@ class OptionsParser():
 
             if options.skip_gtdb_refs:
                 options.msa_file = os.path.join(
-                    options.out_dir, options.prefix + options.suffix + ".user_msa.fasta")
+                    options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + ".user_msa.fasta")
             else:
-                options.msa_file = os.path.join(options.out_dir,
+                options.msa_file = os.path.join(options.out_dir, Config.INTERMEDIATE_RESULTS,
                                                 options.prefix + options.suffix + ".msa.fasta")
             self.infer(options)
 
-            options.input_tree = os.path.join(options.out_dir,
+            options.input_tree = os.path.join(options.out_dir, Config.INTERMEDIATE_RESULTS,
                                               options.prefix + options.suffix + ".unrooted.tree")
             options.output_tree = os.path.join(options.out_dir,
                                                options.prefix + options.suffix + ".rooted.tree")
@@ -396,6 +399,7 @@ class OptionsParser():
             options.skip_gtdb_refs = False
             options.cols_per_gene = None
             options.max_consensus = None
+            options.rnd_seed = None
             self.align(options)
 
             self.classify(options)
