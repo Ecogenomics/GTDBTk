@@ -231,8 +231,10 @@ class Classify():
 
             for marker_set_id in ('ar122', 'bac120'):
                 user_msa_file = os.path.join(
+                    align_dir, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
+                if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
                     align_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
-                if not os.path.exists(user_msa_file):
+                if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
                         # file will not exist if there are no User genomes from a
                         # given domain
                     continue

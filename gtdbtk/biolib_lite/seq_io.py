@@ -157,10 +157,11 @@ def read_fasta_seq(fasta_file, keep_annotation=False):
                 seq.append(line.strip())
 
         # report last sequence
-        if keep_annotation:
-            yield seq_id, ''.join(seq).replace(' ', ''), annotation
-        else:
-            yield seq_id, ''.join(seq).replace(' ', '')
+        if seq:
+            if keep_annotation:
+                yield seq_id, ''.join(seq).replace(' ', ''), annotation
+            else:
+                yield seq_id, ''.join(seq).replace(' ', '')
     except GeneratorExit:
         pass
     except:

@@ -28,7 +28,12 @@ GTDB-Tk is **under active development and validation**. Please independently con
 * [References](#references)
 
 ## Announcements
-**Note (March 03, 2018)**:
+
+**Note (April 12, 2019)**:
+- A GTDB-Tk reference data package (gtdbtk.r86_v3_data.tar.gz) is available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
+- This package contains an additional set of genomes based on GTDB R86.
+
+**Note (March 03, 2019)**:
 * GTDB-Tk v0.2.1 has been released (**we recommend all users update to this version**):
   * Species classification is now based strictly on the ANI to reference genomes
   * The "classify" function now reports the closest reference genome in the summary file even if the ANI is <95%
@@ -70,8 +75,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [Prodigal](http://compbio.ornl.gov/prodigal/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
-* [FastANI](https://github.com/ParBLiSS/FastANI
-) >= 1.0: Jain C, et al. 2017. High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries.<i>bioRxiv.</i> 256800.
+* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 Please cite these tools if your use GTDB-Tk in your work.
@@ -80,7 +84,7 @@ Please cite these tools if your use GTDB-Tk in your work.
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.v2_r86_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.r86_v2_data.tar.gz
 tar xvzf gtdbtk.r86_v2_data.tar.gz
 ```
 
