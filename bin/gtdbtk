@@ -224,9 +224,15 @@ if __name__ == '__main__':
                                             + 'or p__Proteobacteria, p__Actinobacteria).'))
     optional_align.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
-    optional_align.add_argument('--custom_msa_filters', action="store_true",
+    
+    mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_align_group = mutual_genome_align.add_mutually_exclusive_group()                           
+    mutex_align_group.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                                 + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+    mutex_align_group.add_argument('--skip_trimming', action="store_true",
+                                       help=('Skip trimming step to return the full MSAs.'))
+                                                
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
                                        help='maximum number of columns to retain per gene')
     optional_align.add_argument('--min_consensus', type=float, default=25,

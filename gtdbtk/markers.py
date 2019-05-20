@@ -417,6 +417,7 @@ class Markers(object):
               taxa_filter,
               min_perc_aa,
               custom_msa_filters,
+              skip_trimming,
               rnd_seed,
               cols_per_gene,
               min_consensus,
@@ -504,7 +505,13 @@ class Markers(object):
                                                         marker_set_id)
 
                 # filter columns without sufficient representation across taxa
-                if custom_msa_filters:
+                if skip_trimming:
+                    self.logger.info(
+                        'Skipping custom filtering and selection of columns.')
+                    pruned_seqs = {}
+                    trimmed_seqs = merge_two_dicts(gtdb_msa, user_msa)
+
+                elif custom_msa_filters:
                     aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
                     self.logger.info(
                         'Performing custom filtering and selection of columns.')
