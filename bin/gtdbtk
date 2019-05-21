@@ -230,7 +230,7 @@ if __name__ == '__main__':
     mutex_align_group.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                                 + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
-    mutex_align_group.add_argument('--skip_trimming', action="store_true",
+    mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
                                        help=('Skip trimming step to return the full MSAs.'))
                                                 
     optional_align.add_argument('--cols_per_gene', type=int, default=42,

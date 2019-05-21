@@ -424,6 +424,7 @@ class OptionsParser():
             options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
+            options.skip_trimming = False  # Added here due to the other mutex argument being include above.
             options.min_consensus = None
             options.min_perc_taxa = None
             options.skip_gtdb_refs = False

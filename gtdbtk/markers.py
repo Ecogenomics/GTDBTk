@@ -17,6 +17,7 @@
 
 import os
 import sys
+import numpy as np
 import logging
 from collections import defaultdict
 
@@ -315,6 +316,7 @@ class Markers(object):
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
 
         mask = open(msa_mask).readline().strip()
+        list_mask = [True if c == '1' else False for c in mask]
 
         if len(mask) != len(aligned_genomes.values()[0]):
             self.logger.error('Mask and alignment length do not match.')
@@ -323,11 +325,9 @@ class Markers(object):
         output_seqs = {}
         pruned_seqs = {}
         for seq_id, seq in aligned_genomes.iteritems():
-            masked_seq = ''.join(
-                [seq[i] for i in xrange(0, len(mask)) if mask[i] == '1'])
+            masked_seq = ''.join(np.array(list(seq), dtype=str)[list_mask])
 
-            valid_bases = len(masked_seq) - \
-                masked_seq.count('.') - masked_seq.count('-')
+            valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
             if seq_id in user_msa and valid_bases < len(masked_seq) * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue

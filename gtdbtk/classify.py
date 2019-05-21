@@ -143,7 +143,7 @@ class Classify():
                                                                   user_msa_file,
                                                                   pplacer_out)
 
-        # os.system(cmd)
+        os.system(cmd)
 
         # extract tree
         if marker_set_id == 'bac120':
