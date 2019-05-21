@@ -68,12 +68,6 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
-# Intermediate results folder
-INTERMEDIATE_RESULTS = 'intermediate_results'
-
-# Annotation folder
-MARKER_GENE_DIR = "marker_genes"
-
 
 # MSA file names
 CONCAT_BAC120 = MSA_FOLDER + "gtdb_r86_bac120.faa"
@@ -89,8 +83,6 @@ MASK_RPS23 = "gtdb_r86_rps23.mask"
 
 
 # Pplacer configuration
-PPLACER_OUT = "pplacer.out"
-PPLACER_JSON_OUT = "pplacer.json"
 PPLACER_BAC120_REF_PKG = "gtdb_r86_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_r86_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_r86_rps23.refpkg"

@@ -15,28 +15,29 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
-import shutil
 import logging
-import tempfile
-import random
 import multiprocessing
-import config.config as Config
-import dendropy
-import cmd
-
+import os
+import random
+import shutil
+import sys
+import tempfile
 from collections import defaultdict
-from biolib_lite.common import remove_extension, make_sure_path_exists
-from biolib_lite.seq_io import read_seq, read_fasta
-from biolib_lite.newick import parse_label
-from biolib_lite.execute import check_dependencies
-from biolib_lite.taxonomy import Taxonomy
-from numpy import median as np_median
-from tools import add_ncbi_prefix, splitchunks
-from relative_distance import RelativeDistance
 from operator import itemgetter
-from markers import Markers
+
+import dendropy
+from numpy import median as np_median
+
+import config.config as Config
+from biolib_lite.common import remove_extension, make_sure_path_exists
+from biolib_lite.execute import check_dependencies
+from biolib_lite.newick import parse_label
+from biolib_lite.seq_io import read_seq, read_fasta
+from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.markers import Markers
+from relative_distance import RelativeDistance
+from tools import add_ncbi_prefix, splitchunks
+from gtdbtk.config.output import *
 
 sys.setrecursionlimit(15000)
 
@@ -79,8 +80,14 @@ class Classify():
         """Place genomes into reference tree using pplacer."""
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
-            t = os.path.join(out_dir, Config.INTERMEDIATE_RESULTS,
-                             prefix + '.user_msa.fasta')
+            if marker_set_id == 'bac120':
+                t = PATH_BAC120_USER_MSA.format(prefix=prefix)
+            elif marker_set_id == 'ar122':
+                t = PATH_AR122_USER_MSA.format(prefix=prefix)
+            else:
+                self.logger.error('There was an error determining the marker set.')
+                raise Exception
+
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
 
@@ -114,16 +121,20 @@ class Classify():
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
 
         # create pplacer output directory
-        pplacer_out_dir = os.path.join(
-            out_dir, Config.INTERMEDIATE_RESULTS, 'pplacer')
+        pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
         if not os.path.exists(pplacer_out_dir):
             os.makedirs(pplacer_out_dir)
 
         # run pplacer
-        pplacer_out = os.path.join(
-            pplacer_out_dir, 'pplacer.{}.out'.format(marker_set_id))
-        pplacer_json_out = os.path.join(
-            pplacer_out_dir, 'pplacer.{}.json'.format(marker_set_id))
+        if marker_set_id == 'bac120':
+            pplacer_out = os.path.join(out_dir, PATH_BAC120_PPLACER_OUT)
+            pplacer_json_out = os.path.join(out_dir, PATH_BAC120_PPLACER_JSON)
+        elif marker_set_id == 'ar122':
+            pplacer_out = os.path.join(out_dir, PATH_AR122_PPLACER_OUT)
+            pplacer_json_out = os.path.join(out_dir, PATH_AR122_PPLACER_JSON)
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise Exception
 
         cmd = 'pplacer -m WAG -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
                                                                   pplacer_ref_pkg,
@@ -135,8 +146,13 @@ class Classify():
         os.system(cmd)
 
         # extract tree
-        tree_file = os.path.join(
-            out_dir, prefix + ".{}.classify.tree".format(marker_set_id))
+        if marker_set_id == 'bac120':
+            tree_file = os.path.join(out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
+        elif marker_set_id == 'ar122':
+            tree_file = os.path.join(out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise Exception
 
         if not os.path.exists(pplacer_json_out):
             print "pplacer has stopped before finishing."
@@ -145,6 +161,17 @@ class Classify():
 
         cmd = 'guppy tog -o {} {}'.format(tree_file, pplacer_json_out)
         os.system(cmd)
+
+        # Symlink to the tree summary file
+        if marker_set_id == 'bac120':
+            os.symlink(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+                       os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+        elif marker_set_id == 'ar122':
+            os.symlink(PATH_AR122_TREE_FILE.format(prefix=prefix),
+                       os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise Exception
 
         return tree_file
 
@@ -186,20 +213,26 @@ class Classify():
 
         """
 
-        reddictfile = open(os.path.join(
-            out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.red_dictionary.tsv'.format(marker_set_id)), 'w')
-
         marker_dict = {}
         if marker_set_id == 'bac120':
             marker_dict = Config.RED_DIST_BAC_DICT
+            out_path = os.path.join(out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
         elif marker_set_id == 'ar122':
             marker_dict = Config.RED_DIST_ARC_DICT
-        reddictfile.write('Phylum\t{}\n'.format(marker_dict.get('p__')))
-        reddictfile.write('Class\t{}\n'.format(marker_dict.get('c__')))
-        reddictfile.write('Order\t{}\n'.format(marker_dict.get('o__')))
-        reddictfile.write('Family\t{}\n'.format(marker_dict.get('f__')))
-        reddictfile.write('Genus\t{}\n'.format(marker_dict.get('g__')))
-        reddictfile.close()
+            out_path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise Exception
+
+        make_sure_path_exists(os.path.dirname(out_path))
+
+        with open(out_path, 'w') as reddictfile:
+            reddictfile.write('Phylum\t{}\n'.format(marker_dict.get('p__')))
+            reddictfile.write('Class\t{}\n'.format(marker_dict.get('c__')))
+            reddictfile.write('Order\t{}\n'.format(marker_dict.get('o__')))
+            reddictfile.write('Family\t{}\n'.format(marker_dict.get('f__')))
+            reddictfile.write('Genus\t{}\n'.format(marker_dict.get('g__')))
+
         return marker_dict
 
     def _parse_red_dict(self, red_dist_dict):
@@ -260,22 +293,27 @@ class Classify():
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
             for marker_set_id in ('ar122', 'bac120'):
-                user_msa_file = os.path.join(
-                    align_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
+
+                if marker_set_id == 'ar122':
+                    marker_summary_file = os.path.join(align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
+                    user_msa_file = os.path.join(align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
+                elif marker_set_id == 'bac120':
+                    marker_summary_file = os.path.join(align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
+                    user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise Exception
+
                 if not os.path.exists(user_msa_file):
                         # file will not exist if there are no User genomes from a
                         # given domain
                     continue
 
-                marker_summary_file = os.path.join(
-                    align_dir, prefix + "_{}_markers_summary.tsv".format(marker_set_id))
                 percent_multihit_dict = self.parser_marker_summary_file(
                     marker_summary_file, marker_set_id)
 
-                trans_table_file = os.path.join(
-                    align_dir, Config.INTERMEDIATE_RESULTS, Config.MARKER_GENE_DIR, prefix + "_translation_table_summary.tsv")
-                trans_table_dict = self.parse_trans_table_file(
-                    trans_table_file)
+                trans_table_file = os.path.join(align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
+                trans_table_dict = self.parse_trans_table_file(trans_table_file)
 
                 msa_dict = read_fasta(user_msa_file)
 
@@ -291,8 +329,15 @@ class Classify():
                                                    rooting='force-rooted',
                                                    preserve_underscores=True)
 
-                summaryfout = open(os.path.join(
-                    out_dir, prefix + '.{}.summary.tsv'.format(marker_set_id)), 'w')
+                if marker_set_id == 'bac120':
+                    path_summary = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
+                elif marker_set_id == 'ar122':
+                    path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise Exception
+
+                summaryfout = open(path_summary, 'w')
                 if debugopt:
                     debugfile = open(os.path.join(
                         out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
@@ -608,6 +653,19 @@ class Classify():
                                 leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
 
                 summaryfout.close()
+
+                # Symlink to the summary file from the root
+                if marker_set_id == 'bac120':
+                    os.symlink(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                elif marker_set_id == 'ar122':
+                    os.symlink(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
+                               os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise Exception
+
+
                 if debugopt:
                     debugfile.close()
 
@@ -729,26 +787,34 @@ class Classify():
         True
 
         """
-        pplaceout = open(os.path.join(
-            out_dir, Config.INTERMEDIATE_RESULTS, prefix + '.{}.classification_pplacer.tsv'.format(marker_set_id)), 'w')
+
+        out_root = os.path.join(out_dir, 'classify', 'intermediate_results')
+        make_sure_path_exists(out_root)
+
+        if marker_set_id == 'bac120':
+            out_pplacer = os.path.join(out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
+        elif marker_set_id == 'ar122':
+            out_pplacer = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise Exception
 
         # We get the pplacer taxonomy for comparison
-
-        user_genome_ids = set(read_fasta(user_msa_file).keys())
-        for leaf in tree.leaf_node_iter():
-            if leaf.taxon.label in user_genome_ids:
-                taxa = []
-                cur_node = leaf
-                while cur_node.parent_node:
-                    _support, taxon, _aux_info = parse_label(cur_node.label)
-                    if taxon:
-                        for t in taxon.split(';')[::-1]:
-                            taxa.append(t.strip())
-                    cur_node = cur_node.parent_node
-                taxa_str = ';'.join(taxa[::-1])
-                pplaceout.write('{}\t{}\n'.format(
-                    leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
-        pplaceout.close()
+        with open(out_pplacer, 'w') as pplaceout:
+            user_genome_ids = set(read_fasta(user_msa_file).keys())
+            for leaf in tree.leaf_node_iter():
+                if leaf.taxon.label in user_genome_ids:
+                    taxa = []
+                    cur_node = leaf
+                    while cur_node.parent_node:
+                        _support, taxon, _aux_info = parse_label(cur_node.label)
+                        if taxon:
+                            for t in taxon.split(';')[::-1]:
+                                taxa.append(t.strip())
+                        cur_node = cur_node.parent_node
+                    taxa_str = ';'.join(taxa[::-1])
+                    pplaceout.write('{}\t{}\n'.format(
+                        leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
         return True
 
     def _formatnote(self, sorted_dict, labels):

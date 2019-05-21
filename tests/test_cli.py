@@ -26,12 +26,12 @@ import logging
 from gtdbtk.biolib_lite.logger import logger_setup
 import string
 import random
-
+from gtdbtk.config.output import *
 
 class TestCli(unittest.TestCase):
 
     def setUp(self):
-        self.identify_dir_reference = 'tests/data/identify_dir_reference/'
+        self.identify_dir_reference = os.path.join(os.path.dirname(__file__), 'data/identify_dir_reference/')
         self.align_dir_reference = 'tests/data/align_dir_reference/'
         self.genome_dir = 'gtdbtk/tests/data/genomes/'
 
@@ -41,6 +41,7 @@ class TestCli(unittest.TestCase):
         self.options.cpus = 1
         self.options.extension = 'fna'
         self.options.debug = False
+        self.options.force = False
 
         # align option
         self.options.skip_gtdb_refs = False
@@ -52,9 +53,11 @@ class TestCli(unittest.TestCase):
         self.options.cols_per_gene = None
         self.options.max_consensus = None
         self.options.min_perc_aa = 50
+        self.options.rnd_seed = 42
 
         # classify options
         self.options.scratch_dir = None
+        self.options.keep_ref_red = None
 
         # infer options
         self.options.prot_model = 'WAG'
@@ -64,7 +67,8 @@ class TestCli(unittest.TestCase):
         self.version = ' unittest'
         self.optionparser = OptionsParser(self.version)
         logger_setup(None, "gtdbtk.log", "GTDB-Tk", self.version, True)
-        self.generic_out_path = 'tests/data/results'
+        # self.generic_out_path = 'tests/data/results'
+        self.generic_out_path = '/tmp/GTDBTk/tests'
 
     def test_identify(self):
         tmp_folder = ''.join(random.choice(
@@ -74,13 +78,14 @@ class TestCli(unittest.TestCase):
         identify_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'identify')
         self.optionparser.identify(identify_options)
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.options.out_dir, 'gtdbtk_bac120_markers_summary.tsv')))
-        self.assertTrue(os.path.isfile(os.path.join(
-            self.options.out_dir, 'gtdbtk_ar122_markers_summary.tsv')))
+
+        ar122_marker_path = os.path.join(self.options.out_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=self.options.prefix))
+
+        self.assertTrue(os.path.isfile(os.path.join(self.options.out_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=self.options.prefix))))
+        self.assertTrue(os.path.isfile(ar122_marker_path))
 
         results = {}
-        with open(os.path.join(identify_options.out_dir, 'gtdbtk_ar122_markers_summary.tsv'), 'r') as f:
+        with open(ar122_marker_path, 'r') as f:
             f.readline()
             for line in f:
                 infos = line.split('\t', 1)
@@ -95,9 +100,9 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        self.assertTrue(os.path.isfile(os.path.join(
-            align_options.out_dir, 'gtdbtk.ar122.user_msa.fasta')))
-        with open(os.path.join(align_options.out_dir, 'gtdbtk.ar122.user_msa.fasta'), 'r') as f:
+        path_user_msa = os.path.join(align_options.out_dir, PATH_AR122_USER_MSA.format(prefix=align_options.prefix))
+        self.assertTrue(os.path.isfile(path_user_msa))
+        with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertTrue(len(last_line) > 4500)
@@ -114,13 +119,13 @@ class TestCli(unittest.TestCase):
         classify_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'classify')
         self.optionparser.classify(classify_options)
-        self.assertTrue(os.path.isfile(os.path.join(
-            classify_options.out_dir, 'gtdbtk.ar122.summary.tsv')))
-        with open(os.path.join(classify_options.out_dir, 'gtdbtk.ar122.summary.tsv'), 'r') as f:
+        summary_out = os.path.join(classify_options.out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
+        self.assertTrue(os.path.isfile(summary_out))
+        with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 17)
+        self.assertEquals(len(infos), 18)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_identify_align(self):
@@ -139,9 +144,9 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        self.assertTrue(os.path.isfile(os.path.join(
-            align_options.out_dir, 'gtdbtk.ar122.user_msa.fasta')))
-        with open(os.path.join(align_options.out_dir, 'gtdbtk.ar122.user_msa.fasta'), 'r') as f:
+        path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.align_options)
+        self.assertTrue(os.path.isfile(path_user_msa))
+        with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertTrue(len(last_line) > 4500)
@@ -165,9 +170,9 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        self.assertTrue(os.path.isfile(os.path.join(
-            align_options.out_dir, 'gtdbtk.ar122.user_msa.fasta')))
-        with open(os.path.join(align_options.out_dir, 'gtdbtk.ar122.user_msa.fasta'), 'r') as f:
+        path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.align_options)
+        self.assertTrue(os.path.isfile(path_user_msa))
+        with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertTrue(len(last_line) > 4500)
@@ -181,9 +186,9 @@ class TestCli(unittest.TestCase):
         classify_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'classify')
         self.optionparser.classify(classify_options)
-        self.assertTrue(os.path.isfile(os.path.join(
-            classify_options.out_dir, 'gtdbtk.ar122.summary.tsv')))
-        with open(os.path.join(classify_options.out_dir, 'gtdbtk.ar122.summary.tsv'), 'r') as f:
+        summary_out = os.path.join(classify_options.out_dir,  PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
+        self.assertTrue(summary_out)
+        with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
@@ -209,10 +214,9 @@ class TestCli(unittest.TestCase):
         classify_wf_options.max_consensus = None
         self.optionparser.align(classify_wf_options)
         self.optionparser.classify(classify_wf_options)
-
-        self.assertTrue(os.path.isfile(os.path.join(
-            classify_wf_options.out_dir, 'gtdbtk.ar122.summary.tsv')))
-        with open(os.path.join(classify_wf_options.out_dir, 'gtdbtk.ar122.summary.tsv'), 'r') as f:
+        summary_out = os.path.join(classify_wf_options.out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=classify_wf_options.prefix))
+        self.assertTrue(os.path.isfile(summary_out))
+        with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
@@ -223,16 +227,17 @@ class TestCli(unittest.TestCase):
         tmp_folder = ''.join(random.choice(
             string.ascii_uppercase + string.digits) for _ in range(10))
         infer_options = self.options
-        infer_options.msa_file = os.path.join(
-            self.align_dir_reference, 'gtdbtk.ar122.user_msa.fasta')
-        infer_options.out_dir = os.path.join(
-            self.generic_out_path, tmp_folder, 'infer')
+        path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.prefix)
+        infer_options.msa_file = os.path.join(self.align_dir_reference, path_user_msa)
+        infer_options.out_dir = os.path.join(self.generic_out_path, tmp_folder, 'infer')
+        # if not os.path.isdir(infer_options.out_dir):
+        #     os.makedirs(infer_options.out_dir)
         self.optionparser.infer(infer_options)
-        with open(os.path.join(infer_options.out_dir, 'gtdbtk.tree.log'), 'r') as f:
+        with open(os.path.join(infer_options.out_dir, 'intermediate_results', 'gtdbtk.tree.log'), 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertEqual(last_line.strip(), 'TreeCompleted')
-        with open(os.path.join(infer_options.out_dir, 'gtdbtk.unrooted.tree'), 'r') as f:
+        with open(os.path.join(infer_options.out_dir, 'intermediate_results', 'gtdbtk.unrooted.tree'), 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertTrue('genome_1' in last_line)
