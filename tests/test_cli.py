@@ -47,6 +47,7 @@ class TestCli(unittest.TestCase):
         self.options.skip_gtdb_refs = False
         self.options.taxa_filter = None
         self.options.custom_msa_filters = False
+        self.options.skip_trimming = False
         self.options.min_consensus = None
         self.options.min_perc_taxa = None
         self.options.skip_gtdb_refs = False
@@ -144,7 +145,7 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.align_options)
+        path_user_msa = os.path.join(align_options.out_dir, PATH_AR122_USER_MSA.format(prefix=align_options.prefix))
         self.assertTrue(os.path.isfile(path_user_msa))
         with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
@@ -170,7 +171,7 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.align_options)
+        path_user_msa = os.path.join(align_options.out_dir, PATH_AR122_USER_MSA.format(prefix=align_options.prefix))
         self.assertTrue(os.path.isfile(path_user_msa))
         with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
@@ -192,7 +193,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 17)
+        self.assertEquals(len(infos), 18)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_classify_wf(self):
@@ -220,7 +221,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 17)
+        self.assertEquals(len(infos), 18)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_infer(self):
@@ -233,11 +234,11 @@ class TestCli(unittest.TestCase):
         # if not os.path.isdir(infer_options.out_dir):
         #     os.makedirs(infer_options.out_dir)
         self.optionparser.infer(infer_options)
-        with open(os.path.join(infer_options.out_dir, 'intermediate_results', 'gtdbtk.tree.log'), 'r') as f:
+        with open(os.path.join(infer_options.out_dir, PATH_TREE_LOG.format(prefix=self.options.prefix)), 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertEqual(last_line.strip(), 'TreeCompleted')
-        with open(os.path.join(infer_options.out_dir, 'intermediate_results', 'gtdbtk.unrooted.tree'), 'r') as f:
+        with open(os.path.join(infer_options.out_dir, PATH_UNROOTED_TREE.format(prefix=self.options.prefix)), 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
         self.assertTrue('genome_1' in last_line)

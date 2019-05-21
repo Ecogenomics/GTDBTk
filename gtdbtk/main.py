@@ -219,6 +219,8 @@ class OptionsParser():
             fasttree_log = os.path.join(options.out_dir, PATH_FASTTREE_LOG.format(prefix=options.prefix))
 
         make_sure_path_exists(os.path.dirname(output_tree))
+        make_sure_path_exists(os.path.dirname(tree_log))
+        make_sure_path_exists(os.path.dirname(fasttree_log))
 
         if options.prot_model == 'JTT':
             model_str = ''
