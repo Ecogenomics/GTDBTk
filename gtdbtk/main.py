@@ -179,6 +179,7 @@ class OptionsParser():
                       options.taxa_filter,
                       options.min_perc_aa,
                       options.custom_msa_filters,
+                      options.skip_trimming,
                       options.rnd_seed,
                       options.cols_per_gene,
                       options.min_consensus,

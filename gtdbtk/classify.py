@@ -143,7 +143,7 @@ class Classify():
                                                                   user_msa_file,
                                                                   pplacer_out)
 
-        os.system(cmd)
+        # os.system(cmd)
 
         # extract tree
         if marker_set_id == 'bac120':
@@ -651,6 +651,8 @@ class Classify():
                         if debugopt:
                             debugfile.write('{0}\t{1}\t{2}\t{3}\n'.format(
                                 leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+                        else:
+                            'debug false'
 
                 summaryfout.close()
 
@@ -698,6 +700,8 @@ class Classify():
         tree: pplacer tree with RED value added to nodes of interest
 
         """
+
+        self.logger.info('Calculating RED values based on reference tree.')
         dict_ref_red = {}
         tree = dendropy.Tree.get_from_path(input_tree,
                                            schema='newick',
@@ -732,6 +736,7 @@ class Classify():
         # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
         # The new red value for the pplacer node =
         # RED_parent + (RED_child -RED_parent) * ( (pplacer_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
+        reference_pplacer_node = {}
         for nd in tree.leaf_nodes():
             if nd not in reference_nodes:
                 nd.rel_dist = 1.0
@@ -754,13 +759,20 @@ class Classify():
                 while not pplacer_parent_node in reference_nodes:
                     pplacer_parent_node = pplacer_parent_node.parent_node
 
-                parent_distance = pplacer_parent_node.distance_from_root()
-                child_distance = child_node.distance_from_root()
-                pplacer_node_distance = pplacer_node.distance_from_root()
-                branch_length = child_distance - parent_distance
-                branch_pplacer_length = pplacer_node_distance - parent_distance
+                # we go up the tree until we reach pplacer_parent_node
+                current_node = child_node.parent_node
+                edge_length = child_node.edge_length
+                on_pplacer_branch = False
+                pplacer_edge_length = 0
 
-                ratio = branch_pplacer_length / branch_length
+                while current_node != pplacer_parent_node:
+                    if on_pplacer_branch or current_node == pplacer_node:
+                        on_pplacer_branch = True
+                        pplacer_edge_length += current_node.edge_length
+                    edge_length += current_node.edge_length
+                    current_node = current_node.parent_node
+
+                ratio = pplacer_edge_length / edge_length
 
                 branch_rel_dist = dict_ref_red.get(
                     child_node) - dict_ref_red.get(pplacer_parent_node)

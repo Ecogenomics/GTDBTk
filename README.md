@@ -19,6 +19,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
   * [Bioconda installation](#bioconda-installation)
   * [Docker installation](#docker-installation)
   * [Testing installation](#testing-installation)
+* [FAQ](docs/faq.md)
 * [Quick start](#quick-start)
 * [Classify workflow](#classify-workflow)
 * [Validating species assignments with ANI](#validating-species-assignments-with-average-nucleotide-identity)
