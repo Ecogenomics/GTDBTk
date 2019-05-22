@@ -304,7 +304,7 @@ class Classify():
                     self.logger.error('There was an error determining the marker set.')
                     raise Exception
 
-                if not os.path.exists(user_msa_file):
+                if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
                         # file will not exist if there are no User genomes from a
                         # given domain
                     continue
