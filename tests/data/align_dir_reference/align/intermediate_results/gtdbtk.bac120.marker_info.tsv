@@ -1,0 +1,121 @@
+Marker ID	Name	Description	Length (bp)
+PF00380.14	Ribosomal_S9	Ribosomal protein S9/S16	121
+PF00410.14	Ribosomal_S8	Ribosomal protein S8	129
+PF00466.15	Ribosomal_L10	Ribosomal protein L10	100
+PF01025.14	GrpE	GrpE	166
+PF02576.12	DUF150	Uncharacterised BCR, YhbC family COG0779	141
+PF03726.9	PNPase	Polyribonucleotide nucleotidyltransferase, RNA binding domain	83
+TIGR00006	TIGR00006	TIGR00006: 16S rRNA (cytosine(1402)-N(4))-methyltransferase	310
+TIGR00019	TIGR00019	prfA: peptide chain release factor 1	361
+TIGR00020	TIGR00020	prfB: peptide chain release factor 2	365
+TIGR00029	TIGR00029	S20: ribosomal protein bS20	87
+TIGR00043	TIGR00043	TIGR00043: rRNA maturation RNase YbeY	111
+TIGR00054	TIGR00054	TIGR00054: RIP metalloprotease RseP	421
+TIGR00059	TIGR00059	L17: ribosomal protein bL17	112
+TIGR00061	TIGR00061	L21: ribosomal protein bL21	101
+TIGR00064	TIGR00064	ftsY: signal recognition particle-docking protein FtsY	279
+TIGR00065	TIGR00065	ftsZ: cell division protein FtsZ	353
+TIGR00082	TIGR00082	rbfA: ribosome-binding factor A	115
+TIGR00083	TIGR00083	ribF: riboflavin biosynthesis protein RibF	290
+TIGR00084	TIGR00084	ruvA: Holliday junction DNA helicase RuvA	192
+TIGR00086	TIGR00086	smpB: SsrA-binding protein	144
+TIGR00088	TIGR00088	trmD: tRNA (guanine(37)-N(1))-methyltransferase	233
+TIGR00090	TIGR00090	rsfS_iojap_ybeB: ribosome silencing factor	99
+TIGR00092	TIGR00092	TIGR00092: GTP-binding protein YchF	368
+TIGR00095	TIGR00095	TIGR00095: 16S rRNA (guanine(966)-N(2))-methyltransferase RsmD	194
+TIGR00115	TIGR00115	tig: trigger factor	410
+TIGR00116	TIGR00116	tsf: translation elongation factor Ts	293
+TIGR00138	TIGR00138	rsmG_gidB: 16S rRNA (guanine(527)-N(7))-methyltransferase RsmG	183
+TIGR00158	TIGR00158	L9: ribosomal protein bL9	148
+TIGR00166	TIGR00166	S6: ribosomal protein bS6	95
+TIGR00168	TIGR00168	infC: translation initiation factor IF-3	165
+TIGR00186	TIGR00186	rRNA_methyl_3: RNA methyltransferase, TrmH family, group 3	240
+TIGR00194	TIGR00194	uvrC: excinuclease ABC subunit C	574
+TIGR00250	TIGR00250	RNAse_H_YqgF: putative transcription antitermination factor YqgF	130
+TIGR00337	TIGR00337	PyrG: CTP synthase	526
+TIGR00344	TIGR00344	alaS: alanine--tRNA ligase	847
+TIGR00362	TIGR00362	DnaA: chromosomal replication initiator protein DnaA	437
+TIGR00382	TIGR00382	clpX: ATP-dependent Clp protease, ATP-binding subunit ClpX	414
+TIGR00392	TIGR00392	ileS: isoleucine--tRNA ligase	861
+TIGR00396	TIGR00396	leuS_bact: leucine--tRNA ligase	843
+TIGR00398	TIGR00398	metG: methionine--tRNA ligase	530
+TIGR00414	TIGR00414	serS: serine--tRNA ligase	418
+TIGR00416	TIGR00416	sms: DNA repair protein RadA	454
+TIGR00420	TIGR00420	trmU: tRNA (5-methylaminomethyl-2-thiouridylate)-methyltransferase	351
+TIGR00431	TIGR00431	TruB: tRNA pseudouridine(55) synthase	210
+TIGR00435	TIGR00435	cysS: cysteine--tRNA ligase	466
+TIGR00436	TIGR00436	era: GTP-binding protein Era	270
+TIGR00442	TIGR00442	hisS: histidine--tRNA ligase	406
+TIGR00445	TIGR00445	mraY: phospho-N-acetylmuramoyl-pentapeptide-transferase	321
+TIGR00456	TIGR00456	argS: arginine--tRNA ligase	569
+TIGR00459	TIGR00459	aspS_bact: aspartate--tRNA ligase	586
+TIGR00460	TIGR00460	fmt: methionyl-tRNA formyltransferase	315
+TIGR00468	TIGR00468	pheS: phenylalanine--tRNA ligase, alpha subunit	324
+TIGR00472	TIGR00472	pheT_bact: phenylalanine--tRNA ligase, beta subunit	798
+TIGR00487	TIGR00487	IF-2: translation initiation factor IF-2	587
+TIGR00496	TIGR00496	frr: ribosome recycling factor	176
+TIGR00539	TIGR00539	hemN_rel: putative oxygen-independent coproporphyrinogen III oxidase	361
+TIGR00580	TIGR00580	mfd: transcription-repair coupling factor	923
+TIGR00593	TIGR00593	pola: DNA polymerase I	890
+TIGR00615	TIGR00615	recR: recombination protein RecR	196
+TIGR00631	TIGR00631	uvrb: excinuclease ABC subunit B	658
+TIGR00634	TIGR00634	recN: DNA repair protein RecN	563
+TIGR00635	TIGR00635	ruvB: Holliday junction DNA helicase RuvB	305
+TIGR00643	TIGR00643	recG: ATP-dependent DNA helicase RecG	629
+TIGR00663	TIGR00663	dnan: DNA polymerase III, beta subunit	367
+TIGR00717	TIGR00717	rpsA: ribosomal protein bS1	516
+TIGR00755	TIGR00755	ksgA: ribosomal RNA small subunit methyltransferase A	256
+TIGR00810	TIGR00810	secG: preprotein translocase, SecG subunit	73
+TIGR00922	TIGR00922	nusG: transcription termination/antitermination factor NusG	172
+TIGR00928	TIGR00928	purB: adenylosuccinate lyase	436
+TIGR00959	TIGR00959	ffh: signal recognition particle protein	428
+TIGR00963	TIGR00963	secA: preprotein translocase, SecA subunit	787
+TIGR00964	TIGR00964	secE_bact: preprotein translocase, SecE subunit	57
+TIGR00967	TIGR00967	3a0501s007: preprotein translocase, SecY subunit	414
+TIGR01009	TIGR01009	rpsC_bact: ribosomal protein uS3	212
+TIGR01011	TIGR01011	rpsB_bact: ribosomal protein uS2	225
+TIGR01017	TIGR01017	rpsD_bact: ribosomal protein uS4	200
+TIGR01021	TIGR01021	rpsE_bact: ribosomal protein uS5	156
+TIGR01029	TIGR01029	rpsG_bact: ribosomal protein uS7	154
+TIGR01032	TIGR01032	rplT_bact: ribosomal protein bL20	114
+TIGR01039	TIGR01039	atpD: ATP synthase F1, beta subunit	462
+TIGR01044	TIGR01044	rplV_bact: ribosomal protein uL22	103
+TIGR01059	TIGR01059	gyrB: DNA gyrase, B subunit	639
+TIGR01063	TIGR01063	gyrA: DNA gyrase, A subunit	800
+TIGR01066	TIGR01066	rplM_bact: ribosomal protein uL13	141
+TIGR01071	TIGR01071	rplO_bact: ribosomal protein uL15	144
+TIGR01079	TIGR01079	rplX_bact: ribosomal protein uL24	104
+TIGR01082	TIGR01082	murC: UDP-N-acetylmuramate--L-alanine ligase	449
+TIGR01087	TIGR01087	murD: UDP-N-acetylmuramoylalanine--D-glutamate ligase	441
+TIGR01128	TIGR01128	holA: DNA polymerase III, delta subunit	314
+TIGR01146	TIGR01146	ATPsyn_F1gamma: ATP synthase F1, gamma subunit	286
+TIGR01164	TIGR01164	rplP_bact: ribosomal protein uL16	126
+TIGR01169	TIGR01169	rplA_bact: ribosomal protein uL1	227
+TIGR01171	TIGR01171	rplB_bact: ribosomal protein uL2	275
+TIGR01302	TIGR01302	IMP_dehydrog: inosine-5'-monophosphate dehydrogenase	450
+TIGR01391	TIGR01391	dnaG: DNA primase	414
+TIGR01393	TIGR01393	lepA: elongation factor 4	595
+TIGR01394	TIGR01394	TypA_BipA: GTP-binding protein TypA/BipA	594
+TIGR01510	TIGR01510	coaD_prev_kdtB: pantetheine-phosphate adenylyltransferase	155
+TIGR01632	TIGR01632	L11_bact: ribosomal protein uL11	140
+TIGR01951	TIGR01951	nusB: transcription antitermination factor NusB	131
+TIGR01953	TIGR01953	NusA: transcription termination factor NusA	340
+TIGR02012	TIGR02012	tigrfam_recA: protein RecA	321
+TIGR02013	TIGR02013	rpoB: DNA-directed RNA polymerase, beta subunit	1238
+TIGR02027	TIGR02027	rpoA: DNA-directed RNA polymerase, alpha subunit	298
+TIGR02075	TIGR02075	pyrH_bact: UMP kinase	233
+TIGR02191	TIGR02191	RNaseIII: ribonuclease III	219
+TIGR02273	TIGR02273	16S_RimM: 16S rRNA processing protein RimM	166
+TIGR02350	TIGR02350	prok_dnaK: chaperone protein DnaK	596
+TIGR02386	TIGR02386	rpoC_TIGR: DNA-directed RNA polymerase, beta' subunit	1147
+TIGR02397	TIGR02397	dnaX_nterm: DNA polymerase III, subunit gamma and tau	355
+TIGR02432	TIGR02432	lysidine_TilS_N: tRNA(Ile)-lysidine synthetase	189
+TIGR02729	TIGR02729	Obg_CgtA: Obg family GTPase CgtA	329
+TIGR03263	TIGR03263	guanyl_kin: guanylate kinase	180
+TIGR03594	TIGR03594	GTPase_EngA: ribosome-associated GTPase EngA	432
+TIGR03625	TIGR03625	L3_bact: 50S ribosomal protein uL3	202
+TIGR03632	TIGR03632	uS11_bact: ribosomal protein uS11	117
+TIGR03654	TIGR03654	L6_bact: ribosomal protein uL6	175
+TIGR03723	TIGR03723	T6A_TsaD_YgjD: tRNA threonylcarbamoyl adenosine modification protein TsaD	314
+TIGR03725	TIGR03725	T6A_YeaZ: tRNA threonylcarbamoyl adenosine modification protein YeaZ	212
+TIGR03953	TIGR03953	rplD_bact: 50S ribosomal protein uL4	188

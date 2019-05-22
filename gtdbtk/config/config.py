@@ -7,6 +7,7 @@ try:
 except KeyError, e:
     print "'GTDBTK_DATA_PATH' environment variable is not defined"
     sys.exit(1)
+
 ############################
 # If all downloaded data is in the same folder
 # There is no need of editing variable below this point
@@ -22,6 +23,7 @@ FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
 METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
+RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
 
 
 RED_DIST_BAC_DICT = ''
@@ -94,12 +96,6 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
-# Intermediate results folder
-INTERMEDIATE_RESULTS = 'intermediate_results'
-
-# Annotation folder
-MARKER_GENE_DIR = "marker_genes"
-
 
 # MSA file names
 CONCAT_BAC120 = os.path.join(
@@ -119,8 +115,6 @@ MASK_RPS23 = "gtdb_" + VERSION_DATA + "_rps23.mask"
 
 
 # Pplacer configuration
-PPLACER_OUT = "pplacer.out"
-PPLACER_JSON_OUT = "pplacer.json"
 PPLACER_BAC120_REF_PKG = "gtdb_" + VERSION_DATA + "_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_" + VERSION_DATA + "_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_" + VERSION_DATA + "_rps23.refpkg"
@@ -129,3 +123,9 @@ PPLACER_RPS23_REF_PKG = "gtdb_" + VERSION_DATA + "_rps23.refpkg"
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
+
+# MRCA RED VALUE
+MRCA_RED_BAC120 = os.path.join(
+    RED_DIR, "gtdbtk_{}_bac120.tsv".format(VERSION_DATA))
+MRCA_RED_AR122 = os.path.join(
+    RED_DIR, "gtdbtk_{}_ar122.tsv".format(VERSION_DATA))

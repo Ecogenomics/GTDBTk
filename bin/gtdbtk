@@ -63,7 +63,8 @@ def printHelp():
   Tools:
     test          -> Test the classify_wf pipeline with 3 archaeal genomes 
     trim_msa      -> Trim an untrimmed MSA file based on a mask.
-    check_install -> Verify is all gtdb data files are present.  
+    export_msa    -> Export the untrimmed archaeal or bacterial MSA file.
+    check_install -> Verify if all gtdb data files are present.
       
   Use: gtdbtk <command> -h for command specific help
     ''' % version()
@@ -168,6 +169,7 @@ if __name__ == '__main__':
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
                                        help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
+    optional_classify_wf.add_argument('--keep_ref_red',action='store_true',help='Base RED value of new genomes on the reference tree.')
     optional_classify_wf.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
     optional_classify_wf.add_argument('-h', '--help', action="help",
@@ -222,9 +224,15 @@ if __name__ == '__main__':
                                             + 'or p__Proteobacteria, p__Actinobacteria).'))
     optional_align.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
-    optional_align.add_argument('--custom_msa_filters', action="store_true",
+    
+    mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
+    mutex_align_group = mutual_genome_align.add_mutually_exclusive_group()                           
+    mutex_align_group.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                                 + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+    mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
+                                       help=('Skip trimming step to return the full MSAs.'))
+                                                
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
                                        help='maximum number of columns to retain per gene')
     optional_align.add_argument('--min_consensus', type=float, default=25,
@@ -294,6 +302,7 @@ if __name__ == '__main__':
     optional_classify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
     optional_classify.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
+    optional_classify.add_argument('--keep_ref_red',action='store_true',help='Base RED value of new genomes on the reference tree.')
     optional_classify.add_argument('--debug', action="store_true",
                                     help='create intermediate files for debugging purposes.')
     optional_classify.add_argument('-h', '--help', action="help",
@@ -365,11 +374,27 @@ if __name__ == '__main__':
     optional_msa = msa_parser.add_argument_group('optional arguments')
     optional_msa.add_argument('-h', '--help', action="help",
                                     help="show help message")
+                        
+                                    
+    #export msa
+    export_msa_parser = subparsers.add_parser('export_msa', conflict_handler='resolve',
+                                                formatter_class=CustomHelpFormatter,
+                                                help='Export the untrimmed archaeal or bacterial MSA file.',)
+    required_export_msa = export_msa_parser.add_argument_group('required named arguments')
+    required_export_msa.add_argument('--domain', required=True,choices=['arc', 'bac'],
+                                    help="Select domain to download.")
+    required_export_msa.add_argument('--output', required=True,
+                                    help='output file')
+    optional_export_msa = export_msa_parser.add_argument_group('optional arguments')
+    optional_export_msa.add_argument('-h', '--help', action="help",
+                                    help="show help message")
+
+
                                     
     # verify install
     check_install_parser = subparsers.add_parser('check_install', conflict_handler='resolve',
                                                 formatter_class=CustomHelpFormatter,
-                                                help='Verify is all gtdb data files are present to run GTDB-Tk.',)
+                                                help='Verify if all gtdb data files are present to run GTDB-Tk.',)
     optional_check_install = check_install_parser.add_argument_group('optional arguments')
     optional_check_install.add_argument('-h', '--help', action="help",
                                     help="show help message")

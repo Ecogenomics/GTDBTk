@@ -25,6 +25,7 @@ from classify import Classify
 from misc import Misc
 from reroot_tree import RerootTree
 import config.config as Config
+from gtdbtk.config.output import *
 
 from biolib_lite.common import (check_dir_exists,
                                 check_file_exists,
@@ -178,6 +179,7 @@ class OptionsParser():
                       options.taxa_filter,
                       options.min_perc_aa,
                       options.custom_msa_filters,
+                      options.skip_trimming,
                       options.rnd_seed,
                       options.cols_per_gene,
                       options.min_consensus,
@@ -205,19 +207,20 @@ class OptionsParser():
             'Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
 
         if hasattr(options, 'suffix'):
-            output_tree = os.path.join(
-                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + '.unrooted.tree')
-            tree_log = os.path.join(
-                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + '.tree.log')
-            fasttree_log = os.path.join(
-                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + '.fasttree.log')
+            output_tree = os.path.join(options.out_dir,
+                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix, marker=options.suffix))
+            tree_log = os.path.join(options.out_dir,
+                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+            fasttree_log = os.path.join(options.out_dir,
+                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix, marker=options.suffix))
         else:
-            output_tree = os.path.join(
-                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + '.unrooted.tree')
-            tree_log = os.path.join(
-                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + '.tree.log')
-            fasttree_log = os.path.join(
-                options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + '.fasttree.log')
+            output_tree = os.path.join(options.out_dir, PATH_UNROOTED_TREE.format(prefix=options.prefix))
+            tree_log = os.path.join(options.out_dir, PATH_TREE_LOG.format(prefix=options.prefix))
+            fasttree_log = os.path.join(options.out_dir, PATH_FASTTREE_LOG.format(prefix=options.prefix))
+
+        make_sure_path_exists(os.path.dirname(output_tree))
+        make_sure_path_exists(os.path.dirname(tree_log))
+        make_sure_path_exists(os.path.dirname(fasttree_log))
 
         if options.prot_model == 'JTT':
             model_str = ''
@@ -231,8 +234,13 @@ class OptionsParser():
             support_str = ' -nosupport'
 
         gamma_str = ' -gamma'
+        gamma_str_info = '+GAMMA'
         if options.no_gamma:
             gamma_str = ''
+            gamma_str_info = ''
+
+        self.logger.info(
+            'Inferring tree with FastTree using {}.'.format(options.prot_model, gamma_str_info))
 
         cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
                                                       model_str,
@@ -270,8 +278,7 @@ class OptionsParser():
         print "Command:"
         print cmd
         os.system(cmd)
-        summary_file = os.path.join(
-            output_dir, 'gtdbtk.ar122.summary.tsv')
+        summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix=options.prefix))
 
         if not os.path.exists(summary_file):
             print "{} is missing.\nTest has failed.".format(summary_file)
@@ -296,6 +303,7 @@ class OptionsParser():
                      options.out_dir,
                      options.prefix,
                      options.scratch_dir,
+                     options.keep_ref_red,
                      options.debug)
 
         self.logger.info('Done.')
@@ -311,6 +319,13 @@ class OptionsParser():
         misc = Misc()
         misc.trim_msa(options.untrimmed_msa, mask_type,
                       mask_id, options.output)
+        self.logger.info('Done.')
+
+    def export_msa(self, options):
+        """Export the untrimmed archaeal or bacterial MSA file."""
+        misc = Misc()
+        misc.export_msa(options.domain, options.output)
+
         self.logger.info('Done.')
 
     def root(self, options):
@@ -366,25 +381,42 @@ class OptionsParser():
             self.align(options)
 
             if options.bac120_ms:
-                options.suffix = ".bac120"
+                options.suffix = "bac120"
             else:
-                options.suffix = ".ar122"
+                options.suffix = "ar122"
 
             if options.skip_gtdb_refs:
-                options.msa_file = os.path.join(
-                    options.out_dir, Config.INTERMEDIATE_RESULTS, options.prefix + options.suffix + ".user_msa.fasta")
+                if options.suffix == 'bac120':
+                    options.msa_file = os.path.join(options.out_dir, PATH_BAC120_USER_MSA.format(prefix=options.prefix))
+                elif options.suffix == 'ar122':
+                    options.msa_file = os.path.join(options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise Exception
             else:
-                options.msa_file = os.path.join(options.out_dir, Config.INTERMEDIATE_RESULTS,
-                                                options.prefix + options.suffix + ".msa.fasta")
+                if options.suffix == 'bac120':
+                    options.msa_file = os.path.join(options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
+                elif options.suffix == 'ar122':
+                    options.msa_file = os.path.join(options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise Exception
+
             self.infer(options)
 
-            options.input_tree = os.path.join(options.out_dir, Config.INTERMEDIATE_RESULTS,
-                                              options.prefix + options.suffix + ".unrooted.tree")
-            options.output_tree = os.path.join(options.out_dir,
-                                               options.prefix + options.suffix + ".rooted.tree")
-            self.root(options)
+            if options.suffix == 'bac120':
+                options.input_tree = os.path.join(options.out_dir, PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir, PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
+            elif options.suffix == 'ar122':
+                options.input_tree = os.path.join(options.out_dir, PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir, PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+            else:
+                self.logger.error('There was an error determining the marker set.')
+                raise Exception
 
+            self.root(options)
             self.decorate(options)
+
         elif(options.subparser_name == 'classify_wf'):
             check_dependencies(
                 ['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])
@@ -394,6 +426,7 @@ class OptionsParser():
             options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
+            options.skip_trimming = False  # Added here due to the other mutex argument being include above.
             options.min_consensus = None
             options.min_perc_taxa = None
             options.skip_gtdb_refs = False
@@ -417,6 +450,8 @@ class OptionsParser():
             self.decorate(options)
         elif(options.subparser_name == 'trim_msa'):
             self.trim_msa(options)
+        elif(options.subparser_name == 'export_msa'):
+            self.export_msa(options)
         elif(options.subparser_name == 'test'):
             self.run_test(options)
         elif(options.subparser_name == 'check_install'):
