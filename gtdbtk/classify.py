@@ -34,6 +34,7 @@ from biolib_lite.execute import check_dependencies
 from biolib_lite.newick import parse_label
 from biolib_lite.seq_io import read_seq, read_fasta
 from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.exceptions import GenomeMarkerSetUnknown
 from gtdbtk.markers import Markers
 from relative_distance import RelativeDistance
 from tools import add_ncbi_prefix, splitchunks
@@ -86,7 +87,7 @@ class Classify():
                 t = PATH_AR122_USER_MSA.format(prefix=prefix)
             else:
                 self.logger.error('There was an error determining the marker set.')
-                raise Exception
+                raise GenomeMarkerSetUnknown
 
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
@@ -134,7 +135,7 @@ class Classify():
             pplacer_json_out = os.path.join(out_dir, PATH_AR122_PPLACER_JSON)
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         cmd = 'pplacer -m WAG -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
                                                                   pplacer_ref_pkg,
@@ -152,7 +153,7 @@ class Classify():
             tree_file = os.path.join(out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         if not os.path.exists(pplacer_json_out):
             print "pplacer has stopped before finishing."
@@ -171,7 +172,7 @@ class Classify():
                        os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         return tree_file
 
@@ -222,7 +223,7 @@ class Classify():
             out_path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         make_sure_path_exists(os.path.dirname(out_path))
 
@@ -302,7 +303,7 @@ class Classify():
                     user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
                 if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
                         # file will not exist if there are no User genomes from a
@@ -335,7 +336,7 @@ class Classify():
                     path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
                 summaryfout = open(path_summary, 'w')
                 if debugopt:
@@ -665,7 +666,7 @@ class Classify():
                                os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
 
                 if debugopt:
@@ -809,7 +810,7 @@ class Classify():
             out_pplacer = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         # We get the pplacer taxonomy for comparison
         with open(out_pplacer, 'w') as pplaceout:

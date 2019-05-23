@@ -15,35 +15,21 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = 'Donovan Parks'
-__copyright__ = 'Copyright 2015'
-__credits__ = ['Donovan Parks']
-__license__ = 'GPL3'
-__maintainer__ = 'Donovan Parks'
-__email__ = 'donovan.parks@gmail.com'
+import unittest
+
+from gtdbtk.biolib_lite.newick import *
 
 
-class BioLibError(Exception):
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
+class TestBioLibNewick(unittest.TestCase):
 
+    def setUp(self):
+        pass
 
-class BioLibFileNotFound(BioLibError):
-    """ Raised when a file is not found. """
+    def tearDown(self):
+        pass
 
-    def __init__(self, msg):
-        super(BioLibFileNotFound, self).__init__(msg)
-
-
-class BioLibDirNotFound(BioLibError):
-    """ Raised when a directory is not found. """
-
-    def __init__(self, msg):
-        super(BioLibDirNotFound, self).__init__(msg)
-
-
-class BioLibIOException(BioLibError):
-    """ Raised when an IO exception is encountered. """
-
-    def __init__(self, msg):
-        super(BioLibIOException, self).__init__(msg)
+    def test_parse_label(self):
+        """ Test that the information obtained from internal newick nodes is consistent """
+        self.assertTupleEqual(parse_label('1.0:o__something|foo'), (1.0, 'o__something', 'foo'))
+        self.assertTupleEqual(parse_label('1.0:o__something'), (1.0, 'o__something', None))
+        self.assertTupleEqual(parse_label('1.0'), (1.0, None, None))

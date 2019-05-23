@@ -15,35 +15,32 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = 'Donovan Parks'
-__copyright__ = 'Copyright 2015'
-__credits__ = ['Donovan Parks']
-__license__ = 'GPL3'
-__maintainer__ = 'Donovan Parks'
-__email__ = 'donovan.parks@gmail.com'
+import shutil
+import tempfile
+import unittest
+
+from gtdbtk.trim_msa import TrimMSA
 
 
-class BioLibError(Exception):
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
+class TestTrimMSA(unittest.TestCase):
 
+    def setUp(self):
+        self.tmp_out_dir = tempfile.mkdtemp()
+        self.trim_msa = TrimMSA(cols_per_gene=0.42,
+                                min_consensus=0.25,
+                                max_consensus=0.95,
+                                min_perc_taxa=0.50,
+                                rnd_seed=42,
+                                min_perc_aa=0.10,
+                                out_dir=self.tmp_out_dir)
 
-class BioLibFileNotFound(BioLibError):
-    """ Raised when a file is not found. """
+    def tearDown(self):
+        shutil.rmtree(self.tmp_out_dir)
 
-    def __init__(self, msg):
-        super(BioLibFileNotFound, self).__init__(msg)
-
-
-class BioLibDirNotFound(BioLibError):
-    """ Raised when a directory is not found. """
-
-    def __init__(self, msg):
-        super(BioLibDirNotFound, self).__init__(msg)
-
-
-class BioLibIOException(BioLibError):
-    """ Raised when an IO exception is encountered. """
-
-    def __init__(self, msg):
-        super(BioLibIOException, self).__init__(msg)
+    def test_identify_valid_columns(self):
+        """ Test that the expected columns are identified as valid. """
+        test_seqs = {'genome_1': 'AAVWAWGG',
+                     'genome_2': 'AAVW-WGA',
+                     'genome_3': '--AW-GGG'}
+        result = self.trim_msa.identify_valid_columns(0, 7, test_seqs)
+        self.assertSetEqual(result, {2, 5})

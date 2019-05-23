@@ -15,35 +15,45 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = 'Donovan Parks'
-__copyright__ = 'Copyright 2015'
-__credits__ = ['Donovan Parks']
-__license__ = 'GPL3'
-__maintainer__ = 'Donovan Parks'
-__email__ = 'donovan.parks@gmail.com'
+
+class GTDBTkException(Exception):
+    """ Base exception for all GTDB-Tk exceptions thrown in this project. """
+    pass
 
 
-class BioLibError(Exception):
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
+class GenomeNameInvalid(GTDBTkException):
+    """ Thrown when a genome name contains characters which are not supported. """
+    pass
 
 
-class BioLibFileNotFound(BioLibError):
-    """ Raised when a file is not found. """
-
-    def __init__(self, msg):
-        super(BioLibFileNotFound, self).__init__(msg)
+class GenomeBatchfileMalformed(GTDBTkException):
+    """ Thrown when the format of the genome batchfile is malformed. """
+    pass
 
 
-class BioLibDirNotFound(BioLibError):
-    """ Raised when a directory is not found. """
-
-    def __init__(self, msg):
-        super(BioLibDirNotFound, self).__init__(msg)
+class NoGenomesFound(GTDBTkException):
+    """ Thrown when no input genomes are found in a directory. """
+    pass
 
 
-class BioLibIOException(BioLibError):
-    """ Raised when an IO exception is encountered. """
+class ReferenceFileMalformed(GTDBTkException):
+    """ Thrown when a reference file is malformed. """
+    pass
 
-    def __init__(self, msg):
-        super(BioLibIOException, self).__init__(msg)
+
+class GenomeMarkerSetUnknown(GTDBTkException):
+    """ Thrown when the genome marker set is unknown (i.e. not ar122, or bac120). """
+    pass
+
+
+class FileNotFound(GTDBTkException):
+    """ Thrown when a file is not found. """
+    pass
+
+
+class DirNotFound(GTDBTkException):
+    """ Thrown when a directory is not found. """
+
+
+class ProdigalException(GTDBTkException):
+    """ Thrown when Prodigal returns a non-zero exit code. """

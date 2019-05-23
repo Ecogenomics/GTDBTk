@@ -167,9 +167,10 @@ class TrimMSA(object):
         return filtered_msa, pruned_seqs
 
     def identify_valid_columns(self, start, end, seqs):
+        # type: (int, int, dict) -> set
         """Identify columns meeting gap and amino acid ubiquity criteria."""
 
-        GAP_CHARS = set(['-', '.', '_', '*'])
+        GAP_CHARS = {'-', '.', '_', '*'}
         STANDARD_AMINO_ACIDS = set('ACDEFGHIKLMNPQRSTVWY')
 
         gap_count = defaultdict(int)
@@ -203,6 +204,7 @@ class TrimMSA(object):
         return valid_cols
 
     def subsample_msa(self, seqs, markers):
+        # type: (dict, list) -> (list, dict)
         """Sample columns from each marker in multiple sequence alignment."""
 
         alignment_length = len(seqs.values()[0])
