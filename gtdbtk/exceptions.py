@@ -18,42 +18,83 @@
 
 class GTDBTkException(Exception):
     """ Base exception for all GTDB-Tk exceptions thrown in this project. """
-    pass
+
+    def __init__(self, message):
+        Exception.__init__(self, message)
 
 
 class GenomeNameInvalid(GTDBTkException):
     """ Thrown when a genome name contains characters which are not supported. """
-    pass
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
 
 
 class GenomeBatchfileMalformed(GTDBTkException):
     """ Thrown when the format of the genome batchfile is malformed. """
-    pass
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
 
 
 class NoGenomesFound(GTDBTkException):
     """ Thrown when no input genomes are found in a directory. """
-    pass
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
 
 
 class ReferenceFileMalformed(GTDBTkException):
     """ Thrown when a reference file is malformed. """
-    pass
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
 
 
 class GenomeMarkerSetUnknown(GTDBTkException):
     """ Thrown when the genome marker set is unknown (i.e. not ar122, or bac120). """
-    pass
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
 
 
 class FileNotFound(GTDBTkException):
     """ Thrown when a file is not found. """
-    pass
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
 
 
 class DirNotFound(GTDBTkException):
     """ Thrown when a directory is not found. """
 
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
 
 class ProdigalException(GTDBTkException):
     """ Thrown when Prodigal returns a non-zero exit code. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class MSAMarkerLengthMismatch(GTDBTkException):
+    """ Thrown when an MSA length does not equal the length of the markers. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class PplacerException(GTDBTkException):
+    """ Thrown whenever an error is encountered while running pplacer. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class TogException(GTDBTkException):
+    """ Thrown ehenever an error is encountered while running tog. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)

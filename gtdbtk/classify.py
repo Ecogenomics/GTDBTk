@@ -34,7 +34,8 @@ from biolib_lite.execute import check_dependencies
 from biolib_lite.newick import parse_label
 from biolib_lite.seq_io import read_seq, read_fasta
 from biolib_lite.taxonomy import Taxonomy
-from gtdbtk.exceptions import GenomeMarkerSetUnknown
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, PplacerException
+from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from relative_distance import RelativeDistance
 from tools import add_ncbi_prefix, splitchunks
@@ -96,13 +97,12 @@ class Classify():
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
 
         # check if a scratch file is to be created
+        pplacer_mmap_file = None
         if scratch_dir:
             self.logger.info(
                 'Using a scratch file for pplacer allocations. This decreases memory usage and performance.')
             pplacer_mmap_file = ' --mmap-file {}'.format(
                 os.path.join(scratch_dir, prefix + ".pplacer.scratch"))
-        else:
-            pplacer_mmap_file = ''
 
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
@@ -137,14 +137,8 @@ class Classify():
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        cmd = 'pplacer -m WAG -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
-                                                                  pplacer_ref_pkg,
-                                                                  pplacer_mmap_file,
-                                                                  pplacer_json_out,
-                                                                  user_msa_file,
-                                                                  pplacer_out)
-
-        os.system(cmd)
+        pplacer = Pplacer()
+        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out, user_msa_file, pplacer_out, pplacer_mmap_file)
 
         # extract tree
         if marker_set_id == 'bac120':
@@ -155,13 +149,7 @@ class Classify():
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        if not os.path.exists(pplacer_json_out):
-            print "pplacer has stopped before finishing."
-            print "for more information, open {} .".format(pplacer_out)
-            sys.exit(-1)
-
-        cmd = 'guppy tog -o {} {}'.format(tree_file, pplacer_json_out)
-        os.system(cmd)
+        pplacer.tog(pplacer_json_out, tree_file)
 
         # Symlink to the tree summary file
         if marker_set_id == 'bac120':
@@ -676,16 +664,16 @@ class Classify():
                     out_dir, prefix, marker_set_id, user_msa_file, tree)
 
         except ValueError as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to a ValueError: %s' % error.message)
             raise
         except IOError as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to an IOError: %s' % error.message)
+            raise
+        except PplacerException:
+            self.logger.error('The classify step failed due to an error in pplacer.')
             raise
         except Exception as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to an exception.')
             raise
 
     def _assign_mrca_red(self, input_tree, marker_set_id):
