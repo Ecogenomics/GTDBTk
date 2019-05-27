@@ -94,7 +94,14 @@ class PplacerException(GTDBTkException):
 
 
 class TogException(GTDBTkException):
-    """ Thrown ehenever an error is encountered while running tog. """
+    """ Thrown whenever an error is encountered while running tog. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class GTDBTkDataPathUndefined(GTDBTkException):
+    """ Thrown when the GTDBTK_DATA_PATH environment variable is undefined. """
 
     def __init__(self, message=''):
         GTDBTkException.__init__(self, message)
