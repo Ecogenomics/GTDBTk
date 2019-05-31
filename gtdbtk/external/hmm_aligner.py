@@ -282,7 +282,7 @@ class HmmAligner(object):
             return None
 
         aligned_marker = ""
-        for pos in xrange(0, len(mask_seq)):
+        for pos in range(0, len(mask_seq)):
             if mask_seq[pos] != 'x':
                 continue
             aligned_marker += hit_seq[pos]

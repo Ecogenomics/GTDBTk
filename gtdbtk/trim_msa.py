@@ -187,7 +187,7 @@ class TrimMSA(object):
         STANDARD_AMINO_ACIDS = set('ACDEFGHIKLMNPQRSTVWY')
 
         gap_count = defaultdict(int)
-        amino_acids = [list() for _ in xrange(end - start)]
+        amino_acids = [list() for _ in range(end - start)]
         num_genomes = 0
         for seq_id, seq in seqs.iteritems():
             num_genomes += 1
@@ -199,7 +199,7 @@ class TrimMSA(object):
                     amino_acids[i].append(ch)
 
         valid_cols = set()
-        for i in xrange(0, end - start):
+        for i in range(0, end - start):
             if float(gap_count.get(i, 0)) / num_genomes <= self.max_gaps:
                 c = Counter(amino_acids[i])
                 if not c.most_common(1):
@@ -273,7 +273,7 @@ class TrimMSA(object):
         output_seqs = {}
         for seq_id, seq in seqs.iteritems():
             masked_seq = ''.join([seq[i]
-                                  for i in xrange(0, len(mask)) if mask[i]])
+                                  for i in range(0, len(mask)) if mask[i]])
             output_seqs[seq_id] = masked_seq
 
         return mask, output_seqs

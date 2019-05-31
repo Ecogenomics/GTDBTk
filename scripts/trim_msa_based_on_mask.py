@@ -50,9 +50,10 @@ class MSATrimmer(object):
         print(maskstr)
         print(len(maskstr))
 
+        from future.utils import iteritems
+
         for k, v in dict_genomes.iteritems():
-            aligned_seq = ''.join([v[i] for i in xrange(
-                0, len(maskstr)) if maskstr[i] == '1'])
+            aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
             fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
             outfwriter.write(fasta_outstr)
         outfwriter.close()
