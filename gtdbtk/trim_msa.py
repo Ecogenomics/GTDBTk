@@ -43,6 +43,8 @@ from collections import defaultdict, Counter
 from numpy import (mean as np_mean,
                    std as np_std)
 
+from gtdbtk.exceptions import MSAMarkerLengthMismatch
+
 
 class TrimMSA(object):
     """Randomly select a subset of columns from the MSA of each marker."""
@@ -102,8 +104,17 @@ class TrimMSA(object):
         self.logger.info('Done.')
 
     def trim(self, msa, marker_list):
-        """Randomly select a subset of columns from the MSA of each marker."""
+        """ Randomly select a subset of columns from the MSA of each marker.
+        Args:
+            msa (dict): The multiple sequence alignment to trim.
+            marker_list (list): A list of markers to use for trimming (id/name/length).
 
+        Returns:
+            (dict, dict): The trimmed MSA, and any sequences which were omitted.
+
+        Raises:
+            MSAMarkerLengthMismatch: If the MSA length does not equal the length of the marker genes.
+        """
         # get marker info
         self.logger.info('Reading marker info.')
         markers = []
@@ -125,7 +136,7 @@ class TrimMSA(object):
             self.logger.error('Length of MSA (%d columns) does not equal length of marker genes (%d columns).' % (
                 len(msa.values()[0]),
                 total_msa_len))
-            sys.exit(-1)
+            raise MSAMarkerLengthMismatch
 
         # randomly select columns meeting filtering criteria
         self.logger.info(
