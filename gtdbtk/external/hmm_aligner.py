@@ -15,6 +15,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 import os
 import sys
 import multiprocessing
@@ -232,7 +234,7 @@ class HmmAligner(object):
             proc.wait()
 
             for line in proc.stderr:
-                print line
+                print(line)
 
             result = self._get_aligned_marker(
                 marker_info.get("gene"), proc.stdout)

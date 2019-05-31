@@ -15,6 +15,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 import os
 import logging
 import sys
@@ -271,13 +273,13 @@ class OptionsParser():
 
         cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
             genome_test_dir, output_dir, options.cpus)
-        print "Command:"
-        print cmd
+        print("Command:")
+        print(cmd)
         os.system(cmd)
         summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix=options.prefix))
 
         if not os.path.exists(summary_file):
-            print "{} is missing.\nTest has failed.".format(summary_file)
+            print("{} is missing.\nTest has failed.".format(summary_file))
             sys.exit(-1)
 
         self.logger.info('Test has successfully finished.')

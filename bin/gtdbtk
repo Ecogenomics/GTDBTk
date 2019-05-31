@@ -17,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 __author__ = "Pierre Chaumeil"
 __copyright__ = "Copyright 2017"  
 __credits__ = ["Pierre Chaumeil"]
@@ -42,7 +44,7 @@ from gtdbtk.exceptions import *
 from gtdbtk.biolib_lite.exceptions import BioLibError
 
 def printHelp():
-    print '''\
+    print('''\
     
               ...::: GTDB-Tk v%s :::...
 
@@ -68,7 +70,7 @@ def printHelp():
     check_install -> Verify if all gtdb data files are present.
       
   Use: gtdbtk <command> -h for command specific help
-    ''' % version()
+    ''' % version())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
@@ -410,9 +412,9 @@ if __name__ == '__main__':
          sys.argv[1] == '--v' or
          sys.argv[1] == '-version' or
          sys.argv[1] == '--version'):
-        print "gtdbtk: version %s %s %s" % (version(),
+        print("gtdbtk: version %s %s %s" % (version(),
                                             __copyright__,
-                                            __author__)
+                                            __author__))
         sys.exit(0)
     elif(sys.argv[1] == '-h' or
          sys.argv[1] == '--h' or

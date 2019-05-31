@@ -15,6 +15,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 import logging
 import multiprocessing
 import os
@@ -536,8 +538,8 @@ class Classify():
                                     list_subrank.append(self.gtdb_taxonomy.get(
                                         leaf)[self.order_rank.index(parent_rank) + 1])
                                 if len(set(list_subrank)) == 1:
-                                    print list_leaves
-                                    print list_subrank
+                                    print(list_leaves)
+                                    print(list_subrank)
                                     raise Exception(
                                         'There should be only one leaf.')
                                     sys.exit(-1)
@@ -1017,7 +1019,7 @@ class Classify():
                     out_q[k] = v
             return True
         except Exception as error:
-            print error
+            print(error)
             raise
 
     def _get_redtax(self, list_subnode, closest_rank):
@@ -1297,7 +1299,7 @@ class Classify():
                     valid, error_msg = Taxonomy().validate_species_name(
                         species_name, require_full=True, require_prefix=True)
                 if not valid:
-                    print '[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg)
+                    print('[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg))
                     continue
 
                 species.add(species_name)
@@ -1336,7 +1338,7 @@ class Classify():
                 elif not support and min_support > 0:
                     # no support value, so inform user if they were trying to
                     # filter on this property
-                    print '[Error] Tree does not contain support values. As such, --min_support should be set to 0.'
+                    print('[Error] Tree does not contain support values. As such, --min_support should be set to 0.')
                     continue
 
         # restrict taxa used for inferring distribution to the trusted set
