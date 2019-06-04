@@ -334,11 +334,15 @@ class OptionsParser():
 
         check_file_exists(options.input_tree)
 
-        gtdb_taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
+        if options.custom_taxonomy_file:
+            check_file_exists(options.custom_taxonomy_file)
+            taxonomy = Taxonomy().read(options.custom_taxonomy_file)
+        else:
+            taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
 
         self.logger.info('Identifying genomes from the specified outgroup.')
         outgroup = set()
-        for genome_id, taxa in gtdb_taxonomy.iteritems():
+        for genome_id, taxa in taxonomy.iteritems():
             if options.outgroup_taxon in taxa:
                 outgroup.add(genome_id)
 

@@ -57,7 +57,7 @@ def printHelp():
     align         -> Create multiple sequence alignment
     infer         -> Infer tree from multiple sequence alignment
     classify      -> Determine taxonomic classification of genomes
-    root          -> Root tree using an outgroup [In Development]
+    root          -> Root tree using an outgroup
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
     
   Tools:
@@ -322,6 +322,8 @@ if __name__ == '__main__':
                                 help='output tree')
 
     optional_root = root_parser.add_argument_group('optional arguments')
+    optional_root.add_argument('--custom_taxonomy_file', 
+                                help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
     optional_root.add_argument('-h', '--help', action="help",
                                 help="show help message")
                                        
