@@ -257,17 +257,19 @@ class OptionsParser():
         self.logger.info('Done.')
 
     def run_test(self, options):
+        """Run test of classify workflow."""
+
         make_sure_path_exists(options.out_dir)
 
-        genome_test_dir = os.path.join(options.out_dir, 'genomes')
         output_dir = os.path.join(options.out_dir, 'output')
-
-        if os.path.isdir(genome_test_dir):
-            shutil.rmtree(genome_test_dir)
+        genome_test_dir = os.path.join(options.out_dir, 'genomes')
+        if os.path.exists(genome_test_dir):
+            self.logger.error('Test directory {} already exists. Test must be run with a new directory.'.format(
+                                genome_test_dir))
+            sys.exit(-1)
 
         current_path = os.path.dirname(os.path.realpath(__file__))
-        input_dir = os.path.join(
-            current_path, 'tests', 'data', 'genomes')
+        input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
 
         shutil.copytree(input_dir, genome_test_dir)
 
@@ -276,7 +278,7 @@ class OptionsParser():
         print("Command:")
         print(cmd)
         os.system(cmd)
-        summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix=options.prefix))
+        summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
 
         if not os.path.exists(summary_file):
             print("{} is missing.\nTest has failed.".format(summary_file))

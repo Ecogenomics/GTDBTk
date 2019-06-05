@@ -53,6 +53,7 @@ class Pplacer(object):
             args.append(mmap_file)
 
         with open(pplacer_out, 'w') as f_out:
+            self.logger.info(' '.join(args))
             proc = subprocess.Popen(args, stdout=f_out, stderr=subprocess.PIPE)
             proc_out, proc_err = proc.communicate()
 
