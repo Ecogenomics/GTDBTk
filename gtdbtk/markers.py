@@ -431,7 +431,6 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         try:
-
             if identify_dir != out_dir:
                 if not os.path.isdir(os.path.join(out_dir, DIR_IDENTIFY)):
                     os.makedirs(os.path.join(out_dir, DIR_IDENTIFY))
@@ -558,7 +557,7 @@ class Markers(object):
                             min_perc_aa))
 
                 # write out filtering information
-                with open(os.path.join(out_dir, marker_filtered_genomes), 'w') as fout:
+                with open(marker_filtered_genomes, 'w') as fout:
                     for pruned_seq_id, pruned_seq in pruned_seqs.items():
                         if len(pruned_seq) == 0:
                             perc_alignment = 0
@@ -568,7 +567,6 @@ class Markers(object):
                             perc_alignment = valid_bases * 100.0 / len(pruned_seq)
                         fout.write('%s\t%s\n' % (pruned_seq_id,
                                                  'Insufficient number of amino acids in MSA (%.1f%%)' % perc_alignment))
-
 
                 # write out MSAs
                 if not skip_gtdb_refs:
