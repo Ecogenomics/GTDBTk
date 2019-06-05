@@ -15,6 +15,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 import logging
 import multiprocessing
 import os
@@ -34,6 +36,8 @@ from biolib_lite.execute import check_dependencies
 from biolib_lite.newick import parse_label
 from biolib_lite.seq_io import read_seq, read_fasta
 from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, PplacerException
+from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from relative_distance import RelativeDistance
 from tools import add_ncbi_prefix, splitchunks
@@ -86,7 +90,7 @@ class Classify():
                 t = PATH_AR122_USER_MSA.format(prefix=prefix)
             else:
                 self.logger.error('There was an error determining the marker set.')
-                raise Exception
+                raise GenomeMarkerSetUnknown
 
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
@@ -95,13 +99,12 @@ class Classify():
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
 
         # check if a scratch file is to be created
+        pplacer_mmap_file = None
         if scratch_dir:
             self.logger.info(
                 'Using a scratch file for pplacer allocations. This decreases memory usage and performance.')
             pplacer_mmap_file = ' --mmap-file {}'.format(
                 os.path.join(scratch_dir, prefix + ".pplacer.scratch"))
-        else:
-            pplacer_mmap_file = ''
 
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
@@ -134,16 +137,10 @@ class Classify():
             pplacer_json_out = os.path.join(out_dir, PATH_AR122_PPLACER_JSON)
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
-        cmd = 'pplacer -m WAG -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
-                                                                  pplacer_ref_pkg,
-                                                                  pplacer_mmap_file,
-                                                                  pplacer_json_out,
-                                                                  user_msa_file,
-                                                                  pplacer_out)
-
-        os.system(cmd)
+        pplacer = Pplacer()
+        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out, user_msa_file, pplacer_out, pplacer_mmap_file)
 
         # extract tree
         if marker_set_id == 'bac120':
@@ -152,15 +149,9 @@ class Classify():
             tree_file = os.path.join(out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
-        if not os.path.exists(pplacer_json_out):
-            print "pplacer has stopped before finishing."
-            print "for more information, open {} .".format(pplacer_out)
-            sys.exit(-1)
-
-        cmd = 'guppy tog -o {} {}'.format(tree_file, pplacer_json_out)
-        os.system(cmd)
+        pplacer.tog(pplacer_json_out, tree_file)
 
         # Symlink to the tree summary file
         if marker_set_id == 'bac120':
@@ -171,7 +162,7 @@ class Classify():
                        os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         return tree_file
 
@@ -222,7 +213,7 @@ class Classify():
             out_path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         make_sure_path_exists(os.path.dirname(out_path))
 
@@ -302,7 +293,7 @@ class Classify():
                     user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
                 if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
                         # file will not exist if there are no User genomes from a
@@ -335,7 +326,7 @@ class Classify():
                     path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
                 summaryfout = open(path_summary, 'w')
                 if debugopt:
@@ -547,8 +538,8 @@ class Classify():
                                     list_subrank.append(self.gtdb_taxonomy.get(
                                         leaf)[self.order_rank.index(parent_rank) + 1])
                                 if len(set(list_subrank)) == 1:
-                                    print list_leaves
-                                    print list_subrank
+                                    print(list_leaves)
+                                    print(list_subrank)
                                     raise Exception(
                                         'There should be only one leaf.')
                                     sys.exit(-1)
@@ -665,7 +656,7 @@ class Classify():
                                os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
 
                 if debugopt:
@@ -675,16 +666,16 @@ class Classify():
                     out_dir, prefix, marker_set_id, user_msa_file, tree)
 
         except ValueError as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to a ValueError: %s' % error.message)
             raise
         except IOError as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to an IOError: %s' % error.message)
+            raise
+        except PplacerException:
+            self.logger.error('The classify step failed due to an error in pplacer.')
             raise
         except Exception as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to an exception.')
             raise
 
     def _assign_mrca_red(self, input_tree, marker_set_id):
@@ -809,7 +800,7 @@ class Classify():
             out_pplacer = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
-            raise Exception
+            raise GenomeMarkerSetUnknown
 
         # We get the pplacer taxonomy for comparison
         with open(out_pplacer, 'w') as pplaceout:
@@ -1028,7 +1019,7 @@ class Classify():
                     out_q[k] = v
             return True
         except Exception as error:
-            print error
+            print(error)
             raise
 
     def _get_redtax(self, list_subnode, closest_rank):
@@ -1308,7 +1299,7 @@ class Classify():
                     valid, error_msg = Taxonomy().validate_species_name(
                         species_name, require_full=True, require_prefix=True)
                 if not valid:
-                    print '[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg)
+                    print('[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg))
                     continue
 
                 species.add(species_name)
@@ -1347,7 +1338,7 @@ class Classify():
                 elif not support and min_support > 0:
                     # no support value, so inform user if they were trying to
                     # filter on this property
-                    print '[Error] Tree does not contain support values. As such, --min_support should be set to 0.'
+                    print('[Error] Tree does not contain support values. As such, --min_support should be set to 0.')
                     continue
 
         # restrict taxa used for inferring distribution to the trusted set

@@ -1,12 +1,14 @@
+from __future__ import print_function
+
 import os
-import sys
 import json
+
+from gtdbtk.exceptions import GTDBTkDataPathUndefined
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
-except KeyError, e:
-    print "'GTDBTK_DATA_PATH' environment variable is not defined"
-    sys.exit(1)
+except KeyError:
+    raise GTDBTkDataPathUndefined("'GTDBTK_DATA_PATH' environment variable is not defined")
 
 ############################
 # If all downloaded data is in the same folder
@@ -40,7 +42,7 @@ with open(os.path.join(METADATA_DIR, "metadata.txt")) as metadataData:
             elif line_infos[0] == 'VERSION_DATA':
                 VERSION_DATA = line_infos[1]
         except ValueError:
-            print "Skipping invalid line {0}".format(repr(line))
+            print("Skipping invalid line {0}".format(repr(line)))
 
 
 # Relative Evolution Distance

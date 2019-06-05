@@ -17,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 __author__ = "Pierre Chaumeil"
 __copyright__ = "Copyright 2017"  
 __credits__ = ["Pierre Chaumeil"]
@@ -38,10 +40,11 @@ from gtdbtk.main import OptionsParser
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-
+from gtdbtk.exceptions import *
+from gtdbtk.biolib_lite.exceptions import BioLibError
 
 def printHelp():
-    print '''\
+    print('''\
     
               ...::: GTDB-Tk v%s :::...
 
@@ -67,7 +70,7 @@ def printHelp():
     check_install -> Verify if all gtdb data files are present.
       
   Use: gtdbtk <command> -h for command specific help
-    ''' % version()
+    ''' % version())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
@@ -411,9 +414,9 @@ if __name__ == '__main__':
          sys.argv[1] == '--v' or
          sys.argv[1] == '-version' or
          sys.argv[1] == '--version'):
-        print "gtdbtk: version %s %s %s" % (version(),
+        print("gtdbtk: version %s %s %s" % (version(),
                                             __copyright__,
-                                            __author__)
+                                            __author__))
         sys.exit(0)
     elif(sys.argv[1] == '-h' or
          sys.argv[1] == '--h' or
@@ -441,6 +444,18 @@ if __name__ == '__main__':
             gt_parser.parse_options(args)
     except SystemExit:
         print("\nControlled exit resulting from an unrecoverable error or warning.")
-    except:
+    except (GTDBTkException, BioLibError) as e:
+        print("\nControlled exit resulting from an unrecoverable error or warning.")
+        # print('')
+        # print('=' * 100)
+        # print(' Controlled exit resulting from an unrecoverable error or warning '.center(100, '='))
+        # print('=' * 100)
+        # print('EXCEPTION: %s' % type(e).__name__)
+        # print('  MESSAGE: %s' % e.message)
+        # print('')
+        # traceback.print_tb(sys.exc_info()[2])
+        # print('=' * 100)
+        sys.exit(1)
+    except Exception:
         print("Unexpected error:", sys.exc_info()[0])
         raise

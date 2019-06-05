@@ -15,6 +15,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 import os
 import logging
 import sys
@@ -33,7 +35,7 @@ from biolib_lite.common import (check_dir_exists,
                                 remove_extension)
 from biolib_lite.taxonomy import Taxonomy
 from biolib_lite.execute import check_dependencies
-
+from gtdbtk.exceptions import *
 
 class OptionsParser():
 
@@ -53,10 +55,8 @@ class OptionsParser():
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error('Invalid genome ID: %s' % genome_id)
-            self.logger.error(
-                'The following characters are invalid: %s' % ' '.join(invalid_chars))
-            sys.exit(-1)
-
+            self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
+            raise GenomeNameInvalid
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -91,25 +91,23 @@ class OptionsParser():
                     continue  # blank line
 
                 if len(line_split) != 2:
-                    self.logger.error(
-                        'Batch file must contain exactly 2 columns.')
-                    sys.exit(-1)
+                    self.logger.error('Batch file must contain exactly 2 columns.')
+                    raise GenomeBatchfileMalformed
 
                 genome_file, genome_id = line_split
                 self._verify_genome_id(genome_id)
 
                 if genome_file is None or genome_file == '':
-                    self.logger.error(
-                        'Missing genome file on line %d.' % line_no + 1)
-                    self.exit(-1)
+                    self.logger.error('Missing genome file on line %d.' % (line_no + 1))
+                    raise GenomeBatchfileMalformed
                 elif genome_id is None or genome_id == '':
-                    self.logger.error(
-                        'Missing genome ID on line %d.' % line_no + 1)
-                    self.exit(-1)
+                    self.logger.error('Missing genome ID on line %d.' % (line_no + 1))
+                    raise GenomeBatchfileMalformed
                 elif genome_id in genomic_files:
-                    self.logger.error(
-                        'Genome ID %s appear multiple times.' % genome_id)
-                    self.exit(-1)
+                    self.logger.error('Genome ID %s appear multiple times.' % genome_id)
+                    raise GenomeBatchfileMalformed
+                if genome_file in genomic_files.values():
+                    self.logger.warning('Genome file appears multiple times: %s' % genome_file)
 
                 genomic_files[genome_id] = genome_file
 
@@ -117,16 +115,16 @@ class OptionsParser():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
                 self.logger.error(
                     "Submitted genomes start with the same prefix (RS_,GB_,UBA) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.")
-                sys.exit(-1)
+                raise GenomeNameInvalid
 
         if len(genomic_files) == 0:
             if genome_dir:
-                self.logger.warning(
+                self.logger.error(
                     'No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
             else:
-                self.logger.warning(
+                self.logger.error(
                     'No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
-            sys.exit(-1)
+            raise NoGenomesFound
 
         return genomic_files
 
@@ -275,13 +273,13 @@ class OptionsParser():
 
         cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
             genome_test_dir, output_dir, options.cpus)
-        print "Command:"
-        print cmd
+        print("Command:")
+        print(cmd)
         os.system(cmd)
         summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix=options.prefix))
 
         if not os.path.exists(summary_file):
-            print "{} is missing.\nTest has failed.".format(summary_file)
+            print("{} is missing.\nTest has failed.".format(summary_file))
             sys.exit(-1)
 
         self.logger.info('Test has successfully finished.')
@@ -355,7 +353,7 @@ class OptionsParser():
 
     def check_install(self):
         """ Verify all GTDB-Tk data files are present."""
-        self.logger.warning("Running install verification")
+        self.logger.info("Running install verification")
         misc = Misc()
         misc.check_install()
         self.logger.info('Done.')
@@ -396,7 +394,7 @@ class OptionsParser():
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
             else:
                 if options.suffix == 'bac120':
                     options.msa_file = os.path.join(options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
@@ -404,7 +402,7 @@ class OptionsParser():
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
             self.infer(options)
 
@@ -416,7 +414,7 @@ class OptionsParser():
                 options.output_tree = os.path.join(options.out_dir, PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
                 self.logger.error('There was an error determining the marker set.')
-                raise Exception
+                raise GenomeMarkerSetUnknown
 
             self.root(options)
             self.decorate(options)

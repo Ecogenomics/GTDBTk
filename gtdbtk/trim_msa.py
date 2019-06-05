@@ -17,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 __prog_name__ = 'trim_msa.py'
 __prog_desc__ = 'Randomly select a subset of columns from the MSA of each marker.'
 
@@ -42,6 +44,8 @@ from collections import defaultdict, Counter
 
 from numpy import (mean as np_mean,
                    std as np_std)
+
+from gtdbtk.exceptions import MSAMarkerLengthMismatch
 
 
 class TrimMSA(object):
@@ -102,8 +106,17 @@ class TrimMSA(object):
         self.logger.info('Done.')
 
     def trim(self, msa, marker_list):
-        """Randomly select a subset of columns from the MSA of each marker."""
+        """ Randomly select a subset of columns from the MSA of each marker.
+        Args:
+            msa (dict): The multiple sequence alignment to trim.
+            marker_list (list): A list of markers to use for trimming (id/name/length).
 
+        Returns:
+            (dict, dict): The trimmed MSA, and any sequences which were omitted.
+
+        Raises:
+            MSAMarkerLengthMismatch: If the MSA length does not equal the length of the marker genes.
+        """
         # get marker info
         self.logger.info('Reading marker info.')
         markers = []
@@ -125,7 +138,7 @@ class TrimMSA(object):
             self.logger.error('Length of MSA (%d columns) does not equal length of marker genes (%d columns).' % (
                 len(msa.values()[0]),
                 total_msa_len))
-            sys.exit(-1)
+            raise MSAMarkerLengthMismatch
 
         # randomly select columns meeting filtering criteria
         self.logger.info(
@@ -167,13 +180,14 @@ class TrimMSA(object):
         return filtered_msa, pruned_seqs
 
     def identify_valid_columns(self, start, end, seqs):
+        # type: (int, int, dict) -> set
         """Identify columns meeting gap and amino acid ubiquity criteria."""
 
-        GAP_CHARS = set(['-', '.', '_', '*'])
+        GAP_CHARS = {'-', '.', '_', '*'}
         STANDARD_AMINO_ACIDS = set('ACDEFGHIKLMNPQRSTVWY')
 
         gap_count = defaultdict(int)
-        amino_acids = [list() for _ in xrange(end - start)]
+        amino_acids = [list() for _ in range(end - start)]
         num_genomes = 0
         for seq_id, seq in seqs.iteritems():
             num_genomes += 1
@@ -185,7 +199,7 @@ class TrimMSA(object):
                     amino_acids[i].append(ch)
 
         valid_cols = set()
-        for i in xrange(0, end - start):
+        for i in range(0, end - start):
             if float(gap_count.get(i, 0)) / num_genomes <= self.max_gaps:
                 c = Counter(amino_acids[i])
                 if not c.most_common(1):
@@ -203,6 +217,7 @@ class TrimMSA(object):
         return valid_cols
 
     def subsample_msa(self, seqs, markers):
+        # type: (dict, list) -> (list, dict)
         """Sample columns from each marker in multiple sequence alignment."""
 
         alignment_length = len(seqs.values()[0])
@@ -258,15 +273,15 @@ class TrimMSA(object):
         output_seqs = {}
         for seq_id, seq in seqs.iteritems():
             masked_seq = ''.join([seq[i]
-                                  for i in xrange(0, len(mask)) if mask[i]])
+                                  for i in range(0, len(mask)) if mask[i]])
             output_seqs[seq_id] = masked_seq
 
         return mask, output_seqs
 
 
 if __name__ == '__main__':
-    print __prog_name__ + ' v' + __version__ + ': ' + __prog_desc__
-    print '  by ' + __author__ + ' (' + __email__ + ')' + '\n'
+    print(__prog_name__ + ' v' + __version__ + ': ' + __prog_desc__)
+    print('  by ' + __author__ + ' (' + __email__ + ')' + '\n')
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -301,7 +316,7 @@ if __name__ == '__main__':
                     args.out_dir)
         p.run(args.msa, args.marker_list)
     except SystemExit:
-        print "\nControlled exit resulting from an unrecoverable error or warning."
+        print("\nControlled exit resulting from an unrecoverable error or warning.")
     except:
-        print "\nUnexpected error:", sys.exc_info()[0]
+        print("\nUnexpected error:", sys.exc_info()[0])
         raise

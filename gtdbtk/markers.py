@@ -33,6 +33,7 @@ from external.hmm_aligner import HmmAligner
 
 import config.config as Config
 from gtdbtk.config.output import *
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
 
 from tools import merge_two_dicts
 
@@ -259,11 +260,11 @@ class Markers(object):
                 genome_dictionary, out_dir, self.marker_gene_dir, prefix)
 
         except IOError as e:
-            self.logger.error(str(e))
-            self.logger.error("GTDB-Tk has encountered an error.")
+            self.logger.error("There was an IO error while running the identify step: %s" % e.message)
+            raise
 
         except Exception as e:
-            self.logger.error(str(e))
+            self.logger.error('There was an error while running the identify step: %s' % e.message)
             raise
 
     def _path_to_identify_data(self, identity_dir):
@@ -316,11 +317,11 @@ class Markers(object):
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
 
         mask = open(msa_mask).readline().strip()
-        list_mask = [True if c == '1' else False for c in mask]
+        list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
 
         if len(mask) != len(aligned_genomes.values()[0]):
             self.logger.error('Mask and alignment length do not match.')
-            sys.exit()
+            raise MSAMaskLengthMismatch
 
         output_seqs = {}
         pruned_seqs = {}
@@ -602,7 +603,7 @@ class Markers(object):
                                os.path.join(out_dir, os.path.basename(PATH_AR122_MSA.format(prefix=prefix))))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise Exception
+                    raise GenomeMarkerSetUnknown
 
         except IOError as e:
             self.logger.error(str(e))

@@ -26,3 +26,24 @@ __email__ = 'donovan.parks@gmail.com'
 class BioLibError(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
+
+
+class BioLibFileNotFound(BioLibError):
+    """ Raised when a file is not found. """
+
+    def __init__(self, msg):
+        super(BioLibFileNotFound, self).__init__(msg)
+
+
+class BioLibDirNotFound(BioLibError):
+    """ Raised when a directory is not found. """
+
+    def __init__(self, msg):
+        super(BioLibDirNotFound, self).__init__(msg)
+
+
+class BioLibIOException(BioLibError):
+    """ Raised when an IO exception is encountered. """
+
+    def __init__(self, msg):
+        super(BioLibIOException, self).__init__(msg)

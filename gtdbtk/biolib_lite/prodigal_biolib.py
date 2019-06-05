@@ -31,7 +31,7 @@ import ntpath
 from collections import defaultdict, namedtuple
 
 from common import remove_extension, make_sure_path_exists
-from seq_io import read_fasta
+from seq_io import read_fasta, write_fasta
 from parallel import Parallel
 from execute import check_on_path
 import numpy as np
@@ -113,8 +113,14 @@ class Prodigal(object):
                 else:
                     proc_str = 'single'  # estimate parameters from data
 
+                # If this is a gzipped genome, re-write the uncompressed genome file to disk
+                prodigal_input = genome_file
+                if genome_file.endswith('.gz'):
+                    prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
+                    write_fasta(seqs, prodigal_input)
+
                 args = ['prodigal', '-m', '-p', proc_str, '-q', '-f', 'gff', '-g', str(translation_table), '-a',
-                        aa_gene_file_tmp, '-d', nt_gene_file_tmp, '-i', genome_file]
+                        aa_gene_file_tmp, '-d', nt_gene_file_tmp, '-i', prodigal_input]
                 if self.closed_ends:
                     args.append('-c')
 

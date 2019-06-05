@@ -153,7 +153,7 @@ class Taxonomy(object):
 
         last_rank = Taxonomy.rank_prefixes.index(taxa[-1][0:3])
 
-        for i in xrange(last_rank + 1, len(Taxonomy.rank_prefixes)):
+        for i in range(last_rank + 1, len(Taxonomy.rank_prefixes)):
             taxa.append(Taxonomy.rank_prefixes[i])
 
         return taxa
@@ -190,7 +190,7 @@ class Taxonomy(object):
                 new_taxa.append(t)
             elif rank_index - prev_rank_index > 1:
                 # fill in all missing ranks
-                for r in xrange(prev_rank_index + 1, rank_index):
+                for r in range(prev_rank_index + 1, rank_index):
                     new_taxa.append(Taxonomy.rank_prefixes[r])
                 new_taxa.append(t)
             elif warning:
@@ -227,7 +227,7 @@ class Taxonomy(object):
                 # the viral taxonomy at IMG is currently not consistent
                 continue
 
-            for r in xrange(1, len(taxa)):
+            for r in range(1, len(taxa)):
                 if taxa[r] == Taxonomy.rank_prefixes[r]:
                     break
 
@@ -482,7 +482,7 @@ class Taxonomy(object):
         if check_hierarchy:
             expected_parent = self.taxonomic_consistency(taxonomy, False)
             for taxon_id, taxa in taxonomy.iteritems():
-                for r in xrange(1, len(taxa)):
+                for r in range(1, len(taxa)):
                     if taxa[r] == Taxonomy.rank_prefixes[r]:
                         continue
 

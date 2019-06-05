@@ -14,19 +14,18 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-
-import unittest
-import gtdbtk
 import argparse
-from gtdbtk.main import OptionsParser
-from gtdbtk import tools
-import shutil
-import os
-import logging
-from gtdbtk.biolib_lite.logger import logger_setup
-import string
 import random
+import shutil
+import string
+import tempfile
+import unittest
+
+from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.config.output import *
+from gtdbtk.main import OptionsParser
+from tests.common import *
+
 
 class TestCli(unittest.TestCase):
 
@@ -69,7 +68,7 @@ class TestCli(unittest.TestCase):
         self.optionparser = OptionsParser(self.version)
         logger_setup(None, "gtdbtk.log", "GTDB-Tk", self.version, True)
         # self.generic_out_path = 'tests/data/results'
-        self.generic_out_path = '/tmp/GTDBTk/tests'
+        self.generic_out_path = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
 
     def test_identify(self):
         tmp_folder = ''.join(random.choice(
@@ -260,9 +259,32 @@ class TestCli(unittest.TestCase):
         self.optionparser.align(de_novo_wf_options)
         self.optionparser.infer(de_novo_wf_options)
 
+    def test_identify_gzipped_genomes(self):
+        """ Test that gene calling is successful when using gzipped genomes """
+        options = argparse.ArgumentParser()
+        options.genome_dir = 'tests/data/genomes_gz/'
+        options.cpus = 5
+        options.batchfile = None
+        options.extension = 'gz'
+        options.prefix = 'gtdbtk'
+        options.force = None
+        options.out_dir = self.generic_out_path
+        self.optionparser.identify(options)
+
+        self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
+                        os.path.join(self.generic_out_path, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
+                        ignore_order=True))
+
+        self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
+                        os.path.join(self.generic_out_path, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
+                        ignore_order=True))
+
+        self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
+                        os.path.join(self.generic_out_path, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
+                        ignore_order=True))
+
     def tearDown(self):
         shutil.rmtree(self.generic_out_path)
-
 
 if __name__ == '__main__':
     unittest.main()
