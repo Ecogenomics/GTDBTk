@@ -86,6 +86,13 @@ class MSAMarkerLengthMismatch(GTDBTkException):
         GTDBTkException.__init__(self, message)
 
 
+class MSAMaskLengthMismatch(GTDBTkException):
+    """ Thrown when an MSA length does not equal the length of the mask. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
 class PplacerException(GTDBTkException):
     """ Thrown whenever an error is encountered while running pplacer. """
 
