@@ -41,13 +41,22 @@ class OptionsParser():
 
     def __init__(self, version):
         """Initialization."""
-
-        self.version = version
-
         self.logger = logging.getLogger('timestamp')
+        self.version = version
 
         self.logger.warning(
             "Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
+
+        self._check_package_compatibility()
+
+    def _check_package_compatibility(self):
+        """Check that GTDB-Tk is using the most up-to-date reference package."""
+        self.logger.info('Using GTDB-Tk reference data version: {}'
+                         .format(Config.VERSION_DATA))
+        if Config.VERSION_DATA != Config.SUPPORTED_REF_DATA_VERSION:
+            self.logger.warning('You are not using the reference data intended '
+                                'for this release: {}'.format(Config.SUPPORTED_REF_DATA_VERSION))
+
 
     def _verify_genome_id(self, genome_id):
         """Ensure genome ID will be valid in Newick tree."""
