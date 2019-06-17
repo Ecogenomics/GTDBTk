@@ -445,16 +445,8 @@ if __name__ == '__main__':
     except SystemExit:
         print("\nControlled exit resulting from an unrecoverable error or warning.")
     except (GTDBTkException, BioLibError) as e:
+        print('[{}] {}'.format(type(e).__name__.center(19, ' '), e.message))
         print("\nControlled exit resulting from an unrecoverable error or warning.")
-        # print('')
-        # print('=' * 100)
-        # print(' Controlled exit resulting from an unrecoverable error or warning '.center(100, '='))
-        # print('=' * 100)
-        # print('EXCEPTION: %s' % type(e).__name__)
-        # print('  MESSAGE: %s' % e.message)
-        # print('')
-        # traceback.print_tb(sys.exc_info()[2])
-        # print('=' * 100)
         sys.exit(1)
     except Exception:
         print("Unexpected error:", sys.exc_info()[0])

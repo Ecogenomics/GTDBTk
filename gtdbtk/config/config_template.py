@@ -1,20 +1,20 @@
 from __future__ import print_function
 
-import os
 import json
-
-from gtdbtk.exceptions import GTDBTkDataPathUndefined
+import os
+import sys
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
 except KeyError:
-    raise GTDBTkDataPathUndefined("'GTDBTK_DATA_PATH' environment variable is not defined")
+    print("'GTDBTK_DATA_PATH' environment variable is not defined")
+    sys.exit(1)
 
 ############################
 # If all downloaded data is in the same folder
 # There is no need of editing variable below this point
 ############################
-
+SUPPORTED_REF_DATA_VERSION = 'r86'
 
 TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
 PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')
