@@ -37,6 +37,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
+import traceback
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
@@ -444,11 +445,22 @@ if __name__ == '__main__':
         else:
             gt_parser.parse_options(args)
     except SystemExit:
-        print("\nControlled exit resulting from an unrecoverable error or warning.")
+        print('\nControlled exit resulting from early termination.')
+    except KeyboardInterrupt:
+        print('\nControlled exit resulting from interrupt signal.')
+        sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
         print('[{}] {}'.format(type(e).__name__.center(19, ' '), e.message))
         print("\nControlled exit resulting from an unrecoverable error or warning.")
         sys.exit(1)
-    except Exception:
-        print("Unexpected error:", sys.exc_info()[0])
-        raise
+    except Exception as e:
+        print("\nUncontrolled exit resulting from an unexpected error.")
+        print('')
+        print('=' * 100)
+        print('EXCEPTION: %s' % type(e).__name__)
+        print('  MESSAGE: %s' % e.message)
+        print('_' * 100)
+        print('')
+        traceback.print_tb(sys.exc_info()[2])
+        print('=' * 100)
+        sys.exit(1)

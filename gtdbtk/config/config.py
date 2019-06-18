@@ -15,7 +15,7 @@ except KeyError:
 # There is no need of editing variable below this point
 ############################
 
-SUPPORTED_REF_DATA_VERSION = 'r86'
+SUPPORTED_REF_DATA_VERSION = 'r89'
 
 TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
 PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')
@@ -26,7 +26,7 @@ FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
 METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
-RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
+RED_DIR = os.path.join(GENERIC_PATH, "mrca/")
 
 
 RED_DIST_BAC_DICT = ''
