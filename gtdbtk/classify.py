@@ -348,7 +348,7 @@ class Classify():
                 # for this node.
                 all_fastani_dict = {}
                 self.logger.info(
-                    'Calculating Average Nucleotide Identity using FastANI.')
+                    'Calculating average nucleotide identity using FastANI.')
                 fastani_verification = {}
                 number_comparison = 0
                 for userleaf in tree.leaf_node_iter():
@@ -439,7 +439,7 @@ class Classify():
                 classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
                     fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout)
 
-                self.logger.info('{0} genomes have been classify using FastANI and Pplacer.'.format(
+                self.logger.info('{0} genomes have been classify using FastANI and pplacer.'.format(
                     len(classified_user_genomes)))
 
                 # If Fastani can't select a taxonomy for a genome, we use RED

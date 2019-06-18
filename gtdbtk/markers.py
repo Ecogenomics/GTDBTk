@@ -548,7 +548,7 @@ class Markers(object):
                                                                  user_msa,
                                                                  gtdb_msa_mask,
                                                                  min_perc_aa / 100.0)
-                    self.logger.info('Masked alignment from %d to %d AA.' % (len(user_msa.values()[0]),
+                    self.logger.info('Masked alignment from %d to %d AAs.' % (len(user_msa.values()[0]),
                                                                              len(trimmed_seqs.values()[0])))
 
                     if min_perc_aa > 0:
