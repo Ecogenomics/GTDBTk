@@ -22,6 +22,7 @@ import shutil
 import multiprocessing as mp
 from collections import defaultdict
 
+from gtdbtk.exceptions import ProdigalException
 from ..biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
 
 
@@ -189,17 +190,18 @@ class Prodigal(object):
 
                 # Gracefully terminate the program.
                 if p.exitcode != 0:
-                    raise Exception(
-                        "An error was encountered while running Prodigal.")
+                    self.logger.error('Prodigal returned a non-zero exit code.')
+                    raise ProdigalException
 
             writer_queue.put(None)
             writer_proc.join()
-        except:
+        except Exception:
             for p in worker_proc:
                 p.terminate()
 
             writer_proc.terminate()
-            raise
+            self.logger.error('An exception was caught while running Prodigal.')
+            raise ProdigalException
 
         result_dict = {k: v for k, v in out_dict.items()}
         return result_dict

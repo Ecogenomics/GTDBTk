@@ -33,5 +33,5 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
-    install_requires=["dendropy>=4.1.0"],
+    install_requires=["dendropy>=4.1.0", 'numpy'],
 )

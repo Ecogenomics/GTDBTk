@@ -30,8 +30,11 @@ import ntpath
 import re
 import gzip
 
+from .exceptions import BioLibFileNotFound, BioLibDirNotFound, BioLibIOException
+
 
 def is_float(s):
+    # type: (str) -> bool
     """Check if a string can be converted to a float.
     Parameters
     ----------
@@ -55,16 +58,18 @@ def check_file_exists(input_file):
     """Check if file exists."""
     if not os.path.exists(input_file) or not os.path.isfile(input_file):
         logger = logging.getLogger('timestamp')
-        logger.error('Input file does not exists: ' + input_file + '\n')
-        sys.exit()
+        logger.error('Input file does not exist: ' + input_file + '\n')
+        raise BioLibFileNotFound('Input file does not exist: ' + input_file + '\n')
+    return True
 
 
 def check_dir_exists(input_dir):
     """Check if directory exists."""
     if not os.path.exists(input_dir) or not os.path.isdir(input_dir):
         logger = logging.getLogger('timestamp')
-        logger.error('Input directory does not exists: ' + input_dir + '\n')
-        sys.exit()
+        logger.error('Input directory does not exist: ' + input_dir + '\n')
+        raise BioLibDirNotFound('Input directory does not exist: ' + input_dir + '\n')
+    return True
 
 
 def make_sure_path_exists(path):
@@ -73,18 +78,22 @@ def make_sure_path_exists(path):
     if not path:
         # lack of a path qualifier is acceptable as this
         # simply specifies the current directory
-        return
+        return True
+
+    elif os.path.isdir(path):
+        return True
 
     try:
         os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
+        return True
+    except OSError:
             logger = logging.getLogger('timestamp')
             logger.error('Specified path could not be created: ' + path + '\n')
-            sys.exit()
+            raise BioLibIOException('Specified path could not be created: ' + path + '\n')
 
 
 def remove_extension(filename, extension=None):
+    # type: (str, str) -> str
     """Remove extension from filename.
     A specific extension can be specified, otherwise
     the extension is taken as all characters after the

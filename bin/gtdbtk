@@ -17,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 __author__ = "Pierre Chaumeil"
 __copyright__ = "Copyright 2017"  
 __credits__ = ["Pierre Chaumeil"]
@@ -38,10 +40,11 @@ from gtdbtk.main import OptionsParser
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-
+from gtdbtk.exceptions import *
+from gtdbtk.biolib_lite.exceptions import BioLibError
 
 def printHelp():
-    print '''\
+    print('''\
     
               ...::: GTDB-Tk v%s :::...
 
@@ -57,7 +60,7 @@ def printHelp():
     align         -> Create multiple sequence alignment
     infer         -> Infer tree from multiple sequence alignment
     classify      -> Determine taxonomic classification of genomes
-    root          -> Root tree using an outgroup [In Development]
+    root          -> Root tree using an outgroup
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
     
   Tools:
@@ -67,7 +70,7 @@ def printHelp():
     check_install -> Verify if all gtdb data files are present.
       
   Use: gtdbtk <command> -h for command specific help
-    ''' % version()
+    ''' % version())
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
@@ -230,7 +233,7 @@ if __name__ == '__main__':
     mutex_align_group.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                                 + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
-    mutex_align_group.add_argument('--skip_trimming', action="store_true",
+    mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
                                        help=('Skip trimming step to return the full MSAs.'))
                                                 
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
@@ -323,6 +326,8 @@ if __name__ == '__main__':
                                 help='output tree')
 
     optional_root = root_parser.add_argument_group('optional arguments')
+    optional_root.add_argument('--custom_taxonomy_file', 
+                                help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
     optional_root.add_argument('-h', '--help', action="help",
                                 help="show help message")
                                        
@@ -410,9 +415,9 @@ if __name__ == '__main__':
          sys.argv[1] == '--v' or
          sys.argv[1] == '-version' or
          sys.argv[1] == '--version'):
-        print "gtdbtk: version %s %s %s" % (version(),
+        print("gtdbtk: version %s %s %s" % (version(),
                                             __copyright__,
-                                            __author__)
+                                            __author__))
         sys.exit(0)
     elif(sys.argv[1] == '-h' or
          sys.argv[1] == '--h' or
@@ -440,6 +445,10 @@ if __name__ == '__main__':
             gt_parser.parse_options(args)
     except SystemExit:
         print("\nControlled exit resulting from an unrecoverable error or warning.")
-    except:
+    except (GTDBTkException, BioLibError) as e:
+        print('[{}] {}'.format(type(e).__name__.center(19, ' '), e.message))
+        print("\nControlled exit resulting from an unrecoverable error or warning.")
+        sys.exit(1)
+    except Exception:
         print("Unexpected error:", sys.exc_info()[0])
         raise

@@ -30,6 +30,7 @@ from gtdbtk.classify import Classify
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 
 import gtdbtk.config.config as Config
+from gtdbtk.config.output import *
 
 from itertools import islice
 
@@ -77,7 +78,7 @@ class TestClassify(unittest.TestCase):
     def test_get_pplacer_taxonomy(self):
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
-        tree = dendropy.Tree.get_from_path(os.path.join(self.pplacer_dir_reference,
+        tree = dendropy.Tree.get_from_path(os.path.join(os.getcwd(), self.pplacer_dir_reference,
                                                         'gtdbtk.ar122.classify.tree'),
                                            schema='newick',
                                            rooting='force-rooted',
@@ -85,7 +86,8 @@ class TestClassify(unittest.TestCase):
         self.classify._get_pplacer_taxonomy(
             self.out_dir, self.prefix, 'ar122', self.user_msa_file, tree)
         results = {}
-        with open(os.path.join(self.out_dir, 'gtdbtk.ar122.classification_pplacer.tsv'), 'r') as f:
+
+        with open(os.path.join(self.out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=self.prefix)), 'r') as f:
             for line in f:
                 infos = line.strip().split('\t')
                 results[infos[0]] = infos[1]

@@ -303,7 +303,7 @@ class RelativeDistance():
         ax.set_xlim([-0.01, 1.01])
 
         ax.set_ylabel('rank (no. taxa)')
-        ax.set_yticks(xrange(0, len(medians_for_taxa)))
+        ax.set_yticks(range(0, len(medians_for_taxa)))
         ax.set_ylim([-0.2, len(medians_for_taxa) - 0.01])
         ax.set_yticklabels(rank_labels)
 
