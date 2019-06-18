@@ -135,6 +135,9 @@ if __name__ == '__main__':
                                     help="do not compute local support values using the Shimodaira-Hasegawa test")
     optional_denovo_wf.add_argument('--no_gamma', action="store_true", 
                                     help="do not rescale branch lengths to optimize the Gamma20 likelihood")
+
+    optional_denovo_wf.add_argument('--custom_taxonomy_file',
+                                    help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
                                     
     optional_denovo_wf.add_argument('--prefix', default='gtdbtk',
                                     help='desired prefix for output files')

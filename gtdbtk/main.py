@@ -51,8 +51,8 @@ class OptionsParser():
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
-        self.logger.info('Using GTDB-Tk reference data version: {}'
-                         .format(Config.VERSION_DATA))
+        self.logger.info('Using GTDB-Tk reference data version {}: {}'
+                         .format(Config.VERSION_DATA, Config.GENERIC_PATH))
         if Config.VERSION_DATA != Config.SUPPORTED_REF_DATA_VERSION:
             self.logger.warning('You are not using the reference data intended '
                                 'for this release: {}'.format(Config.SUPPORTED_REF_DATA_VERSION))
@@ -260,7 +260,6 @@ class OptionsParser():
             cmd = 'FastTreeMP ' + cmd
         else:
             cmd = 'FastTree ' + cmd
-        self.logger.info('Running: %s' % cmd)
         os.system(cmd)
 
         self.logger.info('Done.')
@@ -360,6 +359,17 @@ class OptionsParser():
                                   options.output_tree,
                                   outgroup)
 
+        # Symlink to the tree summary file
+        if options.suffix == 'bac120':
+            os.symlink(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
+                       os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+        elif options.suffix == 'ar122':
+            os.symlink(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
+                       os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
+
         self.logger.info('Done.')
 
     def check_install(self):
@@ -375,7 +385,7 @@ class OptionsParser():
         check_file_exists(options.input_tree)
 
         # Config.TAXONOMY_FILE
-        self.logger.warning('NOT YET IMPLEMENTED!')
+        self.logger.warning('DECORATE NOT YET IMPLEMENTED!')
         self.logger.info('Done.')
 
     def parse_options(self, options):
