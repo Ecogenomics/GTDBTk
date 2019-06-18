@@ -31,7 +31,7 @@ import ntpath
 from collections import defaultdict, namedtuple
 
 from common import remove_extension, make_sure_path_exists
-from seq_io import read_fasta
+from seq_io import read_fasta, write_fasta
 from parallel import Parallel
 from execute import check_on_path
 import numpy as np
@@ -85,14 +85,6 @@ class Prodigal(object):
                 self.logger.warn('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
                 return None
 
-            # Prepare the genome file as a wrapped (buffered) string prior for passing through stdin to prodigal
-            buffer_len = 80
-            genome_file_str = str()
-            for gid, gseq in seqs.items():
-                genome_file_str += '>%s\n' % gid
-                for i in range(0, len(gseq), buffer_len):
-                    genome_file_str += '%s\n' % gseq[i:i+buffer_len]
-
             tmp_dir = tempfile.mkdtemp()
 
             # determine number of bases
@@ -121,13 +113,19 @@ class Prodigal(object):
                 else:
                     proc_str = 'single'  # estimate parameters from data
 
+                # If this is a gzipped genome, re-write the uncompressed genome file to disk
+                prodigal_input = genome_file
+                if genome_file.endswith('.gz'):
+                    prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
+                    write_fasta(seqs, prodigal_input)
+
                 args = ['prodigal', '-m', '-p', proc_str, '-q', '-f', 'gff', '-g', str(translation_table), '-a',
-                        aa_gene_file_tmp, '-d', nt_gene_file_tmp]
+                        aa_gene_file_tmp, '-d', nt_gene_file_tmp, '-i', prodigal_input]
                 if self.closed_ends:
                     args.append('-c')
 
-                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
-                proc_out, proc_err = proc.communicate(input=genome_file_str)
+                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                proc_out, proc_err = proc.communicate()
                 gff_stdout = proc_out.decode().encode('utf-8')
 
                 translation_table_gffs[translation_table] = gff_stdout

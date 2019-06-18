@@ -1,17 +1,21 @@
+from __future__ import print_function
+
+import json
 import os
 import sys
-import json
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
-except KeyError, e:
-    print "'GTDBTK_DATA_PATH' environment variable is not defined"
+except KeyError:
+    print("'GTDBTK_DATA_PATH' environment variable is not defined")
     sys.exit(1)
+
 ############################
 # If all downloaded data is in the same folder
 # There is no need of editing variable below this point
 ############################
 
+SUPPORTED_REF_DATA_VERSION = 'r86'
 
 TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
 PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')
@@ -39,7 +43,7 @@ with open(os.path.join(METADATA_DIR, "metadata.txt")) as metadataData:
             elif line_infos[0] == 'VERSION_DATA':
                 VERSION_DATA = line_infos[1]
         except ValueError:
-            print "Skipping invalid line {0}".format(repr(line))
+            print("Skipping invalid line {0}".format(repr(line)))
 
 
 # Relative Evolution Distance
@@ -95,12 +99,6 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
-# Intermediate results folder
-INTERMEDIATE_RESULTS = 'intermediate_results'
-
-# Annotation folder
-MARKER_GENE_DIR = "marker_genes"
-
 
 # MSA file names
 CONCAT_BAC120 = os.path.join(
@@ -120,8 +118,6 @@ MASK_RPS23 = "gtdb_" + VERSION_DATA + "_rps23.mask"
 
 
 # Pplacer configuration
-PPLACER_OUT = "pplacer.out"
-PPLACER_JSON_OUT = "pplacer.json"
 PPLACER_BAC120_REF_PKG = "gtdb_" + VERSION_DATA + "_bac120.refpkg"
 PPLACER_AR122_REF_PKG = "gtdb_" + VERSION_DATA + "_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = "gtdb_" + VERSION_DATA + "_rps23.refpkg"

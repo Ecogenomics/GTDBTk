@@ -15,6 +15,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 import os
 import sys
 import multiprocessing
@@ -232,7 +234,7 @@ class HmmAligner(object):
             proc.wait()
 
             for line in proc.stderr:
-                print line
+                print(line)
 
             result = self._get_aligned_marker(
                 marker_info.get("gene"), proc.stdout)
@@ -280,7 +282,7 @@ class HmmAligner(object):
             return None
 
         aligned_marker = ""
-        for pos in xrange(0, len(mask_seq)):
+        for pos in range(0, len(mask_seq)):
             if mask_seq[pos] != 'x':
                 continue
             aligned_marker += hit_seq[pos]

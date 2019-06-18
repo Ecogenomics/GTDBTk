@@ -26,7 +26,7 @@ def add_ncbi_prefix(refname):
 def splitchunks(d, n):
     chunksize = int(math.ceil(len(d) / float(n)))
     it = iter(d)
-    for _ in xrange(0, len(d), chunksize):
+    for _ in range(0, len(d), chunksize):
         yield {k: d[k] for k in islice(it, chunksize)}
 
 

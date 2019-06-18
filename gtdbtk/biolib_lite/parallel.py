@@ -233,7 +233,7 @@ class Parallel(object):
         seq_iter = seq_io.read_seq(seq_file)
         producer_queue = mp.Queue()
         read_all_seqs = False
-        for _ in xrange(self.cpus):
+        for _ in range(self.cpus):
             try:
                 seq_data = seq_iter.next()
                 producer_queue.put(seq_data)
