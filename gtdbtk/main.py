@@ -312,7 +312,7 @@ class OptionsParser():
                      options.out_dir,
                      options.prefix,
                      options.scratch_dir,
-                     options.keep_ref_red,
+                     options.recalculate_red,
                      options.debug)
 
         self.logger.info('Done.')
@@ -391,6 +391,7 @@ class OptionsParser():
             self.identify(options)
 
             options.identify_dir = options.out_dir
+            options.skip_trimming = False
             self.align(options)
 
             if options.bac120_ms:
@@ -446,6 +447,7 @@ class OptionsParser():
             options.cols_per_gene = None
             options.max_consensus = None
             options.rnd_seed = None
+            options.skip_trimming = False
             self.align(options)
 
             self.classify(options)

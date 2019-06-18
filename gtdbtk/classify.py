@@ -276,7 +276,7 @@ class Classify():
             out_dir,
             prefix,
             scratch_dir=None,
-            keep_ref_red=None,
+            recalculate_red=None,
             debugopt=False):
         try:
             """Classify genomes based on position in reference tree."""
@@ -446,12 +446,13 @@ class Classify():
                 # If Fastani can't select a taxonomy for a genome, we use RED
                 # distances
 
-                if keep_ref_red:
-                    tree_to_process = self._assign_mrca_red(
-                        classify_tree, marker_set_id)
-                else:
+                if recalculate_red:
                     tree_to_process = self._calculate_red_distances(
                         classify_tree, out_dir)
+
+                else:
+                    tree_to_process = self._assign_mrca_red(
+                        classify_tree, marker_set_id)
 
                 user_genome_ids = set(read_fasta(user_msa_file).keys())
                 # we remove ids already classified with FastANI
