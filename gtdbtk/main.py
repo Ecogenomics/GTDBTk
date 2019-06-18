@@ -22,6 +22,7 @@ import logging
 import sys
 import shutil
 
+from gtdbtk.tools import symlink_f
 from markers import Markers
 from classify import Classify
 from misc import Misc
@@ -361,10 +362,10 @@ class OptionsParser():
 
         # Symlink to the tree summary file
         if options.suffix == 'bac120':
-            os.symlink(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
+            symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
                        os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
         elif options.suffix == 'ar122':
-            os.symlink(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
+            symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
                        os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')

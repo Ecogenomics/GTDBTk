@@ -19,7 +19,6 @@ from __future__ import print_function
 
 import logging
 import multiprocessing
-import os
 import random
 import shutil
 import sys
@@ -36,12 +35,12 @@ from biolib_lite.execute import check_dependencies
 from biolib_lite.newick import parse_label
 from biolib_lite.seq_io import read_seq, read_fasta
 from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, PplacerException
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from relative_distance import RelativeDistance
-from tools import add_ncbi_prefix, splitchunks
-from gtdbtk.config.output import *
+from tools import add_ncbi_prefix, splitchunks, symlink_f
 
 sys.setrecursionlimit(15000)
 
@@ -155,11 +154,11 @@ class Classify():
 
         # Symlink to the tree summary file
         if marker_set_id == 'bac120':
-            os.symlink(PATH_BAC120_TREE_FILE.format(prefix=prefix),
-                       os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+            symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
         elif marker_set_id == 'ar122':
-            os.symlink(PATH_AR122_TREE_FILE.format(prefix=prefix),
-                       os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+            symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -650,11 +649,11 @@ class Classify():
 
                 # Symlink to the summary file from the root
                 if marker_set_id == 'bac120':
-                    os.symlink(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                    symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
                 elif marker_set_id == 'ar122':
-                    os.symlink(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
+                    symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
                 else:
                     self.logger.error('There was an error determining the marker set.')
                     raise GenomeMarkerSetUnknown
