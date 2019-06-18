@@ -61,8 +61,9 @@ class PackageChecker(object):
                     version = line.strip().split('=')[1]
 
         # List genomes in fastani folder
-        list_genomes = glob.glob(os.path.join(
-            self.pack_dir, 'fastani', 'database/*.gz'))
+        list_genomes = [os.path.basename(x) for x in glob.glob(os.path.join(
+            self.pack_dir, 'fastani', 'database/*.gz'))]
+        list_genomes = [x.replace('_genomic.fna.gz', '').replace('GCA_', 'GB_GCA_').replace('GCF_', 'RS_GCF_') for x in list_genomes]
 
         # Archaeal genome MSA is untrimmed
         ar_msa_file = glob.glob(os.path.join(
@@ -101,7 +102,7 @@ class PackageChecker(object):
         # Archaeal Pplacer MSA should have the same number of genomes as the
         # Archaeal untrimmed MSA
         ar_pplacer_msa_file = glob.glob(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'trimmed_msa_ar122.faa'))[0]
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_msa_r89.faa'))[0]
         ar_pplacer_msa = read_fasta(ar_pplacer_msa_file)
         if len(ar_pplacer_msa) != len(ar_msa):
             print 'ERROR: len(ar_pplacer_msa) != len(ar_msa)'
@@ -118,7 +119,7 @@ class PackageChecker(object):
         # Bacterial Pplacer MSA should have the same number of genomes as the
         # Bacterial untrimmed MSA
         bac_pplacer_msa_file = os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'trimmed_msa_bac120.faa')
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'bac120_msa_r89.faa')
         bac_pplacer_msa = read_fasta(bac_pplacer_msa_file)
         if len(bac_pplacer_msa) != len(bac_msa):
             print 'ERROR: len(bac_pplacer_msa) != len(bac_msa)'
@@ -136,7 +137,7 @@ class PackageChecker(object):
         # Archaeal Tree should have the same number of leaves than nomber of
         # genomes in the MSA
         arc_tree = dendropy.Tree.get_from_path(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_' + version + '.tree'),
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_' + version + '_unroot.pplacer.tree'),
             schema='newick',
             rooting='force-rooted',
             preserve_underscores=True)
@@ -146,10 +147,11 @@ class PackageChecker(object):
             print 'len(list_leaves): {}'.format(len(list_leaves))
             print 'len(ar_pplacer_msa): {}'.format(len(ar_pplacer_msa))
 
+
         # Bacterial Tree should have the same number of leaves than nomber of
         # genomes in the MSA
         bac_tree = dendropy.Tree.get_from_path(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'bac120_' + version + '.tree'),
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'bac120_' + version + '_unroot.pplacer.tree'),
             schema='newick',
             rooting='force-rooted',
             preserve_underscores=True)
@@ -192,6 +194,7 @@ class PackageChecker(object):
 
         if len(list_genomes) != len(radii_dict):
             print 'ERROR: len(list_genomes) != len(radii_dict)'
+            print 'Missing genomes {}'.format(set(list_genomes) ^ set(radii_dict.keys()))
             print 'len(list_genomes): {}'.format(len(list_genomes))
             print 'len(radii_dict): {}'.format(len(radii_dict))
 
