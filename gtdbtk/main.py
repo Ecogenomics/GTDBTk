@@ -213,9 +213,6 @@ class OptionsParser(object):
         else:
             check_dependencies(['FastTree'])
 
-        self.logger.info(
-            'Inferring tree with FastTree using %s+GAMMA.' % options.prot_model)
-
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
                                        PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix, marker=options.suffix))

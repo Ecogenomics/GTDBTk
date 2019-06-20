@@ -534,9 +534,9 @@ class Classify():
                             ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
                             if len(list_leaves) != 1:
                                 list_subrank = []
-                                for leaf in list_leaves:
+                                for leaf_subrank in list_leaves:
                                     list_subrank.append(self.gtdb_taxonomy.get(
-                                        leaf)[self.order_rank.index(parent_rank) + 1])
+                                        leaf_subrank)[self.order_rank.index(parent_rank) + 1])
                                 if len(set(list_subrank)) == 1:
                                     print(list_leaves)
                                     print(list_subrank)
