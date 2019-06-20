@@ -38,7 +38,8 @@ from biolib_lite.taxonomy import Taxonomy
 from biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import *
 
-class OptionsParser():
+
+class OptionsParser(object):
 
     def __init__(self, version):
         """Initialization."""
@@ -52,12 +53,13 @@ class OptionsParser():
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
+        pkg_ver = float(Config.VERSION_DATA.replace('r', ''))
+        min_ver = float(Config.MIN_REF_DATA_VERSION.replace('r', ''))
         self.logger.info('Using GTDB-Tk reference data version {}: {}'
                          .format(Config.VERSION_DATA, Config.GENERIC_PATH))
-        if Config.VERSION_DATA != Config.SUPPORTED_REF_DATA_VERSION:
+        if pkg_ver < min_ver:
             self.logger.warning('You are not using the reference data intended '
-                                'for this release: {}'.format(Config.SUPPORTED_REF_DATA_VERSION))
-
+                                'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
 
     def _verify_genome_id(self, genome_id):
         """Ensure genome ID will be valid in Newick tree."""
