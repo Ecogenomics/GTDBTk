@@ -2,7 +2,7 @@
 - New options to export the untrimmed reference MSA files.
 - Support for gzipped genomes (--extension .gz).
 - By default, GTDB-Tk uses precalculated RED values.
-- New option to reculalculate RED value during classify step (--recalculate_red).
+- New option to recalculate RED value during classify step (--recalculate_red).
 - Best translation table displayed in summary file.
 - New option to skip_trimming during align step.
 - New FAQ page available.
