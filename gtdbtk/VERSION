@@ -1,4 +1,4 @@
-0.2.3
+0.3.0
 - New options to export the untrimmed reference MSA files.
 - Support for gzipped genomes (--extension .gz).
 - By default, GTDB-Tk uses precalculated RED values.
