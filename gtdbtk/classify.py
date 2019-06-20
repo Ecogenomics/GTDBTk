@@ -981,6 +981,9 @@ class Classify():
                 summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('af')
                 summary_list[11] = 'ANI/Placement'
+                summary_list[14] = self.aa_percent_msa(
+                        msa_dict.get(summary_list[0]))
+                summary_list[15] = trans_table_dict.get(summary_list[0])
                 if self.species_radius.get(fastani_matching_reference) <= current_ani:
 
                     summary_list[12] = 'topological placement and ANI have incongruent species assignments'
