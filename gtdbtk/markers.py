@@ -15,31 +15,24 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
-import numpy as np
 import logging
 from collections import defaultdict
+from shutil import copy
 
-from biolib_lite.common import remove_extension
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.taxonomy import Taxonomy
-from biolib_lite.execute import check_dependencies
-
-from external.prodigal import Prodigal
-from external.tigrfam_search import TigrfamSearch
-from external.pfam_search import PfamSearch
-from external.hmm_aligner import HmmAligner
+import numpy as np
 
 import config.config as Config
+from biolib_lite.execute import check_dependencies
+from biolib_lite.seq_io import read_fasta
+from biolib_lite.taxonomy import Taxonomy
+from external.hmm_aligner import HmmAligner
+from external.pfam_search import PfamSearch
+from external.prodigal import Prodigal
+from external.tigrfam_search import TigrfamSearch
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
-
 from tools import merge_two_dicts, symlink_f
-
 from trim_msa import TrimMSA
-
-from shutil import copy
 
 
 class Markers(object):
@@ -289,8 +282,9 @@ class Markers(object):
         """Filter GTDB MSA filtered to specified taxa."""
 
         msa = read_fasta(concatenated_file)
+        msa_len = len(msa)
         self.logger.info(
-            'Read concatenated alignment for %d GTDB genomes.' % len(msa))
+            'Read concatenated alignment for %d GTDB genomes.' % msa_len)
 
         if taxa_filter is not None:
             taxa_to_keep = set(taxa_filter.split(','))
@@ -306,8 +300,11 @@ class Markers(object):
                         del msa[genome_id]
                         filtered_genomes += 1
 
-            self.logger.info(
-                'Filtered %d taxa based on assigned taxonomy.' % filtered_genomes)
+            msg = 'Filtered %.2f%% (%d/%d) taxa based on assigned taxonomy, ' \
+                  '%d taxa remain.' % (
+                      (float(filtered_genomes) / float(msa_len)) * 100.0,
+                      filtered_genomes, msa_len, msa_len - filtered_genomes)
+            self.logger.info(msg) if len(msa) > 0 else self.logger.warning(msg)
 
         return msa
 
@@ -587,18 +584,22 @@ class Markers(object):
                 # Create symlinks to the summary files
                 if marker_set_id == 'bac120':
                     symlink_f(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))))
-                    symlink_f(PATH_BAC120_USER_MSA.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_BAC120_USER_MSA.format(prefix=prefix))))
-                    symlink_f(PATH_BAC120_MSA.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_BAC120_MSA.format(prefix=prefix))))
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))))
+                    if len(trimmed_user_msa) > 0:
+                        symlink_f(PATH_BAC120_USER_MSA.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_BAC120_USER_MSA.format(prefix=prefix))))
+                    if not skip_gtdb_refs:
+                        symlink_f(PATH_BAC120_MSA.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_BAC120_MSA.format(prefix=prefix))))
                 elif marker_set_id == 'ar122':
                     symlink_f(PATH_AR122_FILTERED_GENOMES.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_AR122_FILTERED_GENOMES.format(prefix=prefix))))
-                    symlink_f(PATH_AR122_USER_MSA.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_AR122_USER_MSA.format(prefix=prefix))))
-                    symlink_f(PATH_AR122_MSA.format(prefix=prefix),
-                               os.path.join(out_dir, os.path.basename(PATH_AR122_MSA.format(prefix=prefix))))
+                              os.path.join(out_dir, os.path.basename(PATH_AR122_FILTERED_GENOMES.format(prefix=prefix))))
+                    if len(trimmed_user_msa) > 0:
+                        symlink_f(PATH_AR122_USER_MSA.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_AR122_USER_MSA.format(prefix=prefix))))
+                    if not skip_gtdb_refs:
+                        symlink_f(PATH_AR122_MSA.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_AR122_MSA.format(prefix=prefix))))
                 else:
                     self.logger.error('There was an error determining the marker set.')
                     raise GenomeMarkerSetUnknown
