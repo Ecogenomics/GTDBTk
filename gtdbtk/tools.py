@@ -26,7 +26,7 @@ def add_ncbi_prefix(refname):
 def splitchunks(d, n):
     chunksize = int(math.ceil(len(d) / float(n)))
     it = iter(d)
-    for _ in xrange(0, len(d), chunksize):
+    for _ in range(0, len(d), chunksize):
         yield {k: d[k] for k in islice(it, chunksize)}
 
 
@@ -74,3 +74,21 @@ def sha256(input_file):
             buf = afile.read(BLOCKSIZE)
 
     return hasher.hexdigest()
+
+
+def symlink_f(src, dst, force=True):
+    """Create a symbolic link pointing to src named dst.
+
+    Parameters
+    ----------
+    src : str
+        The source file.
+    dst : str
+        The destination file.
+    force : bool
+        Overwrite any file found with the same name as dst.
+
+    """
+    if force and os.path.isfile(dst):
+        os.remove(dst)
+    os.symlink(src, dst)

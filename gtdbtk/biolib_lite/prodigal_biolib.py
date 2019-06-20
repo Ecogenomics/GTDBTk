@@ -26,14 +26,14 @@ import os
 import logging
 import tempfile
 import shutil
+import subprocess
 import ntpath
 from collections import defaultdict, namedtuple
 
-from common import check_file_exists, remove_extension, make_sure_path_exists
-from seq_io import read_fasta
+from common import remove_extension, make_sure_path_exists, check_file_exists
+from seq_io import read_fasta, write_fasta
 from parallel import Parallel
 from execute import check_on_path
-
 import numpy as np
 
 
@@ -79,9 +79,14 @@ class Prodigal(object):
             os.system('cp %s %s' %
                       (os.path.abspath(genome_file), aa_gene_file))
         else:
-            tmp_dir = tempfile.mkdtemp()
 
             seqs = read_fasta(genome_file)
+
+            if len(seqs) == 0:
+                self.logger.warn('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                return None
+
+            tmp_dir = tempfile.mkdtemp()
 
             # determine number of bases
             total_bases = 0
@@ -110,6 +115,12 @@ class Prodigal(object):
                 else:
                     proc_str = 'single'  # estimate parameters from data
 
+                # If this is a gzipped genome, re-write the uncompressed genome file to disk
+                prodigal_input = genome_file
+                if genome_file.endswith('.gz'):
+                    prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
+                    write_fasta(seqs, prodigal_input)
+
                 args = '-m'
                 if self.closed_ends:
                     args += ' -c'
@@ -119,7 +130,7 @@ class Prodigal(object):
                                                                                                  translation_table,
                                                                                                  aa_gene_file_tmp,
                                                                                                  nt_gene_file_tmp,
-                                                                                                 genome_file,
+                                                                                                 prodigal_input,
                                                                                                  gff_file_tmp)
                 os.system(cmd)
 
@@ -150,7 +161,6 @@ class Prodigal(object):
 
             # clean up temporary files
             shutil.rmtree(tmp_dir)
-
         return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4], table_coding_density[11])
 
     def _consumer(self, produced_data, consumer_data):
@@ -272,6 +282,10 @@ class Prodigal(object):
         parallel = Parallel(self.cpus)
         summary_stats = parallel.run(
             self._producer, self._consumer, genome_files, progress_func)
+
+        # An error was encountered during Prodigal processing, clean up.
+        if not summary_stats:
+            shutil.rmtree(self.output_dir)
 
         return summary_stats
 

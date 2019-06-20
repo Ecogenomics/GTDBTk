@@ -17,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+
 __prog_name__ = 'trim_msa_based_on_mask.py'
 __prog_desc__ = 'Trim an MSA based on a prexisting mask. We assumed the mask has the same length as the MSA'
 
@@ -45,20 +47,21 @@ class MSATrimmer(object):
         dict_genomes = read_fasta(msa, False)
         with open(mask, 'r') as f:
             maskstr = f.readline()
-        print maskstr
-        print len(maskstr)
+        print(maskstr)
+        print(len(maskstr))
+
+        from future.utils import iteritems
 
         for k, v in dict_genomes.iteritems():
-            aligned_seq = ''.join([v[i] for i in xrange(
-                0, len(maskstr)) if maskstr[i] == '1'])
+            aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
             fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
             outfwriter.write(fasta_outstr)
         outfwriter.close()
 
 
 if __name__ == '__main__':
-    print __prog_name__ + ' v' + __version__ + ': ' + __prog_desc__
-    print '  by ' + __author__ + ' (' + __email__ + ')' + '\n'
+    print(__prog_name__ + ' v' + __version__ + ': ' + __prog_desc__)
+    print('  by ' + __author__ + ' (' + __email__ + ')' + '\n')
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -72,7 +75,7 @@ if __name__ == '__main__':
         msatrimmer = MSATrimmer()
         msatrimmer.run(args.msa, args.mask, args.output_file)
     except SystemExit:
-        print "\nControlled exit resulting from an unrecoverable error or warning."
+        print("\nControlled exit resulting from an unrecoverable error or warning.")
     except:
-        print "\nUnexpected error:", sys.exc_info()[0]
+        print("\nUnexpected error:", sys.exc_info()[0])
         raise

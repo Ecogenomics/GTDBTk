@@ -15,28 +15,32 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
-import shutil
-import logging
-import tempfile
-import random
-import multiprocessing
-import config.config as Config
-import dendropy
-import cmd
+from __future__ import print_function
 
+import logging
+import multiprocessing
+import random
+import shutil
+import sys
+import tempfile
 from collections import defaultdict
-from biolib_lite.common import remove_extension, make_sure_path_exists
-from biolib_lite.seq_io import read_seq, read_fasta
-from biolib_lite.newick import parse_label
-from biolib_lite.execute import check_dependencies
-from biolib_lite.taxonomy import Taxonomy
-from numpy import median as np_median
-from tools import add_ncbi_prefix, splitchunks
-from relative_distance import RelativeDistance
 from operator import itemgetter
-from markers import Markers
+
+import dendropy
+from numpy import median as np_median
+
+import config.config as Config
+from biolib_lite.common import remove_extension, make_sure_path_exists
+from biolib_lite.execute import check_dependencies
+from biolib_lite.newick import parse_label
+from biolib_lite.seq_io import read_seq, read_fasta
+from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.config.output import *
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, PplacerException
+from gtdbtk.external.pplacer import Pplacer
+from gtdbtk.markers import Markers
+from relative_distance import RelativeDistance
+from tools import add_ncbi_prefix, splitchunks, symlink_f
 
 sys.setrecursionlimit(15000)
 
@@ -79,7 +83,14 @@ class Classify():
         """Place genomes into reference tree using pplacer."""
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
-            t = os.path.join(out_dir, prefix + '.user_msa.fasta')
+            if marker_set_id == 'bac120':
+                t = PATH_BAC120_USER_MSA.format(prefix=prefix)
+            elif marker_set_id == 'ar122':
+                t = PATH_AR122_USER_MSA.format(prefix=prefix)
+            else:
+                self.logger.error('There was an error determining the marker set.')
+                raise GenomeMarkerSetUnknown
+
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
 
@@ -87,13 +98,12 @@ class Classify():
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
 
         # check if a scratch file is to be created
+        pplacer_mmap_file = None
         if scratch_dir:
             self.logger.info(
                 'Using a scratch file for pplacer allocations. This decreases memory usage and performance.')
             pplacer_mmap_file = ' --mmap-file {}'.format(
                 os.path.join(scratch_dir, prefix + ".pplacer.scratch"))
-        else:
-            pplacer_mmap_file = ''
 
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
@@ -113,36 +123,45 @@ class Classify():
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
 
         # create pplacer output directory
-        pplacer_out_dir = os.path.join(out_dir, 'pplacer')
+        pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
         if not os.path.exists(pplacer_out_dir):
             os.makedirs(pplacer_out_dir)
 
         # run pplacer
-        pplacer_out = os.path.join(
-            pplacer_out_dir, 'pplacer.{}.out'.format(marker_set_id))
-        pplacer_json_out = os.path.join(
-            pplacer_out_dir, 'pplacer.{}.json'.format(marker_set_id))
+        if marker_set_id == 'bac120':
+            pplacer_out = os.path.join(out_dir, PATH_BAC120_PPLACER_OUT)
+            pplacer_json_out = os.path.join(out_dir, PATH_BAC120_PPLACER_JSON)
+        elif marker_set_id == 'ar122':
+            pplacer_out = os.path.join(out_dir, PATH_AR122_PPLACER_OUT)
+            pplacer_json_out = os.path.join(out_dir, PATH_AR122_PPLACER_JSON)
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
 
-        cmd = 'pplacer -j {} -c {}{} -o {} {} > {}'.format(self.cpus,
-                                                           pplacer_ref_pkg,
-                                                           pplacer_mmap_file,
-                                                           pplacer_json_out,
-                                                           user_msa_file,
-                                                           pplacer_out)
-
-        os.system(cmd)
+        pplacer = Pplacer()
+        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out, user_msa_file, pplacer_out, pplacer_mmap_file)
 
         # extract tree
-        tree_file = os.path.join(
-            out_dir, prefix + ".{}.classify.tree".format(marker_set_id))
+        if marker_set_id == 'bac120':
+            tree_file = os.path.join(out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
+        elif marker_set_id == 'ar122':
+            tree_file = os.path.join(out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
 
-        if not os.path.exists(pplacer_json_out):
-            print "pplacer has stopped before finishing."
-            print "for more information, open {} .".format(pplacer_out)
-            sys.exit(-1)
+        pplacer.tog(pplacer_json_out, tree_file)
 
-        cmd = 'guppy tog -o {} {}'.format(tree_file, pplacer_json_out)
-        os.system(cmd)
+        # Symlink to the tree summary file
+        if marker_set_id == 'bac120':
+            symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+        elif marker_set_id == 'ar122':
+            symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
 
         return tree_file
 
@@ -184,21 +203,46 @@ class Classify():
 
         """
 
-        reddictfile = open(os.path.join(
-            out_dir, prefix + '.{}.red_dictionary.tsv'.format(marker_set_id)), 'w')
-
         marker_dict = {}
         if marker_set_id == 'bac120':
             marker_dict = Config.RED_DIST_BAC_DICT
+            out_path = os.path.join(out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
         elif marker_set_id == 'ar122':
             marker_dict = Config.RED_DIST_ARC_DICT
-        reddictfile.write('Phylum\t{}\n'.format(marker_dict.get('p__')))
-        reddictfile.write('Class\t{}\n'.format(marker_dict.get('c__')))
-        reddictfile.write('Order\t{}\n'.format(marker_dict.get('o__')))
-        reddictfile.write('Family\t{}\n'.format(marker_dict.get('f__')))
-        reddictfile.write('Genus\t{}\n'.format(marker_dict.get('g__')))
-        reddictfile.close()
+            out_path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
+
+        make_sure_path_exists(os.path.dirname(out_path))
+
+        with open(out_path, 'w') as reddictfile:
+            reddictfile.write('Phylum\t{}\n'.format(marker_dict.get('p__')))
+            reddictfile.write('Class\t{}\n'.format(marker_dict.get('c__')))
+            reddictfile.write('Order\t{}\n'.format(marker_dict.get('o__')))
+            reddictfile.write('Family\t{}\n'.format(marker_dict.get('f__')))
+            reddictfile.write('Genus\t{}\n'.format(marker_dict.get('g__')))
+
         return marker_dict
+
+    def _parse_red_dict(self, red_dist_dict):
+        results = {}
+        for k, v in red_dist_dict.iteritems():
+            if k in ['d__', 'domain']:
+                results['d__'] = v
+            elif k in ['p__', 'phylum']:
+                results['p__'] = v
+            elif k in ['c__', 'class']:
+                results['c__'] = v
+            elif k in ['o__', 'order']:
+                results['o__'] = v
+            elif k in ['f__', 'family']:
+                results['f__'] = v
+            elif k in ['g__', 'genus']:
+                results['g__'] = v
+            elif k in ['s__', 'species']:
+                results['s__'] = v
+        return results
 
     def parser_marker_summary_file(self, marker_summary_file, marker_set_id):
         results = {}
@@ -217,12 +261,21 @@ class Classify():
                     results[infos[0]] = round(multi_hits_percent, 1)
         return results
 
+    def parse_trans_table_file(self, trans_table_file):
+        results = {}
+        with open(trans_table_file, 'r') as msf:
+            for line in msf:
+                infos = line.strip().split('\t')
+                results[infos[0]] = infos[1]
+        return results
+
     def run(self,
             genomes,
             align_dir,
             out_dir,
             prefix,
             scratch_dir=None,
+            recalculate_red=None,
             debugopt=False):
         try:
             """Classify genomes based on position in reference tree."""
@@ -230,17 +283,27 @@ class Classify():
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
             for marker_set_id in ('ar122', 'bac120'):
-                user_msa_file = os.path.join(
-                    align_dir, prefix + '.{}.user_msa.fasta'.format(marker_set_id))
-                if not os.path.exists(user_msa_file):
+
+                if marker_set_id == 'ar122':
+                    marker_summary_file = os.path.join(align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
+                    user_msa_file = os.path.join(align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
+                elif marker_set_id == 'bac120':
+                    marker_summary_file = os.path.join(align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
+                    user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise GenomeMarkerSetUnknown
+
+                if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
                         # file will not exist if there are no User genomes from a
                         # given domain
                     continue
 
-                marker_summary_file = os.path.join(
-                    align_dir, prefix + "_{}_markers_summary.tsv".format(marker_set_id))
                 percent_multihit_dict = self.parser_marker_summary_file(
                     marker_summary_file, marker_set_id)
+
+                trans_table_file = os.path.join(align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
+                trans_table_dict = self.parse_trans_table_file(trans_table_file)
 
                 msa_dict = read_fasta(user_msa_file)
 
@@ -256,8 +319,15 @@ class Classify():
                                                    rooting='force-rooted',
                                                    preserve_underscores=True)
 
-                summaryfout = open(os.path.join(
-                    out_dir, prefix + '.{}.summary.tsv'.format(marker_set_id)), 'w')
+                if marker_set_id == 'bac120':
+                    path_summary = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
+                elif marker_set_id == 'ar122':
+                    path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise GenomeMarkerSetUnknown
+
+                summaryfout = open(path_summary, 'w')
                 if debugopt:
                     debugfile = open(os.path.join(
                         out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
@@ -267,7 +337,7 @@ class Classify():
 
                 summaryfout.write("user_genome\tclassification\tfastani_reference\tfastani_reference_radius\tfastani_taxonomy\tfastani_ani\tfastani_af\t" +
                                   "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\t" +
-                                  "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\tred_value\twarnings\n")
+                                  "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\ttranslation_table\tred_value\twarnings\n")
                 if debugopt:
                     debugfile.write(
                         "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
@@ -278,7 +348,7 @@ class Classify():
                 # for this node.
                 all_fastani_dict = {}
                 self.logger.info(
-                    'Calculating Average Nucleotide Identity using FastANI.')
+                    'Calculating average nucleotide identity using FastANI.')
                 fastani_verification = {}
                 number_comparison = 0
                 for userleaf in tree.leaf_node_iter():
@@ -367,21 +437,27 @@ class Classify():
                     all_fastani_dict = dict(out_q)
 
                 classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
-                    fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, bac_ar_diff, summaryfout)
+                    fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout)
 
-                self.logger.info('{0} genomes have been classify using FastANI and Pplacer.'.format(
+                self.logger.info('{0} genomes have been classify using FastANI and pplacer.'.format(
                     len(classified_user_genomes)))
 
                 # If Fastani can't select a taxonomy for a genome, we use RED
                 # distances
-                scaled_tree = self._calculate_red_distances(
-                    classify_tree, out_dir)
+
+                if recalculate_red:
+                    tree_to_process = self._calculate_red_distances(
+                        classify_tree, out_dir)
+
+                else:
+                    tree_to_process = self._assign_mrca_red(
+                        classify_tree, marker_set_id)
 
                 user_genome_ids = set(read_fasta(user_msa_file).keys())
                 # we remove ids already classified with FastANI
                 user_genome_ids = user_genome_ids.difference(
                     set(classified_user_genomes))
-                for leaf in scaled_tree.leaf_node_iter():
+                for leaf in tree_to_process.leaf_node_iter():
                     if leaf.taxon.label in user_genome_ids:
                         # In some cases , pplacer can associate 2 user genomes
                         # on the same parent node so we need to go up the tree
@@ -457,9 +533,19 @@ class Classify():
                             list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
                             ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
                             if len(list_leaves) != 1:
-                                raise Exception(
-                                    'There should be only one leaf.')
-                                sys.exit(-1)
+                                list_subrank = []
+                                for leaf_subrank in list_leaves:
+                                    list_subrank.append(self.gtdb_taxonomy.get(
+                                        leaf_subrank)[self.order_rank.index(parent_rank) + 1])
+                                if len(set(list_subrank)) == 1:
+                                    print(list_leaves)
+                                    print(list_subrank)
+                                    raise Exception(
+                                        'There should be only one leaf.')
+                                    sys.exit(-1)
+                                else:
+                                    closest_rank = parent_rank
+                                    detection = "taxonomic classification fully defined by topology"
                             list_leaf_ranks = self.gtdb_taxonomy.get(
                                 list_leaves[0])[self.order_rank.index(child_rk):-1]  # We remove the species name
                             for leaf_taxon in reversed(list_leaf_ranks):
@@ -524,7 +610,7 @@ class Classify():
 
                         del debug_info[0]
 
-                        summary_list = [None] * 17
+                        summary_list = [None] * 18
                         if leaf.taxon.label in unclassified_user_genomes:
                             summary_list = unclassified_user_genomes.get(
                                 leaf.taxon.label)
@@ -537,7 +623,9 @@ class Classify():
                         summary_list[12] = detection
                         summary_list[14] = self.aa_percent_msa(
                             msa_dict.get(summary_list[0]))
-                        summary_list[15] = current_rel_list
+                        summary_list[15] = trans_table_dict.get(
+                            summary_list[0])
+                        summary_list[16] = current_rel_list
 
                         notes = []
                         if summary_list[0] in percent_multihit_dict:
@@ -548,14 +636,29 @@ class Classify():
                                 bac_ar_diff.get(summary_list[0]).get('bac120'), bac_ar_diff.get(summary_list[0]).get('ar122')))
 
                         if len(notes) > 0:
-                            summary_list[16] = ';'.join(notes)
+                            summary_list[17] = ';'.join(notes)
                         summaryfout.write("{0}\n".format(
                             '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
                         if debugopt:
                             debugfile.write('{0}\t{1}\t{2}\t{3}\n'.format(
                                 leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+                        else:
+                            'debug false'
 
                 summaryfout.close()
+
+                # Symlink to the summary file from the root
+                if marker_set_id == 'bac120':
+                    symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                elif marker_set_id == 'ar122':
+                    symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
+                else:
+                    self.logger.error('There was an error determining the marker set.')
+                    raise GenomeMarkerSetUnknown
+
+
                 if debugopt:
                     debugfile.close()
 
@@ -563,17 +666,113 @@ class Classify():
                     out_dir, prefix, marker_set_id, user_msa_file, tree)
 
         except ValueError as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to a ValueError: %s' % error.message)
             raise
         except IOError as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to an IOError: %s' % error.message)
+            raise
+        except PplacerException:
+            self.logger.error('The classify step failed due to an error in pplacer.')
             raise
         except Exception as error:
-            print "GTDB-Tk has stopped before finishing"
-            print error
+            self.logger.error('The classify step failed to complete due to an exception.')
             raise
+
+    def _assign_mrca_red(self, input_tree, marker_set_id):
+        """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
+
+        Parameters
+        ----------
+        input_tree : pplacer tree
+        marker_set_id : bacterial or archeal id (bac120 or ar122)
+
+        Returns
+        -------
+        tree: pplacer tree with RED value added to nodes of interest
+
+        """
+
+        self.logger.info('Calculating RED values based on reference tree.')
+        dict_ref_red = {}
+        tree = dendropy.Tree.get_from_path(input_tree,
+                                           schema='newick',
+                                           rooting='force-rooted',
+                                           preserve_underscores=True)
+
+        red_file = Config.MRCA_RED_BAC120
+        if marker_set_id == 'ar122':
+            red_file = Config.MRCA_RED_AR122
+
+        reference_nodes = []
+
+        # Parse RED file and associate reference RED value to reference node in
+        # the tree
+        with open(red_file) as rf:
+            for line in rf:
+                infos = line.strip().split('\t')
+                labels = infos[0].split('|')
+                if len(labels) == 2:
+                    mrca = tree.mrca(taxon_labels=labels)
+                    dict_ref_red[mrca] = float(infos[1])
+                    reference_nodes.append(mrca)
+                elif len(labels) == 1:
+                    leaf = tree.find_node_with_taxon_label(labels[0])
+                    dict_ref_red[leaf] = float(infos[1])
+                    reference_nodes.append(leaf)
+        for nd in tree.preorder_node_iter():
+            if nd in reference_nodes:
+                nd.rel_dist = dict_ref_red.get(nd)
+
+        # For all leaf nodes that are not reference genomes
+        # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
+        # The new red value for the pplacer node =
+        # RED_parent + (RED_child -RED_parent) * ( (pplacer_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
+        reference_pplacer_node = {}
+        for nd in tree.leaf_nodes():
+            if nd not in reference_nodes:
+                nd.rel_dist = 1.0
+                pplacer_node = nd
+                pplacer_parent_node = pplacer_node.parent_node
+                while not bool(set(pplacer_node.leaf_nodes()) & set(reference_nodes)):
+                    pplacer_node = pplacer_parent_node
+                    pplacer_parent_node = pplacer_node.parent_node
+
+                child_nodes = [ref_node for ref_node in pplacer_node.child_nodes(
+                )]
+                while not bool(set(child_nodes) & set(reference_nodes)):
+                    result = []
+                    for node in child_nodes:
+                        result.extend(node.child_nodes())
+                    child_nodes = result
+                child_node = list(set(child_nodes) &
+                                  set(reference_nodes))[0]
+
+                while not pplacer_parent_node in reference_nodes:
+                    pplacer_parent_node = pplacer_parent_node.parent_node
+
+                # we go up the tree until we reach pplacer_parent_node
+                current_node = child_node.parent_node
+                edge_length = child_node.edge_length
+                on_pplacer_branch = False
+                pplacer_edge_length = 0
+
+                while current_node != pplacer_parent_node:
+                    if on_pplacer_branch or current_node == pplacer_node:
+                        on_pplacer_branch = True
+                        pplacer_edge_length += current_node.edge_length
+                    edge_length += current_node.edge_length
+                    current_node = current_node.parent_node
+
+                ratio = pplacer_edge_length / edge_length
+
+                branch_rel_dist = dict_ref_red.get(
+                    child_node) - dict_ref_red.get(pplacer_parent_node)
+
+                branch_rel_dist = dict_ref_red.get(
+                    pplacer_parent_node) + branch_rel_dist * ratio
+                pplacer_node.rel_dist = branch_rel_dist
+
+        return tree
 
     def _get_pplacer_taxonomy(self, out_dir, prefix, marker_set_id, user_msa_file, tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -591,26 +790,34 @@ class Classify():
         True
 
         """
-        pplaceout = open(os.path.join(
-            out_dir, prefix + '.{}.classification_pplacer.tsv'.format(marker_set_id)), 'w')
+
+        out_root = os.path.join(out_dir, 'classify', 'intermediate_results')
+        make_sure_path_exists(out_root)
+
+        if marker_set_id == 'bac120':
+            out_pplacer = os.path.join(out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
+        elif marker_set_id == 'ar122':
+            out_pplacer = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
 
         # We get the pplacer taxonomy for comparison
-
-        user_genome_ids = set(read_fasta(user_msa_file).keys())
-        for leaf in tree.leaf_node_iter():
-            if leaf.taxon.label in user_genome_ids:
-                taxa = []
-                cur_node = leaf
-                while cur_node.parent_node:
-                    _support, taxon, _aux_info = parse_label(cur_node.label)
-                    if taxon:
-                        for t in taxon.split(';')[::-1]:
-                            taxa.append(t.strip())
-                    cur_node = cur_node.parent_node
-                taxa_str = ';'.join(taxa[::-1])
-                pplaceout.write('{}\t{}\n'.format(
-                    leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
-        pplaceout.close()
+        with open(out_pplacer, 'w') as pplaceout:
+            user_genome_ids = set(read_fasta(user_msa_file).keys())
+            for leaf in tree.leaf_node_iter():
+                if leaf.taxon.label in user_genome_ids:
+                    taxa = []
+                    cur_node = leaf
+                    while cur_node.parent_node:
+                        _support, taxon, _aux_info = parse_label(cur_node.label)
+                        if taxon:
+                            for t in taxon.split(';')[::-1]:
+                                taxa.append(t.strip())
+                        cur_node = cur_node.parent_node
+                    taxa_str = ';'.join(taxa[::-1])
+                    pplaceout.write('{}\t{}\n'.format(
+                        leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
         return True
 
     def _formatnote(self, sorted_dict, labels):
@@ -641,7 +848,7 @@ class Classify():
         aa_perc = float(aa_len) / len(aa_string)
         return round(aa_perc * 100, 2)
 
-    def _sort_fastani_results(self, fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, bac_ar_diff, summaryfout):
+    def _sort_fastani_results(self, fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -660,7 +867,7 @@ class Classify():
         classified_user_genomes = []
         unclassified_user_genomes = {}
         for userleaf, potential_nodes in fastani_verification.iteritems():
-            summary_list = [None] * 17
+            summary_list = [None] * 18
 
             notes = []
             if userleaf.taxon.label in percent_multihit_dict:
@@ -670,7 +877,7 @@ class Classify():
                 notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(userleaf.taxon.label).get('bac120'), bac_ar_diff.get(userleaf.taxon.label).get('ar122')))
             if len(notes) > 0:
-                summary_list[16] = ';'.join(notes)
+                summary_list[17] = ';'.join(notes)
 
             if potential_nodes.get("pplacer_g"):
                 pplacer_leafnode = potential_nodes.get("pplacer_g").taxon.label
@@ -684,8 +891,6 @@ class Classify():
                         add_ncbi_prefix(pplacer_leafnode)))
 
                     summary_list[0] = userleaf.taxon.label
-                    summary_list[14] = self.aa_percent_msa(
-                        msa_dict.get(summary_list[0]))
                     summary_list[2] = fastani_matching_reference
                     summary_list[3] = str(
                         self.species_radius.get(fastani_matching_reference))
@@ -697,6 +902,9 @@ class Classify():
                     summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                         fastani_matching_reference).get('af')
                     summary_list[11] = 'ANI/Placement'
+                    summary_list[14] = self.aa_percent_msa(
+                        msa_dict.get(summary_list[0]))
+                    summary_list[15] = trans_table_dict.get(summary_list[0])
 
                     if self.species_radius.get(fastani_matching_reference) <= current_ani:
                         if pplacer_leafnode == fastani_matching_reference:
@@ -773,6 +981,9 @@ class Classify():
                 summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('af')
                 summary_list[11] = 'ANI/Placement'
+                summary_list[14] = self.aa_percent_msa(
+                        msa_dict.get(summary_list[0]))
+                summary_list[15] = trans_table_dict.get(summary_list[0])
                 if self.species_radius.get(fastani_matching_reference) <= current_ani:
 
                     summary_list[12] = 'topological placement and ANI have incongruent species assignments'
@@ -811,7 +1022,7 @@ class Classify():
                     out_q[k] = v
             return True
         except Exception as error:
-            print error
+            print(error)
             raise
 
     def _get_redtax(self, list_subnode, closest_rank):
@@ -974,47 +1185,45 @@ class Classify():
 
             # we write the two input files for fastani, the query file and
             # reference file
-            query_list_file = open(os.path.join(
-                self.tmp_output_dir, 'query_list.txt'), 'w')
-            query_list_file.write('{0}\n'.format(
-                genomes.get(user_leaf.taxon.label)))
-            query_list_file.close()
+            path_query_list = os.path.join(
+                self.tmp_output_dir, 'query_list.txt')
+            with open(path_query_list, 'w') as f:
+                f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
 
-            ref_list_file = open(os.path.join(
-                self.tmp_output_dir, 'ref_list.txt'), 'w')
-            leafnodes = list_leaf.get("potential_g")
-            for node in leafnodes:
-                leafnode = node[0]
-                shortleaf = leafnode.taxon.label
-                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
-                    shortleaf = leafnode.taxon.label[3:]
-                ref_list_file.write('{}\n'.format(os.path.join(
-                    Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
-            ref_list_file.close()
+            path_ref_list = os.path.join(self.tmp_output_dir, 'ref_list.txt')
+            with open(path_ref_list, 'w') as f:
+                leafnodes = list_leaf.get("potential_g")
+                for node in leafnodes:
+                    leafnode = node[0]
+                    shortleaf = leafnode.taxon.label
+                    if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
+                        shortleaf = leafnode.taxon.label[3:]
+                    f.write('{}\n'.format(os.path.join(
+                        Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
 
             # run fastANI
-            if not os.path.isfile(os.path.join(self.tmp_output_dir, 'query_list.txt')) or not os.path.isfile(os.path.join(self.tmp_output_dir, 'ref_list.txt')):
+            if not os.path.isfile(path_query_list) or not os.path.isfile(path_ref_list):
                 raise
 
-            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(os.path.join(self.tmp_output_dir, 'query_list.txt'),
-                                                                              os.path.join(
-                                                                                  self.tmp_output_dir, 'ref_list.txt'),
-                                                                              os.path.join(
-                                                                                  self.tmp_output_dir, 'results.tab'),
-                                                                              os.path.join(self.tmp_output_dir, 'error.log'))
+            path_results = os.path.join(self.tmp_output_dir, 'results.tab')
+            path_error = os.path.join(self.tmp_output_dir, 'error.log')
+
+            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_query_list,
+                                                                              path_ref_list,
+                                                                              path_results,
+                                                                              path_error)
             os.system(cmd)
 
-            if not os.path.isfile(os.path.join(self.tmp_output_dir, 'results.tab')):
+            if not os.path.isfile(path_results):
                 errstr = 'FastANI has stopped:\n'
-                if os.path.isfile(os.path.join(self.tmp_output_dir, 'error.log')):
-                    with open(os.path.join(self.tmp_output_dir, 'error.log')) as debug:
+                if os.path.isfile(path_error):
+                    with open(path_error) as debug:
                         for line in debug:
                             finalline = line
                         errstr += finalline
                 raise ValueError(errstr)
 
-            dict_parser_distance = self._parse_fastani_results(
-                os.path.join(self.tmp_output_dir, 'results.tab'))
+            dict_parser_distance = self._parse_fastani_results(path_results)
             shutil.rmtree(self.tmp_output_dir)
             return dict_parser_distance
 
@@ -1093,7 +1302,7 @@ class Classify():
                     valid, error_msg = Taxonomy().validate_species_name(
                         species_name, require_full=True, require_prefix=True)
                 if not valid:
-                    print '[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg)
+                    print('[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg))
                     continue
 
                 species.add(species_name)
@@ -1132,7 +1341,7 @@ class Classify():
                 elif not support and min_support > 0:
                     # no support value, so inform user if they were trying to
                     # filter on this property
-                    print '[Error] Tree does not contain support values. As such, --min_support should be set to 0.'
+                    print('[Error] Tree does not contain support values. As such, --min_support should be set to 0.')
                     continue
 
         # restrict taxa used for inferring distribution to the trusted set

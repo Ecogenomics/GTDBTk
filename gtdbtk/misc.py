@@ -21,6 +21,12 @@ import logging
 import config.config as Config
 
 from biolib_lite.seq_io import read_fasta
+from biolib_lite.common import remove_extension, make_sure_path_exists
+
+
+from shutil import copyfile
+
+from gtdbtk.exceptions import ReferenceFileMalformed
 
 
 class Misc():
@@ -43,48 +49,51 @@ class Misc():
         dict_genomes = read_fasta(untrimmed_msa, False)
 
         for k, v in dict_genomes.iteritems():
-            aligned_seq = ''.join([v[i] for i in xrange(
-                0, len(maskstr)) if maskstr[i] == '1'])
+            aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
             fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
             outfwriter.write(fasta_outstr)
         outfwriter.close()
         return True
 
+    def export_msa(self, domain, output_file):
+        file_to_export = Config.CONCAT_BAC120
+        if domain == 'arc':
+            file_to_export = Config.CONCAT_AR122
+
+        make_sure_path_exists(os.path.dirname(output_file))
+        copyfile(file_to_export, output_file)
+
     def checkfile(self, file_path, file_name):
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-            self.logger.info(
-                "Check file {} ({}): OK".format(file_name, file_path))
+            self.logger.info("Check file {} ({}): OK".format(file_name, file_path))
+            return True
         else:
-            self.logger.warning(
-                "Check file {} ({}): missing".format(file_name, file_path))
-            raise Exception("GTDB-Tk installation is incomplete.")
+            self.logger.warning("Check file {} ({}): missing".format(file_name, file_path))
+            return False
 
     def checkfolder(self, folder_path, folder_name):
         if os.path.isdir(folder_path) and len(os.listdir(folder_path)) > 0:
-            self.logger.info("Check folder {} ({}): OK".format(
-                folder_name, folder_path))
+            self.logger.info("Check folder {} ({}): OK".format(folder_name, folder_path))
+            return True
         else:
-            self.logger.warning(
-                "Check folder {} ({}): missing".format(folder_name, folder_path))
-            raise Exception("GTDB-Tk installation is incomplete.")
+            self.logger.warning("Check folder {} ({}): missing".format(folder_name, folder_path))
+            return False
 
     def check_install(self):
-        try:
-            self.checkfile(Config.TAXONOMY_FILE, 'Taxonomy')
-            self.checkfile(Config.CONCAT_BAC120, 'concat_bac120')
-            self.checkfile(Config.CONCAT_AR122, 'concat_ar122')
-            self.checkfile(os.path.join(Config.MASK_DIR,
-                                        Config.MASK_BAC120), 'mask_bac120')
-            self.checkfile(os.path.join(Config.MASK_DIR,
-                                        Config.MASK_AR122), 'mask_ar122')
-            self.checkfile(Config.TIGRFAM_HMMS, 'tirgfam_hmms')
-            pfam_test_file = os.path.join(Config.PFAM_HMM_DIR, 'Pfam-A.hmm')
-            self.checkfile(pfam_test_file, 'pfam_hmms')
+        ok = True
+        ok = ok and self.checkfile(Config.TAXONOMY_FILE, 'Taxonomy')
+        ok = ok and self.checkfile(Config.CONCAT_BAC120, 'concat_bac120')
+        ok = ok and self.checkfile(Config.CONCAT_AR122, 'concat_ar122')
+        ok = ok and self.checkfile(os.path.join(Config.MASK_DIR,  Config.MASK_BAC120), 'mask_bac120')
+        ok = ok and self.checkfile(os.path.join(Config.MASK_DIR,  Config.MASK_AR122), 'mask_ar122')
+        ok = ok and self.checkfile(Config.TIGRFAM_HMMS, 'tirgfam_hmms')
+        pfam_test_file = os.path.join(Config.PFAM_HMM_DIR, 'Pfam-A.hmm')
+        ok = ok and self.checkfile(pfam_test_file, 'pfam_hmms')
 
-            self.checkfolder(Config.FASTANI_GENOMES, 'fastani_genomes')
-            self.checkfolder(os.path.join(Config.PPLACER_DIR,
-                                          Config.PPLACER_BAC120_REF_PKG), 'pplacer_bac120')
-            self.checkfolder(os.path.join(Config.PPLACER_DIR,
-                                          Config.PPLACER_AR122_REF_PKG), 'pplacer_ar122')
-        except Exception as e:
-            raise
+        ok = ok and self.checkfolder(Config.FASTANI_GENOMES, 'fastani_genomes')
+        ok = ok and self.checkfolder(os.path.join(Config.PPLACER_DIR,  Config.PPLACER_BAC120_REF_PKG), 'pplacer_bac120')
+        ok = ok and self.checkfolder(os.path.join(Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG), 'pplacer_ar122')
+
+        if not ok:
+            self.logger.error('One or more reference files are malformed.')
+            raise ReferenceFileMalformed

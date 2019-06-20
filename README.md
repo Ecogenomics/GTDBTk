@@ -19,6 +19,7 @@ GTDB-Tk is **under active development and validation**. Please independently con
   * [Bioconda installation](#bioconda-installation)
   * [Docker installation](#docker-installation)
   * [Testing installation](#testing-installation)
+* [FAQ](docs/faq.md)
 * [Quick start](#quick-start)
 * [Classify workflow](#classify-workflow)
 * [Validating species assignments with ANI](#validating-species-assignments-with-average-nucleotide-identity)
@@ -29,29 +30,21 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Announcements
 
-**Note (April 12, 2019)**:
-- A GTDB-Tk reference data package (gtdbtk.r86_v3_data.tar.gz) is available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
-- This package contains an additional set of genomes based on GTDB R86.
+**Note (June 21, 2019)**:
+* GTDB-Tk v0.3.0 has been released (**we recommend all users update to this version**):
+  * Best translation table displayed in summary file.
+  * GTDB-Tk now supports gzipped genomes as inputs (--extension .gz).
+  * By default, GTDB-Tk uses precalculated RED values.
+  * New option to recalculate RED value during classify step (--recalculate_red).
+  * New option to export the untrimmed reference MSA files.
+  * New option to skip_trimming during align step.
+  * New option to use a custom taxonomy file when rooting a tree.
+  * New [FAQ](docs/faq.md) page available.
+  * New output structure.
+  * This version requires a new version of the GTDB-Tk data package (gtdbtk_r89_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/)
+  
+[Previous announcements](docs/announcements.md)
 
-**Note (March 03, 2019)**:
-* GTDB-Tk v0.2.1 has been released (**we recommend all users update to this version**):
-  * Species classification is now based strictly on the ANI to reference genomes
-  * The "classify" function now reports the closest reference genome in the summary file even if the ANI is <95%
-  * The summary.tsv file has 4 new columns: aa_percent, red_values, fastani_reference_radius, and warnings
-  * By default, the "align" function now performs the same MSA trimming used by the GTDB
-  * New pplacer support for writing to a scratch file (--mmap-file option)
-  * Random seed option for MSA trimming has been added to allow for reproducible results 
-  * Configuration of the data directory is now set using the environmental variable GTDBTK_DATA_PATH (see [pip installation](#pip-installation))
-  * Perl dependencies has been removed
-  * Python libraries biolib, mpld3 and jinja have been removed
-  * This version requires a new version of the GTDB-Tk data package (gtdbtk.r86_v2_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/)  
-
-**Note (Sept. 20, 2018)**:
-- GTDB-Tk v0.1.3 has been released and addresses an issue with species assignments based on the placement of genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes. Species assignments reported by ANI were not impacted.
-
-**Note (Aug. 30, 2018)**:
-- A new version of the data (release 86) is available under [this link](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
-- This new version is required to run GTDB-Tk v0.1.0+
 
 ## Hardware requirements
 - ~90Gb of memory to run
@@ -186,20 +179,23 @@ The taxonomic classification of each bacterial and archaeal genome is contained 
 Each step of the classify workflow generates a number of files that can be consulted for additional information about the processed genomes.
 
 Identify step:
-* \<prefix\>_bac120_markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome
-* \<prefix\>_ar122_markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set
-* marker_genes directory: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs
+* identify/\<prefix\>.bac120.markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome
+* identify/\<prefix\>.ar122.markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set
+* identify/\<prefix\>.translation_table_summary.tsv: The predicted [translation table](https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) used for gene calling for each genome.
+* identify/intermediate_results/marker_genes/: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs
 
 Align step:
-* \<prefix\>.user_msa.fasta: FASTA file containing MSA of the submitted genomes
-* \<prefix\>.msa.fasta: FASTA file containing MSA of submitted and reference genomes
-* \<prefix\>.filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
+* align/\<prefix\>.\[bac120/ar122\].user_msa.fasta: FASTA file containing MSA of the submitted genomes
+* align/\<prefix\>.\[bac120/ar122\].msa.fasta: FASTA file containing MSA of submitted and reference genomes
+* align/\<prefix\>.\[bac120/ar122\].filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
+* align/intermediate_results/\<prefix\>.\[bac120/ar122\].marker_info.tsv: Markers used in generation of the concatenated MSA and the order in which they were applied.
 
 Classify step:
- * \<prefix>.summary.tsv: classification of query genomes based on their placement in the reference tree, relative evolutionary divergence, and ANI to reference genomes. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to assign genomes (see below)
-* \<prefix>.classification_pplacer.tsv: classification of query genomes based only on their placement in the reference tree
-* \<prefix>.classify.tree: reference tree in Newick format containing query genomes placed with pplacer
-* \<prefix>.red_dictionary.tsv: median RED values for taxonomic ranks
+* classify/\<prefix>.\[bac120/ar122\].classify.tree: reference tree in Newick format containing query genomes placed with pplacer
+* classify/\<prefix>.\[bac120/ar122\].summary.tsv: classification of query genomes based on their placement in the reference tree, relative evolutionary divergence, and ANI to reference genomes. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to assign genomes (see below)
+* classify/intermediate_results/\<prefix>.\[bac120/ar122\].classification_pplacer.tsv: classification of query genomes based only on their placement in the reference tree
+* classify/intermediate_results/\<prefix>.\[bac120/ar122\].red_dictionary.tsv: median RED values for taxonomic ranks
+* classify/intermediate_results/pplacer/: Output information generated by pplacer. 
 
 ## Validating species assignments with average nucleotide identity
 
