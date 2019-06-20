@@ -30,7 +30,7 @@ import subprocess
 import ntpath
 from collections import defaultdict, namedtuple
 
-from common import remove_extension, make_sure_path_exists
+from common import remove_extension, make_sure_path_exists, check_file_exists
 from seq_io import read_fasta, write_fasta
 from parallel import Parallel
 from execute import check_on_path
@@ -79,6 +79,7 @@ class Prodigal(object):
             os.system('cp %s %s' %
                       (os.path.abspath(genome_file), aa_gene_file))
         else:
+
             seqs = read_fasta(genome_file)
 
             if len(seqs) == 0:
@@ -98,13 +99,14 @@ class Prodigal(object):
             else:
                 translation_tables = [4, 11]
 
-            translation_table_gffs = dict()
             for translation_table in translation_tables:
                 os.makedirs(os.path.join(tmp_dir, str(translation_table)))
                 aa_gene_file_tmp = os.path.join(tmp_dir, str(
                     translation_table), genome_id + '_genes.faa')
                 nt_gene_file_tmp = os.path.join(tmp_dir, str(
                     translation_table), genome_id + '_genes.fna')
+                gff_file_tmp = os.path.join(tmp_dir, str(
+                    translation_table), genome_id + '.gff')
 
                 # check if there is sufficient bases to calculate prodigal
                 # parameters
@@ -119,30 +121,21 @@ class Prodigal(object):
                     prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
                     write_fasta(seqs, prodigal_input)
 
-                args = ['prodigal', '-m', '-p', proc_str, '-q', '-f', 'gff', '-g', str(translation_table), '-a',
-                        aa_gene_file_tmp, '-d', nt_gene_file_tmp, '-i', prodigal_input]
+                args = '-m'
                 if self.closed_ends:
-                    args.append('-c')
+                    args += ' -c'
 
-                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                proc_out, proc_err = proc.communicate()
-                gff_stdout = proc_out.decode().encode('utf-8')
-
-                translation_table_gffs[translation_table] = gff_stdout
-
-                if proc.returncode != 0:
-                    self.logger.warn('Prodigal returned a non-zero exit code while processing: {}'.format(genome_file))
-                    return None
+                cmd = 'prodigal %s -p %s -q -f gff -g %d -a %s -d %s -i %s > %s 2> /dev/null' % (args,
+                                                                                                 proc_str,
+                                                                                                 translation_table,
+                                                                                                 aa_gene_file_tmp,
+                                                                                                 nt_gene_file_tmp,
+                                                                                                 prodigal_input,
+                                                                                                 gff_file_tmp)
+                os.system(cmd)
 
                 # determine coding density
-                prodigalParser = ProdigalGeneFeatureParser(gff_stdout)
-
-                # Skip if no genes were called.
-                if prodigalParser.n_genes_found() == 0:
-                    shutil.rmtree(tmp_dir)
-                    self.logger.warn(
-                        'No genes were called! Check the quality of your genome. Skipped: {}'.format(genome_file))
-                    return None
+                prodigalParser = ProdigalGeneFeatureParser(gff_file_tmp)
 
                 codingBases = 0
                 for seq_id, _seq in seqs.items():
@@ -163,8 +156,8 @@ class Prodigal(object):
                 best_translation_table), genome_id + '_genes.faa'), aa_gene_file)
             shutil.copyfile(os.path.join(tmp_dir, str(
                 best_translation_table), genome_id + '_genes.fna'), nt_gene_file)
-            with open(gff_file, 'w') as f:
-                f.write(translation_table_gffs[best_translation_table])
+            shutil.copyfile(os.path.join(tmp_dir, str(
+                best_translation_table), genome_id + '.gff'), gff_file)
 
             # clean up temporary files
             shutil.rmtree(tmp_dir)
@@ -300,35 +293,27 @@ class Prodigal(object):
 class ProdigalGeneFeatureParser():
     """Parses prodigal gene feature files (GFF) output."""
 
-    def __init__(self, file_contents):
+    def __init__(self, filename):
         """Initialization.
 
         Parameters
         ----------
-        file_contents : str
-            The contents of the GFF file to parse.
+        filename : str
+            GFF file to parse.
         """
+        check_file_exists(filename)
+
         self.genes = {}
         self.last_coding_base = {}
 
-        self.__parseGFF(file_contents)
+        self.__parseGFF(filename)
 
         self.coding_base_masks = {}
         for seq_id in self.genes:
             self.coding_base_masks[seq_id] = self.__build_coding_base_mask(
                 seq_id)
 
-    def n_genes_found(self):
-        """Return how many genes were found.
-
-        Parameters
-        ----------
-        :return : int
-            The number of genes found.
-        """
-        return len(self.genes)
-
-    def __parseGFF(self, file_contents):
+    def __parseGFF(self, filename):
         """Parse genes from GFF file.
 
         Parameters
@@ -337,7 +322,7 @@ class ProdigalGeneFeatureParser():
             GFF file to parse.
         """
         bGetTranslationTable = True
-        for line in file_contents.splitlines():
+        for line in open(filename):
             if bGetTranslationTable and line.startswith('# Model Data'):
                 data_model_info = line.split(':')[1].strip().split(';')
                 dict_data_model = {}
