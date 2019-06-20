@@ -234,7 +234,7 @@ if __name__ == '__main__':
     optional_align.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
     
-    mutual_genome_align = align_parser.add_argument_group('mutually exclusive required arguments')
+    mutual_genome_align = align_parser.add_argument_group('mutually exclusive optional arguments')
     mutex_align_group = mutual_genome_align.add_mutually_exclusive_group()                           
     mutex_align_group.add_argument('--custom_msa_filters', action="store_true",
                                        help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
