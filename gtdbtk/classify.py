@@ -534,9 +534,9 @@ class Classify():
                             ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
                             if len(list_leaves) != 1:
                                 list_subrank = []
-                                for leaf in list_leaves:
+                                for leaf_subrank in list_leaves:
                                     list_subrank.append(self.gtdb_taxonomy.get(
-                                        leaf)[self.order_rank.index(parent_rank) + 1])
+                                        leaf_subrank)[self.order_rank.index(parent_rank) + 1])
                                 if len(set(list_subrank)) == 1:
                                     print(list_leaves)
                                     print(list_subrank)
@@ -981,6 +981,9 @@ class Classify():
                 summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('af')
                 summary_list[11] = 'ANI/Placement'
+                summary_list[14] = self.aa_percent_msa(
+                        msa_dict.get(summary_list[0]))
+                summary_list[15] = trans_table_dict.get(summary_list[0])
                 if self.species_radius.get(fastani_matching_reference) <= current_ani:
 
                     summary_list[12] = 'topological placement and ANI have incongruent species assignments'

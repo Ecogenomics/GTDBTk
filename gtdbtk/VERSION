@@ -1,5 +1,13 @@
 0.2.3
--
+- New options to export the untrimmed reference MSA files.
+- Support for gzipped genomes (--extension .gz).
+- By default, GTDB-Tk uses precalculated RED values.
+- New option to reculalculate RED value during classify step (--recalculate_red).
+- Best translation table displayed in summary file.
+- New option to skip_trimming during align step.
+- New FAQ page available.
+- New output structure.
+- New option to use a custom taxonomy file when rooting a tree.
 0.2.2
 - Fix support for writing to a scratch file using pplacer (--mmap-file options).
 0.2.1
