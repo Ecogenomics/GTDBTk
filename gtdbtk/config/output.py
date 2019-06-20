@@ -60,7 +60,7 @@ PATH_TREE_LOG = os.path.join(DIR_INFER_INTERMEDIATE, '{prefix}.tree.log')
 PATH_MARKER_FASTTREE_LOG = os.path.join(DIR_INFER_INTERMEDIATE, '{prefix}.{marker}.fasttree.log')
 PATH_FASTTREE_LOG = os.path.join(DIR_INFER_INTERMEDIATE, '{prefix}.fasttree.log')
 
-PATH_BAC120_ROOTED_TREE = '{prefix}.bac120.rooted.tree'
-PATH_AR122_ROOTED_TREE = '{prefix}.ar122.rooted.tree'
-PATH_BAC120_UNROOTED_TREE = '{prefix}.bac120.unrooted.tree'
-PATH_AR122_UNROOTED_TREE = '{prefix}.ar122.unrooted.tree'
+PATH_BAC120_ROOTED_TREE = os.path.join(DIR_INFER, '{prefix}.bac120.rooted.tree')
+PATH_AR122_ROOTED_TREE = os.path.join(DIR_INFER, '{prefix}.ar122.rooted.tree')
+PATH_BAC120_UNROOTED_TREE = os.path.join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.unrooted.tree')
+PATH_AR122_UNROOTED_TREE = os.path.join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.unrooted.tree')

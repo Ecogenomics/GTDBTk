@@ -15,7 +15,7 @@ except KeyError:
 # There is no need of editing variable below this point
 ############################
 
-SUPPORTED_REF_DATA_VERSION = 'r86'
+SUPPORTED_REF_DATA_VERSION = 'r89'
 
 TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
 PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')

@@ -35,7 +35,7 @@ import config.config as Config
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
 
-from tools import merge_two_dicts
+from tools import merge_two_dicts, symlink_f
 
 from trim_msa import TrimMSA
 
@@ -201,11 +201,11 @@ class Markers(object):
         translation_table_file.close()
 
         # Create a symlink to store the summary files in the root.
-        os.symlink(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
+        symlink_f(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
                    os.path.join(outdir, os.path.basename(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))))
-        os.symlink(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix),
+        symlink_f(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix),
                    os.path.join(outdir, os.path.basename(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))))
-        os.symlink(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
+        symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                    os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
     def identify(self,
@@ -548,7 +548,7 @@ class Markers(object):
                                                                  user_msa,
                                                                  gtdb_msa_mask,
                                                                  min_perc_aa / 100.0)
-                    self.logger.info('Masked alignment from %d to %d AA.' % (len(user_msa.values()[0]),
+                    self.logger.info('Masked alignment from %d to %d AAs.' % (len(user_msa.values()[0]),
                                                                              len(trimmed_seqs.values()[0])))
 
                     if min_perc_aa > 0:
@@ -586,18 +586,18 @@ class Markers(object):
 
                 # Create symlinks to the summary files
                 if marker_set_id == 'bac120':
-                    os.symlink(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix),
+                    symlink_f(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix),
                                os.path.join(out_dir, os.path.basename(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))))
-                    os.symlink(PATH_BAC120_USER_MSA.format(prefix=prefix),
+                    symlink_f(PATH_BAC120_USER_MSA.format(prefix=prefix),
                                os.path.join(out_dir, os.path.basename(PATH_BAC120_USER_MSA.format(prefix=prefix))))
-                    os.symlink(PATH_BAC120_MSA.format(prefix=prefix),
+                    symlink_f(PATH_BAC120_MSA.format(prefix=prefix),
                                os.path.join(out_dir, os.path.basename(PATH_BAC120_MSA.format(prefix=prefix))))
                 elif marker_set_id == 'ar122':
-                    os.symlink(PATH_AR122_FILTERED_GENOMES.format(prefix=prefix),
+                    symlink_f(PATH_AR122_FILTERED_GENOMES.format(prefix=prefix),
                                os.path.join(out_dir, os.path.basename(PATH_AR122_FILTERED_GENOMES.format(prefix=prefix))))
-                    os.symlink(PATH_AR122_USER_MSA.format(prefix=prefix),
+                    symlink_f(PATH_AR122_USER_MSA.format(prefix=prefix),
                                os.path.join(out_dir, os.path.basename(PATH_AR122_USER_MSA.format(prefix=prefix))))
-                    os.symlink(PATH_AR122_MSA.format(prefix=prefix),
+                    symlink_f(PATH_AR122_MSA.format(prefix=prefix),
                                os.path.join(out_dir, os.path.basename(PATH_AR122_MSA.format(prefix=prefix))))
                 else:
                     self.logger.error('There was an error determining the marker set.')

@@ -37,6 +37,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
+import traceback
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
@@ -54,7 +55,6 @@ def printHelp():
     de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
                      (identify -> align -> infer -> root -> decorate) [In Development]
 
-    
   Methods:
     identify      -> Identify marker genes in genome
     align         -> Create multiple sequence alignment
@@ -64,10 +64,12 @@ def printHelp():
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
     
   Tools:
+    trim_msa      -> Trim an untrimmed MSA file based on a mask
+    export_msa    -> Export the untrimmed archaeal or bacterial MSA file
+    
+  Testing:
     test          -> Test the classify_wf pipeline with 3 archaeal genomes 
-    trim_msa      -> Trim an untrimmed MSA file based on a mask.
-    export_msa    -> Export the untrimmed archaeal or bacterial MSA file.
-    check_install -> Verify if all gtdb data files are present.
+    check_install -> Verify if all GTDB-Tk data files are present
       
   Use: gtdbtk <command> -h for command specific help
     ''' % version())
@@ -107,11 +109,11 @@ if __name__ == '__main__':
                                     
     optional_denovo_wf.add_argument('--skip_gtdb_refs',
                                     action="store_true",
-                                    help='Do not include GTDB reference genomes in multiple sequence alignment.')
+                                    help='do not include GTDB reference genomes in multiple sequence alignment')
     optional_denovo_wf.add_argument('--taxa_filter',
-                                       help=('Filter GTDB genomes to taxa (comma separated) within '
+                                       help=('filter GTDB genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
-                                            + 'or p__Proteobacteria, p__Actinobacteria).'))
+                                            + 'or p__Proteobacteria, p__Actinobacteria)'))
     optional_denovo_wf.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
     optional_denovo_wf.add_argument('--custom_msa_filters', action="store_true",
@@ -126,7 +128,7 @@ if __name__ == '__main__':
     optional_denovo_wf.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_denovo_wf.add_argument('--rnd_seed', type=int, default=None,
-                                       help='random seed to use for selecting columns.')
+                                       help='random seed to use for selecting columns')
                                                                         
     optional_denovo_wf.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
                                     help='protein substitution model for tree inference', default='WAG')
@@ -134,6 +136,9 @@ if __name__ == '__main__':
                                     help="do not compute local support values using the Shimodaira-Hasegawa test")
     optional_denovo_wf.add_argument('--no_gamma', action="store_true", 
                                     help="do not rescale branch lengths to optimize the Gamma20 likelihood")
+
+    optional_denovo_wf.add_argument('--custom_taxonomy_file',
+                                    help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
                                     
     optional_denovo_wf.add_argument('--prefix', default='gtdbtk',
                                     help='desired prefix for output files')
@@ -172,9 +177,10 @@ if __name__ == '__main__':
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
                                        help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
-    optional_classify_wf.add_argument('-r','--recalculate_red',action='store_true',help='Recalculate RED values based on the reference tree and all added user genomes.')
+    optional_classify_wf.add_argument('-r','--recalculate_red',action='store_true',
+                                        help='recalculate RED values based on the reference tree and all added user genomes')
     optional_classify_wf.add_argument('-d','--debug', action="store_true",
-                                    help='create intermediate files for debugging purposes.')
+                                    help='create intermediate files for debugging purposes')
     optional_classify_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
     
@@ -220,11 +226,11 @@ if __name__ == '__main__':
     optional_align = align_parser.add_argument_group('optional arguments')
     optional_align.add_argument('--skip_gtdb_refs',
                                     action="store_true",
-                                    help='Do not include GTDB reference genomes in multiple sequence alignment.')
+                                    help='do not include GTDB reference genomes in multiple sequence alignment')
     optional_align.add_argument('--taxa_filter',
-                                       help=('Filter GTDB genomes to taxa (comma separated) within '
+                                       help=('filter GTDB genomes to taxa (comma separated) within '
                                             + 'specific taxonomic groups (e.g., d__Bacteria '
-                                            + 'or p__Proteobacteria, p__Actinobacteria).'))
+                                            + 'or p__Proteobacteria, p__Actinobacteria)'))
     optional_align.add_argument('--min_perc_aa', type=float, default=10,
                                        help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
     
@@ -234,7 +240,7 @@ if __name__ == '__main__':
                                        help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                                 + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
     mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
-                                       help=('Skip trimming step to return the full MSAs.'))
+                                       help=('skip trimming step and return the full MSAs'))
                                                 
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
                                        help='maximum number of columns to retain per gene')
@@ -245,7 +251,7 @@ if __name__ == '__main__':
     optional_align.add_argument('--min_perc_taxa', type=float, default=50,
                                        help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_align.add_argument('--rnd_seed', type=int, default=None,
-                                       help='random seed to use for selecting columns.')
+                                       help='random seed to use for selecting columns')
                                        
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                        help='desired prefix for output files')
@@ -304,11 +310,12 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
-    optional_classify.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
-    optional_classify.add_argument('-r','--recalculate_red',action='store_true',help='Recalculate RED values based on the reference tree and all added user genomes.')
+    optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
+    optional_classify.add_argument('-r','--recalculate_red',action='store_true',
+                                    help='recalculate RED values based on the reference tree and all added user genomes')
 
     optional_classify.add_argument('-d','--debug', action="store_true",
-                                    help='create intermediate files for debugging purposes.')
+                                    help='create intermediate files for debugging purposes')
     optional_classify.add_argument('-h', '--help', action="help",
                                     help="show help message")
                                        
@@ -372,7 +379,7 @@ if __name__ == '__main__':
     mutual_trim_msa = msa_parser.add_argument_group('mutually exclusive required arguments')
     mutex_msa_group = mutual_trim_msa.add_mutually_exclusive_group(required=True)
     mutex_msa_group.add_argument('--mask_file',
-                                help="Mask file to trim the MSA") 
+                                help="mask file to use for trimming the MSA") 
     mutex_msa_group.add_argument('--reference_mask',
                                 choices=['arc', 'bac'],
                                 help="reference mask already present in GTDB-Tk")
@@ -388,7 +395,7 @@ if __name__ == '__main__':
                                                 help='Export the untrimmed archaeal or bacterial MSA file.',)
     required_export_msa = export_msa_parser.add_argument_group('required named arguments')
     required_export_msa.add_argument('--domain', required=True,choices=['arc', 'bac'],
-                                    help="Select domain to download.")
+                                    help="select domain to download")
     required_export_msa.add_argument('--output', required=True,
                                     help='output file')
     optional_export_msa = export_msa_parser.add_argument_group('optional arguments')
@@ -444,11 +451,22 @@ if __name__ == '__main__':
         else:
             gt_parser.parse_options(args)
     except SystemExit:
-        print("\nControlled exit resulting from an unrecoverable error or warning.")
+        print('\nControlled exit resulting from early termination.')
+    except KeyboardInterrupt:
+        print('\nControlled exit resulting from interrupt signal.')
+        sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
         print('[{}] {}'.format(type(e).__name__.center(19, ' '), e.message))
         print("\nControlled exit resulting from an unrecoverable error or warning.")
         sys.exit(1)
-    except Exception:
-        print("Unexpected error:", sys.exc_info()[0])
-        raise
+    except Exception as e:
+        print("\nUncontrolled exit resulting from an unexpected error.")
+        print('')
+        print('=' * 100)
+        print('EXCEPTION: %s' % type(e).__name__)
+        print('  MESSAGE: %s' % e.message)
+        print('_' * 100)
+        print('')
+        traceback.print_tb(sys.exc_info()[2])
+        print('=' * 100)
+        sys.exit(1)
