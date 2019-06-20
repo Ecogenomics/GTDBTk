@@ -19,7 +19,7 @@
 class GTDBTkException(Exception):
     """ Base exception for all GTDB-Tk exceptions thrown in this project. """
 
-    def __init__(self, message):
+    def __init__(self, message=''):
         Exception.__init__(self, message)
 
 

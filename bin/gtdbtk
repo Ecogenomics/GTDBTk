@@ -456,7 +456,8 @@ if __name__ == '__main__':
         print('\nControlled exit resulting from interrupt signal.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
-        print('[{}] {}'.format(type(e).__name__.center(19, ' '), e.message))
+        last_stack = traceback.extract_tb(sys.exc_info()[-1])[-1]
+        print('[{}] {} (line {} of {})'.format(type(e).__name__.center(19, ' '), e.message, last_stack[1], last_stack[0]))
         print("\nControlled exit resulting from an unrecoverable error or warning.")
         sys.exit(1)
     except Exception as e:
