@@ -201,13 +201,26 @@ class Markers(object):
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                    os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
-    def identify(self,
-                 genomes,
-                 out_dir,
-                 prefix,
-                 force):
-        """Identify marker genes in genomes."""
+    def identify(self, genomes, out_dir, prefix, force):
+        """Identify marker genes in genomes.
 
+        Parameters
+        ----------
+        genomes : dict
+            Genome IDs as the key, path to genome file as value.
+        out_dir : str
+            Path to the output directory.
+        prefix : str
+            Prefix to append to generated files.
+        force : bool
+            Overwrite any existing files.
+
+        Raises
+        ------
+        GTDBTkException
+            If an exception is encountered during the identify step.
+
+        """
         check_dependencies(['prodigal', 'hmmsearch'])
 
         try:
@@ -272,7 +285,7 @@ class Markers(object):
                 continue
 
             genomic_files[gid] = {'aa_gene_path': os.path.join(gid_dir, gid + self.protein_file_suffix),
-                                  'translation_table_path': os.path.join(gid_dir, 'prodigal_translation_table.tsv'),
+                                  'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
                                   'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                   'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                   }

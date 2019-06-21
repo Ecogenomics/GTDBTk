@@ -19,12 +19,13 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime
+from io import open
 
 from ..HMM.HMMResults import HMMResults
 from ..HMM.HMMResultsIO import HMMResultsIO
 from ..HMM.HMMSequence import HMMSequence
 from ..HMM.HMMUnit import HMMUnit
-from datetime import datetime
 
 
 class PfamScan(object):
@@ -409,8 +410,8 @@ class PfamScan(object):
         be an open filehandle or a filename. A fatal error is generated if a file of the
         given name already exists.
         """
-        if os.path.isfile(out):
-            sys.exit('FATAL: output file "%s" already exists' % out)
+        # if os.path.isfile(out):
+        #     sys.exit('FATAL: output file "%s" already exists' % out)
 
         try:
             with open(out, 'w') as fh:
