@@ -18,7 +18,6 @@
 import logging
 import os
 import subprocess
-from io import open
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.execute import check_dependencies
@@ -89,10 +88,10 @@ class FastTree(object):
         model_out = [prot_model,
                      ('-' if no_gamma else '+') + 'gamma',
                      ('no' if no_support else '') + 'support']
-        self.logger.info('Inferring FastTree using a maximum of {} CPUs: {}'.format(cpus, ', '.join(model_out)))
+        self.logger.info('Inferring FastTree ({}) using a maximum of {} CPUs.'.format(', '.join(model_out), cpus))
 
-        with open(output_tree, 'w', encoding='utf-8') as f_out_tree:
-            with open(fasttree_log, 'w', encoding='utf-8') as f_out_err:
+        with open(output_tree, 'w') as f_out_tree:
+            with open(fasttree_log, 'w') as f_out_err:
                 proc = subprocess.Popen(args, stdout=f_out_tree, stderr=f_out_err, env=env)
                 proc.communicate()
 

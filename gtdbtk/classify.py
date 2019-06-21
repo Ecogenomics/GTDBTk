@@ -22,7 +22,6 @@ import random
 import shutil
 import sys
 from collections import defaultdict
-from io import open
 from operator import itemgetter
 
 import dendropy

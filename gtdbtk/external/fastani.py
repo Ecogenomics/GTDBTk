@@ -19,7 +19,6 @@ import multiprocessing
 import os
 import shutil
 import tempfile
-from io import open
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists, remove_extension
@@ -103,11 +102,11 @@ class FastANI(object):
             # reference file
             path_query_list = os.path.join(
                 self.tmp_output_dir, 'query_list.txt')
-            with open(path_query_list, 'w', encoding='utf-8') as f:
+            with open(path_query_list, 'w') as f:
                 f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
 
             path_ref_list = os.path.join(self.tmp_output_dir, 'ref_list.txt')
-            with open(path_ref_list, 'w', encoding='utf-8') as f:
+            with open(path_ref_list, 'w') as f:
                 leafnodes = list_leaf.get("potential_g")
                 for node in leafnodes:
                     leafnode = node[0]
@@ -133,7 +132,7 @@ class FastANI(object):
             if not os.path.isfile(path_results):
                 errstr = 'FastANI has stopped:\n'
                 if os.path.isfile(path_error):
-                    with open(path_error, 'r', encoding='utf-8') as debug:
+                    with open(path_error, 'r') as debug:
                         for line in debug:
                             finalline = line
                         errstr += finalline
@@ -167,7 +166,7 @@ class FastANI(object):
             dict_results[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         """
         dict_results = {}
-        with open(fastout_file, 'r', encoding='utf-8') as fastfile:
+        with open(fastout_file, 'r') as fastfile:
             for line in fastfile:
                 info = line.strip().split()
                 ref_genome = os.path.basename(info[1]).replace(
