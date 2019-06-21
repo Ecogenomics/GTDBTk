@@ -37,15 +37,25 @@ from biolib_lite.common import (check_dir_exists,
 from biolib_lite.taxonomy import Taxonomy
 from biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import *
+from gtdbtk.external.fasttree import FastTree
+from gtdbtk.markers import Markers
+from gtdbtk.misc import Misc
+from gtdbtk.reroot_tree import RerootTree
 
 
 class OptionsParser(object):
 
     def __init__(self, version):
-        """Initialization."""
-        self.logger = logging.getLogger('timestamp')
-        self.version = version
+        """Initialization.
 
+        Parameters
+        ----------
+        version : str
+            The current version number (e.g. 0.2.2).
+        """
+
+        self.version = version
+        self.logger = logging.getLogger('timestamp')
         self.logger.warning(
             "Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
 
@@ -202,70 +212,59 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def infer(self, options):
-        """Infer tree from MSA."""
+        """Infer a tree from a user specified MSA.
 
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         check_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
 
-        if options.cpus > 1:
-            check_dependencies(['FastTreeMP'])
-            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
-        else:
-            check_dependencies(['FastTree'])
-
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
-                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix, marker=options.suffix))
+                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
             tree_log = os.path.join(options.out_dir,
-                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix,
+                                                                marker=options.suffix))
             fasttree_log = os.path.join(options.out_dir,
-                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
         else:
-            output_tree = os.path.join(options.out_dir, PATH_UNROOTED_TREE.format(prefix=options.prefix))
-            tree_log = os.path.join(options.out_dir, PATH_TREE_LOG.format(prefix=options.prefix))
-            fasttree_log = os.path.join(options.out_dir, PATH_FASTTREE_LOG.format(prefix=options.prefix))
+            output_tree = os.path.join(options.out_dir,
+                                       PATH_UNROOTED_TREE.format(prefix=options.prefix))
+            tree_log = os.path.join(options.out_dir,
+                                    PATH_TREE_LOG.format(prefix=options.prefix))
+            fasttree_log = os.path.join(options.out_dir,
+                                        PATH_FASTTREE_LOG.format(prefix=options.prefix))
 
-        make_sure_path_exists(os.path.dirname(output_tree))
-        make_sure_path_exists(os.path.dirname(tree_log))
-        make_sure_path_exists(os.path.dirname(fasttree_log))
-
-        if options.prot_model == 'JTT':
-            model_str = ''
-        elif options.prot_model == 'WAG':
-            model_str = ' -wag'
-        elif options.prot_model == 'LG':
-            model_str = ' -lg'
-
-        support_str = ''
-        if options.no_support:
-            support_str = ' -nosupport'
-
-        gamma_str = ' -gamma'
-        gamma_str_info = '+GAMMA'
-        if options.no_gamma:
-            gamma_str = ''
-            gamma_str_info = ''
-
-        self.logger.info(
-            'Inferring tree with FastTree using {}.'.format(options.prot_model, gamma_str_info))
-
-        cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
-                                                      model_str,
-                                                      gamma_str,
-                                                      tree_log,
-                                                      options.msa_file,
-                                                      output_tree,
-                                                      fasttree_log)
-        if options.cpus > 1:
-            cmd = 'FastTreeMP ' + cmd
-        else:
-            cmd = 'FastTree ' + cmd
-        os.system(cmd)
+        fasttree = FastTree()
+        fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
+                     options.no_support, options.no_gamma, options.msa_file,
+                     options.cpus)
 
         self.logger.info('Done.')
 
     def run_test(self, options):
-        """Run test of classify workflow."""
+        """Run test of classify workflow.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+
+        Returns
+        -------
+        bool
+            True if the test succeeds.
+
+        Raises
+        ------
+        GTDBTkTestFailure
+            If the test fails.
+        """
 
         make_sure_path_exists(options.out_dir)
 
