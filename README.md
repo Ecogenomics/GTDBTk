@@ -77,8 +77,8 @@ Please cite these tools if your use GTDB-Tk in your work.
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.r86_v2_data.tar.gz
-tar xvzf gtdbtk.r86_v2_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/gtdbtk_r89_data.tar.gz
+tar xvzf gtdbtk_r89_data.tar.gz
 ```
 
 Reference data for prior releases of GTDB-Tk are available at:
@@ -113,6 +113,8 @@ https://anaconda.org/bioconda/gtdbtk
 The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
 
 ### Docker installation
+
+(Pending update to r89)
 
 The docker file doesn't automatically download the reference data. Instead, 
 it looks for it within the docker environment under the path `/refdata`.
