@@ -97,18 +97,17 @@ class Prodigal(object):
             shutil.move(summary_stats.gff_file, gff_file)
 
             # save translation table information
-            translation_table_file = os.path.join(
-                output_dir, 'prodigal_translation_table.tsv')
-            fout = open(translation_table_file, 'w')
-            fout.write('%s\t%d\n' % ('best_translation_table',
-                                     summary_stats.best_translation_table))
-            fout.write('%s\t%.2f\n' % ('coding_density_4',
-                                       summary_stats.coding_density_4 * 100))
-            fout.write('%s\t%.2f\n' % ('coding_density_11',
-                                       summary_stats.coding_density_11 * 100))
-            fout.close()
+            with open(translation_table_file, 'w') as fout:
+                fout.write('%s\t%d\n' % ('best_translation_table',
+                                         summary_stats.best_translation_table))
+                fout.write('%s\t%.2f\n' % ('coding_density_4',
+                                           summary_stats.coding_density_4 * 100))
+                fout.write('%s\t%.2f\n' % ('coding_density_11',
+                                           summary_stats.coding_density_11 * 100))
+                fout.write('%s\t%.2f\n' % ('probability_4', summary_stats.probability_4 * 100))
+                fout.write('%s\t%.2f\n' % ('probability_11', summary_stats.probability_11 * 100))
 
-        return (aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table)
+        return aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table
 
     def _worker(self, out_dict, worker_queue, writer_queue):
         """This worker function is invoked in a process."""

@@ -7,4 +7,8 @@ In many cases the GTDB taxonomy more strictly follows the nomenclatural rules fo
 
 **Q:** GTDB-Tk crashes after reaching the job memory limit on my Job Scheduler?    
 **A:** We believe this is an issue with how Linux reports memory usage when `pplacer` is run with multiple CPUs. 
-It appears, that Linux believes the amount of memory being requested is times . As such, this can cause issues with queuing systems. It will naturally run slower, but a solution if to use a single CPU.
+It appears that Linux believes the amount of memory being requested is factored by the number of CPUs. As such, 
+this can cause issues with queuing systems. It will naturally run slower, but a solution is to use a single CPU.
+
+**Q:** How is the translation table automatically determined? <br>
+**A:** See [this page](prodigal.md#translation-table-selection)

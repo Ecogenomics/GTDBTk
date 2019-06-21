@@ -30,10 +30,10 @@ import subprocess
 import ntpath
 from collections import defaultdict, namedtuple
 
-from common import remove_extension, make_sure_path_exists, check_file_exists
-from seq_io import read_fasta, write_fasta
-from parallel import Parallel
-from execute import check_on_path
+from gtdbtk.biolib_lite.common import remove_extension, make_sure_path_exists
+from gtdbtk.biolib_lite.seq_io import read_fasta, write_fasta
+from gtdbtk.biolib_lite.parallel import Parallel
+from gtdbtk.biolib_lite.execute import check_on_path
 import numpy as np
 
 
@@ -63,7 +63,7 @@ class Prodigal(object):
 
         Parameters
         ----------
-        genome_file : queue
+        genome_file : str
             Fasta file for genome.
         """
 
@@ -75,15 +75,14 @@ class Prodigal(object):
 
         best_translation_table = -1
         table_coding_density = {4: -1, 11: -1}
+        table_prob = {4: -1, 11: -1}
         if self.called_genes:
-            os.system('cp %s %s' %
-                      (os.path.abspath(genome_file), aa_gene_file))
+            os.system('cp %s %s' % (os.path.abspath(genome_file), aa_gene_file))
         else:
-
             seqs = read_fasta(genome_file)
 
             if len(seqs) == 0:
-                self.logger.warn('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                self.logger.warning('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
                 return None
 
             tmp_dir = tempfile.mkdtemp()
@@ -99,17 +98,14 @@ class Prodigal(object):
             else:
                 translation_tables = [4, 11]
 
+            translation_table_gffs = dict()
+            tln_table_stats = dict()
             for translation_table in translation_tables:
                 os.makedirs(os.path.join(tmp_dir, str(translation_table)))
-                aa_gene_file_tmp = os.path.join(tmp_dir, str(
-                    translation_table), genome_id + '_genes.faa')
-                nt_gene_file_tmp = os.path.join(tmp_dir, str(
-                    translation_table), genome_id + '_genes.fna')
-                gff_file_tmp = os.path.join(tmp_dir, str(
-                    translation_table), genome_id + '.gff')
+                aa_gene_file_tmp = os.path.join(tmp_dir, str(translation_table), genome_id + '_genes.faa')
+                nt_gene_file_tmp = os.path.join(tmp_dir, str(translation_table), genome_id + '_genes.fna')
 
-                # check if there is sufficient bases to calculate prodigal
-                # parameters
+                # check if there are sufficient bases to calculate prodigal parameters
                 if total_bases < 100000 or self.meta:
                     proc_str = 'meta'  # use best precalculated parameters
                 else:
@@ -121,34 +117,71 @@ class Prodigal(object):
                     prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
                     write_fasta(seqs, prodigal_input)
 
-                args = '-m'
+                args = ['prodigal', '-m', '-p', proc_str, '-q', '-f', 'gff', '-g', str(translation_table), '-a',
+                        aa_gene_file_tmp, '-d', nt_gene_file_tmp, '-i', prodigal_input]
                 if self.closed_ends:
-                    args += ' -c'
+                    args.append('-c')
 
-                cmd = 'prodigal %s -p %s -q -f gff -g %d -a %s -d %s -i %s > %s 2> /dev/null' % (args,
-                                                                                                 proc_str,
-                                                                                                 translation_table,
-                                                                                                 aa_gene_file_tmp,
-                                                                                                 nt_gene_file_tmp,
-                                                                                                 prodigal_input,
-                                                                                                 gff_file_tmp)
-                os.system(cmd)
+                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                proc_out, proc_err = proc.communicate()
+                gff_stdout = proc_out.decode('utf-8')
+
+                translation_table_gffs[translation_table] = gff_stdout
+
+                if proc.returncode != 0:
+                    self.logger.warning('Prodigal returned a non-zero exit code while processing: {}'.format(genome_file))
+                    return None
 
                 # determine coding density
-                prodigalParser = ProdigalGeneFeatureParser(gff_file_tmp)
+                prodigal_parser = ProdigalGeneFeatureParser(gff_stdout)
 
-                codingBases = 0
-                for seq_id, _seq in seqs.items():
-                    codingBases += prodigalParser.coding_bases(seq_id)
+                # Skip if no genes were called.
+                if prodigal_parser.n_sequences_processed() == 0:
+                    shutil.rmtree(tmp_dir)
+                    self.logger.warning(
+                        'No genes were called! Check the quality of your genome. Skipped: {}'.format(genome_file))
+                    return None
 
-                codingDensity = float(codingBases) / total_bases
-                table_coding_density[translation_table] = codingDensity
+                # Save the statistics for this translation table
+                prodigal_stats = prodigal_parser.generate_statistics()
+                tln_table_stats[translation_table] = prodigal_stats
+                table_coding_density[translation_table] = prodigal_stats.coding_density
 
             # determine best translation table
             if not self.translation_table:
-                best_translation_table = 11
-                if (table_coding_density[4] - table_coding_density[11] > 0.05) and table_coding_density[4] > 0.7:
-                    best_translation_table = 4
+
+                # Logistic classifier coefficients
+                b0 = 12.363017423768538
+                bi = np.array(
+                    [0.01212327382066545, -0.9250857181041326, -0.10176647009345675, 0.7733711446656522,
+                     0.6355731038236031, -0.1631355971443377, -0.14713264317198863, -0.10320909026025472,
+                     0.09621494439016824, 0.4992209080695785, 1.159933669041023, -0.0507139271834123,
+                     1.2619603455217179, 0.24392226222721214, -0.08567859197118802, -0.18759562346413916,
+                     0.13136209122186523, -0.1399459561138417, 2.08086235029142, 0.6917662070950119])
+
+                # Scale x
+                scaler_mean = np.array(
+                    [0.0027036907781622732, -1.8082140490218692, -8.511942254988097e-08, 19.413811775420918,
+                     12.08719100126732, 249.89521467118365, 0.0011868456444391487, -0.0007358432829349235,
+                     0.004750880986023392, -0.04096159411654551, -0.12505492579693805, -0.03749033894554058,
+                     0.13053986993752234, -0.15914556336256136, -0.6075506034967058, 0.06704648371665446,
+                     0.04316693333324335, 0.26905236546875266, 0.010326462563249823, 333.3320678912514])
+                scaler_scale = np.array(
+                    [0.08442772272873166, 2.043313786484819, 2.917510891467501e-05, 22.577812640992242,
+                     12.246767248868036, 368.87834547339907, 0.0014166252200216657, 0.0014582164250905056,
+                     0.025127203671053467, 0.5095427815162036, 0.2813128128116135, 0.2559877920464989,
+                     1.274371529860827, 0.7314782174742842, 1.6885750374356985, 0.17019369029012987,
+                     0.15376309021975043, 0.583965556283342, 0.025076680822882474, 544.3648797867784])
+                xi = np.array(tln_table_stats[11]) - np.array(tln_table_stats[4])
+                xi -= scaler_mean
+                xi /= scaler_scale
+
+                # If xi are all 0, then P(11) = 1.
+                prob_tbl_11 = 1 / (1 + np.exp(-1 * (b0 + (bi * xi).sum())))
+                best_translation_table = 11 if prob_tbl_11 >= 0.5 else 4
+                table_prob[4] = 1.0 - prob_tbl_11
+                table_prob[11] = prob_tbl_11
+
             else:
                 best_translation_table = self.translation_table
 
@@ -156,12 +189,12 @@ class Prodigal(object):
                 best_translation_table), genome_id + '_genes.faa'), aa_gene_file)
             shutil.copyfile(os.path.join(tmp_dir, str(
                 best_translation_table), genome_id + '_genes.fna'), nt_gene_file)
-            shutil.copyfile(os.path.join(tmp_dir, str(
-                best_translation_table), genome_id + '.gff'), gff_file)
+            with open(gff_file, 'w') as f:
+                f.write(translation_table_gffs[best_translation_table])
 
             # clean up temporary files
             shutil.rmtree(tmp_dir)
-        return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4], table_coding_density[11])
+        return genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4], table_coding_density[11], table_prob[4], table_prob[11]
 
     def _consumer(self, produced_data, consumer_data):
         """Consume results from producer processes.
@@ -180,23 +213,38 @@ class Prodigal(object):
                                                     gff_file,
                                                     best_translation_table,
                                                     coding_density_4,
-                                                    coding_density_11)
+                                                    coding_density_11,
+                                                    probability_4,
+                                                    probability_11)
             Summary statistics of called genes for each genome.
         """
 
-        ConsumerData = namedtuple(
-            'ConsumerData', 'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11')
-        if consumer_data == None:
+        ConsumerData = namedtuple('ConsumerData', [
+            'aa_gene_file',
+            'nt_gene_file',
+            'gff_file',
+            'best_translation_table',
+            'coding_density_4',
+            'coding_density_11',
+            'probability_4',
+            'probability_11'
+        ])
+
+        if consumer_data is None:
             consumer_data = defaultdict(ConsumerData)
 
-        genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, coding_density_4, coding_density_11 = produced_data
+        genome_id, aa_gene_file, nt_gene_file, gff_file, \
+        best_translation_table, coding_density_4, coding_density_11, \
+        probability_4, probability_11 = produced_data
 
         consumer_data[genome_id] = ConsumerData(aa_gene_file,
                                                 nt_gene_file,
                                                 gff_file,
                                                 best_translation_table,
                                                 coding_density_4,
-                                                coding_density_11)
+                                                coding_density_11,
+                                                probability_4,
+                                                probability_11)
 
         return consumer_data
 
@@ -290,92 +338,126 @@ class Prodigal(object):
         return summary_stats
 
 
-class ProdigalGeneFeatureParser():
+class ProdigalGeneFeatureParser(object):
     """Parses prodigal gene feature files (GFF) output."""
 
-    def __init__(self, filename):
+    def __init__(self, file_contents):
         """Initialization.
 
         Parameters
         ----------
-        filename : str
-            GFF file to parse.
+        file_contents : str
+            The contents of the GFF file to parse.
         """
-        check_file_exists(filename)
+        self.sequence_data = dict()
+        self.model_data = dict()
+        self.called_genes = defaultdict(list)
+        self.__parse_gff(file_contents)
 
-        self.genes = {}
-        self.last_coding_base = {}
+        self.coding_masks = dict()
+        for seq_id in self.called_genes:
+            self.coding_masks[seq_id] = self.__build_coding_mask(seq_id)
 
-        self.__parseGFF(filename)
-
-        self.coding_base_masks = {}
-        for seq_id in self.genes:
-            self.coding_base_masks[seq_id] = self.__build_coding_base_mask(
-                seq_id)
-
-    def __parseGFF(self, filename):
-        """Parse genes from GFF file.
+    def n_sequences_processed(self):
+        """Return how many sequences were processed.
 
         Parameters
         ----------
-        filename : str
-            GFF file to parse.
+        :return : int
+            The number of sequences processed.
         """
-        bGetTranslationTable = True
-        for line in open(filename):
-            if bGetTranslationTable and line.startswith('# Model Data'):
-                data_model_info = line.split(':')[1].strip().split(';')
-                dict_data_model = {}
-                for item in data_model_info:
-                    k = item.split('=')[0]
-                    v = item.split('=')[1]
-                    dict_data_model[k] = v
+        return len(self.called_genes)
 
-                self.translationTable = int(
-                    dict_data_model.get('transl_table'))
-                bGetTranslationTable = False
+    def __build_coding_mask(self, seq_id):
+        """Construct a numpy array representing the coding mask for a sequence.
 
-            if line[0] == '#':
+        Args:
+            seq_id (str): Construct the coding mask for this sequence.
+
+        Returns:
+            np.ndarray: True if that position codes for a gene, False otherwise.
+        """
+        coding_mask = np.zeros(self.sequence_data[seq_id].seqlen, dtype=np.bool_)
+        for gene in self.called_genes[seq_id]:
+            coding_mask[gene.start - 1:gene.end] = True
+        return coding_mask
+
+    def __parse_gff(self, file_contents):
+        """Parse genes from GFF file and save them to the member variables.
+
+        Parameters
+        ----------
+        file_contents : str
+            A string containing the GFF contents.
+        """
+        def parse_sequence_data(cur_line):
+            SequenceData = namedtuple('SequenceData', 'seqnum seqlen seqhdr')
+            seqnum, seqlen, seqhdr = cur_line.split('# Sequence Data: ')[1].split(';')
+            seqnum = int(seqnum.split('=')[1])
+            seqlen = int(seqlen.split('=')[1])
+            seqhdr = seqhdr.split('=')[1].replace('"', '')
+            return SequenceData(seqnum, seqlen, seqhdr)
+
+        def parse_model_data(cur_line):
+            ModelData = namedtuple('ModelData', 'version run_type model gc_cont transl_table uses_sd')
+            version, run_type, model, gc_cont, transl_table, uses_sd = cur_line.split('# Model Data: ')[1].split(';')
+            version = version.split('=')[1]
+            run_type = run_type.split('=')[1]
+            model = model.split('=')[1].replace('"', '')
+            gc_cont = float(gc_cont.split('=')[1])
+            transl_table = int(transl_table.split('=')[1])
+            uses_sd = int(uses_sd.split('=')[1])
+            return ModelData(version, run_type, model, gc_cont, transl_table, uses_sd)
+
+        def parse_gene_data(cur_line):
+            GeneData = namedtuple('GeneData', [
+                'seqid', 'source', 'type', 'start',  'end',  'score',  'strand', 'phase',
+                'id', 'partial', 'start_type', 'rbs_motif', 'rbs_spacer', 'gc_cont', 'conf',
+                'cscore', 'sscore', 'rscore', 'uscore', 'tscore'
+            ])
+            seqid, source, gene_type, start, end, _, strand, phase, attrib = cur_line.split('\t')
+            gene_id, partial, start_type, rbs_motif, rbs_spacer, gc_cont, conf, score, cscore, sscore, rscore, uscore, tscore, _ = attrib.split(';')
+            start = int(start)
+            end = int(end)
+            gene_id = gene_id.split('=')[1]
+            partial = partial.split('=')[1]
+            start_type = start_type.split('=')[1]
+            rbs_motif = rbs_motif.split('=')[1]
+            rbs_spacer = rbs_spacer.split('=')[1]
+            gc_cont = float(gc_cont.split('=')[1])
+            conf = float(conf.split('=')[1])
+            score = float(score.split('=')[1])
+            cscore = float(cscore.split('=')[1])
+            sscore = float(sscore.split('=')[1])
+            rscore = float(rscore.split('=')[1])
+            uscore = float(uscore.split('=')[1])
+            tscore = float(tscore.split('=')[1])
+            return GeneData(seqid, source, gene_type, start, end, score, strand, phase, gene_id, partial, start_type,
+                            rbs_motif, rbs_spacer, gc_cont, conf, cscore, sscore, rscore, uscore, tscore)
+
+        cur_gene_id = None
+        for line in file_contents.splitlines():
+            if line.startswith('##') or line == '':
                 continue
 
-            line_split = line.split('\t')
-            seq_id = line_split[0]
-            if seq_id not in self.genes:
-                geneCounter = 0
-                self.genes[seq_id] = {}
-                self.last_coding_base[seq_id] = 0
+            if line.startswith('# Sequence Data:'):
+                cur_sequence_data = parse_sequence_data(line)
+                cur_gene_id = cur_sequence_data.seqhdr.split(' ')[0]
+                self.sequence_data[cur_gene_id] = cur_sequence_data
 
-            geneId = seq_id + '_' + str(geneCounter)
-            geneCounter += 1
+            elif line.startswith('# Model Data'):
+                cur_model_data = parse_model_data(line)
+                self.model_data[cur_gene_id] = cur_model_data
 
-            start = int(line_split[3])
-            end = int(line_split[4])
+            else:
+                cur_gene_data = parse_gene_data(line)
+                assert(cur_gene_id == cur_gene_data.seqid)
+                self.called_genes[cur_gene_id].append(cur_gene_data)
 
-            self.genes[seq_id][geneId] = [start, end]
-            self.last_coding_base[seq_id] = max(
-                self.last_coding_base[seq_id], end)
+    def coding_bases(self, seq_id, start=1, end=None):
+        """Calculate number of coding bases in sequence between [start, end].
 
-    def __build_coding_base_mask(self, seq_id):
-        """Build mask indicating which bases in a sequences are coding.
-
-        Parameters
-        ----------
-        seq_id : str
-            Unique id of sequence.
-        """
-
-        # safe way to calculate coding bases as it accounts
-        # for the potential of overlapping genes
-        coding_base_mask = np.zeros(self.last_coding_base[seq_id])
-        for pos in self.genes[seq_id].values():
-            coding_base_mask[pos[0]:pos[1] + 1] = 1
-
-        return coding_base_mask
-
-    def coding_bases(self, seq_id, start=0, end=None):
-        """Calculate number of coding bases in sequence between [start, end).
-
-        To process the entire sequence set start to 0, and
+        To process the entire sequence set start to 1, and
         end to None.
 
         Parameters
@@ -389,11 +471,74 @@ class ProdigalGeneFeatureParser():
         """
 
         # check if sequence has any genes
-        if seq_id not in self.genes:
+        if seq_id not in self.called_genes:
             return 0
 
         # set end to last coding base if not specified
-        if end == None:
-            end = self.last_coding_base[seq_id]
+        if end is None:
+            end = self.sequence_data[seq_id].seqlen
 
-        return np.sum(self.coding_base_masks[seq_id][start:end])
+        return self.coding_masks[seq_id][start-1:end].sum()
+
+    def generate_statistics(self):
+        """Generate statistics on the genes called.
+
+        Returns:
+            namedtuple: Containing those statistics.
+        """
+        Stats = namedtuple('Stats', [
+            'conf_50', 'conf_std', 'conf_max',
+            'cscore_50', 'cscore_std', 'cscore_max',
+            'gc_cont_50', 'gc_cont_std', 'gc_cont_max',
+            'tscore_50', 'tscore_std', 'tscore_max',
+            'rscore_50', 'rscore_std', 'rscore_max',
+            'uscore_50', 'uscore_std', 'uscore_max',
+            'coding_density', 'genes_called'
+        ])
+
+        # Determine coding density
+        coding_density_numer = 0
+        coding_density_denom = 0
+        for seq_id, mask in self.coding_masks.items():
+            coding_density_numer += mask.sum()
+            coding_density_denom += mask.shape[0]
+        coding_density = float(coding_density_numer) / coding_density_denom
+
+        # Determine gene statistics
+        genes_called = list()
+        gc_cont = list()
+        conf = list()
+        score = list()
+        cscore = list()
+        rscore = list()
+        uscore = list()
+        tscore = list()
+        for seq_id, gene_list in self.called_genes.items():
+            genes_called.append(len(gene_list))
+            for cur_gene in gene_list:
+                gc_cont.append(cur_gene.gc_cont)
+                conf.append(cur_gene.conf)
+                score.append(cur_gene.score)
+                cscore.append(cur_gene.cscore)
+                rscore.append(cur_gene.rscore)
+                uscore.append(cur_gene.uscore)
+                tscore.append(cur_gene.tscore)
+
+        get_stat = lambda feature: (np.percentile(feature, 50), np.std(feature), np.max(feature))
+        conf_50, conf_std, conf_max = get_stat(conf)
+        cscore_50, cscore_std, cscore_max = get_stat(cscore)
+        gc_cont_50, gc_cont_std, gc_cont_max = get_stat(gc_cont)
+        tscore_50, tscore_std, tscore_max = get_stat(tscore)
+        rscore_50, rscore_std, rscore_max = get_stat(rscore)
+        uscore_50, uscore_std, uscore_max = get_stat(uscore)
+        genes_called = np.sum(genes_called)
+
+        stats = Stats(conf_50, conf_std, conf_max,
+                      cscore_50, cscore_std, cscore_max,
+                      gc_cont_50, gc_cont_std, gc_cont_max,
+                      tscore_50, tscore_std, tscore_max,
+                      rscore_50, rscore_std, rscore_max,
+                      uscore_50, uscore_std, uscore_max,
+                      coding_density, genes_called)
+
+        return stats
