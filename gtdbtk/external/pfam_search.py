@@ -20,6 +20,7 @@ import multiprocessing as mp
 import os
 import sys
 from collections import defaultdict
+
 from .pypfam.Scan.PfamScan import PfamScan
 from ..tools import sha256, file_has_checksum
 
@@ -118,7 +119,7 @@ class PfamSearch(object):
 
                 # Genome has already been processed
                 if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
-                    self.logger.info('Found results from a previous run, skipping: {}'.format(genome_id))
+                    self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
 
                 # Process this genome
                 else:

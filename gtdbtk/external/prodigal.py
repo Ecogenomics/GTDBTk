@@ -86,7 +86,7 @@ class Prodigal(object):
                         best_tln_table = int(cols[1])
                         break
             if best_tln_table > 0:
-                self.logger.info('Found results from a previous run, skipping: {}'.format(genome_id))
+                self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
                 return aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_tln_table
 
         # Did not meet the conditions to skip processing this genome, call genes.
@@ -132,7 +132,7 @@ class Prodigal(object):
                                        summary_stats.coding_density_11 * 100))
             fout.close()
 
-            with open(translation_table_file + CHECKSUM_SUFFIX, 'w', encoding='utf-8') as f:
+            with open(translation_table_file + CHECKSUM_SUFFIX, 'w') as f:
                 f.write(sha256(translation_table_file))
 
         return (aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table)

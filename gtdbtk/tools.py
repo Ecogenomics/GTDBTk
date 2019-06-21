@@ -61,8 +61,7 @@ def sha256(input_file):
     Returns
     -------
     str
-        encoded SHA256 hash.
-
+        SHA256 hash.
     """
 
     BLOCKSIZE = 65536
