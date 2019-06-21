@@ -15,17 +15,12 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
 import ntpath
+import os
+import sys
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-from common import make_sure_path_exists
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 
 
 def logger_setup(log_dir, log_file, program_name, version, silent):

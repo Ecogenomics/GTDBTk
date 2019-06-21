@@ -17,7 +17,14 @@
 
 import os
 
+
 def version():
-    """Read program version from file."""
-    version_file = open(os.path.join(__path__[0], 'VERSION'))
-    return version_file.readline().strip()
+    """Read program version from file.
+
+    Returns
+    -------
+    str
+        The current version number (e.g. 0.2.2).
+    """
+    with open(os.path.join(__path__[0], 'VERSION'), 'r') as f:
+        return f.readline().strip()

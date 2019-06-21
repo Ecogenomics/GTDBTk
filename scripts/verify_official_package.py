@@ -31,7 +31,7 @@ __status__ = 'Development'
 
 import sys
 import argparse
-from biolib.seq_io import read_fasta
+from gtdbtk.biolib_lite.seq_io import read_fasta
 import glob
 import os
 import dendropy

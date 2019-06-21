@@ -20,10 +20,8 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import sys
-import logging
 import subprocess
-
+import sys
 
 """Helper functions for running external programs."""
 
@@ -155,5 +153,4 @@ def check_dependencies(programs, exit_on_fail=True):
     for program in programs:
         if not check_on_path(program, exit_on_fail):
             return False
-
     return True

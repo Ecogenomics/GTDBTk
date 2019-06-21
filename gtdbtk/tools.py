@@ -7,6 +7,7 @@ from itertools import islice
 
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 
+
 ##################################################
 ############MISC UTILITIES########################
 ##################################################
@@ -63,14 +64,13 @@ def sha256(input_file):
     str
         SHA256 hash.
     """
-
-    BLOCKSIZE = 65536
+    block_size = 65536
     hasher = hashlib.sha1()
     with open(input_file, 'rb') as afile:
-        buf = afile.read(BLOCKSIZE)
+        buf = afile.read(block_size)
         while len(buf) > 0:
             hasher.update(buf)
-            buf = afile.read(BLOCKSIZE)
+            buf = afile.read(block_size)
     return hasher.hexdigest()
 
 

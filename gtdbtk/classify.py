@@ -298,7 +298,7 @@ class Classify(object):
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
-            if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
+            if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
                     # file will not exist if there are no User genomes from a
                     # given domain
                 continue
@@ -858,7 +858,7 @@ class Classify(object):
                     pplacer_leafnode = pplacer_leafnode[3:]
                 if userleaf.taxon.label in all_fastani_dict:
                     sorted_dict = sorted(all_fastani_dict.get(
-                        userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
+                        userleaf.taxon.label).iteritems(), key=lambda t: t[1]['ani'], reverse=True)
                     fastani_matching_reference = sorted_dict[0][0]
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(pplacer_leafnode)))
@@ -937,7 +937,7 @@ class Classify(object):
 
             elif userleaf.taxon.label in all_fastani_dict:
                 sorted_dict = sorted(all_fastani_dict.get(
-                    userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
+                    userleaf.taxon.label).iteritems(), key=lambda t: t[1]['ani'], reverse=True)
                 fastani_matching_reference = sorted_dict[0][0]
                 taxa_str = ";".join(self.gtdb_taxonomy.get(
                     add_ncbi_prefix(fastani_matching_reference))[:-1])

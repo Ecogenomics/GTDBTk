@@ -2,13 +2,13 @@ from __future__ import print_function
 
 import json
 import os
-import sys
+
+from gtdbtk.exceptions import GTDBTkDataPathUndefined
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
 except KeyError:
-    print("'GTDBTK_DATA_PATH' environment variable is not defined")
-    sys.exit(1)
+    raise GTDBTkDataPathUndefined("'GTDBTK_DATA_PATH' environment variable is not defined")
 
 ############################
 # If all downloaded data is in the same folder

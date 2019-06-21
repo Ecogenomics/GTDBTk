@@ -17,19 +17,16 @@
 
 from __future__ import print_function
 
-import os
-import sys
 import multiprocessing
-import time
-import tempfile
-import subprocess
+import os
 import shutil
+import subprocess
+import tempfile
+import time
 
-from ..biolib_lite.execute import check_dependencies
-
-from ..biolib_lite.seq_io import read_fasta
-
-from ..tools import splitchunks
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.tools import splitchunks
 
 
 class HmmAligner(object):
@@ -81,17 +78,17 @@ class HmmAligner(object):
         results = {}
 
         for i in range(len(db_genome_ids)):
-            id, sequence = out_q.get()
-            results[id] = sequence
+            gid, sequence = out_q.get()
+            results[gid] = sequence
 
         return results
 
     def _worker(self, subdict_genomes, out_q, marker_set_id):
-        '''
+        """
         The worker function, invoked in a process.
         :param subdict_genomes: sub dictionary of genomes
         :param out_q: manager.Queue()
-        '''
+        """
         for db_genome_id, info in subdict_genomes.items():
             sequence = self._run_multi_align(db_genome_id,
                                              info.get("aa_gene_path"),
@@ -100,12 +97,12 @@ class HmmAligner(object):
         return True
 
     def _run_multi_align(self, db_genome_id, path, marker_set_id):
-        '''
+        """
         Returns the concatenated marker sequence for a specific genome
         :param db_genome_id: Selected genome
         :param path: Path to the genomic fasta file for the genome
         :param marker_set_id: Unique ID of marker set to use for alignment
-        '''
+        """
 
         # gather information for all marker genes
         marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
@@ -131,8 +128,7 @@ class HmmAligner(object):
                                                  marker_paths[db_marker], marker)
                                              for marker in self.rps23_markers[db_marker]})
 
-        result_aligns = {}
-        result_aligns[db_genome_id] = {}
+        result_aligns = {db_genome_id: {}}
 
         marker_dbs = {"PFAM": self.pfam_top_hit_suffix,
                       "TIGRFAM": self.tigrfam_top_hit_suffix}
@@ -210,14 +206,14 @@ class HmmAligner(object):
         return seq
 
     def _run_align(self, marker_dict, genome):
-        '''
+        """
         Run hmmalign for a set of genes for a specific genome. This is run in a temp folder.
         :param marker_dict: list of markers that need to be aligned
         :param genome: specific genome id
         Returns
         --------------
         List of tuple to be inserted in aligned_markers table
-        '''
+        """
         result_genomes_dict = {}
         hmmalign_dir = tempfile.mkdtemp()
         input_count = 0
@@ -231,13 +227,13 @@ class HmmAligner(object):
             out_fh.close()
             proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
                 "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            proc.wait()
+            stdout, stderr = proc.communicate()
 
-            for line in proc.stderr:
+            for line in stderr.splitlines():
                 print(line)
 
             result = self._get_aligned_marker(
-                marker_info.get("gene"), proc.stdout)
+                marker_info.get("gene"), stdout)
             if len(result) < 1:
                 return "TODO"
 
@@ -257,15 +253,15 @@ class HmmAligner(object):
         return int(size)
 
     def _get_aligned_marker(self, hit_name, result_file):
-        '''
+        """
         Parse the output of Hmmalign
         :param hit_name: gene name
         :param result_file: output file from Hmmalign
-        '''
+        """
         hit_seq = None
         mask_seq = None
 
-        for line in result_file:
+        for line in result_file.splitlines():
             splitline = line.split(" ", 1)
             if splitline[0] == hit_name.split(" ", 1)[0]:
                 rsplitline = line.rsplit(" ", 1)
