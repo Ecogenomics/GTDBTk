@@ -332,6 +332,7 @@ class OptionsParser(object):
                 '--out_dir', output_dir, '--cpus', str(options.cpus)]
         self.logger.info('Command: {}'.format(' '.join(args)))
         proc = subprocess.Popen(args)
+        proc.communicate()
 
         summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
 
