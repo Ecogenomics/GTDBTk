@@ -77,8 +77,8 @@ Please cite these tools if your use GTDB-Tk in your work.
 
 GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk/release_86/gtdbtk.r86_v2_data.tar.gz
-tar xvzf gtdbtk.r86_v2_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/gtdbtk_r89_data.tar.gz
+tar xvzf gtdbtk_r89_data.tar.gz
 ```
 
 Reference data for prior releases of GTDB-Tk are available at:
@@ -113,6 +113,8 @@ https://anaconda.org/bioconda/gtdbtk
 The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
 
 ### Docker installation
+
+(Pending update to r89)
 
 The docker file doesn't automatically download the reference data. Instead, 
 it looks for it within the docker environment under the path `/refdata`.
@@ -225,15 +227,15 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 
 ## De novo workflow
 
-**under active development**
+**under active development - decorate step not yet implemented**
 
-The *de novo* workflow infers a new tree containing all user supplied and GTDB-Tk reference genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a *de novo* tree is desired. This workflow consists of five steps: *identify*, *align*, *infer*, *root*, and *decorate*. The *identify* and *align* steps are the same as in the classify workflow. The *infer* step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate a *de novo* tree. This tree is then rooted using a user specified outgroup and decorated with the GTDB taxonomy. 
+The *de novo* workflow infers new bacterial and archaeal trees containing all user supplied and GTDB-Tk reference genomes. The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if a *de novo* domain-specific trees are desired. This workflow consists of five steps: *identify*, *align*, *infer*, *root*, and *decorate* (not yet implemented). The *identify* and *align* steps are the same as in the classify workflow. The *infer* step uses [FastTree](http://www.microbesonline.org/fasttree/) with the WAG+GAMMA models to calculate independent, *de novo* bacterial and archaeal trees. These trees can then be rooted using a user specified outgroup and decorated with the GTDB taxonomy. 
 
 The *de novo* workflow can be run as follows:
 ```
 > gtdbtk de_novo_wf --genome_dir <my_genomes> --<marker_set> --outgroup_taxon <outgroup> --out_dir <output_dir>
 ```
-This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. Only genomes previously identified as being bacterial (archaeal) should be included when using the bacterial (archaeal) marker set. The tree will be rooted with the <outgroup> taxon. Identical to the classify workflow, the location of genomes can also be specified using a batch file with the --batchfile flag.
+This will process all genomes in <my_genomes> using the specified marker set and place the results in <output_dir>. Only genomes previously identified as being bacterial (archaeal) should be included when using the bacterial (archaeal) marker set. The tree will be rooted with the <outgroup> taxon (typically a phylum in the domain-specific tree) as required for correct decoration of the tree. In general, we suggest the resulting tree be treated as unrooted when interpreting results. Identical to the classify workflow, the location of genomes can also be specified using a batch file with the --batchfile flag.
 
 The workflow supports several optional flags, including:
 * cpus: maximum number of CPUs to use

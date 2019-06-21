@@ -15,13 +15,14 @@
 #                                                                             #
 ###############################################################################
 
+import logging
+import multiprocessing as mp
 import os
 import sys
-import multiprocessing as mp
 from collections import defaultdict
-from .pypfam.Scan.PfamScan import PfamScan
 
-from ..tools import sha256
+from .pypfam.Scan.PfamScan import PfamScan
+from ..tools import sha256, file_has_checksum
 
 
 class PfamSearch(object):
@@ -45,6 +46,7 @@ class PfamSearch(object):
         self.pfam_top_hit_suffix = pfam_top_hit_suffix
         self.checksum_suffix = checksum_suffix
         self.output_dir = output_dir
+        self.logger = logging.getLogger('timestamp')
 
     def _topHit(self, pfam_file):
         """Determine top hits to PFAMs.
@@ -57,8 +59,8 @@ class PfamSearch(object):
 
         Parameters
         ----------
-        tigrfam_file : str
-            Name of file containing hits to TIGRFAM HMMs.
+        pfam_file : str
+            Name of file containing hits to PFAM HMMs.
         """
 
         assembly_dir, filename = os.path.split(pfam_file)
@@ -96,9 +98,8 @@ class PfamSearch(object):
 
         # calculate checksum
         checksum = sha256(output_tophit_file)
-        fout = open(output_tophit_file + self.checksum_suffix, 'w')
-        fout.write(checksum)
-        fout.close()
+        with open(output_tophit_file + self.checksum_suffix, 'w') as fout:
+            fout.write(checksum)
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
@@ -113,20 +114,29 @@ class PfamSearch(object):
                 output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
                                                                                             self.pfam_suffix))
 
-                pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
-                pfam_scan.search()
-                pfam_scan.write_results(output_hit_file, None, None, None, None)
+                output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
+                                                                                               self.pfam_top_hit_suffix))
 
-                # calculate checksum
-                checksum = sha256(output_hit_file)
-                fout = open(output_hit_file + self.checksum_suffix, 'w')
-                fout.write(checksum)
-                fout.close()
+                # Genome has already been processed
+                if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
+                    self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
 
-                # identify top hit for each gene
-                self._topHit(output_hit_file)
+                # Process this genome
+                else:
+                    pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
+                    pfam_scan.search()
+                    pfam_scan.write_results(output_hit_file, None, None, None, None)
+
+                    # calculate checksum
+                    checksum = sha256(output_hit_file)
+                    with open(output_hit_file + self.checksum_suffix, 'w') as fout:
+                        fout.write(checksum)
+
+                    # identify top hit for each gene
+                    self._topHit(output_hit_file)
 
                 queueOut.put(gene_file)
+
         except Exception as error:
             raise error
 

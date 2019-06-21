@@ -15,11 +15,12 @@
 #                                                                             #
 ###############################################################################
 
+import logging
+import multiprocessing as mp
 import os
 import sys
-import multiprocessing as mp
 
-from ..tools import sha256
+from gtdbtk.tools import sha256, file_has_checksum
 
 
 class TigrfamSearch(object):
@@ -42,6 +43,7 @@ class TigrfamSearch(object):
         self.tigrfam_top_hit_suffix = tigrfam_top_hit_suffix
         self.checksum_suffix = checksum_suffix
         self.output_dir = output_dir
+        self.logger = logging.getLogger('timestamp')
 
     def _topHit(self, tigrfam_file):
         """Determine top hits to TIGRFAMs.
@@ -62,7 +64,7 @@ class TigrfamSearch(object):
                                                                                        self.tigrfam_top_hit_suffix))
 
         tophits = {}
-        for line in open(tigrfam_file):
+        for line in open(tigrfam_file, 'r'):
             if line[0] == '#':
                 continue
 
@@ -77,18 +79,16 @@ class TigrfamSearch(object):
             else:
                 tophits[gene_id] = (hmm_id, evalue, bitscore)
 
-        fout = open(output_tophit_file, 'w')
-        fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
-        for gene_id, stats in tophits.iteritems():
-            hit_str = ','.join(map(str, stats))
-            fout.write('%s\t%s\n' % (gene_id, hit_str))
-        fout.close()
+        with open(output_tophit_file, 'w') as fout:
+            fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
+            for gene_id, stats in tophits.items():
+                hit_str = ','.join(map(str, stats))
+                fout.write('%s\t%s\n' % (gene_id, hit_str))
 
         # calculate checksum
         checksum = sha256(output_tophit_file)
-        fout = open(output_tophit_file + self.checksum_suffix, 'w')
-        fout.write(checksum)
-        fout.close()
+        with open(output_tophit_file + self.checksum_suffix, 'w') as fout:
+            fout.write(checksum)
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
@@ -102,23 +102,31 @@ class TigrfamSearch(object):
             output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
                                                                                         self.tigrfam_suffix))
 
-            hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                      '_tigrfam.out'))
-            cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
-                                                                                             output_hit_file,
-                                                                                             self.cpus_per_genome,
-                                                                                             self.tigrfam_hmms,
-                                                                                             gene_file)
-            os.system(cmd)
+            output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.tigrfam_suffix,
+                                                                                           self.tigrfam_top_hit_suffix))
 
-            # calculate checksum
-            checksum = sha256(output_hit_file)
-            fout = open(output_hit_file + self.checksum_suffix, 'w')
-            fout.write(checksum)
-            fout.close()
+            # Genome has already been processed
+            if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
+                self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
 
-            # identify top hit for each gene
-            self._topHit(output_hit_file)
+            # Process this genome
+            else:
+                hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
+                                                                                          '_tigrfam.out'))
+                cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
+                                                                                                 output_hit_file,
+                                                                                                 self.cpus_per_genome,
+                                                                                                 self.tigrfam_hmms,
+                                                                                                 gene_file)
+                os.system(cmd)
+
+                # calculate checksum
+                checksum = sha256(output_hit_file)
+                with open(output_hit_file + self.checksum_suffix, 'w') as fout:
+                    fout.write(checksum)
+
+                # identify top hit for each gene
+                self._topHit(output_hit_file)
 
             # allow results to be processed or written to file
             queueOut.put(gene_file)
