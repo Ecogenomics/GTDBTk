@@ -83,7 +83,7 @@ tar xvzf gtdbtk_r89_data.tar.gz
 
 Reference data for prior releases of GTDB-Tk are available at:
 ```
-wget https://data.ace.uq.edu.au/public/gtdbtk
+wget https://data.ace.uq.edu.au/public/gtdb/data/releases
 ```
 
 ## Installation
