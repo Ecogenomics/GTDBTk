@@ -14,6 +14,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
+
 import argparse
 import random
 import shutil
@@ -26,6 +27,8 @@ from gtdbtk.config.output import *
 from gtdbtk.main import OptionsParser
 from tests.common import *
 
+os.nice(10)
+
 
 class TestCli(unittest.TestCase):
 
@@ -37,7 +40,7 @@ class TestCli(unittest.TestCase):
         self.options = argparse.ArgumentParser()
         self.options.batchfile = None
         self.options.prefix = 'gtdbtk'
-        self.options.cpus = 1
+        self.options.cpus = 10
         self.options.extension = 'fna'
         self.options.debug = False
         self.options.force = False

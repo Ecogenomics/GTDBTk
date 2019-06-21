@@ -21,9 +21,9 @@ import os
 import shutil
 import sys
 
+from gtdbtk.biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
 from gtdbtk.config.output import TRANSLATION_TABLE_SUFFIX, CHECKSUM_SUFFIX
 from gtdbtk.exceptions import ProdigalException
-from gtdbtk.biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
 from gtdbtk.tools import sha256, file_has_checksum
 
 
@@ -152,14 +152,11 @@ class Prodigal(object):
             # Only proceed if an error didn't occur in BioLib Prodigal
             if rtn_files:
                 aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table = rtn_files
-                prodigal_infos = {}
-                prodigal_infos["aa_gene_path"] = aa_gene_file
-                prodigal_infos["nt_gene_path"] = nt_gene_file
-                prodigal_infos["gff_path"] = gff_file
-                prodigal_infos["translation_table_path"] = translation_table_file
-                prodigal_infos["best_translation_table"] = best_translation_table
-
-                out_dict[genome_id] = prodigal_infos
+                out_dict[genome_id] = {"aa_gene_path": aa_gene_file,
+                                       "nt_gene_path": nt_gene_file,
+                                       "gff_path": gff_file,
+                                       "translation_table_path": translation_table_file,
+                                       "best_translation_table": best_translation_table}
             writer_queue.put(genome_id)
 
     def _writer(self, num_items, writer_queue):

@@ -22,19 +22,19 @@ __license__ = 'GPL3'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 
-import os
 import logging
-import tempfile
-import shutil
-import subprocess
 import ntpath
+import os
+import shutil
+import tempfile
 from collections import defaultdict, namedtuple
 
-from common import remove_extension, make_sure_path_exists, check_file_exists
-from seq_io import read_fasta, write_fasta
-from parallel import Parallel
-from execute import check_on_path
 import numpy as np
+
+from gtdbtk.biolib_lite.common import remove_extension, make_sure_path_exists, assert_file_exists
+from gtdbtk.biolib_lite.execute import check_on_path
+from gtdbtk.biolib_lite.parallel import Parallel
+from gtdbtk.biolib_lite.seq_io import read_fasta, write_fasta
 
 
 class Prodigal(object):
@@ -63,7 +63,7 @@ class Prodigal(object):
 
         Parameters
         ----------
-        genome_file : queue
+        genome_file : str
             Fasta file for genome.
         """
 
@@ -290,7 +290,7 @@ class Prodigal(object):
         return summary_stats
 
 
-class ProdigalGeneFeatureParser():
+class ProdigalGeneFeatureParser(object):
     """Parses prodigal gene feature files (GFF) output."""
 
     def __init__(self, filename):
@@ -301,7 +301,7 @@ class ProdigalGeneFeatureParser():
         filename : str
             GFF file to parse.
         """
-        check_file_exists(filename)
+        assert_file_exists(filename)
 
         self.genes = {}
         self.last_coding_base = {}
