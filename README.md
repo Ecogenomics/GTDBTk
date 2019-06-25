@@ -1,6 +1,7 @@
 # GTDB-Tk
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
+[![Bioconda](https://img.shields.io/conda/vn/bioconda/gtdbtk.svg?color=green)](https://anaconda.org/bioconda/gtdbtk)
 [![Downloads](https://pepy.tech/badge/gtdbtk/month)](https://pepy.tech/project/gtdbtk)
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
@@ -17,7 +18,6 @@ GTDB-Tk is **under active development and validation**. Please independently con
 * [Installation](#installation)
   * [pip installation](#pip-installation)
   * [Bioconda installation](#bioconda-installation)
-  * [Docker installation](#docker-installation)
   * [Testing installation](#testing-installation)
 * [FAQ](docs/faq.md)
 * [Quick start](#quick-start)
@@ -107,30 +107,9 @@ echo 'alias gtdbtk="python ~/.local/bin/gtdbtk"' >> ~/.bashrc
 
 ### Bioconda installation
 
-A Bioconda recipe has been put together by [Natasha](https://github.com/npavlovikj) (thanks!). You can find the recipe at:
-https://anaconda.org/bioconda/gtdbtk
+A Bioconda recipe is available as an alternative installation source (thanks to [Natasha](https://github.com/npavlovikj) for starting it). You can find the recipe here: https://anaconda.org/bioconda/gtdbtk
 
-The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
-
-### Docker installation
-
-(Pending update to r89)
-
-The docker file doesn't automatically download the reference data. Instead, 
-it looks for it within the docker environment under the path `/refdata`.
-It is therefore required to mount the host file system in order to allow GTDB-Tk to access the reference data (and your genomic data).
-
-Running the docker container:
-```bash
-docker run --rm -v LOCAL_GENOME_PATH:/data -v LOCAL_REF_PATH:/refdata aaronmussig/gtdbtk gtdbtk
-```
-
-For example:
-```bash
-docker run --rm -v /local/genome:/data -v /local/release86:/refdata aaronmussig/gtdbtk gtdbtk classify_wf --genome_dir /data/genomes --out_dir /data/output
-```
-
-Visit [DockerHub](https://cloud.docker.com/repository/docker/aaronmussig/gtdbtk/) if you would like to build from the Dockerfile.
+The GTDB-Tk reference data is not available as a part of the recipe, but it can be automatically downloaded to the conda package by executing the command: `download-db.sh`
 
 
 ### Testing installation
