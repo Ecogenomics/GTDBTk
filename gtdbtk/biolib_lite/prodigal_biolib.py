@@ -124,7 +124,7 @@ class Prodigal(object):
 
                 proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 proc_out, proc_err = proc.communicate()
-                gff_stdout = proc_out.decode('utf-8')
+                gff_stdout = proc_out
 
                 translation_table_gffs[translation_table] = gff_stdout
 
@@ -437,7 +437,7 @@ class ProdigalGeneFeatureParser(object):
 
         cur_gene_id = None
         for line in file_contents.splitlines():
-            if line.startswith('##') or line == '':
+            if line.startswith('##') or line == '' or line == '"':
                 continue
 
             if line.startswith('# Sequence Data:'):

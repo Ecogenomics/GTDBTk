@@ -97,6 +97,7 @@ class Prodigal(object):
             shutil.move(summary_stats.gff_file, gff_file)
 
             # save translation table information
+            translation_table_file = os.path.join(output_dir, 'prodigal_translation_table.tsv')
             with open(translation_table_file, 'w') as fout:
                 fout.write('%s\t%d\n' % ('best_translation_table',
                                          summary_stats.best_translation_table))
