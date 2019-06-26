@@ -22,14 +22,13 @@ __license__ = 'GPL3'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 
-import sys
 import logging
 import re
 from collections import defaultdict
 
-from common import is_float
-
 import dendropy
+
+from gtdbtk.biolib_lite.common import is_float
 
 """
 To do:
@@ -806,17 +805,18 @@ class Taxonomy(object):
 
         try:
             d = {}
-            for row, line in enumerate(open(taxonomy_file)):
-                line_split = line.split('\t')
-                unique_id = line_split[0]
+            with open(taxonomy_file, 'r') as f:
+                for row, line in enumerate(f.readlines()):
+                    line_split = line.split('\t')
+                    unique_id = line_split[0]
 
-                tax_str = line_split[1].rstrip()
-                if tax_str[-1] == ';':
-                    # remove trailing semicolons which sometimes
-                    # appear in Greengenes-style taxonomy files
-                    tax_str = tax_str[0:-1]
+                    tax_str = line_split[1].rstrip()
+                    if tax_str[-1] == ';':
+                        # remove trailing semicolons which sometimes
+                        # appear in Greengenes-style taxonomy files
+                        tax_str = tax_str[0:-1]
 
-                d[unique_id] = [x.strip() for x in tax_str.split(';')]
+                    d[unique_id] = [x.strip() for x in tax_str.split(';')]
         except:
             self.logger.error(
                 'Failed to parse taxonomy file on line %d' % (row + 1))
@@ -835,10 +835,9 @@ class Taxonomy(object):
             Name of output file.
         """
 
-        fout = open(output_file, 'w')
-        for genome_id, taxa in taxonomy.iteritems():
-            fout.write(genome_id + '\t' + ';'.join(taxa) + '\n')
-        fout.close()
+        with open(output_file, 'w') as fout:
+            for genome_id, taxa in taxonomy.iteritems():
+                fout.write(genome_id + '\t' + ';'.join(taxa) + '\n')
 
     def sort_taxa(self, taxa, reverse=False):
         """Sort taxa by rank and then alphabetically.

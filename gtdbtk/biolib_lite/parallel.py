@@ -29,7 +29,7 @@ import logging
 import traceback
 import multiprocessing as mp
 
-import seq_io as seq_io
+import gtdbtk.biolib_lite.seq_io as seq_io
 
 
 class Parallel(object):
@@ -103,7 +103,7 @@ class Parallel(object):
         """
         while True:
             dataItem = producer_queue.get(block=True, timeout=None)
-            if dataItem == None:
+            if dataItem is None:
                 break
 
             rtn = producer_callback(dataItem)
@@ -148,7 +148,7 @@ class Parallel(object):
         ----------
         producer : function
             Function to process data items.
-        consumer : queue
+        consumer : function
             Function to consumed processed data items.
         data_items : list
             Data items to process.
@@ -186,7 +186,7 @@ class Parallel(object):
                     sys.stdout.flush()
 
                 produced_data = consumer_queue.get(block=True, timeout=None)
-                if produced_data == None:
+                if produced_data is None:
                     break
 
                 if consumer:
@@ -261,7 +261,7 @@ class Parallel(object):
                     sys.stdout.flush()
 
                 produced_data = consumer_queue.get(block=True, timeout=None)
-                if produced_data == None:
+                if produced_data is None:
                     break
 
                 if not read_all_seqs:

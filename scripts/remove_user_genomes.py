@@ -20,7 +20,7 @@
 from __future__ import print_function
 
 __prog_name__ = 'remove_user_genomes.py'
-__prog_desc__ = ('Remove user genomes from the GTDB Taxonomy file')
+__prog_desc__ = 'Remove user genomes from the GTDB Taxonomy file'
 
 __author__ = 'Pierre Chaumeil'
 __copyright__ = 'Copyright 2016'
@@ -31,7 +31,7 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@qfab.org'
 __status__ = 'Development'
 
-import os
+import sys
 import argparse
 
 
@@ -41,12 +41,11 @@ class removeUserGenomes(object):
         pass
 
     def removeGenomes(self, inf, outf):
-        output_file = open(outf, 'w')
-        with open(inf, 'r') as input_file:
-            for line in input_file:
-                if not line.startswith("U_"):
-                    output_file.write(line)
-        output_file.close()
+        with open(outf, 'w') as output_file:
+            with open(inf, 'r') as input_file:
+                for line in input_file:
+                    if not line.startswith("U_"):
+                        output_file.write(line)
 
 
 if __name__ == "__main__":

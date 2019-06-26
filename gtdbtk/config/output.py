@@ -8,6 +8,7 @@ PATH_BAC120_MARKER_SUMMARY = os.path.join(DIR_IDENTIFY, '{prefix}.bac120.markers
 PATH_AR122_MARKER_SUMMARY = os.path.join(DIR_IDENTIFY, '{prefix}.ar122.markers_summary.tsv')
 PATH_TLN_TABLE_SUMMARY = os.path.join(DIR_IDENTIFY, '{prefix}.translation_table_summary.tsv')
 
+# Command: identify -> marker genes
 GENOME_FILE_SUFFIX = "_genomic.fna"
 PROTEIN_FILE_SUFFIX = "_protein.faa"
 NT_GENE_FILE_SUFFIX = "_protein.fna"

@@ -21,18 +21,18 @@ from shutil import copy
 
 import numpy as np
 
-import config.config as Config
-from biolib_lite.execute import check_dependencies
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.taxonomy import Taxonomy
-from external.hmm_aligner import HmmAligner
-from external.pfam_search import PfamSearch
-from external.prodigal import Prodigal
-from external.tigrfam_search import TigrfamSearch
+import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
-from tools import merge_two_dicts, symlink_f
-from trim_msa import TrimMSA
+from gtdbtk.external.hmm_aligner import HmmAligner
+from gtdbtk.external.pfam_search import PfamSearch
+from gtdbtk.external.prodigal import Prodigal
+from gtdbtk.external.tigrfam_search import TigrfamSearch
+from gtdbtk.tools import merge_two_dicts, symlink_f
+from gtdbtk.trim_msa import TrimMSA
 
 
 class Markers(object):
@@ -201,64 +201,69 @@ class Markers(object):
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                    os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
-    def identify(self,
-                 genomes,
-                 out_dir,
-                 prefix,
-                 force):
-        """Identify marker genes in genomes."""
+    def identify(self, genomes, out_dir, prefix, force):
+        """Identify marker genes in genomes.
 
+        Parameters
+        ----------
+        genomes : dict
+            Genome IDs as the key, path to genome file as value.
+        out_dir : str
+            Path to the output directory.
+        prefix : str
+            Prefix to append to generated files.
+        force : bool
+            Overwrite any existing files.
+
+        Raises
+        ------
+        GTDBTkException
+            If an exception is encountered during the identify step.
+
+        """
         check_dependencies(['prodigal', 'hmmsearch'])
 
-        try:
-            self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes),
-                                                                                     self.cpus))
+        self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes),
+                                                                                 self.cpus))
 
-            self.logger.info("Running Prodigal to identify genes.")
-            self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
-            prodigal = Prodigal(self.cpus,
-                                False,
-                                self.marker_gene_dir,
-                                self.protein_file_suffix,
-                                self.nt_gene_file_suffix,
-                                self.gff_file_suffix,
-                                force)
-            genome_dictionary = prodigal.run(genomes)
+        self.logger.info("Running Prodigal to identify genes.")
+        self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
+        prodigal = Prodigal(self.cpus,
+                            False,
+                            self.marker_gene_dir,
+                            self.protein_file_suffix,
+                            self.nt_gene_file_suffix,
+                            self.gff_file_suffix,
+                            force)
+        genome_dictionary = prodigal.run(genomes)
 
-            # annotated genes against TIGRFAM and Pfam databases
-            self.logger.info("Identifying TIGRFAM protein families.")
-            gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
-                          for db_genome_id in genome_dictionary.keys()]
+        # annotated genes against TIGRFAM and Pfam databases
+        self.logger.info("Identifying TIGRFAM protein families.")
+        gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
+                      for db_genome_id in genome_dictionary.keys()]
 
-            tigr_search = TigrfamSearch(self.cpus,
-                                        self.tigrfam_hmms,
-                                        self.protein_file_suffix,
-                                        self.tigrfam_suffix,
-                                        self.tigrfam_top_hit_suffix,
-                                        self.checksum_suffix,
-                                        self.marker_gene_dir)
-            tigr_search.run(gene_files)
+        tigr_search = TigrfamSearch(self.cpus,
+                                    self.tigrfam_hmms,
+                                    self.protein_file_suffix,
+                                    self.tigrfam_suffix,
+                                    self.tigrfam_top_hit_suffix,
+                                    self.checksum_suffix,
+                                    self.marker_gene_dir)
+        tigr_search.run(gene_files)
 
-            self.logger.info("Identifying Pfam protein families.")
-            pfam_search = PfamSearch(self.cpus,
-                                     self.pfam_hmm_dir,
-                                     self.protein_file_suffix,
-                                     self.pfam_suffix,
-                                     self.pfam_top_hit_suffix,
-                                     self.checksum_suffix,
-                                     self.marker_gene_dir)
-            pfam_search.run(gene_files)
+        self.logger.info("Identifying Pfam protein families.")
+        pfam_search = PfamSearch(self.cpus,
+                                 self.pfam_hmm_dir,
+                                 self.protein_file_suffix,
+                                 self.pfam_suffix,
+                                 self.pfam_top_hit_suffix,
+                                 self.checksum_suffix,
+                                 self.marker_gene_dir)
+        pfam_search.run(gene_files)
 
-            self._report_identified_marker_genes(
-                genome_dictionary, out_dir, self.marker_gene_dir, prefix)
+        self._report_identified_marker_genes(
+            genome_dictionary, out_dir, self.marker_gene_dir, prefix)
 
-        except IOError as e:
-            self.logger.error("There was an IO error while running the identify step: %s" % e.message)
-            raise
-
-        except Exception as e:
-            self.logger.error('There was an error while running the identify step: %s' % e.message)
-            raise
 
     def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
@@ -272,7 +277,7 @@ class Markers(object):
                 continue
 
             genomic_files[gid] = {'aa_gene_path': os.path.join(gid_dir, gid + self.protein_file_suffix),
-                                  'translation_table_path': os.path.join(gid_dir, 'prodigal_translation_table.tsv'),
+                                  'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
                                   'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                   'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                   }
@@ -313,16 +318,18 @@ class Markers(object):
 
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
 
-        mask = open(msa_mask).readline().strip()
+        with open(msa_mask, 'r') as f:
+            mask = f.readline().strip()
         list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
-
-        if len(mask) != len(aligned_genomes.values()[0]):
-            self.logger.error('Mask and alignment length do not match.')
-            raise MSAMaskLengthMismatch
 
         output_seqs = {}
         pruned_seqs = {}
         for seq_id, seq in aligned_genomes.iteritems():
+
+            if len(mask) != len(seq):
+                self.logger.error('Mask and alignment length do not match.')
+                raise MSAMaskLengthMismatch('Mask and alignment length do not match.')
+
             masked_seq = ''.join(np.array(list(seq), dtype=str)[list_mask])
 
             valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
@@ -337,15 +344,14 @@ class Markers(object):
     def _write_msa(self, seqs, output_file, gtdb_taxonomy):
         """Write sequences to FASTA file."""
 
-        fout = open(output_file, 'w')
-        for genome_id, alignment in seqs.iteritems():
-            if genome_id in gtdb_taxonomy:
-                fout.write('>%s %s\n' %
-                           (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
-            else:
-                fout.write('>%s\n' % genome_id)
-            fout.write('%s\n' % alignment)
-        fout.close()
+        with open(output_file, 'w') as fout:
+            for genome_id, alignment in seqs.iteritems():
+                if genome_id in gtdb_taxonomy:
+                    fout.write('>%s %s\n' %
+                               (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
+                else:
+                    fout.write('>%s\n' % genome_id)
+                fout.write('%s\n' % alignment)
 
     def genome_domain(self, identity_dir, prefix):
         """Determine domain of User genomes based on identified marker genes."""
@@ -388,27 +394,26 @@ class Markers(object):
         marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
                         "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmms), 'individual_hmms')}
 
-        fout = open(marker_file, 'w')
-        fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
-        for db_marker in sorted(marker_db):
-            for marker in marker_db[db_marker]:
-                marker_id = marker[0:marker.rfind('.')]
-                marker_path = os.path.join(marker_paths[db_marker], marker)
+        with open(marker_file, 'w') as fout:
+            fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
+            for db_marker in sorted(marker_db):
+                for marker in marker_db[db_marker]:
+                    marker_id = marker[0:marker.rfind('.')]
+                    marker_path = os.path.join(marker_paths[db_marker], marker)
 
-                # get marker name, description, and size
-                with open(marker_path) as fp:
-                    for line in fp:
-                        if line.startswith("NAME  "):
-                            marker_name = line.split("  ")[1].strip()
-                        elif line.startswith("DESC  "):
-                            marker_desc = line.split("  ")[1].strip()
-                        elif line.startswith("LENG  "):
-                            marker_size = line.split("  ")[1].strip()
-                            break
+                    # get marker name, description, and size
+                    with open(marker_path, 'r') as fp:
+                        for line in fp:
+                            if line.startswith("NAME  "):
+                                marker_name = line.split("  ")[1].strip()
+                            elif line.startswith("DESC  "):
+                                marker_desc = line.split("  ")[1].strip()
+                            elif line.startswith("LENG  "):
+                                marker_size = line.split("  ")[1].strip()
+                                break
 
-                fout.write('%s\t%s\t%s\t%s\n' %
-                           (marker_id, marker_name, marker_desc, marker_size))
-        fout.close()
+                    fout.write('%s\t%s\t%s\t%s\n' %
+                               (marker_id, marker_name, marker_desc, marker_size))
 
     def align(self,
               identify_dir,

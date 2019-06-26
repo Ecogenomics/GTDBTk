@@ -33,7 +33,7 @@ __status__ = 'Development'
 
 import sys
 import argparse
-from biolib.seq_io import read_fasta
+from gtdbtk.biolib_lite.seq_io import read_fasta
 
 
 class MSATrimmer(object):
@@ -43,20 +43,18 @@ class MSATrimmer(object):
 
     def run(self, msa, mask, outf):
 
-        outfwriter = open(outf, 'w')
-        dict_genomes = read_fasta(msa, False)
-        with open(mask, 'r') as f:
-            maskstr = f.readline()
-        print(maskstr)
-        print(len(maskstr))
+        with open(outf, 'w') as outfwriter:
+            dict_genomes = read_fasta(msa, False)
+            with open(mask, 'r') as f:
+                maskstr = f.readline()
+            print(maskstr)
+            print(len(maskstr))
 
-        from future.utils import iteritems
-
-        for k, v in dict_genomes.iteritems():
-            aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
-            fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
-            outfwriter.write(fasta_outstr)
-        outfwriter.close()
+            for k, v in dict_genomes.items():
+                aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
+                fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
+                outfwriter.write(fasta_outstr)
+            outfwriter.close()
 
 
 if __name__ == '__main__':

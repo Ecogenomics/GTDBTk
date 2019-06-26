@@ -17,35 +17,42 @@
 
 from __future__ import print_function
 
-import os
 import logging
-import sys
 import shutil
+import subprocess
+import sys
+from collections import OrderedDict
 
-from gtdbtk.tools import symlink_f
-from markers import Markers
-from classify import Classify
-from misc import Misc
-from reroot_tree import RerootTree
-import config.config as Config
+import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.common import (assert_dir_exists,
+                                       assert_file_exists,
+                                       make_sure_path_exists,
+                                       remove_extension)
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
+from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
-
-from biolib_lite.common import (check_dir_exists,
-                                check_file_exists,
-                                make_sure_path_exists,
-                                remove_extension)
-from biolib_lite.taxonomy import Taxonomy
-from biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import *
+from gtdbtk.external.fasttree import FastTree
+from gtdbtk.markers import Markers
+from gtdbtk.misc import Misc
+from gtdbtk.reroot_tree import RerootTree
+from gtdbtk.tools import symlink_f
 
 
 class OptionsParser(object):
 
     def __init__(self, version):
-        """Initialization."""
-        self.logger = logging.getLogger('timestamp')
-        self.version = version
+        """Initialization.
 
+        Parameters
+        ----------
+        version : str
+            The current version number (e.g. 0.2.2).
+        """
+
+        self.version = version
+        self.logger = logging.getLogger('timestamp')
         self.logger.warning(
             "Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
 
@@ -61,14 +68,30 @@ class OptionsParser(object):
             self.logger.warning('You are not using the reference data intended '
                                 'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
 
-    def _verify_genome_id(self, genome_id):
-        """Ensure genome ID will be valid in Newick tree."""
+    def _assert_genome_id_valid(self, genome_id):
+        """Ensure genome ID will be valid in Newick tree.
+
+        Parameters
+        ----------
+        genome_id : str
+            The string representing the genome identifier.
+
+        Returns
+        -------
+        bool
+            True if the genome identifier is legal.
+
+        Raises
+        ------
+        GenomeNameInvalid
+            If the genome identifier contains illegal characters.
+        """
 
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error('Invalid genome ID: %s' % genome_id)
             self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
-            raise GenomeNameInvalid
+            raise GenomeNameInvalid('Invalid genome ID: {}'.format(genome_id))
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -77,11 +100,11 @@ class OptionsParser(object):
         Parameters
         ----------
         genome_dir : str
-          Directory containing genomes.
+            Directory containing genomes.
         batchfile : str
-          File describing genomes.
+            File describing genomes.
         extension : str
-          Extension of files to process.
+            Extension of files to process.
 
         Returns
         -------
@@ -89,7 +112,7 @@ class OptionsParser(object):
             Map of genomes to their genomic FASTA files.
         """
 
-        genomic_files = {}
+        genomic_files = OrderedDict()
         if genome_dir:
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
@@ -97,51 +120,72 @@ class OptionsParser(object):
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
 
         elif batchfile:
-            for line_no, line in enumerate(open(batchfile, "rb")):
-                line_split = line.strip().split("\t")
-                if line_split[0] == '':
-                    continue  # blank line
+            with open(batchfile, 'r') as f:
+                for line_no, line in enumerate(f.readlines()):
+                    line_split = line.strip().split('\t')
+                    if line_split[0] == '':
+                        continue  # blank line
 
-                if len(line_split) != 2:
-                    self.logger.error('Batch file must contain exactly 2 columns.')
-                    raise GenomeBatchfileMalformed
+                    if len(line_split) != 2:
+                        self.logger.error('Batch file must contain exactly 2 columns.')
+                        raise GenomeBatchfileMalformed
 
-                genome_file, genome_id = line_split
-                self._verify_genome_id(genome_id)
+                    genome_file, genome_id = line_split
+                    self._assert_genome_id_valid(genome_id)
 
-                if genome_file is None or genome_file == '':
-                    self.logger.error('Missing genome file on line %d.' % (line_no + 1))
-                    raise GenomeBatchfileMalformed
-                elif genome_id is None or genome_id == '':
-                    self.logger.error('Missing genome ID on line %d.' % (line_no + 1))
-                    raise GenomeBatchfileMalformed
-                elif genome_id in genomic_files:
-                    self.logger.error('Genome ID %s appear multiple times.' % genome_id)
-                    raise GenomeBatchfileMalformed
-                if genome_file in genomic_files.values():
-                    self.logger.warning('Genome file appears multiple times: %s' % genome_file)
+                    if genome_file is None or genome_file == '':
+                        self.logger.error('Missing genome file on line %d.' % (line_no + 1))
+                        raise GenomeBatchfileMalformed
+                    elif genome_id is None or genome_id == '':
+                        self.logger.error('Missing genome ID on line %d.' % (line_no + 1))
+                        raise GenomeBatchfileMalformed
+                    elif genome_id in genomic_files:
+                        self.logger.error('Genome ID %s appear multiple times.' % genome_id)
+                        raise GenomeBatchfileMalformed
+                    if genome_file in genomic_files.values():
+                        self.logger.warning('Genome file appears multiple times: %s' % genome_file)
 
-                genomic_files[genome_id] = genome_file
+                    genomic_files[genome_id] = genome_file
 
         for genome_key in genomic_files.iterkeys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
-                self.logger.error(
-                    "Submitted genomes start with the same prefix (RS_,GB_,UBA) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.")
+                self.logger.error("Submitted genomes start with the same prefix (RS_,GB_,UBA) as "
+                                  "reference genomes in GTDB-Tk. This will cause issues for "
+                                  "downstream analysis.")
                 raise GenomeNameInvalid
 
         if len(genomic_files) == 0:
             if genome_dir:
                 self.logger.error(
-                    'No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
+                    'No genomes found in directory: %s. Check the --extension flag used to identify '
+                    'genomes.' % genome_dir)
             else:
                 self.logger.error(
-                    'No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
+                    'No genomes found in batch file: %s. Please check the format of this file.'
+                    % batchfile)
             raise NoGenomesFound
 
         return genomic_files
 
     def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
-        """Get unique identifier for marker set."""
+        """Get unique identifier for marker set.
+
+        Parameters
+        ----------
+        bac120_ms : bool
+        ar122_ms : bool
+        rps23_ms : bool
+
+        Returns
+        -------
+        str
+            The unique identifier for the marker set.
+
+        Raises
+        ------
+        GenomeMarkerSetUnknown
+            If the marker set is unknown.
+        """
 
         if bac120_ms:
             marker_set_id = "bac120"
@@ -149,17 +193,25 @@ class OptionsParser(object):
             marker_set_id = "ar122"
         elif rps23_ms:
             marker_set_id = "rps23"
-
+        else:
+            self.logger.error('No marker set specified.')
+            raise GenomeMarkerSetUnknown('No marker set specified.')
         return marker_set_id
 
     def identify(self, options):
-        """Identify marker genes in genomes."""
+        """Identify marker genes in genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
 
         if options.genome_dir:
-            check_dir_exists(options.genome_dir)
+            assert_dir_exists(options.genome_dir)
 
         if options.batchfile:
-            check_file_exists(options.batchfile)
+            assert_file_exists(options.batchfile)
 
         make_sure_path_exists(options.out_dir)
 
@@ -175,9 +227,15 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def align(self, options):
-        """Create MSA from marker genes."""
+        """Create MSA from marker genes.
 
-        check_dir_exists(options.identify_dir)
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        assert_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
 
         if not hasattr(options, 'outgroup_taxon'):
@@ -202,70 +260,59 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def infer(self, options):
-        """Infer tree from MSA."""
+        """Infer a tree from a user specified MSA.
 
-        check_file_exists(options.msa_file)
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        assert_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
-
-        if options.cpus > 1:
-            check_dependencies(['FastTreeMP'])
-            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
-        else:
-            check_dependencies(['FastTree'])
 
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
-                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix, marker=options.suffix))
+                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
             tree_log = os.path.join(options.out_dir,
-                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix,
+                                                                marker=options.suffix))
             fasttree_log = os.path.join(options.out_dir,
-                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
         else:
-            output_tree = os.path.join(options.out_dir, PATH_UNROOTED_TREE.format(prefix=options.prefix))
-            tree_log = os.path.join(options.out_dir, PATH_TREE_LOG.format(prefix=options.prefix))
-            fasttree_log = os.path.join(options.out_dir, PATH_FASTTREE_LOG.format(prefix=options.prefix))
+            output_tree = os.path.join(options.out_dir,
+                                       PATH_UNROOTED_TREE.format(prefix=options.prefix))
+            tree_log = os.path.join(options.out_dir,
+                                    PATH_TREE_LOG.format(prefix=options.prefix))
+            fasttree_log = os.path.join(options.out_dir,
+                                        PATH_FASTTREE_LOG.format(prefix=options.prefix))
 
-        make_sure_path_exists(os.path.dirname(output_tree))
-        make_sure_path_exists(os.path.dirname(tree_log))
-        make_sure_path_exists(os.path.dirname(fasttree_log))
-
-        if options.prot_model == 'JTT':
-            model_str = ''
-        elif options.prot_model == 'WAG':
-            model_str = ' -wag'
-        elif options.prot_model == 'LG':
-            model_str = ' -lg'
-
-        support_str = ''
-        if options.no_support:
-            support_str = ' -nosupport'
-
-        gamma_str = ' -gamma'
-        gamma_str_info = '+GAMMA'
-        if options.no_gamma:
-            gamma_str = ''
-            gamma_str_info = ''
-
-        self.logger.info(
-            'Inferring tree with FastTree using {}.'.format(options.prot_model, gamma_str_info))
-
-        cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
-                                                      model_str,
-                                                      gamma_str,
-                                                      tree_log,
-                                                      options.msa_file,
-                                                      output_tree,
-                                                      fasttree_log)
-        if options.cpus > 1:
-            cmd = 'FastTreeMP ' + cmd
-        else:
-            cmd = 'FastTree ' + cmd
-        os.system(cmd)
+        fasttree = FastTree()
+        fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
+                     options.no_support, options.no_gamma, options.msa_file,
+                     options.cpus)
 
         self.logger.info('Done.')
 
     def run_test(self, options):
-        """Run test of classify workflow."""
+        """Run test of classify workflow.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+
+        Returns
+        -------
+        bool
+            True if the test succeeds.
+
+        Raises
+        ------
+        GTDBTkTestFailure
+            If the test fails.
+        """
 
         make_sure_path_exists(options.out_dir)
 
@@ -274,30 +321,43 @@ class OptionsParser(object):
         if os.path.exists(genome_test_dir):
             self.logger.error('Test directory {} already exists. Test must be run with a new directory.'.format(
                                 genome_test_dir))
-            sys.exit(-1)
+            raise GTDBTkTestFailure('Test directory {} already exists.'.format(genome_test_dir))
 
         current_path = os.path.dirname(os.path.realpath(__file__))
         input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
 
         shutil.copytree(input_dir, genome_test_dir)
 
-        cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
-            genome_test_dir, output_dir, options.cpus)
-        print("Command:")
-        print(cmd)
-        os.system(cmd)
+        args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
+                '--out_dir', output_dir, '--cpus', str(options.cpus)]
+        self.logger.info('Command: {}'.format(' '.join(args)))
+        proc = subprocess.Popen(args)
+        proc.communicate()
+
         summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
 
+        if proc.returncode != 0:
+            self.logger.error('The test returned a non-zero exit code.')
+            self.logger.info('The test has failed.')
+            raise GTDBTkTestFailure('Test returned non-zero exit code.')
         if not os.path.exists(summary_file):
-            print("{} is missing.\nTest has failed.".format(summary_file))
-            sys.exit(-1)
+            self.logger.error("{} is missing.\nTest has failed.".format(summary_file))
+            self.logger.info('The test has failed.')
+            raise GTDBTkTestFailure('Summary output file is missing.')
 
         self.logger.info('Test has successfully finished.')
+        return True
 
     def classify(self, options):
-        """Determine taxonomic classification of genomes."""
+        """Determine taxonomic classification of genomes.
 
-        check_dir_exists(options.align_dir)
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        assert_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
@@ -317,7 +377,13 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def trim_msa(self, options):
-        """ Trim an untrimmed archaea or bacterial MSA file."""
+        """ Trim an untrimmed archaea or bacterial MSA file.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         if options.reference_mask in ['bac', 'arc']:
             mask_type = "reference"
             mask_id = options.reference_mask
@@ -330,20 +396,32 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def export_msa(self, options):
-        """Export the untrimmed archaeal or bacterial MSA file."""
+        """Export the untrimmed archaeal or bacterial MSA file.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         misc = Misc()
         misc.export_msa(options.domain, options.output)
 
         self.logger.info('Done.')
 
     def root(self, options):
-        """Root tree using outgroup."""
+        """Root tree using outgroup.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         self.logger.warning("Tree rooting is still under development!")
 
-        check_file_exists(options.input_tree)
+        assert_file_exists(options.input_tree)
 
         if options.custom_taxonomy_file:
-            check_file_exists(options.custom_taxonomy_file)
+            assert_file_exists(options.custom_taxonomy_file)
             taxonomy = Taxonomy().read(options.custom_taxonomy_file)
         else:
             taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
@@ -373,30 +451,45 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def check_install(self):
-        """ Verify all GTDB-Tk data files are present."""
+        """ Verify all GTDB-Tk data files are present.
+
+        Raises
+        ------
+        ReferenceFileMalformed
+            If one or more reference files are malformed.
+        """
         self.logger.info("Running install verification")
         misc = Misc()
-        misc.check_install()
+        if not misc.check_install():
+            raise ReferenceFileMalformed('One or more reference files are malformed.')
         self.logger.info('Done.')
 
     def decorate(self, options):
-        """Decorate tree with GTDB taxonomy."""
+        """Decorate tree with GTDB taxonomy.
 
-        check_file_exists(options.input_tree)
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        assert_file_exists(options.input_tree)
 
         # Config.TAXONOMY_FILE
         self.logger.warning('DECORATE NOT YET IMPLEMENTED!')
         self.logger.info('Done.')
 
     def parse_options(self, options):
-        """Parse user options and call the correct pipeline(s)"""
+        """Parse user options and call the correct pipeline(s)
 
-        if(options.subparser_name == 'de_novo_wf'):
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
-            if (options.cpus > 1):
-                check_dependencies(['FastTreeMP'])
-            else:
-                check_dependencies(['FastTree'])
+            check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
             self.identify(options)
 
@@ -416,7 +509,7 @@ class OptionsParser(object):
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
             else:
                 if options.suffix == 'bac120':
                     options.msa_file = os.path.join(options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
@@ -424,7 +517,7 @@ class OptionsParser(object):
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
 
             self.infer(options)
 
@@ -436,12 +529,12 @@ class OptionsParser(object):
                 options.output_tree = os.path.join(options.out_dir, PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
                 self.logger.error('There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
 
             self.root(options)
             self.decorate(options)
 
-        elif(options.subparser_name == 'classify_wf'):
+        elif options.subparser_name == 'classify_wf':
             check_dependencies(
                 ['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])
             self.identify(options)
@@ -461,29 +554,29 @@ class OptionsParser(object):
             self.align(options)
 
             self.classify(options)
-        elif (options.subparser_name == 'identify'):
+        elif options.subparser_name == 'identify':
             self.identify(options)
-        elif(options.subparser_name == 'align'):
+        elif options.subparser_name == 'align':
             self.align(options)
-        elif(options.subparser_name == 'infer'):
+        elif options.subparser_name == 'infer':
             self.infer(options)
-        elif(options.subparser_name == 'classify'):
+        elif options.subparser_name == 'classify':
             self.classify(options)
-        elif(options.subparser_name == 'root'):
+        elif options.subparser_name == 'root':
             self.root(options)
-        elif(options.subparser_name == 'decorate'):
+        elif options.subparser_name == 'decorate':
             self.decorate(options)
-        elif(options.subparser_name == 'trim_msa'):
+        elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
-        elif(options.subparser_name == 'export_msa'):
+        elif options.subparser_name == 'export_msa':
             self.export_msa(options)
-        elif(options.subparser_name == 'test'):
+        elif options.subparser_name == 'test':
             self.run_test(options)
-        elif(options.subparser_name == 'check_install'):
+        elif options.subparser_name == 'check_install':
             self.check_install()
         else:
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')
-            sys.exit()
+            sys.exit(1)
 
         return 0

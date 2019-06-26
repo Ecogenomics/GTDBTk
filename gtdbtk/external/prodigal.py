@@ -15,15 +15,16 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
-import shutil
 import multiprocessing as mp
-from collections import defaultdict
+import os
+import shutil
+import sys
 
+from gtdbtk.biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
+from gtdbtk.config.output import TRANSLATION_TABLE_SUFFIX, CHECKSUM_SUFFIX
 from gtdbtk.exceptions import ProdigalException
-from ..biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
+from gtdbtk.tools import sha256, file_has_checksum
 
 
 class Prodigal(object):
@@ -62,8 +63,33 @@ class Prodigal(object):
             False if an error occurred.
         """
 
+        # Setup output files
         output_dir = os.path.join(self.marker_gene_dir, genome_id)
+        aa_gene_file = os.path.join(output_dir, genome_id + self.protein_file_suffix)
+        nt_gene_file = None
+        gff_file = None
+        translation_table_file = None
 
+        if not self.proteins:
+            nt_gene_file = os.path.join(output_dir, genome_id + self.nt_gene_file_suffix)
+            gff_file = os.path.join(output_dir, genome_id + self.gff_file_suffix)
+            translation_table_file = os.path.join(output_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX)
+
+        # Return early if files are already done
+        if not self.proteins and file_has_checksum(aa_gene_file) and file_has_checksum(nt_gene_file) \
+                and file_has_checksum(gff_file) and file_has_checksum(translation_table_file):
+            best_tln_table = -1
+            with open(translation_table_file, 'r') as tln_f:
+                for line in tln_f.readlines():
+                    cols = line.strip().split('\t')
+                    if cols[0] == 'best_translation_table':
+                        best_tln_table = int(cols[1])
+                        break
+            if best_tln_table > 0:
+                self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
+                return aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_tln_table
+
+        # Did not meet the conditions to skip processing this genome, call genes.
         prodigal = BioLibProdigal(1, False)
         summary_stats = prodigal.run(
             [fasta_path], output_dir, called_genes=self.proteins)
@@ -76,25 +102,23 @@ class Prodigal(object):
                 raise Exception(
                     "An error was encountered while running Prodigal.")
 
-        summary_stats = summary_stats[summary_stats.keys()[0]]
+        summary_stats = list(summary_stats.values())[0]
 
         # rename output files to adhere to GTDB conventions and desired genome
         # ID
-        aa_gene_file = os.path.join(
-            output_dir, genome_id + self.protein_file_suffix)
+
         shutil.move(summary_stats.aa_gene_file, aa_gene_file)
+        with open(aa_gene_file + CHECKSUM_SUFFIX, 'w') as f:
+            f.write(sha256(aa_gene_file))
 
-        nt_gene_file = None
-        gff_file = None
-        translation_table_file = None
         if not self.proteins:
-            nt_gene_file = os.path.join(
-                output_dir, genome_id + self.nt_gene_file_suffix)
             shutil.move(summary_stats.nt_gene_file, nt_gene_file)
+            with open(nt_gene_file + CHECKSUM_SUFFIX, 'w') as f:
+                f.write(sha256(nt_gene_file))
 
-            gff_file = os.path.join(
-                output_dir, genome_id + self.gff_file_suffix)
             shutil.move(summary_stats.gff_file, gff_file)
+            with open(gff_file + CHECKSUM_SUFFIX, 'w') as f:
+                f.write(sha256(gff_file))
 
             # save translation table information
             translation_table_file = os.path.join(output_dir, 'prodigal_translation_table.tsv')
@@ -107,6 +131,9 @@ class Prodigal(object):
                                            summary_stats.coding_density_11 * 100))
                 fout.write('%s\t%.2f\n' % ('probability_4', summary_stats.probability_4 * 100))
                 fout.write('%s\t%.2f\n' % ('probability_11', summary_stats.probability_11 * 100))
+
+            with open(translation_table_file + CHECKSUM_SUFFIX, 'w') as f:
+                f.write(sha256(translation_table_file))
 
         return aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table
 
@@ -125,14 +152,11 @@ class Prodigal(object):
             # Only proceed if an error didn't occur in BioLib Prodigal
             if rtn_files:
                 aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table = rtn_files
-                prodigal_infos = {}
-                prodigal_infos["aa_gene_path"] = aa_gene_file
-                prodigal_infos["nt_gene_path"] = nt_gene_file
-                prodigal_infos["gff_path"] = gff_file
-                prodigal_infos["translation_table_path"] = translation_table_file
-                prodigal_infos["best_translation_table"] = best_translation_table
-
-                out_dict[genome_id] = prodigal_infos
+                out_dict[genome_id] = {"aa_gene_path": aa_gene_file,
+                                       "nt_gene_path": nt_gene_file,
+                                       "gff_path": gff_file,
+                                       "translation_table_path": translation_table_file,
+                                       "best_translation_table": best_translation_table}
             writer_queue.put(genome_id)
 
     def _writer(self, num_items, writer_queue):

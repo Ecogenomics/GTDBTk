@@ -15,9 +15,9 @@
 #                                                                             #
 ###############################################################################
 
-import sys
-import random
 import logging
+import random
+import sys
 
 import dendropy
 

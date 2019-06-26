@@ -1,18 +1,17 @@
-# import prodigal
-import math
-import time
-import random
-import os
 import hashlib
-
+import math
+import os
+import random
+import time
 from itertools import islice
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.common import remove_extension
+
+from gtdbtk.config.output import CHECKSUM_SUFFIX
 
 
 ##################################################
 ############MISC UTILITIES########################
 ##################################################
+
 
 def add_ncbi_prefix(refname):
     if refname.startswith("GCF_"):
@@ -47,7 +46,7 @@ def generateTempTableName():
 
 
 def merge_two_dicts(x, y):
-    '''Given two dicts, merge them into a new dict as a shallow copy.'''
+    """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
     z.update(y)
     return z
@@ -55,6 +54,7 @@ def merge_two_dicts(x, y):
 
 def sha256(input_file):
     """Determine SHA256 hash for file.
+
     Parameters
     ----------
     input_file : str
@@ -64,16 +64,38 @@ def sha256(input_file):
     str
         SHA256 hash.
     """
-
-    BLOCKSIZE = 65536
+    block_size = 65536
     hasher = hashlib.sha1()
     with open(input_file, 'rb') as afile:
-        buf = afile.read(BLOCKSIZE)
+        buf = afile.read(block_size)
         while len(buf) > 0:
             hasher.update(buf)
-            buf = afile.read(BLOCKSIZE)
-
+            buf = afile.read(block_size)
     return hasher.hexdigest()
+
+
+def file_has_checksum(file_path, checksum_suffix=CHECKSUM_SUFFIX):
+    """Check that the file contents match the checksum.
+
+    Parameters
+    ----------
+    file_path : str
+        Name of the file to check.
+    checksum_suffix : str
+        Suffix used to denote the file checksum.
+
+    Returns
+    -------
+    bool
+        True if the file has a checksum and it matches the original contents,
+        False otherwise.
+
+    """
+    check_path = file_path + checksum_suffix
+    if os.path.isfile(file_path) and os.path.isfile(check_path):
+        with open(check_path, 'r') as check_f:
+            return sha256(file_path) == check_f.read()
+    return False
 
 
 def symlink_f(src, dst, force=True):

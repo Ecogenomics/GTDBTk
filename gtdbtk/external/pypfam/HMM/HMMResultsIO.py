@@ -446,7 +446,7 @@ class HMMResultsIO(object):
 
         hmmRes.eof = eof
 
-        if (recurse and nextSeqId):
+        if recurse and nextSeqId:
             self._readUnitData(nextSeqId, fh, hmmRes)
 
         return
