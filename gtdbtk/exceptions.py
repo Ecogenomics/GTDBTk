@@ -107,13 +107,6 @@ class TogException(GTDBTkException):
         GTDBTkException.__init__(self, message)
 
 
-class GTDBTkDataPathUndefined(GTDBTkException):
-    """ Thrown when the GTDBTK_DATA_PATH environment variable is undefined. """
-
-    def __init__(self, message=''):
-        GTDBTkException.__init__(self, message)
-
-
 class FastANIException(GTDBTkException):
     """ Thrown when an exception is encountered while running FastANI. """
 
