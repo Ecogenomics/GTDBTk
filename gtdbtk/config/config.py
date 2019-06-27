@@ -58,7 +58,7 @@ except IOError:
     print(' ERROR '.center(80))
     print('_' * 80 + '\n')
     print('The GTDB-Tk reference data does not exist or is corrupted.'.center(80))
-    print(('GTDBTK_DATA_PATH=%s' % METADATA_DIR).center(80) + '\n')
+    print(('GTDBTK_DATA_PATH=%s' % GENERIC_PATH).center(80) + '\n')
     print('Please compare the checksum to those provided in the download repository.'.center(80))
     print('https://github.com/Ecogenomics/GTDBTk#gtdb-tk-reference-data'.center(80))
     print('=' * 80)
