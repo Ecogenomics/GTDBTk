@@ -693,7 +693,6 @@ class Classify():
         """
 
         self.logger.info('Calculating RED values based on reference tree.')
-        dict_ref_red = {}
         tree = dendropy.Tree.get_from_path(input_tree,
                                            schema='newick',
                                            rooting='force-rooted',
@@ -703,25 +702,26 @@ class Classify():
         if marker_set_id == 'ar122':
             red_file = Config.MRCA_RED_AR122
 
-        reference_nodes = []
+        # create map from leave labels to tree nodes
+        leaf_node_map = {}
+        for leaf in tree.leaf_node_iter():
+            leaf_node_map[leaf.taxon.label] = leaf
 
-        # Parse RED file and associate reference RED value to reference node in
+        # parse RED file and associate reference RED value to reference node in
         # the tree
+        reference_nodes = set()
         with open(red_file) as rf:
             for line in rf:
-                infos = line.strip().split('\t')
-                labels = infos[0].split('|')
+                label_ids, red_value = line.strip().split('\t')
+                labels = label_ids.split('|')
                 if len(labels) == 2:
-                    mrca = tree.mrca(taxon_labels=labels)
-                    dict_ref_red[mrca] = float(infos[1])
-                    reference_nodes.append(mrca)
+                    taxa = [leaf_node_map[label].taxon for label in labels]
+                    node = tree.mrca(taxa=taxa)
                 elif len(labels) == 1:
-                    leaf = tree.find_node_with_taxon_label(labels[0])
-                    dict_ref_red[leaf] = float(infos[1])
-                    reference_nodes.append(leaf)
-        for nd in tree.preorder_node_iter():
-            if nd in reference_nodes:
-                nd.rel_dist = dict_ref_red.get(nd)
+                    node = leaf_node_map[labels[0]]
+
+                node.rel_dist = float(red_value)
+                reference_nodes.add(node)
 
         # For all leaf nodes that are not reference genomes
         # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
@@ -733,20 +733,19 @@ class Classify():
                 nd.rel_dist = 1.0
                 pplacer_node = nd
                 pplacer_parent_node = pplacer_node.parent_node
-                while not bool(set(pplacer_node.leaf_nodes()) & set(reference_nodes)):
+                
+                while not bool(set(pplacer_node.leaf_nodes()) & reference_nodes):
                     pplacer_node = pplacer_parent_node
                     pplacer_parent_node = pplacer_node.parent_node
 
-                child_nodes = [ref_node for ref_node in pplacer_node.child_nodes(
-                )]
-                while not bool(set(child_nodes) & set(reference_nodes)):
-                    result = []
-                    for node in child_nodes:
-                        result.extend(node.child_nodes())
-                    child_nodes = result
-                child_node = list(set(child_nodes) &
-                                  set(reference_nodes))[0]
+                # perform level-order tree search to find first child
+                # node that is part of the reference set
+                for child in pplacer_node.levelorder_iter():
+                    if child in reference_nodes:
+                        child_node = child
+                        break
 
+                # find first parent node that is part of the reference set
                 while not pplacer_parent_node in reference_nodes:
                     pplacer_parent_node = pplacer_parent_node.parent_node
 
@@ -765,11 +764,9 @@ class Classify():
 
                 ratio = pplacer_edge_length / edge_length
 
-                branch_rel_dist = dict_ref_red.get(
-                    child_node) - dict_ref_red.get(pplacer_parent_node)
+                branch_rel_dist = child_node.rel_dist - pplacer_parent_node.rel_dist
+                branch_rel_dist = pplacer_parent_node.rel_dist + branch_rel_dist * ratio
 
-                branch_rel_dist = dict_ref_red.get(
-                    pplacer_parent_node) + branch_rel_dist * ratio
                 pplacer_node.rel_dist = branch_rel_dist
 
         return tree
