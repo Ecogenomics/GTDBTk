@@ -331,6 +331,8 @@ class Classify(object):
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
+            pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir, prefix, marker_set_id, user_msa_file, tree)
+
             summaryfout = open(path_summary, 'w')
             if debugopt:
                 debugfile = open(os.path.join(
@@ -340,7 +342,7 @@ class Classify(object):
                 out_dir, prefix, marker_set_id)
 
             summaryfout.write("user_genome\tclassification\tfastani_reference\tfastani_reference_radius\tfastani_taxonomy\tfastani_ani\tfastani_af\t" +
-                              "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\t" +
+                              "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\tpplacer_taxonomy\t" +
                               "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\ttranslation_table\tred_value\twarnings\n")
             if debugopt:
                 debugfile.write(
@@ -424,8 +426,7 @@ class Classify(object):
                 all_fastani_dict = fastani.run(fastani_verification, genomes)
 
             classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
-                fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict,
-                bac_ar_diff, summaryfout)
+                fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout)
 
             self.logger.info('{0} genome(s) have been classified using FastANI and Pplacer.'.format(
                 len(classified_user_genomes)))
@@ -596,7 +597,7 @@ class Classify(object):
 
                     del debug_info[0]
 
-                    summary_list = [None] * 18
+                    summary_list = [None] * 19
                     if leaf.taxon.label in unclassified_user_genomes:
                         summary_list = unclassified_user_genomes.get(
                             leaf.taxon.label)
@@ -605,13 +606,14 @@ class Classify(object):
                     summary_list[0] = leaf.taxon.label
                     summary_list[1] = self.standardise_taxonomy(
                         red_taxonomy)
-                    summary_list[11] = 'Placement'
-                    summary_list[12] = detection
-                    summary_list[14] = self.aa_percent_msa(
+                    summary_list[11] = pplacer_taxonomy_dict.get(leaf.taxon.label)
+                    summary_list[12] = 'Placement'
+                    summary_list[13] = detection
+                    summary_list[15] = self.aa_percent_msa(
                         msa_dict.get(summary_list[0]))
-                    summary_list[15] = trans_table_dict.get(
+                    summary_list[16] = trans_table_dict.get(
                         summary_list[0])
-                    summary_list[16] = current_rel_list
+                    summary_list[17] = current_rel_list
 
                     notes = []
                     if summary_list[0] in percent_multihit_dict:
@@ -622,7 +624,7 @@ class Classify(object):
                             bac_ar_diff.get(summary_list[0]).get('bac120'), bac_ar_diff.get(summary_list[0]).get('ar122')))
 
                     if len(notes) > 0:
-                        summary_list[17] = ';'.join(notes)
+                        summary_list[18] = ';'.join(notes)
                     summaryfout.write("{0}\n".format(
                         '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
                     if debugopt:
@@ -646,10 +648,6 @@ class Classify(object):
 
             if debugopt:
                 debugfile.close()
-
-            self._get_pplacer_taxonomy(
-                out_dir, prefix, marker_set_id, user_msa_file, tree)
-
 
     def _assign_mrca_red(self, input_tree, marker_set_id):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -760,12 +758,13 @@ class Classify(object):
 
         Returns
         -------
-        True
+        dictionary[genome_label]=pplacer_taxonomy
 
         """
 
         out_root = os.path.join(out_dir, 'classify', 'intermediate_results')
         make_sure_path_exists(out_root)
+        result = {}
 
         if marker_set_id == 'bac120':
             out_pplacer = os.path.join(out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
@@ -791,7 +790,8 @@ class Classify(object):
                     taxa_str = ';'.join(taxa[::-1])
                     pplaceout.write('{}\t{}\n'.format(
                         leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
-        return True
+                    result[leaf.taxon.label] = self.standardise_taxonomy(taxa_str, marker_set_id)
+        return result
 
     def _formatnote(self, sorted_dict, labels):
         """Format the note field by concatenating all information in a sorted dictionary
@@ -821,7 +821,7 @@ class Classify(object):
         aa_perc = float(aa_len) / len(aa_string)
         return round(aa_perc * 100, 2)
 
-    def _sort_fastani_results(self, fastani_verification, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout):
+    def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -840,7 +840,7 @@ class Classify(object):
         classified_user_genomes = []
         unclassified_user_genomes = {}
         for userleaf, potential_nodes in fastani_verification.iteritems():
-            summary_list = [None] * 18
+            summary_list = [None] * 19
 
             notes = []
             if userleaf.taxon.label in percent_multihit_dict:
@@ -850,7 +850,7 @@ class Classify(object):
                 notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(userleaf.taxon.label).get('bac120'), bac_ar_diff.get(userleaf.taxon.label).get('ar122')))
             if len(notes) > 0:
-                summary_list[17] = ';'.join(notes)
+                summary_list[18] = ';'.join(notes)
 
             if potential_nodes.get("pplacer_g"):
                 pplacer_leafnode = potential_nodes.get("pplacer_g").taxon.label
@@ -874,10 +874,11 @@ class Classify(object):
                     summary_list[5] = round(current_ani, 2)
                     summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                         fastani_matching_reference).get('af')
-                    summary_list[11] = 'ANI/Placement'
-                    summary_list[14] = self.aa_percent_msa(
+                    summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
+                    summary_list[12] = 'ANI/Placement'
+                    summary_list[15] = self.aa_percent_msa(
                         msa_dict.get(summary_list[0]))
-                    summary_list[15] = trans_table_dict.get(summary_list[0])
+                    summary_list[16] = trans_table_dict.get(summary_list[0])
 
                     if self.species_radius.get(fastani_matching_reference) <= current_ani:
                         if pplacer_leafnode == fastani_matching_reference:
@@ -889,14 +890,14 @@ class Classify(object):
                             summary_list[8] = summary_list[4]
                             summary_list[9] = summary_list[5]
                             summary_list[10] = summary_list[6]
-                            summary_list[12] = 'topological placement and ANI have congruent species assignments'
+                            summary_list[13] = 'topological placement and ANI have congruent species assignments'
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self._formatnote(
                                     sorted_dict, [fastani_matching_reference]))
                                 if len(other_ref) == 0:
-                                    summary_list[13] = None
+                                    summary_list[14] = None
                                 else:
-                                    summary_list[13] = other_ref
+                                    summary_list[14] = other_ref
 
                         else:
                             taxa_str = ";".join(self.gtdb_taxonomy.get(
@@ -911,16 +912,16 @@ class Classify(object):
                                     userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
                                 summary_list[10] = all_fastani_dict.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('af')
-                            summary_list[12] = 'topological placement and ANI have incongruent species assignments'
-                            summary_list[11] = 'ANI'
+                            summary_list[13] = 'topological placement and ANI have incongruent species assignments'
+                            summary_list[12] = 'ANI'
 
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self._formatnote(
                                     sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
                                 if len(other_ref) == 0:
-                                    summary_list[13] = None
+                                    summary_list[14] = None
                                 else:
-                                    summary_list[13] = other_ref
+                                    summary_list[14] = other_ref
 
                         summaryfout.write("{}\n".format(
                             '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
@@ -930,9 +931,9 @@ class Classify(object):
                             other_ref = '; '.join(self._formatnote(
                                 sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
                             if len(other_ref) == 0:
-                                summary_list[13] = None
+                                summary_list[14] = None
                             else:
-                                summary_list[13] = other_ref
+                                summary_list[14] = other_ref
                         unclassified_user_genomes[userleaf.taxon.label] = summary_list
 
             elif userleaf.taxon.label in all_fastani_dict:
@@ -953,20 +954,25 @@ class Classify(object):
                 summary_list[5] = round(current_ani, 2)
                 summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
                     fastani_matching_reference).get('af')
-                summary_list[11] = 'ANI/Placement'
-                summary_list[14] = self.aa_percent_msa(
+                summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
+                summary_list[12] = 'ANI/Placement'
+                summary_list[15] = self.aa_percent_msa(
                         msa_dict.get(summary_list[0]))
-                summary_list[15] = trans_table_dict.get(summary_list[0])
+                summary_list[16] = trans_table_dict.get(summary_list[0])
                 if self.species_radius.get(fastani_matching_reference) <= current_ani:
+                    taxa_str = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(fastani_matching_reference)))
+                    summary_list[1] = self.standardise_taxonomy(
+                                taxa_str)
 
-                    summary_list[12] = 'topological placement and ANI have incongruent species assignments'
+                    summary_list[13] = 'topological placement and ANI have incongruent species assignments'
                     if len(sorted_dict) > 0:
                         other_ref = '; '.join(self._formatnote(
                             sorted_dict, [fastani_matching_reference]))
                         if len(other_ref) == 0:
-                            summary_list[13] = None
+                            summary_list[14] = None
                         else:
-                            summary_list[13] = other_ref
+                            summary_list[14] = other_ref
 
                     summaryfout.write("{}\n".format(
                         '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
@@ -977,9 +983,9 @@ class Classify(object):
                         other_ref = '; '.join(self._formatnote(
                             sorted_dict, [fastani_matching_reference]))
                         if len(other_ref) == 0:
-                            summary_list[13] = None
+                            summary_list[14] = None
                         else:
-                            summary_list[13] = other_ref
+                            summary_list[14] = other_ref
                     unclassified_user_genomes[userleaf.taxon.label] = summary_list
         return classified_user_genomes, unclassified_user_genomes
 

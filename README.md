@@ -1,11 +1,14 @@
 # GTDB-Tk
 
 [![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
+[![Bioconda](https://img.shields.io/conda/vn/bioconda/gtdbtk.svg?color=green)](https://anaconda.org/bioconda/gtdbtk)
 [![Downloads](https://pepy.tech/badge/gtdbtk/month)](https://pepy.tech/project/gtdbtk)
 
-GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the GNU General Public License (Version 3).
+GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
 GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepancies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
+
+Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) for the latest updates about the software.
 
 
 * [Announcements](#announcements)
@@ -17,7 +20,6 @@ GTDB-Tk is **under active development and validation**. Please independently con
 * [Installation](#installation)
   * [pip installation](#pip-installation)
   * [Bioconda installation](#bioconda-installation)
-  * [Docker installation](#docker-installation)
   * [Testing installation](#testing-installation)
 * [FAQ](docs/faq.md)
 * [Quick start](#quick-start)
@@ -30,8 +32,13 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 ## Announcements
 
+**Note (July 08, 2019)**:
+* GTDB-Tk v0.3.1 has been released (**we recommend all users update to this version**):
+  * Pplacer taxonomy is now available in the summary file.
+  * FastANI species assignment will be selected over phylogenetic placement (Topology case).
+  
 **Note (June 21, 2019)**:
-* GTDB-Tk v0.3.0 has been released (**we recommend all users update to this version**):
+* GTDB-Tk v0.3.0 has been released:
   * Best translation table displayed in summary file.
   * GTDB-Tk now supports gzipped genomes as inputs (--extension .gz).
   * By default, GTDB-Tk uses precalculated RED values.
@@ -47,8 +54,8 @@ GTDB-Tk is **under active development and validation**. Please independently con
 
 
 ## Hardware requirements
-- ~90Gb of memory to run
-- ~25Gb of storage
+- ~100Gb of memory to run
+- ~27Gb of storage
 - ~1 hour per 1,000 genomes when using 64 CPUs
 
 ## Dependencies
@@ -107,30 +114,9 @@ echo 'alias gtdbtk="python ~/.local/bin/gtdbtk"' >> ~/.bashrc
 
 ### Bioconda installation
 
-A Bioconda recipe has been put together by [Natasha](https://github.com/npavlovikj) (thanks!). You can find the recipe at:
-https://anaconda.org/bioconda/gtdbtk
+A Bioconda recipe is available as an alternative installation source (thanks to [Natasha](https://github.com/npavlovikj) for starting it). You can find the recipe here: https://anaconda.org/bioconda/gtdbtk
 
-The download of the GTDB-Tk reference data is not part of the recipe, but there is a "download-db.sh" script that does that when run from the conda environment.
-
-### Docker installation
-
-(Pending update to r89)
-
-The docker file doesn't automatically download the reference data. Instead, 
-it looks for it within the docker environment under the path `/refdata`.
-It is therefore required to mount the host file system in order to allow GTDB-Tk to access the reference data (and your genomic data).
-
-Running the docker container:
-```bash
-docker run --rm -v LOCAL_GENOME_PATH:/data -v LOCAL_REF_PATH:/refdata aaronmussig/gtdbtk gtdbtk
-```
-
-For example:
-```bash
-docker run --rm -v /local/genome:/data -v /local/release86:/refdata aaronmussig/gtdbtk gtdbtk classify_wf --genome_dir /data/genomes --out_dir /data/output
-```
-
-Visit [DockerHub](https://cloud.docker.com/repository/docker/aaronmussig/gtdbtk/) if you would like to build from the Dockerfile.
+The GTDB-Tk reference data is not available as a part of the recipe, but it can be automatically downloaded to the conda package by executing the command: `download-db.sh`
 
 
 ### Testing installation
@@ -208,7 +194,7 @@ The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the 
 Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar122.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
 
 * user_genome: Unique identifer of query genome taken from the FASTA file of the genome.
-* classification: GTDB taxonomy string inferred by the GTDB-Tk. The GTDB does not currently provide species assignments for all reference genomes (e.g., taxonomic groups composed entirely of metagenome-assembled genomes). In such cases, species assignments will reflect the accession number of the reference genome (e.g., s__GCA_001940855.1). An unassigned species (i.e., s__) indicates that the query genome is either i) placed outside a named genus or ii) has an ANI <95% to all reference genomes within the same genus as the query genome.
+* classification: GTDB taxonomy string inferred by the GTDB-Tk. An unassigned species (i.e., s__) indicates that the query genome is either i) placed outside a named genus or ii) has an ANI <95% to all reference genomes within the same genus as the query genome.
 * fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in that genus.
 * fastani_reference_radius: Indicates the ANI threshold of the reference genomes used to determine if a query genome should be classified to the same species as the reference. Currently, all reference genomes have a ANI threshold of 95%. Species specific ANI thresholds will be implemented in GTDB r89.
 * fastani_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
@@ -218,6 +204,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * closest_placement_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
 * closest_placement_ani: Indicates the ANI between the query and above reference genome.
 * closest_placement_af: Indicates the AF between the query and above reference genome.
+* pplacer_taxonomy: Indicates the pplacer taxonomy of the query genome.
 * classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). 
 * other_related_references: Lists upto the top 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
