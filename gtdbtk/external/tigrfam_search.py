@@ -15,9 +15,9 @@
 #                                                                             #
 ###############################################################################
 
+import multiprocessing as mp
 import os
 import sys
-import multiprocessing as mp
 
 from ..tools import sha256
 
@@ -135,7 +135,8 @@ class TigrfamSearch(object):
             processedItems += 1
             statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
                                                                                 numDataItems,
-                                                                                float(processedItems) * 100 / numDataItems)
+                                                                                float(
+                                                                                    processedItems) * 100 / numDataItems)
             sys.stdout.write('%s\r' % statusStr)
             sys.stdout.flush()
 

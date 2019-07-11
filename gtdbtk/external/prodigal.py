@@ -15,12 +15,11 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
-import shutil
 import multiprocessing as mp
-from collections import defaultdict
+import os
+import shutil
+import sys
 
 from gtdbtk.exceptions import ProdigalException
 from ..biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
@@ -146,7 +145,8 @@ class Prodigal(object):
             processed_items += 1
             statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processed_items,
                                                                                 num_items,
-                                                                                float(processed_items) * 100 / num_items)
+                                                                                float(
+                                                                                    processed_items) * 100 / num_items)
             sys.stdout.write('%s\r' % statusStr)
             sys.stdout.flush()
 

@@ -22,13 +22,9 @@ __license__ = 'GPL3'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 
-import os
-import errno
-import sys
 import logging
 import ntpath
-import re
-import gzip
+import os
 
 from .exceptions import BioLibFileNotFound, BioLibDirNotFound, BioLibIOException
 
@@ -126,7 +122,6 @@ def make_sure_path_exists(path):
         # lack of a path qualifier is acceptable as this
         # simply specifies the current directory
         return True
-
     elif os.path.isdir(path):
         return True
 
@@ -134,9 +129,9 @@ def make_sure_path_exists(path):
         os.makedirs(path)
         return True
     except OSError:
-            logger = logging.getLogger('timestamp')
-            logger.error('Specified path could not be created: ' + path + '\n')
-            raise BioLibIOException('Specified path could not be created: ' + path + '\n')
+        logger = logging.getLogger('timestamp')
+        logger.error('Specified path could not be created: ' + path + '\n')
+        raise BioLibIOException('Specified path could not be created: ' + path + '\n')
 
 
 def remove_extension(filename, extension=None):

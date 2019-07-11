@@ -17,26 +17,24 @@
 
 from __future__ import print_function
 
-import os
 import logging
-import sys
 import shutil
+import sys
 
-from gtdbtk.tools import symlink_f
-from markers import Markers
-from classify import Classify
-from misc import Misc
-from reroot_tree import RerootTree
 import config.config as Config
-from gtdbtk.config.output import *
-
 from biolib_lite.common import (check_dir_exists,
                                 check_file_exists,
                                 make_sure_path_exists,
                                 remove_extension)
-from biolib_lite.taxonomy import Taxonomy
 from biolib_lite.execute import check_dependencies
+from biolib_lite.taxonomy import Taxonomy
+from classify import Classify
+from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
+from gtdbtk.tools import symlink_f
+from markers import Markers
+from misc import Misc
+from reroot_tree import RerootTree
 
 
 class OptionsParser(object):
@@ -344,7 +342,7 @@ class OptionsParser(object):
         genome_test_dir = os.path.join(options.out_dir, 'genomes')
         if os.path.exists(genome_test_dir):
             self.logger.error('Test directory {} already exists. Test must be run with a new directory.'.format(
-                                genome_test_dir))
+                genome_test_dir))
             sys.exit(-1)
 
         current_path = os.path.dirname(os.path.realpath(__file__))
@@ -457,10 +455,12 @@ class OptionsParser(object):
         # Symlink to the tree summary file
         if options.suffix == 'bac120':
             symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
-                       os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                      os.path.join(options.out_dir,
+                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
         elif options.suffix == 'ar122':
             symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
-                       os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                      os.path.join(options.out_dir,
+                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -539,11 +539,15 @@ class OptionsParser(object):
             self.infer(options)
 
             if options.suffix == 'bac120':
-                options.input_tree = os.path.join(options.out_dir, PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
-                options.output_tree = os.path.join(options.out_dir, PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
+                options.input_tree = os.path.join(options.out_dir,
+                                                  PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir,
+                                                   PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
             elif options.suffix == 'ar122':
-                options.input_tree = os.path.join(options.out_dir, PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
-                options.output_tree = os.path.join(options.out_dir, PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                options.input_tree = os.path.join(options.out_dir,
+                                                  PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir,
+                                                   PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown

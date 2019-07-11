@@ -1,13 +1,10 @@
 # import prodigal
-import math
-import time
-import random
-import os
 import hashlib
-
+import math
+import os
+import random
+import time
 from itertools import islice
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.common import remove_extension
 
 
 ##################################################

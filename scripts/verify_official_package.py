@@ -29,14 +29,15 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
 
-import sys
 import argparse
-from biolib.seq_io import read_fasta
+import copy
 import glob
 import os
-import dendropy
+import sys
 import tarfile
-import copy
+
+import dendropy
+from biolib.seq_io import read_fasta
 
 
 class PackageChecker(object):
@@ -63,7 +64,8 @@ class PackageChecker(object):
         # List genomes in fastani folder
         list_genomes = [os.path.basename(x) for x in glob.glob(os.path.join(
             self.pack_dir, 'fastani', 'database/*.gz'))]
-        list_genomes = [x.replace('_genomic.fna.gz', '').replace('GCA_', 'GB_GCA_').replace('GCF_', 'RS_GCF_') for x in list_genomes]
+        list_genomes = [x.replace('_genomic.fna.gz', '').replace('GCA_', 'GB_GCA_').replace('GCF_', 'RS_GCF_') for x in
+                        list_genomes]
 
         # Archaeal genome MSA is untrimmed
         ar_msa_file = glob.glob(os.path.join(
@@ -147,11 +149,11 @@ class PackageChecker(object):
             print 'len(list_leaves): {}'.format(len(list_leaves))
             print 'len(ar_pplacer_msa): {}'.format(len(ar_pplacer_msa))
 
-
         # Bacterial Tree should have the same number of leaves than nomber of
         # genomes in the MSA
         bac_tree = dendropy.Tree.get_from_path(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'bac120_' + version + '_unroot.pplacer.tree'),
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg',
+                                      'bac120_' + version + '_unroot.pplacer.tree'),
             schema='newick',
             rooting='force-rooted',
             preserve_underscores=True)
@@ -190,7 +192,8 @@ class PackageChecker(object):
             print 'len(ar_msa) + len(bac_msa): {}'.format(len(ar_msa) + len(bac_msa))
         if len(set(radii_dict.keys()).symmetric_difference(tax_dict.keys())) != 0:
             print 'ERROR: len(set(radii_dict.keys()).symmetric_difference(tax_dict.keys()))'
-            print 'set(radii_dict.keys()).symmetric_difference(tax_dict.keys()): {}'.format(set(radii_dict.keys()).symmetric_difference(tax_dict.keys()))
+            print 'set(radii_dict.keys()).symmetric_difference(tax_dict.keys()): {}'.format(
+                set(radii_dict.keys()).symmetric_difference(tax_dict.keys()))
 
         if len(list_genomes) != len(radii_dict):
             print 'ERROR: len(list_genomes) != len(radii_dict)'

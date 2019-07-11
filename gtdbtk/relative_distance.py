@@ -15,28 +15,18 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
-from biolib_lite.taxonomy import Taxonomy
-from biolib_lite.common import is_float
-from biolib_lite.newick import parse_label
-
-import dendropy
-
-from numpy import (mean as np_mean,
-                   std as np_std,
-                   median as np_median,
-                   abs as np_abs,
+from numpy import (median as np_median,
                    array as np_array,
                    arange as np_arange,
-                   linspace as np_linspace,
                    percentile as np_percentile,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
 
+from biolib_lite.newick import parse_label
+from biolib_lite.taxonomy import Taxonomy
 
 
 class RelativeDistance(object):
@@ -50,10 +40,10 @@ class RelativeDistance(object):
         """Initialization."""
         self.logger = logging.getLogger()
 
-        #Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
-        #options = Options(6, 6, 12, 12, 96)
-        #AbstractPlot.__init__(self, options)
-        #self.dpi = 96
+        # Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
+        # options = Options(6, 6, 12, 12, 96)
+        # AbstractPlot.__init__(self, options)
+        # self.dpi = 96
 
     def _avg_descendant_rate(self, tree):
         """Calculate average rate of divergence for each nodes in a tree.
@@ -84,7 +74,7 @@ class RelativeDistance(object):
                 for c in node.child_node_iter():
                     num_tips = c.num_taxa
                     avg_div += (float(c.num_taxa) / node.num_taxa) * \
-                        (c.mean_dist + c.edge_length)
+                               (c.mean_dist + c.edge_length)
 
             node.mean_dist = avg_div
 
@@ -160,7 +150,7 @@ class RelativeDistance(object):
 
             most_specific_rank = taxon_name[0:3]
             rel_dists[Taxonomy.rank_index[most_specific_rank]
-                      ][taxon_name] = node.rel_dist
+            ][taxon_name] = node.rel_dist
 
         return rel_dists
 
