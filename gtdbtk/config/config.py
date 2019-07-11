@@ -6,8 +6,15 @@ import sys
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
+
 except KeyError:
-    print("'GTDBTK_DATA_PATH' environment variable is not defined")
+    print('\n' + '=' * 80)
+    print(' ERROR '.center(80))
+    print('_' * 80 + '\n')
+    print("'The GTDBTK_DATA_PATH' environment variable is not defined.".center(80) + '\n')
+    print('Please set this variable to your reference data package.'.center(80))
+    print('https://github.com/Ecogenomics/GTDBTk#installation'.center(80))
+    print('=' * 80)
     sys.exit(1)
 
 ############################
@@ -32,19 +39,29 @@ RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
 RED_DIST_BAC_DICT = ''
 RED_DIST_ARC_DICT = ''
 VERSION_DATA = ''
-with open(os.path.join(METADATA_DIR, "metadata.txt")) as metadataData:
-    for line in metadataData:
-        try:
-            line_infos = line.strip().split('=')
-            if line_infos[0] == 'RED_DIST_BAC_DICT':
-                RED_DIST_BAC_DICT = json.loads(line_infos[1])
-            elif line_infos[0] == 'RED_DIST_ARC_DICT':
-                RED_DIST_ARC_DICT = json.loads(line_infos[1])
-            elif line_infos[0] == 'VERSION_DATA':
-                VERSION_DATA = line_infos[1]
-        except ValueError:
-            print("Skipping invalid line {0}".format(repr(line)))
-
+try:
+    with open(os.path.join(METADATA_DIR, "metadata.txt")) as metadataData:
+        for line in metadataData:
+            try:
+                line_infos = line.strip().split('=')
+                if line_infos[0] == 'RED_DIST_BAC_DICT':
+                    RED_DIST_BAC_DICT = json.loads(line_infos[1])
+                elif line_infos[0] == 'RED_DIST_ARC_DICT':
+                    RED_DIST_ARC_DICT = json.loads(line_infos[1])
+                elif line_infos[0] == 'VERSION_DATA':
+                    VERSION_DATA = line_infos[1]
+            except ValueError:
+                print("Skipping invalid line {0}".format(repr(line)))
+except IOError:
+    print('\n' + '=' * 80)
+    print(' ERROR '.center(80))
+    print('_' * 80 + '\n')
+    print('The GTDB-Tk reference data does not exist or is corrupted.'.center(80))
+    print(('GTDBTK_DATA_PATH=%s' % GENERIC_PATH).center(80) + '\n')
+    print('Please compare the checksum to those provided in the download repository.'.center(80))
+    print('https://github.com/Ecogenomics/GTDBTk#gtdb-tk-reference-data'.center(80))
+    print('=' * 80)
+    sys.exit(1)
 
 # Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
@@ -99,6 +116,8 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
+# Information about Alignement Fraction to resolve fastANI results
+AF_THRESHOLD = 0.65
 
 # MSA file names
 CONCAT_BAC120 = os.path.join(

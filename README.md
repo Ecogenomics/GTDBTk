@@ -67,7 +67,7 @@ GTDB-Tk is designed for Python 2.7 and requires the following Python libraries:
 * [future](https://python-future.org/index.html) >= 0.15.2: Clean single-source support for Python 3 and 2
 * [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries.
 
-Dendropy will be installed as part of GTDB-Tk when installing via pip (see below). The **SciPy Stack** must be installed separately.
+Dendropy and future will be installed as part of GTDB-Tk when installing via pip (see below). The **SciPy Stack** must be installed separately.
 
 ### Third-party software
 
@@ -78,11 +78,11 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
-Please cite these tools if your use GTDB-Tk in your work.
+Please cite these tools if you use GTDB-Tk in your work.
 
 ### GTDB-Tk reference data
 
-GTDB-Tk requires ~25G+ of external data that need to be downloaded and unarchived:
+GTDB-Tk requires ~27G+ of external data that need to be downloaded and unarchived:
 ```
 wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/gtdbtk_r89_data.tar.gz
 tar xvzf gtdbtk_r89_data.tar.gz
@@ -125,7 +125,7 @@ You can test your GTDB-Tk installation by running:
 ```
 gtdbtk test --out_dir <path>
 ```
-This applies the classify workflow (classify_wf) to three archaeal genomes. It creates two folders in the output directory, the result directory and the genomes directory which is used as input to GTDB-Tk.
+This applies the classify workflow (classify_wf) to three archaeal genomes. It creates two folders in the output directory: the result directory and the genomes directory which is used as input to GTDB-Tk.
 
 ## Quick start
 
@@ -147,7 +147,7 @@ The classify workflow can be run as follows:
 ```
 > gtdbtk classify_wf --genome_dir <my_genomes> --out_dir <output_dir>
 ```
-This will process all genomes in <my_genomes> using both bacterial and archaeal marker sets and place the results in <output_dir>. Genomes must be in FASTA format. The location of genomes can also be specified using a batch file with the --batchfile flag. The batch file is a two column file indicating the location of each genome and the desired genome identifier (i.e., a Newick compatible alphanumeric string). These fields must be seperated by a tab.
+This will process all genomes in <my_genomes> using both bacterial and archaeal marker sets and place the results in <output_dir>. Genomes must be in FASTA format. The location of genomes can also be specified using a batch file with the --batchfile flag. The batch file is a two column file indicating the location of each genome and the desired genome identifier (i.e., a Newick compatible alphanumeric string). These fields must be separated by a tab.
 
 The workflow supports several optional flags, including:
 * min_perc_aa: allows filtering of genomes below a specified percentage of amino acids in the MSA
@@ -167,36 +167,36 @@ The taxonomic classification of each bacterial and archaeal genome is contained 
 Each step of the classify workflow generates a number of files that can be consulted for additional information about the processed genomes.
 
 Identify step:
-* identify/\<prefix\>.bac120.markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome
-* identify/\<prefix\>.ar122.markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set
+* identify/\<prefix\>.bac120.markers_summary.tsv: summary of unique, duplicated, and missing markers within the 120 bacterial marker set for each submitted genome.
+* identify/\<prefix\>.ar122.markers_summary.tsv: analogous to the above file, but for the 122 archaeal marker set.
 * identify/\<prefix\>.translation_table_summary.tsv: The predicted [translation table](https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) used for gene calling for each genome.
-* identify/intermediate_results/marker_genes/: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs
+* identify/intermediate_results/marker_genes/: contains individual genome results for gene calling using Prodigal and gene identification based on TIGRFAM and Pfam HMMs.
 
 Align step:
-* align/\<prefix\>.\[bac120/ar122\].user_msa.fasta: FASTA file containing MSA of the submitted genomes
-* align/\<prefix\>.\[bac120/ar122\].msa.fasta: FASTA file containing MSA of submitted and reference genomes
-* align/\<prefix\>.\[bac120/ar122\].filtered.tsv: list of genomes with an insufficient number of amino acids in MSA
+* align/\<prefix\>.\[bac120/ar122\].user_msa.fasta: FASTA file containing MSA of the submitted genomes.
+* align/\<prefix\>.\[bac120/ar122\].msa.fasta: FASTA file containing MSA of submitted and reference genomes.
+* align/\<prefix\>.\[bac120/ar122\].filtered.tsv: list of genomes with an insufficient number of amino acids in MSA.
 * align/intermediate_results/\<prefix\>.\[bac120/ar122\].marker_info.tsv: Markers used in generation of the concatenated MSA and the order in which they were applied.
 
 Classify step:
-* classify/\<prefix>.\[bac120/ar122\].classify.tree: reference tree in Newick format containing query genomes placed with pplacer
-* classify/\<prefix>.\[bac120/ar122\].summary.tsv: classification of query genomes based on their placement in the reference tree, relative evolutionary divergence, and ANI to reference genomes. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to assign genomes (see below)
-* classify/intermediate_results/\<prefix>.\[bac120/ar122\].classification_pplacer.tsv: classification of query genomes based only on their placement in the reference tree
-* classify/intermediate_results/\<prefix>.\[bac120/ar122\].red_dictionary.tsv: median RED values for taxonomic ranks
+* classify/\<prefix>.\[bac120/ar122\].classify.tree: reference tree in Newick format containing query genomes placed with pplacer.
+* classify/\<prefix>.\[bac120/ar122\].summary.tsv: classification of query genomes based on their placement in the reference tree, relative evolutionary divergence, and ANI to reference genomes. This is the primary output of the GTDB-Tk and contains the taxonomic classification we recommend plus additional information regarding the criteria used to assign taxonomy (see below).
+* classify/intermediate_results/\<prefix>.\[bac120/ar122\].classification_pplacer.tsv: classification of query genomes based only on their placement in the reference tree.
+* classify/intermediate_results/\<prefix>.\[bac120/ar122\].red_dictionary.tsv: median RED values for taxonomic ranks.
 * classify/intermediate_results/pplacer/: Output information generated by pplacer. 
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is classified as belonging to the same species as a reference genome if the ANI between the genomes is >=95%. In exceptional circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 will strictly use ANI to circumscribe species and GTDB-Tk follows this methodology.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >= 0.65 . In exceptional circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 will strictly use ANI to circumscribe species and GTDB-Tk follows this methodology.
 
 ## Classification summary file 
 
 Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar122.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
 
-* user_genome: Unique identifer of query genome taken from the FASTA file of the genome.
+* user_genome: Unique identifier of query genome taken from the FASTA file of the genome.
 * classification: GTDB taxonomy string inferred by the GTDB-Tk. An unassigned species (i.e., s__) indicates that the query genome is either i) placed outside a named genus or ii) has an ANI <95% to all reference genomes within the same genus as the query genome.
-* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in that genus.
-* fastani_reference_radius: Indicates the ANI threshold of the reference genomes used to determine if a query genome should be classified to the same species as the reference. Currently, all reference genomes have a ANI threshold of 95%. Species specific ANI thresholds will be implemented in GTDB r89.
+* fastani_reference: Indicates the accession number of the closest reference genome as determine by ANI and AF. This genome is used along with the placement of the genome in the reference tree to determine the species assignment on the genome. ANI values are only calculated when a query genome is placed within a defined genus and are calculated for all reference genomes in that genus.
+* fastani_reference_radius: Indicates the ANI threshold of the reference genomes used to determine if a query genome should be classified to the same species as the reference.
 * fastani_taxonomy: Indicates the GTDB taxonomy of the above reference genome.
 * fastani_ani: Indicates the ANI between the query and above reference genome.
 * fastani_af: Indicates the alignment fraction (AF) between the query and above reference genome.
@@ -207,7 +207,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * pplacer_taxonomy: Indicates the pplacer taxonomy of the query genome.
 * classification_method:	Indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: Provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination must be made and indicates that the placement of the genome and closest reference according to ANI are either the same (congruent) or different (incongruent). 
-* other_related_references: Lists upto the top 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
+* other_related_references: Lists up to the top 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
 * aa_percent: Indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid).
 * red_value: Indicates, when required, the relative evolutionary divergence (RED) for a query genome. RED is not calculated when a query genome can be classified based on ANI.
 * warnings: Indicates unusual characteristics of the query genome that may impact the taxonomic assignment
@@ -245,7 +245,7 @@ All steps comprising the classify and <i>de novo</i> workflows can be run indepe
 
 A manuscript describing the GTDB-Tk is currently being prepared:
 
-* Chaumeil PA, Hugenholtz P, Parks DH. 2018. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
+* Chaumeil PA, Mussig AJ, Hugenholtz P, Parks DH. 2019. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
 
 In the meantime, if you find the GTDB-Tk useful please cite this GitHub page or the GTDB taxonomy:
 
@@ -254,7 +254,7 @@ In the meantime, if you find the GTDB-Tk useful please cite this GitHub page or 
  We also strongly encourage you to cite the following 3rd party dependencies:
 
 * Matsen FA, Kodner RB, Armbrust EV. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
-* Jain C, et al. 2017. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.biorxiv.org/content/early/2017/11/27/225342). <i>bioRxiv</i>, https://doi.org/10.1101/225342.
+* Jain C, et al. 2019. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.nature.com/articles/s41467-018-07641-9). <i>Nat. Communications</i>, doi: 10.1038/s41467-018-07641-9.
 * Hyatt D, et al. 2010. [Prodigal: prokaryotic gene recognition and translation initiation site identification](https://www.ncbi.nlm.nih.gov/pubmed/20211023). <i>BMC Bioinformatics</i>, 11:119. doi: 10.1186/1471-2105-11-119.
 * Price MN, Dehal PS, Arkin AP. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
 * Eddy SR. 2011. [Accelerated profile HMM searches](https://www.ncbi.nlm.nih.gov/pubmed/22039361). <i>PLOS Comp. Biol.</i>, 7:e1002195.

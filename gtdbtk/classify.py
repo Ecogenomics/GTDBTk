@@ -54,6 +54,7 @@ class Classify():
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
 
         self.taxonomy_file = Config.TAXONOMY_FILE
+        self.af_threshold = Config.AF_THRESHOLD
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
@@ -883,30 +884,39 @@ class Classify():
                 if pplacer_leafnode[0:3] in ['RS_', 'GB_']:
                     pplacer_leafnode = pplacer_leafnode[3:]
                 if userleaf.taxon.label in all_fastani_dict:
+                    # import IPython; IPython.embed()
+                    prefilter_reference_dictionary = {k:v for k, v in all_fastani_dict.get(userleaf.taxon.label).iteritems() if (v.get('ani') >= self.species_radius.get(k) and v.get('af') >= self.af_threshold) }
                     sorted_dict = sorted(all_fastani_dict.get(
-                        userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
-                    fastani_matching_reference = sorted_dict[0][0]
+                        userleaf.taxon.label).iteritems(), key=lambda(_x, y): (y['ani'], y['af']), reverse=True)
+                    sorted_prefilter_dict = sorted(prefilter_reference_dictionary.iteritems(), key=lambda(_x, y): (y['ani'], y['af']), reverse=True)
+
+                    fastani_matching_reference = None
+                    if len(sorted_prefilter_dict) > 0:
+                        fastani_matching_reference = sorted_prefilter_dict[0][0]
+                        current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
+                            fastani_matching_reference).get('ani')
+                        current_af = all_fastani_dict.get(userleaf.taxon.label).get(
+                            fastani_matching_reference).get('af')
+
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(pplacer_leafnode)))
 
                     summary_list[0] = userleaf.taxon.label
-                    summary_list[2] = fastani_matching_reference
-                    summary_list[3] = str(
-                        self.species_radius.get(fastani_matching_reference))
-                    summary_list[4] = ";".join(self.gtdb_taxonomy.get(
-                        add_ncbi_prefix(fastani_matching_reference)))
-                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('ani')
-                    summary_list[5] = round(current_ani, 2)
-                    summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('af')
+
                     summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
                     summary_list[12] = 'ANI/Placement'
                     summary_list[15] = self.aa_percent_msa(
                         msa_dict.get(summary_list[0]))
                     summary_list[16] = trans_table_dict.get(summary_list[0])
 
-                    if self.species_radius.get(fastani_matching_reference) <= current_ani:
+                    if fastani_matching_reference is not None:
+                        summary_list[2] = fastani_matching_reference
+                        summary_list[3] = str(
+                            self.species_radius.get(fastani_matching_reference))
+                        summary_list[4] = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(fastani_matching_reference)))
+                        summary_list[5] = round(current_ani, 2)
+                        summary_list[6] = current_af
                         if pplacer_leafnode == fastani_matching_reference:
                             if taxa_str.endswith("s__"):
                                 taxa_str = taxa_str + pplacer_leafnode
@@ -953,9 +963,18 @@ class Classify():
                             '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
                         classified_user_genomes.append(userleaf.taxon.label)
                     else:
+                        summary_list[7] = pplacer_leafnode
+                        summary_list[8] = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(pplacer_leafnode)))
+                        if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
+                            summary_list[9] = round(all_fastani_dict.get(
+                                userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
+                            summary_list[10] = all_fastani_dict.get(
+                                userleaf.taxon.label).get(pplacer_leafnode).get('af')
+
                         if len(sorted_dict) > 0:
                             other_ref = '; '.join(self._formatnote(
-                                sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
+                                sorted_dict, [pplacer_leafnode]))
                             if len(other_ref) == 0:
                                 summary_list[14] = None
                             else:
@@ -963,29 +982,42 @@ class Classify():
                         unclassified_user_genomes[userleaf.taxon.label] = summary_list
 
             elif userleaf.taxon.label in all_fastani_dict:
+                # import IPython; IPython.embed()
+                prefilter_reference_dictionary = {k:v for k, v in all_fastani_dict.get(userleaf.taxon.label).iteritems() if (v.get('ani') >= self.species_radius.get(k) and v.get('af') >= self.af_threshold) }
                 sorted_dict = sorted(all_fastani_dict.get(
-                    userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
-                fastani_matching_reference = sorted_dict[0][0]
-                taxa_str = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference))[:-1])
+                    userleaf.taxon.label).iteritems(), key=lambda(_x, y): (y['ani'], y['af']), reverse=True)
+                sorted_prefilter_dict = sorted(prefilter_reference_dictionary.iteritems(), key=lambda(_x, y): (y['ani'], y['af']), reverse=True)
+
                 summary_list[0] = userleaf.taxon.label
-                summary_list[1] = self.standardise_taxonomy(taxa_str)
-                summary_list[2] = fastani_matching_reference
-                summary_list[3] = str(
-                    self.species_radius.get(fastani_matching_reference))
-                summary_list[4] = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference)))
-                current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                    fastani_matching_reference).get('ani')
-                summary_list[5] = round(current_ani, 2)
-                summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
-                    fastani_matching_reference).get('af')
                 summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
                 summary_list[12] = 'ANI/Placement'
                 summary_list[15] = self.aa_percent_msa(
-                        msa_dict.get(summary_list[0]))
+                            msa_dict.get(summary_list[0]))
                 summary_list[16] = trans_table_dict.get(summary_list[0])
-                if self.species_radius.get(fastani_matching_reference) <= current_ani:
+                fastani_matching_reference = None
+                if len(sorted_prefilter_dict) > 0:
+                    fastani_matching_reference = sorted_prefilter_dict[0][0]
+                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('ani')
+                    current_af = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('af')
+
+                    taxa_str = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(fastani_matching_reference))[:-1])
+
+                    summary_list[1] = self.standardise_taxonomy(taxa_str)
+                    summary_list[2] = fastani_matching_reference
+                    summary_list[3] = str(
+                        self.species_radius.get(fastani_matching_reference))
+                    summary_list[4] = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(fastani_matching_reference)))
+                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('ani')
+                    summary_list[5] = round(current_ani, 2)
+                    current_af = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('af')
+                    summary_list[6] = current_af
+
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(fastani_matching_reference)))
                     summary_list[1] = self.standardise_taxonomy(
@@ -1007,7 +1039,7 @@ class Classify():
                 else:
                     if len(sorted_dict) > 0:
                         other_ref = '; '.join(self._formatnote(
-                            sorted_dict, [fastani_matching_reference]))
+                            sorted_dict, []))
                         if len(other_ref) == 0:
                             summary_list[14] = None
                         else:
@@ -1187,48 +1219,68 @@ class Classify():
         try:
             self.tmp_output_dir = tempfile.mkdtemp()
             make_sure_path_exists(self.tmp_output_dir)
+            dict_parser_distance = {}
 
+            # we first calculate the user genome vs the reference
             # we write the two input files for fastani, the query file and
             # reference file
-            path_query_list = os.path.join(
+            path_user_list = os.path.join(
                 self.tmp_output_dir, 'query_list.txt')
-            with open(path_query_list, 'w') as f:
+            with open(path_user_list, 'w') as f:
                 f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
 
-            path_ref_list = os.path.join(self.tmp_output_dir, 'ref_list.txt')
-            with open(path_ref_list, 'w') as f:
-                leafnodes = list_leaf.get("potential_g")
-                for node in leafnodes:
-                    leafnode = node[0]
-                    shortleaf = leafnode.taxon.label
-                    if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
-                        shortleaf = leafnode.taxon.label[3:]
+            leafnodes = list_leaf.get("potential_g")
+            for node in leafnodes:
+                leafnode = node[0]
+                shortleaf = leafnode.taxon.label
+                path_ref_list = os.path.join(self.tmp_output_dir, 'ref_{}.txt'.format(shortleaf))
+                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
+                    shortleaf = leafnode.taxon.label[3:]
+                with open(path_ref_list, 'w') as f:
                     f.write('{}\n'.format(os.path.join(
                         Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
+                # run fastANI
+                if not os.path.isfile(path_user_list) or not os.path.isfile(path_ref_list):
+                    raise
 
-            # run fastANI
-            if not os.path.isfile(path_query_list) or not os.path.isfile(path_ref_list):
-                raise
+                path_results = os.path.join(self.tmp_output_dir, 'results_{}_UvsRef.tab'.format(shortleaf))
+                path_error = os.path.join(self.tmp_output_dir, 'error_{}.log'.format(shortleaf))
 
-            path_results = os.path.join(self.tmp_output_dir, 'results.tab')
-            path_error = os.path.join(self.tmp_output_dir, 'error.log')
-
-            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_query_list,
+                cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_user_list,
                                                                               path_ref_list,
                                                                               path_results,
                                                                               path_error)
-            os.system(cmd)
 
-            if not os.path.isfile(path_results):
-                errstr = 'FastANI has stopped:\n'
-                if os.path.isfile(path_error):
-                    with open(path_error) as debug:
-                        for line in debug:
-                            finalline = line
-                        errstr += finalline
-                raise ValueError(errstr)
+                os.system(cmd)
 
-            dict_parser_distance = self._parse_fastani_results(path_results)
+                if not os.path.isfile(path_results):
+                    errstr = 'FastANI has stopped:\n'
+                    if os.path.isfile(path_error):
+                        with open(path_error) as debug:
+                            for line in debug:
+                                finalline = line
+                            errstr += finalline
+                    raise ValueError(errstr)
+
+                dict_parser_distance = self._parse_fastani_results(path_results, dict_parser_distance)
+
+                # We then calculate the reference vs user genome
+                path_results_reverse = os.path.join(self.tmp_output_dir, 'results_{}_RefvsU.tab'.format(shortleaf))
+                cmd_reverse = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_ref_list,
+                                                                                  path_user_list,
+                                                                                  path_results_reverse,
+                                                                                  path_error)
+                os.system(cmd_reverse)
+                if not os.path.isfile(path_results_reverse):
+                    errstr = 'FastANI has stopped:\n'
+                    if os.path.isfile(path_error):
+                        with open(path_error) as debug:
+                            for line in debug:
+                                finalline = line
+                            errstr += finalline
+                    raise ValueError(errstr)
+                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse, dict_parser_distance)
+
             shutil.rmtree(self.tmp_output_dir)
             return dict_parser_distance
 
@@ -1241,7 +1293,7 @@ class Classify():
                 shutil.rmtree(self.tmp_output_dir)
             raise error
 
-    def _parse_fastani_results(self, fastout_file):
+    def _parse_fastani_results(self, fastout_file, dict_results):
         """ Parse the fastani output file
 
 
@@ -1255,7 +1307,6 @@ class Classify():
         dictionary
             dict_results[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         """
-        dict_results = {}
         with open(fastout_file) as fastfile:
             for line in fastfile:
                 info = line.strip().split()
@@ -1270,6 +1321,43 @@ class Classify():
                     dict_results[user_g] = {ref_genome: {"ani": ani, "af": af}}
 
         return dict_results
+
+    def _parse_fastani_results_reverse(self, fastout_file, dict_parser_distance):
+        # TODO: Merge _parse_fastani_results and _parse_fastani_results_reverse
+        """ Parse the fastani output file for the reverse comparison and pick the best ANI and AF
+
+
+        Parameters
+        ----------
+        fastout_file : fastani output file.
+        dict_parser_distance: dictionaryof user genomes vs list of refrence genomes with ANI and AF
+
+
+        Returns
+        -------
+        dictionary
+            dict_parser_distance[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
+        """
+        with open(fastout_file) as fastfile:
+            for line in fastfile:
+                info = line.strip().split()
+                ref_genome = os.path.basename(info[0]).replace(
+                    Config.FASTANI_GENOMES_EXT, "")
+                user_g = remove_extension(os.path.basename(info[1]))
+                ani = float(info[2])
+                af = round(float(info[3]) / float(info[4]), 2)
+                if user_g in dict_parser_distance:
+                    if ref_genome in dict_parser_distance.get(user_g):
+                        if dict_parser_distance.get(user_g).get(ref_genome).get('ani') < ani :
+                            dict_parser_distance[user_g][ref_genome]["ani"] = ani
+                        if dict_parser_distance.get(user_g).get(ref_genome).get('af') < af :
+                            dict_parser_distance[user_g][ref_genome]["af"] = af
+                    else:
+                        dict_parser_distance[user_g][ref_genome] = {"ani": ani, 'af': af}
+                else:
+                    dict_parser_distance[user_g] = {ref_genome: {"ani": ani, "af": af}}
+
+        return dict_parser_distance
 
     def _filter_taxa_for_dist_inference(self, tree, taxonomy, trusted_taxa, min_children, min_support):
         """Determine taxa to use for inferring distribution of relative divergences.

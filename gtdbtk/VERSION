@@ -1,3 +1,8 @@
+0.3.2
+- Classify step is now taking the alignement fraction into account.
+- Assigning precalcualted RED value to the tree now takes seconds.
+- FastANI now runs G1vsG2 and G2vsG1 and takes the best value.
+- Logging has been improved.
 0.3.1
 - pplacer taxonomy added to the summary file.
 - FastANI result is selected over pplacer topology.
