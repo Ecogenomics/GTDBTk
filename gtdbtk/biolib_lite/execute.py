@@ -155,5 +155,4 @@ def check_dependencies(programs, exit_on_fail=True):
     for program in programs:
         if not check_on_path(program, exit_on_fail):
             return False
-
     return True

@@ -47,7 +47,7 @@ def generateTempTableName():
 
 
 def merge_two_dicts(x, y):
-    '''Given two dicts, merge them into a new dict as a shallow copy.'''
+    """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
     z.update(y)
     return z
@@ -55,6 +55,7 @@ def merge_two_dicts(x, y):
 
 def sha256(input_file):
     """Determine SHA256 hash for file.
+
     Parameters
     ----------
     input_file : str

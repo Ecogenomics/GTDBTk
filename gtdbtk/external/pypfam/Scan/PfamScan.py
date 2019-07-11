@@ -19,12 +19,12 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime
 
 from ..HMM.HMMResults import HMMResults
 from ..HMM.HMMResultsIO import HMMResultsIO
 from ..HMM.HMMSequence import HMMSequence
 from ..HMM.HMMUnit import HMMUnit
-from datetime import datetime
 
 
 class PfamScan(object):
@@ -367,7 +367,7 @@ class PfamScan(object):
 
             proc = subprocess.Popen(params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             proc_out, proc_err = proc.communicate()
-            proc_out_ascii = proc_out.decode().encode('utf-8')
+            proc_out_ascii = proc_out
 
             if proc_err:
                 sys.exit('An error was encountered while running hmmsearch: %s' % proc_err)

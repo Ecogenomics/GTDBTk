@@ -42,13 +42,15 @@ from gtdbtk.exceptions import *
 class OptionsParser(object):
 
     def __init__(self, version):
-        """Initialization."""
+        """Initialization.
+
+        Parameters
+        ----------
+        version : str
+            The current version number (e.g. 0.2.2).
+        """
         self.logger = logging.getLogger('timestamp')
         self.version = version
-
-        self.logger.warning(
-            "Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
-
         self._check_package_compatibility()
 
     def _check_package_compatibility(self):
@@ -62,7 +64,23 @@ class OptionsParser(object):
                                 'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
 
     def _verify_genome_id(self, genome_id):
-        """Ensure genome ID will be valid in Newick tree."""
+        """Ensure genome ID will be valid in Newick tree.
+
+        Parameters
+        ----------
+        genome_id : str
+            The string representing the genome identifier.
+
+        Returns
+        -------
+        bool
+            True if the genome identifier is legal.
+
+        Raises
+        ------
+        GenomeNameInvalid
+            If the genome identifier contains illegal characters.
+        """
 
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
@@ -77,11 +95,11 @@ class OptionsParser(object):
         Parameters
         ----------
         genome_dir : str
-          Directory containing genomes.
+            Directory containing genomes.
         batchfile : str
-          File describing genomes.
+            File describing genomes.
         extension : str
-          Extension of files to process.
+            Extension of files to process.
 
         Returns
         -------
@@ -141,7 +159,24 @@ class OptionsParser(object):
         return genomic_files
 
     def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
-        """Get unique identifier for marker set."""
+        """Get unique identifier for marker set.
+
+        Parameters
+        ----------
+        bac120_ms : bool
+        ar122_ms : bool
+        rps23_ms : bool
+
+        Returns
+        -------
+        str
+            The unique identifier for the marker set.
+
+        Raises
+        ------
+        GenomeMarkerSetUnknown
+            If the marker set is unknown.
+        """
 
         if bac120_ms:
             marker_set_id = "bac120"
@@ -149,11 +184,19 @@ class OptionsParser(object):
             marker_set_id = "ar122"
         elif rps23_ms:
             marker_set_id = "rps23"
-
+        else:
+            self.logger.error('No marker set specified.')
+            raise GenomeMarkerSetUnknown('No marker set specified.')
         return marker_set_id
 
     def identify(self, options):
-        """Identify marker genes in genomes."""
+        """Identify marker genes in genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -175,7 +218,13 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def align(self, options):
-        """Create MSA from marker genes."""
+        """Create MSA from marker genes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
 
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
@@ -202,7 +251,13 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def infer(self, options):
-        """Infer tree from MSA."""
+        """Infer a tree from a user specified MSA.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
 
         check_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
@@ -265,7 +320,23 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def run_test(self, options):
-        """Run test of classify workflow."""
+        """Run test of classify workflow.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+
+        Returns
+        -------
+        bool
+            True if the test succeeds.
+
+        Raises
+        ------
+        GTDBTkTestFailure
+            If the test fails.
+        """
 
         make_sure_path_exists(options.out_dir)
 
@@ -295,7 +366,13 @@ class OptionsParser(object):
         self.logger.info('Test has successfully finished.')
 
     def classify(self, options):
-        """Determine taxonomic classification of genomes."""
+        """Determine taxonomic classification of genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
 
         check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
@@ -317,7 +394,13 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def trim_msa(self, options):
-        """ Trim an untrimmed archaea or bacterial MSA file."""
+        """ Trim an untrimmed archaea or bacterial MSA file.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         if options.reference_mask in ['bac', 'arc']:
             mask_type = "reference"
             mask_id = options.reference_mask
@@ -330,14 +413,26 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def export_msa(self, options):
-        """Export the untrimmed archaeal or bacterial MSA file."""
+        """Export the untrimmed archaeal or bacterial MSA file.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         misc = Misc()
         misc.export_msa(options.domain, options.output)
 
         self.logger.info('Done.')
 
     def root(self, options):
-        """Root tree using outgroup."""
+        """Root tree using outgroup.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
         self.logger.warning("Tree rooting is still under development!")
 
         check_file_exists(options.input_tree)
@@ -373,14 +468,26 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def check_install(self):
-        """ Verify all GTDB-Tk data files are present."""
+        """ Verify all GTDB-Tk data files are present.
+
+        Raises
+        ------
+        ReferenceFileMalformed
+            If one or more reference files are malformed.
+        """
         self.logger.info("Running install verification")
         misc = Misc()
         misc.check_install()
         self.logger.info('Done.')
 
     def decorate(self, options):
-        """Decorate tree with GTDB taxonomy."""
+        """Decorate tree with GTDB taxonomy.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
 
         check_file_exists(options.input_tree)
 
@@ -389,14 +496,17 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def parse_options(self, options):
-        """Parse user options and call the correct pipeline(s)"""
+        """Parse user options and call the correct pipeline(s)
 
-        if(options.subparser_name == 'de_novo_wf'):
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
-            if (options.cpus > 1):
-                check_dependencies(['FastTreeMP'])
-            else:
-                check_dependencies(['FastTree'])
+            check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
             self.identify(options)
 
@@ -441,7 +551,7 @@ class OptionsParser(object):
             self.root(options)
             self.decorate(options)
 
-        elif(options.subparser_name == 'classify_wf'):
+        elif options.subparser_name == 'classify_wf':
             check_dependencies(
                 ['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])
             self.identify(options)
@@ -461,25 +571,25 @@ class OptionsParser(object):
             self.align(options)
 
             self.classify(options)
-        elif (options.subparser_name == 'identify'):
+        elif options.subparser_name == 'identify':
             self.identify(options)
-        elif(options.subparser_name == 'align'):
+        elif options.subparser_name == 'align':
             self.align(options)
-        elif(options.subparser_name == 'infer'):
+        elif options.subparser_name == 'infer':
             self.infer(options)
-        elif(options.subparser_name == 'classify'):
+        elif options.subparser_name == 'classify':
             self.classify(options)
-        elif(options.subparser_name == 'root'):
+        elif options.subparser_name == 'root':
             self.root(options)
-        elif(options.subparser_name == 'decorate'):
+        elif options.subparser_name == 'decorate':
             self.decorate(options)
-        elif(options.subparser_name == 'trim_msa'):
+        elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
-        elif(options.subparser_name == 'export_msa'):
+        elif options.subparser_name == 'export_msa':
             self.export_msa(options)
-        elif(options.subparser_name == 'test'):
+        elif options.subparser_name == 'test':
             self.run_test(options)
-        elif(options.subparser_name == 'check_install'):
+        elif options.subparser_name == 'check_install':
             self.check_install()
         else:
             self.logger.error('Unknown GTDB-Tk command: "' +

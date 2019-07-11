@@ -45,7 +45,7 @@ from tools import add_ncbi_prefix, splitchunks, symlink_f
 sys.setrecursionlimit(15000)
 
 
-class Classify():
+class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
     def __init__(self, cpus=1):
@@ -122,6 +122,9 @@ class Classify():
                 'Placing {} genomes into reference tree with pplacer (be patient).'.format(num_genomes))
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
+        else:
+            self.logger.error('Unknown marker set: {}'.format(marker_set_id))
+            raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(marker_set_id))
 
         # create pplacer output directory
         pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
@@ -171,7 +174,10 @@ class Classify():
 
         Parameters
         ----------
-        tax_string : incomplete taxonomy string
+        taxstring : str
+            incomplete taxonomy string
+        marker_set : str
+            The marker set to use.
 
         Returns
         -------
@@ -294,7 +300,7 @@ class Classify():
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
-            if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
+            if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
                     # file will not exist if there are no User genomes from a
                     # given domain
                 continue
@@ -660,7 +666,6 @@ class Classify():
             else:
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
-
 
             if debugopt:
                 debugfile.close()

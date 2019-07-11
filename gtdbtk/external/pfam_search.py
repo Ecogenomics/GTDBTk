@@ -57,8 +57,8 @@ class PfamSearch(object):
 
         Parameters
         ----------
-        tigrfam_file : str
-            Name of file containing hits to TIGRFAM HMMs.
+        pfam_file : str
+            Name of file containing hits to PFAM HMMs.
         """
 
         assembly_dir, filename = os.path.split(pfam_file)

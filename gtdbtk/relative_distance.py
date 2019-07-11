@@ -38,7 +38,8 @@ from numpy import (mean as np_mean,
                    histogram as np_histogram)
 
 
-class RelativeDistance():
+
+class RelativeDistance(object):
     """Determine relative rates of evolutionary divergence.
 
     This code is based on Phylorank: https://github.com/dparks1134/PhyloRank 
@@ -203,7 +204,7 @@ class RelativeDistance():
 
             for b in [-0.2, -0.1, 0.1, 0.2]:
                 boundary = p50 + b
-                if boundary < 1.0 and boundary > 0.0:
+                if 1.0 > boundary > 0.0:
                     if abs(b) == 0.1:
                         c = (1.0, 0.65, 0.0)  # orange
                     else:

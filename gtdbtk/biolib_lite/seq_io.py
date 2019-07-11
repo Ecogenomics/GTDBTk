@@ -213,7 +213,7 @@ def write_fasta(seqs, fasta_file, wrap=80):
 
     Parameters
     ----------
-    dict : dict[seq_id] -> seq
+    seqs : dict[seq_id] -> seq
         Sequences indexed by sequence id.
     fasta_file : str
         Path to write the sequences to.

@@ -34,18 +34,18 @@ from .exceptions import BioLibFileNotFound, BioLibDirNotFound, BioLibIOException
 
 
 def is_float(s):
-    # type: (str) -> bool
     """Check if a string can be converted to a float.
+
     Parameters
     ----------
     s : str
         String to evaluate.
+
     Returns
     -------
     boolean
         True if string can be converted, else False.
     """
-
     try:
         float(s)
     except ValueError:
@@ -55,7 +55,23 @@ def is_float(s):
 
 
 def check_file_exists(input_file):
-    """Check if file exists."""
+    """Assert that a file exists.
+
+    Parameters
+    ----------
+    input_file : str
+        The path to file being checked.
+
+    Returns
+    -------
+    bool
+        True if the directory exists.
+
+    Raises
+    ------
+    BioLibFileNotFound
+        If the file doesn't exist.
+    """
     if not os.path.exists(input_file) or not os.path.isfile(input_file):
         logger = logging.getLogger('timestamp')
         logger.error('Input file does not exist: ' + input_file + '\n')
@@ -64,7 +80,23 @@ def check_file_exists(input_file):
 
 
 def check_dir_exists(input_dir):
-    """Check if directory exists."""
+    """Assert that a directory exists.
+
+    Parameters
+    ----------
+    input_dir : str
+        The path to the directory being checked.
+
+    Returns
+    -------
+    bool
+        True if the directory exists.
+
+    Raises
+    ------
+    BioLibDirNotFound
+        If the directory doesn't exist.
+    """
     if not os.path.exists(input_dir) or not os.path.isdir(input_dir):
         logger = logging.getLogger('timestamp')
         logger.error('Input directory does not exist: ' + input_dir + '\n')
@@ -73,8 +105,23 @@ def check_dir_exists(input_dir):
 
 
 def make_sure_path_exists(path):
-    """Create directory if it does not exist."""
+    """Create directory if it does not exist.
 
+    Parameters
+    ----------
+    path : str
+        The path to the directory which should be created.
+
+    Returns
+    -------
+    bool
+        True if the path exists.
+
+    Raises
+    ------
+    BioLibIOException
+        If an error was encountered while creating the directory.
+    """
     if not path:
         # lack of a path qualifier is acceptable as this
         # simply specifies the current directory
@@ -93,11 +140,20 @@ def make_sure_path_exists(path):
 
 
 def remove_extension(filename, extension=None):
-    # type: (str, str) -> str
-    """Remove extension from filename.
-    A specific extension can be specified, otherwise
-    the extension is taken as all characters after the
-    last period.
+    """Remove extension from filename. A specific extension can be specified,
+    otherwise the extension is taken as all characters after the last period.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file in which the extension will be removed.
+    extension : str, optional
+        The extension to be removed.
+
+    Returns
+    -------
+    str
+        The name of the file with the extension removed.
     """
     f = ntpath.basename(filename)
 

@@ -63,7 +63,7 @@ class Prodigal(object):
 
         Parameters
         ----------
-        genome_file : queue
+        genome_file : str
             Fasta file for genome.
         """
 
