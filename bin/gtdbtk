@@ -38,7 +38,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
 import traceback
-
+import logging
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.exceptions import *
@@ -440,6 +440,7 @@ if __name__ == '__main__':
         logger_setup(args.out_dir, "gtdbtk.log", "GTDB-Tk", version(), False)
     else:
         logger_setup(None, "gtdbtk.log", "GTDB-Tk", version(), False)
+    logger = logging.getLogger('timestamp')
 
     #-------------------------------------------------
     # do what we came here to do
@@ -451,23 +452,28 @@ if __name__ == '__main__':
         else:
             gt_parser.parse_options(args)
     except SystemExit:
-        print('\nControlled exit resulting from early termination.')
+        logger.error('Controlled exit resulting from early termination.')
+        sys.exit(1)
     except KeyboardInterrupt:
-        print('\nControlled exit resulting from interrupt signal.')
+        logger.error('Controlled exit resulting from interrupt signal.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
-        last_stack = traceback.extract_tb(sys.exc_info()[-1])[-1]
-        print('[{}] {} (line {} of {})'.format(type(e).__name__.center(19, ' '), e.message, last_stack[1], last_stack[0]))
-        print("\nControlled exit resulting from an unrecoverable error or warning.")
+        msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
+        msg += '=' * 80 + '\n'
+        msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
+        msg += '  MESSAGE: {}\n'.format(e.message)
+        msg += '_' * 80 + '\n\n'
+        msg += traceback.format_exc()
+        msg += '=' * 80
+        logger.error(msg)
         sys.exit(1)
     except Exception as e:
-        print("\nUncontrolled exit resulting from an unexpected error.")
-        print('')
-        print('=' * 100)
-        print('EXCEPTION: %s' % type(e).__name__)
-        print('  MESSAGE: %s' % e.message)
-        print('_' * 100)
-        print('')
-        traceback.print_tb(sys.exc_info()[2])
-        print('=' * 100)
+        msg = 'Uncontrolled exit resulting from an unexpected error.\n\n'
+        msg += '=' * 80 + '\n'
+        msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
+        msg += '  MESSAGE: {}\n'.format(e.message)
+        msg += '_' * 80 + '\n\n'
+        msg += traceback.format_exc()
+        msg += '=' * 80
+        logger.error(msg)
         sys.exit(1)

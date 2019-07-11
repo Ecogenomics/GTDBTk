@@ -11,11 +11,12 @@ except KeyError:
     print('\n' + '=' * 80)
     print(' ERROR '.center(80))
     print('_' * 80 + '\n')
-    print("'The GTDBTK_DATA_PATH' environment variable is not defined.".center(80) + '\n')
+    print("The 'GTDBTK_DATA_PATH' environment variable is not defined.".center(80) + '\n')
     print('Please set this variable to your reference data package.'.center(80))
     print('https://github.com/Ecogenomics/GTDBTk#installation'.center(80))
     print('=' * 80)
     sys.exit(1)
+
 
 ############################
 # If all downloaded data is in the same folder
@@ -62,6 +63,7 @@ except IOError:
     print('https://github.com/Ecogenomics/GTDBTk#gtdb-tk-reference-data'.center(80))
     print('=' * 80)
     sys.exit(1)
+
 
 # Relative Evolution Distance
 RED_MIN_SUPPORT = 0.0
