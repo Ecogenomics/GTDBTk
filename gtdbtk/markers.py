@@ -318,7 +318,8 @@ class Markers(object):
 
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
 
-        mask = open(msa_mask).readline().strip()
+        with open(msa_mask, 'r') as f:
+            mask = f.readline().strip()
         list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
 
         if len(mask) != len(aligned_genomes.values()[0]):

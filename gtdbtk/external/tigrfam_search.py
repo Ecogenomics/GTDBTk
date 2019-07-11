@@ -62,20 +62,21 @@ class TigrfamSearch(object):
                                                                                        self.tigrfam_top_hit_suffix))
 
         tophits = {}
-        for line in open(tigrfam_file):
-            if line[0] == '#':
-                continue
+        with open(tigrfam_file, 'r') as fh_tigrfam:
+            for line in fh_tigrfam:
+                if line[0] == '#':
+                    continue
 
-            line_split = line.split()
-            gene_id = line_split[0]
-            hmm_id = line_split[3]
-            evalue = float(line_split[4])
-            bitscore = float(line_split[5])
-            if gene_id in tophits:
-                if bitscore > tophits[gene_id][2]:
+                line_split = line.split()
+                gene_id = line_split[0]
+                hmm_id = line_split[3]
+                evalue = float(line_split[4])
+                bitscore = float(line_split[5])
+                if gene_id in tophits:
+                    if bitscore > tophits[gene_id][2]:
+                        tophits[gene_id] = (hmm_id, evalue, bitscore)
+                else:
                     tophits[gene_id] = (hmm_id, evalue, bitscore)
-            else:
-                tophits[gene_id] = (hmm_id, evalue, bitscore)
 
         fout = open(output_tophit_file, 'w')
         fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')

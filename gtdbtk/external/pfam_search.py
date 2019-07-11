@@ -67,23 +67,24 @@ class PfamSearch(object):
                                                                                        self.pfam_top_hit_suffix))
 
         tophits = defaultdict(dict)
-        for line in open(pfam_file):
-            if line[0] == '#' or not line.strip():
-                continue
+        with open(pfam_file, 'r') as fh_pfam:
+            for line in fh_pfam:
+                if line[0] == '#' or not line.strip():
+                    continue
 
-            line_split = line.split()
-            gene_id = line_split[0]
-            hmm_id = line_split[5]
-            evalue = float(line_split[12])
-            bitscore = float(line_split[11])
-            if gene_id in tophits:
-                if hmm_id in tophits[gene_id]:
-                    if bitscore > tophits[gene_id][hmm_id][1]:
+                line_split = line.split()
+                gene_id = line_split[0]
+                hmm_id = line_split[5]
+                evalue = float(line_split[12])
+                bitscore = float(line_split[11])
+                if gene_id in tophits:
+                    if hmm_id in tophits[gene_id]:
+                        if bitscore > tophits[gene_id][hmm_id][1]:
+                            tophits[gene_id][hmm_id] = (evalue, bitscore)
+                    else:
                         tophits[gene_id][hmm_id] = (evalue, bitscore)
                 else:
                     tophits[gene_id][hmm_id] = (evalue, bitscore)
-            else:
-                tophits[gene_id][hmm_id] = (evalue, bitscore)
 
         fout = open(output_tophit_file, 'w')
         fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
