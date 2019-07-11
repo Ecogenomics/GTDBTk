@@ -118,6 +118,8 @@ DEFAULT_DOMAIN_THRESHOLD = 10.0
 AR_MARKER_COUNT = 122
 BAC_MARKER_COUNT = 120
 
+# Information about Alignement Fraction to resolve fastANI results
+AF_THRESHOLD = 0.65
 
 # MSA file names
 CONCAT_BAC120 = os.path.join(
