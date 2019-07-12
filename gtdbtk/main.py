@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import logging
 import shutil
+import subprocess
 import sys
 
 import config.config as Config
@@ -345,27 +346,42 @@ class OptionsParser(object):
         output_dir = os.path.join(options.out_dir, 'output')
         genome_test_dir = os.path.join(options.out_dir, 'genomes')
         if os.path.exists(genome_test_dir):
-            self.logger.error('Test directory {} already exists. Test must be run with a new directory.'.format(
-                genome_test_dir))
-            sys.exit(-1)
+            self.logger.error('Test directory {} already exists'.format(genome_test_dir))
+            self.logger.error('Test must be run in a new directory.')
+            sys.exit(1)
 
         current_path = os.path.dirname(os.path.realpath(__file__))
         input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
 
         shutil.copytree(input_dir, genome_test_dir)
 
-        cmd = 'gtdbtk classify_wf --genome_dir {} --out_dir {} --cpus {}'.format(
-            genome_test_dir, output_dir, options.cpus)
-        print("Command:")
-        print(cmd)
-        os.system(cmd)
+        args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
+                '--out_dir', output_dir, '--cpus', str(options.cpus)]
+        self.logger.info('Command: {}'.format(' '.join(args)))
+
+        path_stdout = os.path.join(options.out_dir, 'test_execution.log')
+        with open(path_stdout, 'w') as fh_stdout:
+            proc = subprocess.Popen(args, stdout=fh_stdout,
+                                    stderr=subprocess.PIPE)
+            proc.communicate()
+
         summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
 
+        if proc.returncode != 0:
+            self.logger.error('The test returned a non-zero exit code.')
+            self.logger.error('A detailed summary of the execution log can be '
+                              'found here: {}'.format(path_stdout))
+            self.logger.error('The test has failed.')
+            sys.exit(1)
         if not os.path.exists(summary_file):
-            print("{} is missing.\nTest has failed.".format(summary_file))
-            sys.exit(-1)
+            self.logger.error("{} is missing.".format(summary_file))
+            self.logger.error('A detailed summary of the execution log can be '
+                              'found here: {}'.format(path_stdout))
+            self.logger.error('The test has failed.')
+            sys.exit(1)
 
         self.logger.info('Test has successfully finished.')
+        return True
 
     def classify(self, options):
         """Determine taxonomic classification of genomes.

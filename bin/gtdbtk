@@ -460,7 +460,7 @@ if __name__ == '__main__':
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
         msg += '=' * 80 + '\n'
         msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
-        msg += '  MESSAGE: {}\n'.format(e.message)
+        msg += '  MESSAGE: {}\n'.format(e)
         msg += '_' * 80 + '\n\n'
         msg += traceback.format_exc()
         msg += '=' * 80
@@ -470,7 +470,7 @@ if __name__ == '__main__':
         msg = 'Uncontrolled exit resulting from an unexpected error.\n\n'
         msg += '=' * 80 + '\n'
         msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
-        msg += '  MESSAGE: {}\n'.format(e.message)
+        msg += '  MESSAGE: {}\n'.format(e)
         msg += '_' * 80 + '\n\n'
         msg += traceback.format_exc()
         msg += '=' * 80
