@@ -320,6 +320,11 @@ class OptionsParser(object):
             cmd = 'FastTree ' + cmd
         os.system(cmd)
 
+        if options.subparser_name == 'infer':
+            symlink_f(output_tree[len(options.out_dir) + 1:],
+                      os.path.join(options.out_dir,
+                                   os.path.basename(output_tree)))
+
         self.logger.info('Done.')
 
     def run_test(self, options):
