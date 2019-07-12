@@ -29,17 +29,17 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'uqpchaum@uq.edu.au'
 __status__ = 'Development'
 
-import os
 import argparse
-import sys
+import glob
 import logging
-from biolib.seq_io import read_fasta
+import os
+import sys
+from shutil import copyfile
+
+import dendropy
 from biolib.logger import logger_setup
 from biolib.misc.custom_help_formatter import CustomHelpFormatter
-
-import glob
-import dendropy
-from shutil import copyfile
+from biolib.seq_io import read_fasta
 
 
 class OptionsParser():
@@ -306,19 +306,19 @@ if __name__ == "__main__":
 
     # generate convert genomic file for GTDB website
     fastani_convert_parser = subparsers.add_parser('convert_fastani_genomes',
-                                                  formatter_class=CustomHelpFormatter,
-                                                  description='rename Genomic.fna files to UBAs or GCAs.')
+                                                   formatter_class=CustomHelpFormatter,
+                                                   description='rename Genomic.fna files to UBAs or GCAs.')
     fastani_convert_parser.add_argument('--input', dest="dirin",
-                        required=True, help='path to taxonomy file.')
+                                        required=True, help='path to taxonomy file.')
     fastani_convert_parser.add_argument('--output', dest="dirout",
-                        required=True, help='path to processed output file')
+                                        required=True, help='path to processed output file')
     fastani_convert_parser.add_argument(
         '--silent', help="suppress output", action='store_true')
 
-        # generate convert genomic file for GTDB website
+    # generate convert genomic file for GTDB website
     unroot_tree_parser = subparsers.add_parser('unroot_tree',
-                                                  formatter_class=CustomHelpFormatter,
-                                                  description='Unroot tree.')
+                                               formatter_class=CustomHelpFormatter,
+                                               description='Unroot tree.')
     unroot_tree_parser.add_argument('input_tree', help='')
     unroot_tree_parser.add_argument('output_tree', help='')
     unroot_tree_parser.add_argument(
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 
     # get and check options
     args = None
-    if(len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help'):
+    if (len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help'):
         print_help()
         sys.exit(0)
     else:
@@ -348,15 +348,17 @@ if __name__ == "__main__":
     # do what we came here to do
     try:
         parser = OptionsParser()
-        if(False):
+        if (False):
             # import pstats
             # p = pstats.Stats('prof')
             # p.sort_stats('cumulative').print_stats(10)
             # p.sort_stats('time').print_stats(10)
             import cProfile
+
             cProfile.run('parser.parse_options(args)', 'prof')
         elif False:
             import pdb
+
             pdb.run(parser.parse_options(args))
         else:
             parser.parse_options(args)

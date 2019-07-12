@@ -20,29 +20,28 @@
 from __future__ import print_function
 
 __author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2017"  
+__copyright__ = "Copyright 2017"
 __credits__ = ["Pierre Chaumeil"]
 __license__ = "GPL3"
 __maintainer__ = "Pierre Chaumeil"
 __email__ = "uqpchaum@uq.edu.au"
 __status__ = "Development"
 
-
 import argparse
 import sys
 import os
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
 import traceback
-
+import logging
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.exceptions import *
 from gtdbtk.biolib_lite.exceptions import BioLibError
+
 
 def printHelp():
     print('''\
@@ -74,24 +73,26 @@ def printHelp():
   Use: gtdbtk <command> -h for command specific help
     ''' % version())
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
-    parser.add_argument('-f', '--force', action="store_true", default=False, help="overwrite existing files without prompting.")
+    parser.add_argument('-f', '--force', action="store_true", default=False,
+                        help="overwrite existing files without prompting.")
 
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
-    
+
     # de novo workflow
     denovo_wf_parser = subparsers.add_parser('de_novo_wf', conflict_handler='resolve',
-                                            formatter_class=CustomHelpFormatter,
-                                            help='Infer de novo tree and decorate with GTDB taxonomy.')
-                                            
+                                             formatter_class=CustomHelpFormatter,
+                                             help='Infer de novo tree and decorate with GTDB taxonomy.')
+
     mutual_genome_denovo_wf = denovo_wf_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_denovo_wf.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory containing genome files in FASTA format") 
+                             help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
-    
+                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+
     mutual_ms_denovo_wf = denovo_wf_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_ms_denovo_wf.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--bac120_ms', action='store_true', help='use 120 bacterial marker genes')
@@ -99,375 +100,379 @@ if __name__ == '__main__':
 
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
     required_denovo_wf.add_argument('--outgroup_taxon', required=True,
-                                help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+                                    help="taxon to use as outgroup (e.g., p__Patescibacteria)")
     required_denovo_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
 
     optional_denovo_wf = denovo_wf_parser.add_argument_group('optional arguments')
     optional_denovo_wf.add_argument('-x', '--extension', default='fna',
                                     help='extension of files to process, gz = gzipped')
-                                    
+
     optional_denovo_wf.add_argument('--skip_gtdb_refs',
                                     action="store_true",
                                     help='do not include GTDB reference genomes in multiple sequence alignment')
     optional_denovo_wf.add_argument('--taxa_filter',
-                                       help=('filter GTDB genomes to taxa (comma separated) within '
-                                            + 'specific taxonomic groups (e.g., d__Bacteria '
-                                            + 'or p__Proteobacteria, p__Actinobacteria)'))
+                                    help=('filter GTDB genomes to taxa (comma separated) within '
+                                          + 'specific taxonomic groups (e.g., d__Bacteria '
+                                          + 'or p__Proteobacteria, p__Actinobacteria)'))
     optional_denovo_wf.add_argument('--min_perc_aa', type=float, default=10,
-                                       help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
+                                    help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
     optional_denovo_wf.add_argument('--custom_msa_filters', action="store_true",
-                                       help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
-                                                + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+                                    help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
+                                          + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
     optional_denovo_wf.add_argument('--cols_per_gene', type=int, default=42,
-                                       help='maximum number of columns to retain per gene')
+                                    help='maximum number of columns to retain per gene')
     optional_denovo_wf.add_argument('--min_consensus', type=float, default=25,
-                                       help='minimum percentage of the same amino acid required to retain column (inclusive bound)')
+                                    help='minimum percentage of the same amino acid required to retain column (inclusive bound)')
     optional_denovo_wf.add_argument('--max_consensus', type=float, default=95,
-                                       help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
+                                    help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_denovo_wf.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required to retain column (inclusive bound)')
+                                    help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_denovo_wf.add_argument('--rnd_seed', type=int, default=None,
-                                       help='random seed to use for selecting columns')
-                                                                        
-    optional_denovo_wf.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
+                                    help='random seed to use for selecting columns')
+
+    optional_denovo_wf.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'],
                                     help='protein substitution model for tree inference', default='WAG')
-    optional_denovo_wf.add_argument('--no_support', action="store_true", 
+    optional_denovo_wf.add_argument('--no_support', action="store_true",
                                     help="do not compute local support values using the Shimodaira-Hasegawa test")
-    optional_denovo_wf.add_argument('--no_gamma', action="store_true", 
+    optional_denovo_wf.add_argument('--no_gamma', action="store_true",
                                     help="do not rescale branch lengths to optimize the Gamma20 likelihood")
 
     optional_denovo_wf.add_argument('--custom_taxonomy_file',
                                     help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
-                                    
+
     optional_denovo_wf.add_argument('--prefix', default='gtdbtk',
                                     help='desired prefix for output files')
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
     optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
-                                      help='continue processing if an error occurrs on a single genome')
+                                    help='continue processing if an error occurrs on a single genome')
     optional_denovo_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
     # classify workflow
     classify_wf_parser = subparsers.add_parser('classify_wf', conflict_handler='resolve',
-                                            formatter_class=CustomHelpFormatter,
-                                            help='Classify genomes by placement in GTDB reference tree.')
-                                            
+                                               formatter_class=CustomHelpFormatter,
+                                               help='Classify genomes by placement in GTDB reference tree.')
+
     mutual_genome_classify_wf = classify_wf_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_classify_wf.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory containing genome files in FASTA format") 
+                             help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
 
     required_classify_wf = classify_wf_parser.add_argument_group('required named arguments')
     required_classify_wf.add_argument('--out_dir', required=True,
-                                    help="directory to output files")
+                                      help="directory to output files")
 
     optional_classify_wf = classify_wf_parser.add_argument_group('optional arguments')
     optional_classify_wf.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process, gz = gzipped')
+                                      help='extension of files to process, gz = gzipped')
     optional_classify_wf.add_argument('--min_perc_aa', type=float, default=10,
-                                       help='filter genomes with an insufficient percentage of AA in the MSA')
+                                      help='filter genomes with an insufficient percentage of AA in the MSA')
     optional_classify_wf.add_argument('--prefix', required=False, default='gtdbtk',
-                                    help='desired prefix for output files')
+                                      help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
-                                    help='number of CPUs to use')
+                                      help='number of CPUs to use')
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
-                                       help='continue processing if an error occurrs on a single genome')
+                                      help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
-    optional_classify_wf.add_argument('-r','--recalculate_red',action='store_true',
-                                        help='recalculate RED values based on the reference tree and all added user genomes')
-    optional_classify_wf.add_argument('-d','--debug', action="store_true",
-                                    help='create intermediate files for debugging purposes')
+    optional_classify_wf.add_argument('-r', '--recalculate_red', action='store_true',
+                                      help='recalculate RED values based on the reference tree and all added user genomes')
+    optional_classify_wf.add_argument('-d', '--debug', action="store_true",
+                                      help='create intermediate files for debugging purposes')
     optional_classify_wf.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-    
+                                      help="show help message")
+
     # identify marker genes in genomes
     identify_parser = subparsers.add_parser('identify', conflict_handler='resolve',
                                             formatter_class=CustomHelpFormatter,
                                             help='Identify marker genes in genome.')
-                          
+
     mutex_identify = identify_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutex_identify.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory containing genome files in FASTA format") 
+                             help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
-    
+                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+
     required_identify = identify_parser.add_argument_group('required named arguments')
     required_identify.add_argument('--out_dir', required=True,
-                                    help="directory to output files")
+                                   help="directory to output files")
 
     optional_identify = identify_parser.add_argument_group('optional arguments')
     optional_identify.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process, gz = gzipped')
+                                   help='extension of files to process, gz = gzipped')
     optional_identify.add_argument('--prefix', default='gtdbtk',
-                                    help='desired prefix for output files')
+                                   help='desired prefix for output files')
     optional_identify.add_argument('--cpus', default=1, type=int,
-                                    help='number of CPUs to use')
+                                   help='number of CPUs to use')
     optional_identify.add_argument('--force', action='store_const', const=True, default=False,
-                                    help='continue processing if an error occurrs on a single genome')
+                                   help='continue processing if an error occurrs on a single genome')
     optional_identify.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-    
+                                   help="show help message")
+
     # create multiple sequence alignment
     align_parser = subparsers.add_parser('align', conflict_handler='resolve',
                                          formatter_class=CustomHelpFormatter,
-                                         help='Create multiple sequence alignment.',)
+                                         help='Create multiple sequence alignment.', )
 
     required_align = align_parser.add_argument_group('required named arguments')
     required_align.add_argument('--identify_dir', required=True,
-                                       help="output directory of 'identify' command")
+                                help="output directory of 'identify' command")
     required_align.add_argument('--out_dir', required=True,
-                                       help='directory to output files')
+                                help='directory to output files')
 
     optional_align = align_parser.add_argument_group('optional arguments')
     optional_align.add_argument('--skip_gtdb_refs',
-                                    action="store_true",
-                                    help='do not include GTDB reference genomes in multiple sequence alignment')
+                                action="store_true",
+                                help='do not include GTDB reference genomes in multiple sequence alignment')
     optional_align.add_argument('--taxa_filter',
-                                       help=('filter GTDB genomes to taxa (comma separated) within '
-                                            + 'specific taxonomic groups (e.g., d__Bacteria '
-                                            + 'or p__Proteobacteria, p__Actinobacteria)'))
+                                help=('filter GTDB genomes to taxa (comma separated) within '
+                                      + 'specific taxonomic groups (e.g., d__Bacteria '
+                                      + 'or p__Proteobacteria, p__Actinobacteria)'))
     optional_align.add_argument('--min_perc_aa', type=float, default=10,
-                                       help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
-    
+                                help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
+
     mutual_genome_align = align_parser.add_argument_group('mutually exclusive optional arguments')
-    mutex_align_group = mutual_genome_align.add_mutually_exclusive_group()                           
+    mutex_align_group = mutual_genome_align.add_mutually_exclusive_group()
     mutex_align_group.add_argument('--custom_msa_filters', action="store_true",
-                                       help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
-                                                + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+                                   help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
+                                         + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
     mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
-                                       help=('skip trimming step and return the full MSAs'))
-                                                
+                                   help=('skip trimming step and return the full MSAs'))
+
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
-                                       help='maximum number of columns to retain per gene')
+                                help='maximum number of columns to retain per gene')
     optional_align.add_argument('--min_consensus', type=float, default=25,
-                                       help='minimum percentage of the same amino acid required to retain column (inclusive bound)')
+                                help='minimum percentage of the same amino acid required to retain column (inclusive bound)')
     optional_align.add_argument('--max_consensus', type=float, default=95,
-                                       help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
+                                help='maximum percentage of the same amino acid required to retain column (exclusive bound)')
     optional_align.add_argument('--min_perc_taxa', type=float, default=50,
-                                       help='minimum percentage of taxa required to retain column (inclusive bound)')
+                                help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_align.add_argument('--rnd_seed', type=int, default=None,
-                                       help='random seed to use for selecting columns')
-                                       
+                                help='random seed to use for selecting columns')
+
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
-                                       help='desired prefix for output files')
+                                help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
-                                    help='number of CPUs to use')
+                                help='number of CPUs to use')
     optional_align.add_argument('-h', '--help', action="help",
-                                       help="show help message")
-                                       
+                                help="show help message")
+
     # infer tree
     infer_parser = subparsers.add_parser('infer', conflict_handler='resolve',
                                          formatter_class=CustomHelpFormatter,
-                                         help='Infer tree from multiple sequence alignment.',)
+                                         help='Infer tree from multiple sequence alignment.', )
 
     required_infer = infer_parser.add_argument_group('required named arguments')
     required_infer.add_argument('--msa_file', required=True,
-                                    help="multiple sequence alignment in FASTA format")
+                                help="multiple sequence alignment in FASTA format")
     required_infer.add_argument('--out_dir', required=True,
-                                    help='directory to output files')
+                                help='directory to output files')
 
     optional_infer = infer_parser.add_argument_group('optional arguments')
-    optional_infer.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'], 
-                                    help='protein substitution model for tree inference', default='WAG')
-    optional_infer.add_argument('--no_support', action="store_true", 
-                                    help="do not compute local support values using the Shimodaira-Hasegawa test")
-    optional_infer.add_argument('--no_gamma', action="store_true", 
-                                    help="do not rescale branch lengths to optimize the Gamma20 likelihood")
+    optional_infer.add_argument('--prot_model', choices=['JTT', 'WAG', 'LG'],
+                                help='protein substitution model for tree inference', default='WAG')
+    optional_infer.add_argument('--no_support', action="store_true",
+                                help="do not compute local support values using the Shimodaira-Hasegawa test")
+    optional_infer.add_argument('--no_gamma', action="store_true",
+                                help="do not rescale branch lengths to optimize the Gamma20 likelihood")
     optional_infer.add_argument('--prefix', required=False, default='gtdbtk',
-                                    help='desired prefix for output files')
+                                help='desired prefix for output files')
     optional_infer.add_argument('--cpus', default=1, type=int,
-                                    help='number of CPUs to use')
+                                help='number of CPUs to use')
     optional_infer.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-                                    
+                                help="show help message")
+
     # classify genomes via placement with pplacer
     classify_parser = subparsers.add_parser('classify', conflict_handler='resolve',
-                                         formatter_class=CustomHelpFormatter,
-                                         help='Determine taxonomic classification of genomes.',)
+                                            formatter_class=CustomHelpFormatter,
+                                            help='Determine taxonomic classification of genomes.', )
 
     mutual_genome_classify = classify_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_genome_classify.add_mutually_exclusive_group(required=True)
     mutex_group.add_argument('--genome_dir',
-                                help="directory containing genome files in FASTA format") 
+                             help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                                help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
-    
+                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+
     required_classify = classify_parser.add_argument_group('required named arguments')
     required_classify.add_argument('--align_dir', required=True,
-                                    help="output directory of 'align' command")
+                                   help="output directory of 'align' command")
     required_classify.add_argument('--out_dir', required=True,
-                                    help='directory to output files')
+                                   help='directory to output files')
 
     optional_classify = classify_parser.add_argument_group('optional arguments')
     optional_classify.add_argument('-x', '--extension', default='fna',
-                                    help='extension of files to process, gz = gzipped')
+                                   help='extension of files to process, gz = gzipped')
     optional_classify.add_argument('--prefix', required=False, default='gtdbtk',
-                                    help='desired prefix for output files')
+                                   help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
-                                    help='number of CPUs to use')
+                                   help='number of CPUs to use')
     optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
-    optional_classify.add_argument('-r','--recalculate_red',action='store_true',
-                                    help='recalculate RED values based on the reference tree and all added user genomes')
+    optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
+                                   help='recalculate RED values based on the reference tree and all added user genomes')
 
-    optional_classify.add_argument('-d','--debug', action="store_true",
-                                    help='create intermediate files for debugging purposes')
+    optional_classify.add_argument('-d', '--debug', action="store_true",
+                                   help='create intermediate files for debugging purposes')
     optional_classify.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-                                       
+                                   help="show help message")
+
     # root tree using outgroup
     root_parser = subparsers.add_parser('root', conflict_handler='resolve',
                                         formatter_class=CustomHelpFormatter,
-                                        help='Root tree using an outgroup.',)
+                                        help='Root tree using an outgroup.', )
 
     required_root = root_parser.add_argument_group('required named arguments')
     required_root.add_argument('--input_tree', required=True,
-                                help="tree to root in Newick format")
+                               help="tree to root in Newick format")
     required_root.add_argument('--outgroup_taxon', required=True,
-                                help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+                               help="taxon to use as outgroup (e.g., p__Patescibacteria)")
     required_root.add_argument('--output_tree', required=True,
-                                help='output tree')
+                               help='output tree')
 
     optional_root = root_parser.add_argument_group('optional arguments')
-    optional_root.add_argument('--custom_taxonomy_file', 
-                                help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
+    optional_root.add_argument('--custom_taxonomy_file',
+                               help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
     optional_root.add_argument('-h', '--help', action="help",
-                                help="show help message")
-                                       
+                               help="show help message")
+
     # decorate tree
     decorate_parser = subparsers.add_parser('decorate', conflict_handler='resolve',
-                                                formatter_class=CustomHelpFormatter,
-                                                help='Decorate tree with GTDB taxonomy.',)
+                                            formatter_class=CustomHelpFormatter,
+                                            help='Decorate tree with GTDB taxonomy.', )
 
     required_decorate = decorate_parser.add_argument_group('required named arguments')
     required_decorate.add_argument('--input_tree', required=True,
-                                    help="tree to root in Newick format")
+                                   help="tree to root in Newick format")
     required_decorate.add_argument('--output_tree', required=True,
-                                    help='output tree')
+                                   help='output tree')
 
     optional_decorate = decorate_parser.add_argument_group('optional arguments')
     optional_decorate.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-                                    
+                                   help="show help message")
+
     # test
     test_parser = subparsers.add_parser('test', conflict_handler='resolve',
-                                                formatter_class=CustomHelpFormatter,
-                                                help='Test the classify_wf pipeline with 3 archaeal genomes.')
+                                        formatter_class=CustomHelpFormatter,
+                                        help='Test the classify_wf pipeline with 3 archaeal genomes.')
     required_test = test_parser.add_argument_group('required named arguments')
     required_test.add_argument('--out_dir', required=True,
-                                    help='directory to output files')
+                               help='directory to output files')
     optional_test = test_parser.add_argument_group('optional arguments')
     optional_test.add_argument('--cpus', default=1, type=int,
-                                    help='number of CPUs to use')
+                               help='number of CPUs to use')
     optional_test.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-                   
+                               help="show help message")
+
     # trim MSA
     msa_parser = subparsers.add_parser('trim_msa', conflict_handler='resolve',
-                                                formatter_class=CustomHelpFormatter,
-                                                help='Trim an untrimmed MSA file based on a mask.',)
+                                       formatter_class=CustomHelpFormatter,
+                                       help='Trim an untrimmed MSA file based on a mask.', )
 
     required_msa = msa_parser.add_argument_group('required named arguments')
     required_msa.add_argument('--untrimmed_msa', required=True,
-                                    help="untrimmed MSA file")
+                              help="untrimmed MSA file")
     required_msa.add_argument('--output', required=True,
-                                    help='output file')
+                              help='output file')
     mutual_trim_msa = msa_parser.add_argument_group('mutually exclusive required arguments')
     mutex_msa_group = mutual_trim_msa.add_mutually_exclusive_group(required=True)
     mutex_msa_group.add_argument('--mask_file',
-                                help="mask file to use for trimming the MSA") 
+                                 help="mask file to use for trimming the MSA")
     mutex_msa_group.add_argument('--reference_mask',
-                                choices=['arc', 'bac'],
-                                help="reference mask already present in GTDB-Tk")
-    
+                                 choices=['arc', 'bac'],
+                                 help="reference mask already present in GTDB-Tk")
+
     optional_msa = msa_parser.add_argument_group('optional arguments')
     optional_msa.add_argument('-h', '--help', action="help",
-                                    help="show help message")
-                        
-                                    
-    #export msa
+                              help="show help message")
+
+    # export msa
     export_msa_parser = subparsers.add_parser('export_msa', conflict_handler='resolve',
-                                                formatter_class=CustomHelpFormatter,
-                                                help='Export the untrimmed archaeal or bacterial MSA file.',)
+                                              formatter_class=CustomHelpFormatter,
+                                              help='Export the untrimmed archaeal or bacterial MSA file.', )
     required_export_msa = export_msa_parser.add_argument_group('required named arguments')
-    required_export_msa.add_argument('--domain', required=True,choices=['arc', 'bac'],
-                                    help="select domain to download")
+    required_export_msa.add_argument('--domain', required=True, choices=['arc', 'bac'],
+                                     help="select domain to download")
     required_export_msa.add_argument('--output', required=True,
-                                    help='output file')
+                                     help='output file')
     optional_export_msa = export_msa_parser.add_argument_group('optional arguments')
     optional_export_msa.add_argument('-h', '--help', action="help",
-                                    help="show help message")
+                                     help="show help message")
 
-
-                                    
     # verify install
     check_install_parser = subparsers.add_parser('check_install', conflict_handler='resolve',
-                                                formatter_class=CustomHelpFormatter,
-                                                help='Verify if all gtdb data files are present to run GTDB-Tk.',)
+                                                 formatter_class=CustomHelpFormatter,
+                                                 help='Verify if all gtdb data files are present to run GTDB-Tk.', )
     optional_check_install = check_install_parser.add_argument_group('optional arguments')
     optional_check_install.add_argument('-h', '--help', action="help",
-                                    help="show help message")
+                                        help="show help message")
 
-    #-------------------------------------------------
+    # -------------------------------------------------
     # get and check options
     args = None
-    if(len(sys.argv) == 1):
+    if len(sys.argv) == 1:
         printHelp()
         sys.exit(0)
-    elif(sys.argv[1] == '-v' or
-         sys.argv[1] == '--v' or
-         sys.argv[1] == '-version' or
-         sys.argv[1] == '--version'):
+    elif (sys.argv[1] == '-v' or
+          sys.argv[1] == '--v' or
+          sys.argv[1] == '-version' or
+          sys.argv[1] == '--version'):
         print("gtdbtk: version %s %s %s" % (version(),
                                             __copyright__,
                                             __author__))
         sys.exit(0)
-    elif(sys.argv[1] == '-h' or
-         sys.argv[1] == '--h' or
-         sys.argv[1] == '-help' or
-         sys.argv[1] == '--help'):
+    elif (sys.argv[1] == '-h' or
+          sys.argv[1] == '--h' or
+          sys.argv[1] == '-help' or
+          sys.argv[1] == '--help'):
         printHelp()
         sys.exit(0)
     else:
         args = parser.parse_args()
-        
+
     # setup logger
     if hasattr(args, 'out_dir'):
         logger_setup(args.out_dir, "gtdbtk.log", "GTDB-Tk", version(), False)
     else:
         logger_setup(None, "gtdbtk.log", "GTDB-Tk", version(), False)
+    logger = logging.getLogger('timestamp')
 
-    #-------------------------------------------------
+    # -------------------------------------------------
     # do what we came here to do
     try:
         gt_parser = OptionsParser(version())
-        if(False):
+        if False:
             import cProfile
+
             cProfile.run('gt_parser.parseOptions(args)', 'prof')
         else:
             gt_parser.parse_options(args)
     except SystemExit:
-        print('\nControlled exit resulting from early termination.')
+        logger.error('Controlled exit resulting from early termination.')
+        sys.exit(1)
     except KeyboardInterrupt:
-        print('\nControlled exit resulting from interrupt signal.')
+        logger.error('Controlled exit resulting from interrupt signal.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
-        last_stack = traceback.extract_tb(sys.exc_info()[-1])[-1]
-        print('[{}] {} (line {} of {})'.format(type(e).__name__.center(19, ' '), e.message, last_stack[1], last_stack[0]))
-        print("\nControlled exit resulting from an unrecoverable error or warning.")
+        msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
+        msg += '=' * 80 + '\n'
+        msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
+        msg += '  MESSAGE: {}\n'.format(e)
+        msg += '_' * 80 + '\n\n'
+        msg += traceback.format_exc()
+        msg += '=' * 80
+        logger.error(msg)
         sys.exit(1)
     except Exception as e:
-        print("\nUncontrolled exit resulting from an unexpected error.")
-        print('')
-        print('=' * 100)
-        print('EXCEPTION: %s' % type(e).__name__)
-        print('  MESSAGE: %s' % e.message)
-        print('_' * 100)
-        print('')
-        traceback.print_tb(sys.exc_info()[2])
-        print('=' * 100)
+        msg = 'Uncontrolled exit resulting from an unexpected error.\n\n'
+        msg += '=' * 80 + '\n'
+        msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
+        msg += '  MESSAGE: {}\n'.format(e)
+        msg += '_' * 80 + '\n\n'
+        msg += traceback.format_exc()
+        msg += '=' * 80
+        logger.error(msg)
         sys.exit(1)

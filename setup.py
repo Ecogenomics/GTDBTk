@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-from setuptools import setup
-
 import os
+
+from setuptools import setup
 
 
 def version():
-    setupDir = os.path.dirname(os.path.realpath(__file__))
-    versionFile = open(os.path.join(setupDir, 'gtdbtk', 'VERSION'))
-    return versionFile.readline().strip()
+    setup_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(setup_dir, 'gtdbtk', 'VERSION'), 'r') as f:
+        return f.readline().strip()
 
 
 setup(

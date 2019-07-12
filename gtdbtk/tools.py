@@ -1,13 +1,10 @@
 # import prodigal
-import math
-import time
-import random
-import os
 import hashlib
-
+import math
+import os
+import random
+import time
 from itertools import islice
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.common import remove_extension
 
 
 ##################################################
@@ -47,7 +44,7 @@ def generateTempTableName():
 
 
 def merge_two_dicts(x, y):
-    '''Given two dicts, merge them into a new dict as a shallow copy.'''
+    """Given two dicts, merge them into a new dict as a shallow copy."""
     z = x.copy()
     z.update(y)
     return z
@@ -55,6 +52,7 @@ def merge_two_dicts(x, y):
 
 def sha256(input_file):
     """Determine SHA256 hash for file.
+
     Parameters
     ----------
     input_file : str

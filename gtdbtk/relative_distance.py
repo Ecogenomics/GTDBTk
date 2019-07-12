@@ -15,30 +15,21 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
-from biolib_lite.taxonomy import Taxonomy
-from biolib_lite.common import is_float
-from biolib_lite.newick import parse_label
-
-import dendropy
-
-from numpy import (mean as np_mean,
-                   std as np_std,
-                   median as np_median,
-                   abs as np_abs,
+from numpy import (median as np_median,
                    array as np_array,
                    arange as np_arange,
-                   linspace as np_linspace,
                    percentile as np_percentile,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
 
+from biolib_lite.newick import parse_label
+from biolib_lite.taxonomy import Taxonomy
 
-class RelativeDistance():
+
+class RelativeDistance(object):
     """Determine relative rates of evolutionary divergence.
 
     This code is based on Phylorank: https://github.com/dparks1134/PhyloRank 
@@ -49,10 +40,10 @@ class RelativeDistance():
         """Initialization."""
         self.logger = logging.getLogger()
 
-        #Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
-        #options = Options(6, 6, 12, 12, 96)
-        #AbstractPlot.__init__(self, options)
-        #self.dpi = 96
+        # Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
+        # options = Options(6, 6, 12, 12, 96)
+        # AbstractPlot.__init__(self, options)
+        # self.dpi = 96
 
     def _avg_descendant_rate(self, tree):
         """Calculate average rate of divergence for each nodes in a tree.
@@ -83,7 +74,7 @@ class RelativeDistance():
                 for c in node.child_node_iter():
                     num_tips = c.num_taxa
                     avg_div += (float(c.num_taxa) / node.num_taxa) * \
-                        (c.mean_dist + c.edge_length)
+                               (c.mean_dist + c.edge_length)
 
             node.mean_dist = avg_div
 
@@ -203,7 +194,7 @@ class RelativeDistance():
 
             for b in [-0.2, -0.1, 0.1, 0.2]:
                 boundary = p50 + b
-                if boundary < 1.0 and boundary > 0.0:
+                if 1.0 > boundary > 0.0:
                     if abs(b) == 0.1:
                         c = (1.0, 0.65, 0.0)  # orange
                     else:

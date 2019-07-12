@@ -15,12 +15,11 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
-import shutil
 import multiprocessing as mp
-from collections import defaultdict
+import os
+import shutil
+import sys
 
 from gtdbtk.exceptions import ProdigalException
 from ..biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)

@@ -22,14 +22,13 @@ __license__ = 'GPL3'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 
-import sys
 import logging
 import re
 from collections import defaultdict
 
-from common import is_float
-
 import dendropy
+
+from common import is_float
 
 """
 To do:
@@ -666,7 +665,7 @@ class Taxonomy(object):
             Extant taxa for named groups at the specified rank.
         """
 
-        assert(rank_label in Taxonomy.rank_labels)
+        assert (rank_label in Taxonomy.rank_labels)
 
         d = defaultdict(set)
         rank_index = Taxonomy.rank_labels.index(rank_label)

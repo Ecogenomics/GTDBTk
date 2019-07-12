@@ -36,7 +36,7 @@ from biolib_lite.newick import parse_label
 from biolib_lite.seq_io import read_seq, read_fasta
 from biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
-from gtdbtk.exceptions import GenomeMarkerSetUnknown, PplacerException
+from gtdbtk.exceptions import GenomeMarkerSetUnknown
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from relative_distance import RelativeDistance
@@ -45,7 +45,7 @@ from tools import add_ncbi_prefix, splitchunks, symlink_f
 sys.setrecursionlimit(15000)
 
 
-class Classify():
+class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
     def __init__(self, cpus=1):
@@ -54,6 +54,7 @@ class Classify():
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
 
         self.taxonomy_file = Config.TAXONOMY_FILE
+        self.af_threshold = Config.AF_THRESHOLD
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
@@ -121,6 +122,9 @@ class Classify():
                 'Placing {} genomes into reference tree with pplacer (be patient).'.format(num_genomes))
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
+        else:
+            self.logger.error('Unknown marker set: {}'.format(marker_set_id))
+            raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(marker_set_id))
 
         # create pplacer output directory
         pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
@@ -170,7 +174,10 @@ class Classify():
 
         Parameters
         ----------
-        tax_string : incomplete taxonomy string
+        taxstring : str
+            incomplete taxonomy string
+        marker_set : str
+            The marker set to use.
 
         Returns
         -------
@@ -251,11 +258,11 @@ class Classify():
             for line in msf:
                 infos = line.strip().split('\t')
                 if marker_set_id == "bac120":
-                    multi_hits_percent = (
-                        100 * float(infos[2])) / Config.BAC_MARKER_COUNT
+                    multi_hits_percent = (100 * float(infos[2])) / \
+                                         Config.BAC_MARKER_COUNT
                 elif marker_set_id == "ar122":
-                    multi_hits_percent = (
-                        100 * float(infos[2])) / Config.AR_MARKER_COUNT
+                    multi_hits_percent = (100 * float(infos[2])) / \
+                                         Config.AR_MARKER_COUNT
                 # print (marker_set_id, float(infos[3]), multi_hits_percent)
                 if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
                     results[infos[0]] = round(multi_hits_percent, 1)
@@ -277,406 +284,403 @@ class Classify():
             scratch_dir=None,
             recalculate_red=None,
             debugopt=False):
-        try:
-            """Classify genomes based on position in reference tree."""
+        """Classify genomes based on position in reference tree."""
 
-            _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
+        _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
-            for marker_set_id in ('ar122', 'bac120'):
+        for marker_set_id in ('ar122', 'bac120'):
 
-                if marker_set_id == 'ar122':
-                    marker_summary_file = os.path.join(align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
-                    user_msa_file = os.path.join(align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
-                elif marker_set_id == 'bac120':
-                    marker_summary_file = os.path.join(align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
-                    user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
-                else:
-                    self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+            if marker_set_id == 'ar122':
+                marker_summary_file = os.path.join(align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
+                user_msa_file = os.path.join(align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
+            elif marker_set_id == 'bac120':
+                marker_summary_file = os.path.join(align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
+                user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
+            else:
+                self.logger.error('There was an error determining the marker set.')
+                raise GenomeMarkerSetUnknown
 
-                if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file)<30):
-                        # file will not exist if there are no User genomes from a
-                        # given domain
-                    continue
+            if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
+                # file will not exist if there are no User genomes from a
+                # given domain
+                continue
 
-                percent_multihit_dict = self.parser_marker_summary_file(
-                    marker_summary_file, marker_set_id)
+            percent_multihit_dict = self.parser_marker_summary_file(
+                marker_summary_file, marker_set_id)
 
-                trans_table_file = os.path.join(align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
-                trans_table_dict = self.parse_trans_table_file(trans_table_file)
+            trans_table_file = os.path.join(align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
+            trans_table_dict = self.parse_trans_table_file(trans_table_file)
 
-                msa_dict = read_fasta(user_msa_file)
+            msa_dict = read_fasta(user_msa_file)
 
-                classify_tree = self.place_genomes(user_msa_file,
-                                                   marker_set_id,
-                                                   out_dir,
-                                                   prefix,
-                                                   scratch_dir)
+            classify_tree = self.place_genomes(user_msa_file,
+                                               marker_set_id,
+                                               out_dir,
+                                               prefix,
+                                               scratch_dir)
 
-                # get taxonomic classification of each user genome
-                tree = dendropy.Tree.get_from_path(classify_tree,
-                                                   schema='newick',
-                                                   rooting='force-rooted',
-                                                   preserve_underscores=True)
+            # get taxonomic classification of each user genome
+            tree = dendropy.Tree.get_from_path(classify_tree,
+                                               schema='newick',
+                                               rooting='force-rooted',
+                                               preserve_underscores=True)
 
-                if marker_set_id == 'bac120':
-                    path_summary = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
-                elif marker_set_id == 'ar122':
-                    path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
-                else:
-                    self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+            if marker_set_id == 'bac120':
+                path_summary = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
+            elif marker_set_id == 'ar122':
+                path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
+            else:
+                self.logger.error('There was an error determining the marker set.')
+                raise GenomeMarkerSetUnknown
 
-                pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir, prefix, marker_set_id, user_msa_file, tree)
+            pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir, prefix, marker_set_id, user_msa_file, tree)
 
-                summaryfout = open(path_summary, 'w')
-                if debugopt:
-                    debugfile = open(os.path.join(
-                        out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
+            summaryfout = open(path_summary, 'w')
+            if debugopt:
+                debugfile = open(os.path.join(
+                    out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
 
-                marker_dict = self._write_red_dict(
-                    out_dir, prefix, marker_set_id)
+            marker_dict = self._write_red_dict(
+                out_dir, prefix, marker_set_id)
 
-                summaryfout.write("user_genome\tclassification\tfastani_reference\tfastani_reference_radius\tfastani_taxonomy\tfastani_ani\tfastani_af\t" +
-                                  "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\tpplacer_taxonomy\t" +
-                                  "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\ttranslation_table\tred_value\twarnings\n")
-                if debugopt:
-                    debugfile.write(
-                        "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
+            summaryfout.write(
+                "user_genome\tclassification\tfastani_reference\tfastani_reference_radius\tfastani_taxonomy\tfastani_ani\tfastani_af\t" +
+                "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\tpplacer_taxonomy\t" +
+                "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\ttranslation_table\tred_value\twarnings\n")
+            if debugopt:
+                debugfile.write(
+                    "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
 
-                # Genomes can be classified by using FastANI or RED values
-                # We go through all leaves of the tree. if the leaf is a user
-                # genome we take its parent node and look at all the leaves
-                # for this node.
-                all_fastani_dict = {}
-                self.logger.info(
-                    'Calculating average nucleotide identity using FastANI.')
-                fastani_verification = {}
-                number_comparison = 0
-                for userleaf in tree.leaf_node_iter():
-                    # for each user genome, we select the first parent node with a label.
-                    # if, while going up the tree, we find a node with only one
-                    # reference genome, we select this reference genome as
-                    # leaf_reference.
-                    if userleaf.taxon.label[0:3] not in ['RS_', 'GB_', 'UBA']:
+            # Genomes can be classified by using FastANI or RED values
+            # We go through all leaves of the tree. if the leaf is a user
+            # genome we take its parent node and look at all the leaves
+            # for this node.
+            all_fastani_dict = {}
+            self.logger.info(
+                'Calculating average nucleotide identity using FastANI.')
+            fastani_verification = {}
+            number_comparison = 0
+            for userleaf in tree.leaf_node_iter():
+                # for each user genome, we select the first parent node with a label.
+                # if, while going up the tree, we find a node with only one
+                # reference genome, we select this reference genome as
+                # leaf_reference.
+                if userleaf.taxon.label[0:3] not in ['RS_', 'GB_', 'UBA']:
 
-                        par_node = userleaf.parent_node
-                        leaf_ref_genome = None
-                        leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                        ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
-                        if len(leaf_ref_genomes) == 1:
-                            leaf_ref_genome = leaf_ref_genomes[0]
+                    par_node = userleaf.parent_node
+                    leaf_ref_genome = None
+                    leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
+                    ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                    if len(leaf_ref_genomes) == 1:
+                        leaf_ref_genome = leaf_ref_genomes[0]
 
+                    _support, parent_taxon, _aux_info = parse_label(
+                        par_node.label)
+                    # while par_node is not None and parent_taxon is empty,
+                    # we go up the tree
+                    while par_node is not None and not parent_taxon:
+                        par_node = par_node.parent_node
+                        if leaf_ref_genome is None:
+                            leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
+                            ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                            if len(leaf_ref_genomes) == 1:
+                                leaf_ref_genome = leaf_ref_genomes[0]
                         _support, parent_taxon, _aux_info = parse_label(
                             par_node.label)
-                        # while par_node is not None and parent_taxon is empty,
-                        # we go up the tree
-                        while par_node is not None and not parent_taxon:
-                            par_node = par_node.parent_node
-                            if leaf_ref_genome is None:
-                                leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                                ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
-                                if len(leaf_ref_genomes) == 1:
-                                    leaf_ref_genome = leaf_ref_genomes[0]
-                            _support, parent_taxon, _aux_info = parse_label(
-                                par_node.label)
 
-                        # if the parent node is at the genus level
-                        parent_rank = parent_taxon.split(";")[-1]
-                        if parent_rank.startswith('g__'):
-                            # we get all the reference genomes under this genus
-                            list_subnode_initials = [subnd.taxon.label.replace(
-                                "'", '')[0:3] for subnd in par_node.leaf_iter()]
-                            if (list_subnode_initials.count('RS_') + list_subnode_initials.count('GB_') + list_subnode_initials.count('UBA')) < 1:
-                                raise Exception(
-                                    "There is no reference genomes under '{}'".format('parent_rank'))
-                            else:
-                                dict_dist_refgenomes = {}
-                                list_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                                ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
-                                # we pick the first 100 genomes closest (patristic distance) to the
-                                # user genome under the same genus
-                                for ref_genome in list_ref_genomes:
-                                    taxon_labels = [
-                                        userleaf.taxon.label, ref_genome.taxon.label]
-                                    mrca = tree.mrca(taxon_labels=taxon_labels)
-                                    # the following command is faster than
-                                    # calculating the patristic distance
-                                    dict_dist_refgenomes[ref_genome] = (userleaf.distance_from_root(
-                                    ) - mrca.distance_from_root()) + (ref_genome.distance_from_root() - mrca.distance_from_root())
-                                sorted_l = sorted(
-                                    dict_dist_refgenomes.iteritems(), key=itemgetter(1))
-                                sorted_l = sorted_l[0:100]
-                                number_comparison += len(sorted_l)
-                                fastani_verification[userleaf] = {
-                                    "potential_g": sorted_l, "pplacer_g": leaf_ref_genome}
+                    # if the parent node is at the genus level
+                    parent_rank = parent_taxon.split(";")[-1]
+                    if parent_rank.startswith('g__'):
+                        # we get all the reference genomes under this genus
+                        list_subnode_initials = [subnd.taxon.label.replace(
+                            "'", '')[0:3] for subnd in par_node.leaf_iter()]
+                        if (list_subnode_initials.count('RS_') + list_subnode_initials.count(
+                                'GB_') + list_subnode_initials.count('UBA')) < 1:
+                            raise Exception(
+                                "There is no reference genomes under '{}'".format('parent_rank'))
                         else:
-                            if leaf_ref_genome:
-                                fastani_verification[userleaf] = {"potential_g": [
-                                    (leaf_ref_genome, 0.0)], "pplacer_g": leaf_ref_genome}
+                            dict_dist_refgenomes = {}
+                            list_ref_genomes = [subnd for subnd in par_node.leaf_iter(
+                            ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                            # we pick the first 100 genomes closest (patristic distance) to the
+                            # user genome under the same genus
+                            for ref_genome in list_ref_genomes:
+                                taxon_labels = [
+                                    userleaf.taxon.label, ref_genome.taxon.label]
+                                mrca = tree.mrca(taxon_labels=taxon_labels)
+                                # the following command is faster than
+                                # calculating the patristic distance
+                                dict_dist_refgenomes[ref_genome] = (userleaf.distance_from_root(
+                                ) - mrca.distance_from_root()) + (
+                                                                               ref_genome.distance_from_root() - mrca.distance_from_root())
+                            sorted_l = sorted(
+                                dict_dist_refgenomes.iteritems(), key=itemgetter(1))
+                            sorted_l = sorted_l[0:100]
+                            number_comparison += len(sorted_l)
+                            fastani_verification[userleaf] = {
+                                "potential_g": sorted_l, "pplacer_g": leaf_ref_genome}
+                    else:
+                        if leaf_ref_genome:
+                            fastani_verification[userleaf] = {"potential_g": [
+                                (leaf_ref_genome, 0.0)], "pplacer_g": leaf_ref_genome}
 
-                # we run a fastani comparison for each user genomes against the
-                # selected genomes in the same genus
-                manager = multiprocessing.Manager()
-                out_q = manager.dict()
-                procs = []
-                nprocs = self.cpus
+            # we run a fastani comparison for each user genomes against the
+            # selected genomes in the same genus
+            manager = multiprocessing.Manager()
+            out_q = manager.dict()
+            procs = []
+            nprocs = self.cpus
 
-                if len(fastani_verification) > 0:
-                    for item in splitchunks(fastani_verification, nprocs):
-                        p = multiprocessing.Process(
-                            target=self._fastaniWorker,
-                            args=(item, genomes, out_q))
-                        procs.append(p)
-                        p.start()
+            if len(fastani_verification) > 0:
+                for item in splitchunks(fastani_verification, nprocs):
+                    p = multiprocessing.Process(
+                        target=self._fastaniWorker,
+                        args=(item, genomes, out_q))
+                    procs.append(p)
+                    p.start()
 
-                    # Wait for all worker processes to finish
-                    for p in procs:
-                        p.join()
-                        if p.exitcode == 1:
-                            raise ValueError("Stop!!")
+                # Wait for all worker processes to finish
+                for p in procs:
+                    p.join()
+                    if p.exitcode == 1:
+                        raise ValueError("Stop!!")
 
-                    all_fastani_dict = dict(out_q)
+                all_fastani_dict = dict(out_q)
 
-                classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
-                    fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout)
+            classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
+                fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
+                trans_table_dict, bac_ar_diff, summaryfout)
 
-                self.logger.info('{0} genomes have been classify using FastANI and pplacer.'.format(
-                    len(classified_user_genomes)))
+            self.logger.info('{0} genomes have been classify using FastANI and pplacer.'.format(
+                len(classified_user_genomes)))
 
-                # If Fastani can't select a taxonomy for a genome, we use RED
-                # distances
+            # If Fastani can't select a taxonomy for a genome, we use RED
+            # distances
 
-                if recalculate_red:
-                    tree_to_process = self._calculate_red_distances(
-                        classify_tree, out_dir)
+            if recalculate_red:
+                tree_to_process = self._calculate_red_distances(
+                    classify_tree, out_dir)
 
-                else:
-                    tree_to_process = self._assign_mrca_red(
-                        classify_tree, marker_set_id)
+            else:
+                tree_to_process = self._assign_mrca_red(
+                    classify_tree, marker_set_id)
 
-                user_genome_ids = set(read_fasta(user_msa_file).keys())
-                # we remove ids already classified with FastANI
-                user_genome_ids = user_genome_ids.difference(
-                    set(classified_user_genomes))
-                for leaf in tree_to_process.leaf_node_iter():
-                    if leaf.taxon.label in user_genome_ids:
-                        # In some cases , pplacer can associate 2 user genomes
-                        # on the same parent node so we need to go up the tree
-                        # to find a node with a reference genome as leaf.
-                        cur_node = leaf.parent_node
+            user_genome_ids = set(read_fasta(user_msa_file).keys())
+            # we remove ids already classified with FastANI
+            user_genome_ids = user_genome_ids.difference(
+                set(classified_user_genomes))
+            for leaf in tree_to_process.leaf_node_iter():
+                if leaf.taxon.label in user_genome_ids:
+                    # In some cases , pplacer can associate 2 user genomes
+                    # on the same parent node so we need to go up the tree
+                    # to find a node with a reference genome as leaf.
+                    cur_node = leaf.parent_node
+                    list_subnode_initials = [subnd.taxon.label.replace(
+                        "'", '')[0:3] for subnd in cur_node.leaf_iter()]
+                    while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials and 'UBA' not in list_subnode_initials:
+                        cur_node = cur_node.parent_node
                         list_subnode_initials = [subnd.taxon.label.replace(
                             "'", '')[0:3] for subnd in cur_node.leaf_iter()]
-                        while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials and 'UBA' not in list_subnode_initials:
-                            cur_node = cur_node.parent_node
-                            list_subnode_initials = [subnd.taxon.label.replace(
-                                "'", '')[0:3] for subnd in cur_node.leaf_iter()]
 
-                        current_rel_list = cur_node.rel_dist
+                    current_rel_list = cur_node.rel_dist
 
-                        parent_taxon_node = cur_node.parent_node
+                    parent_taxon_node = cur_node.parent_node
+                    _support, parent_taxon, _aux_info = parse_label(
+                        parent_taxon_node.label)
+
+                    while parent_taxon_node is not None and not parent_taxon:
+                        parent_taxon_node = parent_taxon_node.parent_node
                         _support, parent_taxon, _aux_info = parse_label(
                             parent_taxon_node.label)
 
-                        while parent_taxon_node is not None and not parent_taxon:
-                            parent_taxon_node = parent_taxon_node.parent_node
-                            _support, parent_taxon, _aux_info = parse_label(
-                                parent_taxon_node.label)
+                    # is the node represent multiple ranks, we select the lowest one
+                    # i.e. if node is p__A;c__B;o__C we pick o__
+                    parent_rank = parent_taxon.split(";")[-1][0:3]
+                    parent_rel_dist = parent_taxon_node.rel_dist
 
-                        # is the node represent multiple ranks, we select the lowest one
-                        # i.e. if node is p__A;c__B;o__C we pick o__
-                        parent_rank = parent_taxon.split(";")[-1][0:3]
-                        parent_rel_dist = parent_taxon_node.rel_dist
+                    debug_info = [leaf.taxon.label, parent_rank,
+                                  parent_rel_dist, '', '', '', '']
 
-                        debug_info = [leaf.taxon.label, parent_rank,
-                                      parent_rel_dist, '', '', '', '']
+                    child_taxons = []
+                    closest_rank = None
+                    detection = "taxonomic novelty determined using RED"
+                    # if the genome is not placed between the genus and
+                    # specie ranks
+                    if parent_rank != 'g__':
+                        # we select the child rank (if parent_rank = 'c__'
+                        # child rank will be 'o__)'
+                        child_rk = self.order_rank[self.order_rank.index(
+                            parent_rank) + 1]
 
-                        child_taxons = []
-                        closest_rank = None
-                        detection = "taxonomic novelty determined using RED"
-                        # if the genome is not placed between the genus and
-                        # specie ranks
-                        if parent_rank != 'g__':
-                            # we select the child rank (if parent_rank = 'c__'
-                            # child rank will be 'o__)'
-                            child_rk = self.order_rank[self.order_rank.index(
-                                parent_rank) + 1]
+                        # get all reference genomes under the current node
+                        list_subnode = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
+                        ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
 
-                            # get all reference genomes under the current node
-                            list_subnode = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
-                            ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                        # get all names for the child rank
+                        list_ranks = [self.gtdb_taxonomy.get(
+                            name)[self.order_rank.index(child_rk)] for name in list_subnode]
 
-                            # get all names for the child rank
-                            list_ranks = [self.gtdb_taxonomy.get(
-                                name)[self.order_rank.index(child_rk)] for name in list_subnode]
-
-                            # if there is just one rank name
-                            if len(set(list_ranks)) == 1:
-                                for subranknd in cur_node.preorder_iter():
-                                    _support, subranknd_taxon, _aux_info = parse_label(
-                                        subranknd.label)
-                                    if subranknd.is_internal() and subranknd_taxon is not None and subranknd_taxon.startswith(child_rk):
-                                        child_taxons = subranknd_taxon.split(
-                                            ";")
-                                        child_taxon_node = subranknd
-                                        child_rel_dist = child_taxon_node.rel_dist
-                                        break
-                            else:
-                                # case 2a and 2b
-                                closest_rank = parent_rank
-                                detection = "taxonomic classification fully defined by topology"
+                        # if there is just one rank name
+                        if len(set(list_ranks)) == 1:
+                            for subranknd in cur_node.preorder_iter():
+                                _support, subranknd_taxon, _aux_info = parse_label(
+                                    subranknd.label)
+                                if subranknd.is_internal() and subranknd_taxon is not None and subranknd_taxon.startswith(
+                                        child_rk):
+                                    child_taxons = subranknd_taxon.split(
+                                        ";")
+                                    child_taxon_node = subranknd
+                                    child_rel_dist = child_taxon_node.rel_dist
+                                    break
                         else:
-                            # case 1a
+                            # case 2a and 2b
                             closest_rank = parent_rank
                             detection = "taxonomic classification fully defined by topology"
+                    else:
+                        # case 1a
+                        closest_rank = parent_rank
+                        detection = "taxonomic classification fully defined by topology"
 
-                        # case 1b
-                        if len(child_taxons) == 0 and closest_rank is None:
-                            list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
-                            ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
-                            if len(list_leaves) != 1:
-                                list_subrank = []
-                                for leaf_subrank in list_leaves:
-                                    list_subrank.append(self.gtdb_taxonomy.get(
-                                        leaf_subrank)[self.order_rank.index(parent_rank) + 1])
-                                if len(set(list_subrank)) == 1:
-                                    print(list_leaves)
-                                    print(list_subrank)
-                                    raise Exception(
-                                        'There should be only one leaf.')
-                                    sys.exit(-1)
-                                else:
-                                    closest_rank = parent_rank
-                                    detection = "taxonomic classification fully defined by topology"
-                            list_leaf_ranks = self.gtdb_taxonomy.get(
-                                list_leaves[0])[self.order_rank.index(child_rk):-1]  # We remove the species name
-                            for leaf_taxon in reversed(list_leaf_ranks):
-                                if leaf_taxon == list_leaf_ranks[0]:
-                                    if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs((current_rel_list) - marker_dict.get(parent_rank)):
-                                        closest_rank = leaf_taxon[:3]
-                                        debug_info[3] = leaf_taxon
-                                        debug_info[5] = 'case 1b - III'
-                                        break
-                                else:
-                                    pchildrank = list_leaf_ranks[list_leaf_ranks.index(
-                                        leaf_taxon) - 1]
-                                    if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(current_rel_list - marker_dict.get(pchildrank[:3])):
-                                        closest_rank = leaf_taxon[:3]
-                                        debug_info[1] = pchildrank
-                                        debug_info[2] = 1.0
-                                        debug_info[3] = leaf_taxon
-                                        debug_info[5] = 'case 1b - II'
-                                        break
-                            if closest_rank is None:
-                                closest_rank = parent_rank
-                                debug_info[3] = list_leaf_ranks[0]
-                                debug_info[5] = 'case 1b - IV'
-
-                        # if there is multiple ranks on the child node (i.e genome between p__Nitrospirae and c__Nitrospiria;o__Nitrospirales;f__Nitropiraceae)
-                        # we loop through the list of rank from f_ to c_ rank
-                        for child_taxon in reversed(child_taxons):
-                            # if lower rank is c__Nitropiria
-                            if child_taxon == child_taxons[0]:
-                                if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(child_rel_dist - marker_dict.get(child_taxon[:3])) and
-                                        abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(current_rel_list - marker_dict.get(parent_rank))):
-                                    debug_info[3] = ';'.join(child_taxons)
-                                    debug_info[4] = child_rel_dist
-                                    debug_info[5] = 'case 3b - II'
-                                    closest_rank = child_taxon[:3]
-                                elif closest_rank is None:
-                                    closest_rank = parent_rank
-                                    debug_info[3] = ';'.join(child_taxons)
-                                    debug_info[4] = child_rel_dist
-                                    debug_info[5] = 'case 3b - III'
+                    # case 1b
+                    if len(child_taxons) == 0 and closest_rank is None:
+                        list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
+                        ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                        if len(list_leaves) != 1:
+                            list_subrank = []
+                            for leaf_subrank in list_leaves:
+                                list_subrank.append(self.gtdb_taxonomy.get(
+                                    leaf_subrank)[self.order_rank.index(parent_rank) + 1])
+                            if len(set(list_subrank)) == 1:
+                                print(list_leaves)
+                                print(list_subrank)
+                                raise Exception(
+                                    'There should be only one leaf.')
+                                sys.exit(-1)
                             else:
-                                pchildrank = child_taxons[child_taxons.index(
-                                    child_taxon) - 1]
-                                if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(current_rel_list - marker_dict.get(pchildrank[:3])) and
-                                        abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(child_rel_dist - marker_dict.get(child_taxon[:3]))):
-                                    closest_rank = child_taxon
-                                    debug_info[3] = ';'.join(child_taxons)
-                                    debug_info[4] = child_rel_dist
-                                    debug_info[5] = 'case 3b - I'
+                                closest_rank = parent_rank
+                                detection = "taxonomic classification fully defined by topology"
+                        list_leaf_ranks = self.gtdb_taxonomy.get(
+                            list_leaves[0])[self.order_rank.index(child_rk):-1]  # We remove the species name
+                        for leaf_taxon in reversed(list_leaf_ranks):
+                            if leaf_taxon == list_leaf_ranks[0]:
+                                if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
+                                        (current_rel_list) - marker_dict.get(parent_rank)):
+                                    closest_rank = leaf_taxon[:3]
+                                    debug_info[3] = leaf_taxon
+                                    debug_info[5] = 'case 1b - III'
                                     break
-
-                        # case 1b
+                            else:
+                                pchildrank = list_leaf_ranks[list_leaf_ranks.index(
+                                    leaf_taxon) - 1]
+                                if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
+                                        current_rel_list - marker_dict.get(pchildrank[:3])):
+                                    closest_rank = leaf_taxon[:3]
+                                    debug_info[1] = pchildrank
+                                    debug_info[2] = 1.0
+                                    debug_info[3] = leaf_taxon
+                                    debug_info[5] = 'case 1b - II'
+                                    break
                         if closest_rank is None:
-                            raise Exception('closest rank is None')
+                            closest_rank = parent_rank
+                            debug_info[3] = list_leaf_ranks[0]
+                            debug_info[5] = 'case 1b - IV'
 
-                        debug_info[6] = closest_rank
-
-                        list_subnode = [subnd.taxon.label.replace(
-                            "'", '') for subnd in cur_node.leaf_iter()]
-                        red_taxonomy = self._get_redtax(
-                            list_subnode, closest_rank)
-
-                        del debug_info[0]
-
-                        summary_list = [None] * 19
-                        if leaf.taxon.label in unclassified_user_genomes:
-                            summary_list = unclassified_user_genomes.get(
-                                leaf.taxon.label)
-                            if summary_list[13] == '':
-                                summary_list[13] = None
-                        summary_list[0] = leaf.taxon.label
-                        summary_list[1] = self.standardise_taxonomy(
-                            red_taxonomy)
-                        summary_list[11] = pplacer_taxonomy_dict.get(leaf.taxon.label)
-                        summary_list[12] = 'Placement'
-                        summary_list[13] = detection
-                        summary_list[15] = self.aa_percent_msa(
-                            msa_dict.get(summary_list[0]))
-                        summary_list[16] = trans_table_dict.get(
-                            summary_list[0])
-                        summary_list[17] = current_rel_list
-
-                        notes = []
-                        if summary_list[0] in percent_multihit_dict:
-                            notes.append('Genome has more than {}% of markers with multiple hits'.format(
-                                percent_multihit_dict.get(summary_list[0])))
-                        if summary_list[0] in bac_ar_diff:
-                            notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                                bac_ar_diff.get(summary_list[0]).get('bac120'), bac_ar_diff.get(summary_list[0]).get('ar122')))
-
-                        if len(notes) > 0:
-                            summary_list[18] = ';'.join(notes)
-                        summaryfout.write("{0}\n".format(
-                            '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
-                        if debugopt:
-                            debugfile.write('{0}\t{1}\t{2}\t{3}\n'.format(
-                                leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+                    # if there is multiple ranks on the child node (i.e genome between p__Nitrospirae and c__Nitrospiria;o__Nitrospirales;f__Nitropiraceae)
+                    # we loop through the list of rank from f_ to c_ rank
+                    for child_taxon in reversed(child_taxons):
+                        # if lower rank is c__Nitropiria
+                        if child_taxon == child_taxons[0]:
+                            if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
+                                    child_rel_dist - marker_dict.get(child_taxon[:3])) and
+                                    abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
+                                        current_rel_list - marker_dict.get(parent_rank))):
+                                debug_info[3] = ';'.join(child_taxons)
+                                debug_info[4] = child_rel_dist
+                                debug_info[5] = 'case 3b - II'
+                                closest_rank = child_taxon[:3]
+                            elif closest_rank is None:
+                                closest_rank = parent_rank
+                                debug_info[3] = ';'.join(child_taxons)
+                                debug_info[4] = child_rel_dist
+                                debug_info[5] = 'case 3b - III'
                         else:
-                            'debug false'
+                            pchildrank = child_taxons[child_taxons.index(
+                                child_taxon) - 1]
+                            if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
+                                    current_rel_list - marker_dict.get(pchildrank[:3])) and
+                                    abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
+                                        child_rel_dist - marker_dict.get(child_taxon[:3]))):
+                                closest_rank = child_taxon
+                                debug_info[3] = ';'.join(child_taxons)
+                                debug_info[4] = child_rel_dist
+                                debug_info[5] = 'case 3b - I'
+                                break
 
-                summaryfout.close()
+                    # case 1b
+                    if closest_rank is None:
+                        raise Exception('closest rank is None')
 
-                # Symlink to the summary file from the root
-                if marker_set_id == 'bac120':
-                    symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                elif marker_set_id == 'ar122':
-                    symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
-                else:
-                    self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    debug_info[6] = closest_rank
 
+                    list_subnode = [subnd.taxon.label.replace(
+                        "'", '') for subnd in cur_node.leaf_iter()]
+                    red_taxonomy = self._get_redtax(
+                        list_subnode, closest_rank)
 
-                if debugopt:
-                    debugfile.close()
+                    del debug_info[0]
 
-        except ValueError as error:
-            self.logger.error('The classify step failed to complete due to a ValueError: %s' % error.message)
-            raise
-        except IOError as error:
-            self.logger.error('The classify step failed to complete due to an IOError: %s' % error.message)
-            raise
-        except PplacerException:
-            self.logger.error('The classify step failed due to an error in pplacer.')
-            raise
-        except Exception as error:
-            self.logger.error('The classify step failed to complete due to an exception.')
-            raise
+                    summary_list = [None] * 19
+                    if leaf.taxon.label in unclassified_user_genomes:
+                        summary_list = unclassified_user_genomes.get(
+                            leaf.taxon.label)
+                        if summary_list[13] == '':
+                            summary_list[13] = None
+                    summary_list[0] = leaf.taxon.label
+                    summary_list[1] = self.standardise_taxonomy(
+                        red_taxonomy)
+                    summary_list[11] = pplacer_taxonomy_dict.get(leaf.taxon.label)
+                    summary_list[12] = 'Placement'
+                    summary_list[13] = detection
+                    summary_list[15] = self.aa_percent_msa(
+                        msa_dict.get(summary_list[0]))
+                    summary_list[16] = trans_table_dict.get(
+                        summary_list[0])
+                    summary_list[17] = current_rel_list
+
+                    notes = []
+                    if summary_list[0] in percent_multihit_dict:
+                        notes.append('Genome has more than {}% of markers with multiple hits'.format(
+                            percent_multihit_dict.get(summary_list[0])))
+                    if summary_list[0] in bac_ar_diff:
+                        notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                            bac_ar_diff.get(summary_list[0]).get('bac120'),
+                            bac_ar_diff.get(summary_list[0]).get('ar122')))
+
+                    if len(notes) > 0:
+                        summary_list[18] = ';'.join(notes)
+                    summaryfout.write("{0}\n".format(
+                        '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
+                    if debugopt:
+                        debugfile.write('{0}\t{1}\t{2}\t{3}\n'.format(
+                            leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+                    else:
+                        'debug false'
+
+            summaryfout.close()
+
+            # Symlink to the summary file from the root
+            if marker_set_id == 'bac120':
+                symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                          os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+            elif marker_set_id == 'ar122':
+                symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
+                          os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
+            else:
+                self.logger.error('There was an error determining the marker set.')
+                raise GenomeMarkerSetUnknown
+
+            if debugopt:
+                debugfile.close()
 
     def _assign_mrca_red(self, input_tree, marker_set_id):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -733,7 +737,7 @@ class Classify():
                 nd.rel_dist = 1.0
                 pplacer_node = nd
                 pplacer_parent_node = pplacer_node.parent_node
-                
+
                 while not bool(set(pplacer_node.leaf_nodes()) & reference_nodes):
                     pplacer_node = pplacer_parent_node
                     pplacer_parent_node = pplacer_node.parent_node
@@ -837,8 +841,11 @@ class Classify():
         note_list = []
         for element in sorted_dict:
             if element[0] not in labels:
-                note_str = "{}, {}, {}, {}, {}".format(element[0], self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(element[0]))[6], self.species_radius.get(element[0]), round(element[1].get('ani'), 2), element[1].get('af'))
+                note_str = "{}, {}, {}, {}, {}".format(element[0],
+                                                       self.gtdb_taxonomy.get(add_ncbi_prefix(element[0]))[6],
+                                                       self.species_radius.get(element[0]),
+                                                       round(element[1].get('ani'), 2),
+                                                       element[1].get('af'))
                 note_list.append(note_str)
         return note_list
 
@@ -847,7 +854,9 @@ class Classify():
         aa_perc = float(aa_len) / len(aa_string)
         return round(aa_perc * 100, 2)
 
-    def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout):
+    def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict,
+                              all_fastani_dict, msa_dict, percent_multihit_dict,
+                              trans_table_dict, bac_ar_diff, summaryfout):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -874,7 +883,8 @@ class Classify():
                     percent_multihit_dict.get(userleaf.taxon.label)))
             if userleaf.taxon.label in bac_ar_diff:
                 notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                    bac_ar_diff.get(userleaf.taxon.label).get('bac120'), bac_ar_diff.get(userleaf.taxon.label).get('ar122')))
+                    bac_ar_diff.get(userleaf.taxon.label).get('bac120'),
+                    bac_ar_diff.get(userleaf.taxon.label).get('ar122')))
             if len(notes) > 0:
                 summary_list[18] = ';'.join(notes)
 
@@ -883,30 +893,43 @@ class Classify():
                 if pplacer_leafnode[0:3] in ['RS_', 'GB_']:
                     pplacer_leafnode = pplacer_leafnode[3:]
                 if userleaf.taxon.label in all_fastani_dict:
+                    # import IPython; IPython.embed()
+                    prefilter_reference_dictionary = {k: v for k, v in
+                                                      all_fastani_dict.get(userleaf.taxon.label).iteritems() if (
+                                                                  v.get('ani') >= self.species_radius.get(k) and v.get(
+                                                              'af') >= self.af_threshold)}
                     sorted_dict = sorted(all_fastani_dict.get(
-                        userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
-                    fastani_matching_reference = sorted_dict[0][0]
+                        userleaf.taxon.label).iteritems(), key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
+                    sorted_prefilter_dict = sorted(prefilter_reference_dictionary.iteritems(),
+                                                   key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
+
+                    fastani_matching_reference = None
+                    if len(sorted_prefilter_dict) > 0:
+                        fastani_matching_reference = sorted_prefilter_dict[0][0]
+                        current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
+                            fastani_matching_reference).get('ani')
+                        current_af = all_fastani_dict.get(userleaf.taxon.label).get(
+                            fastani_matching_reference).get('af')
+
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(pplacer_leafnode)))
 
                     summary_list[0] = userleaf.taxon.label
-                    summary_list[2] = fastani_matching_reference
-                    summary_list[3] = str(
-                        self.species_radius.get(fastani_matching_reference))
-                    summary_list[4] = ";".join(self.gtdb_taxonomy.get(
-                        add_ncbi_prefix(fastani_matching_reference)))
-                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('ani')
-                    summary_list[5] = round(current_ani, 2)
-                    summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('af')
+
                     summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
                     summary_list[12] = 'ANI/Placement'
                     summary_list[15] = self.aa_percent_msa(
                         msa_dict.get(summary_list[0]))
                     summary_list[16] = trans_table_dict.get(summary_list[0])
 
-                    if self.species_radius.get(fastani_matching_reference) <= current_ani:
+                    if fastani_matching_reference is not None:
+                        summary_list[2] = fastani_matching_reference
+                        summary_list[3] = str(
+                            self.species_radius.get(fastani_matching_reference))
+                        summary_list[4] = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(fastani_matching_reference)))
+                        summary_list[5] = round(current_ani, 2)
+                        summary_list[6] = current_af
                         if pplacer_leafnode == fastani_matching_reference:
                             if taxa_str.endswith("s__"):
                                 taxa_str = taxa_str + pplacer_leafnode
@@ -953,9 +976,18 @@ class Classify():
                             '\t'.join(['N/A' if x is None else str(x) for x in summary_list])))
                         classified_user_genomes.append(userleaf.taxon.label)
                     else:
+                        summary_list[7] = pplacer_leafnode
+                        summary_list[8] = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(pplacer_leafnode)))
+                        if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
+                            summary_list[9] = round(all_fastani_dict.get(
+                                userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
+                            summary_list[10] = all_fastani_dict.get(
+                                userleaf.taxon.label).get(pplacer_leafnode).get('af')
+
                         if len(sorted_dict) > 0:
                             other_ref = '; '.join(self._formatnote(
-                                sorted_dict, [fastani_matching_reference, pplacer_leafnode]))
+                                sorted_dict, [pplacer_leafnode]))
                             if len(other_ref) == 0:
                                 summary_list[14] = None
                             else:
@@ -963,33 +995,50 @@ class Classify():
                         unclassified_user_genomes[userleaf.taxon.label] = summary_list
 
             elif userleaf.taxon.label in all_fastani_dict:
+                # import IPython; IPython.embed()
+                prefilter_reference_dictionary = {k: v for k, v in
+                                                  all_fastani_dict.get(userleaf.taxon.label).iteritems() if (
+                                                              v.get('ani') >= self.species_radius.get(k) and v.get(
+                                                          'af') >= self.af_threshold)}
                 sorted_dict = sorted(all_fastani_dict.get(
-                    userleaf.taxon.label).iteritems(), key=lambda(_x, y): y['ani'], reverse=True)
-                fastani_matching_reference = sorted_dict[0][0]
-                taxa_str = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference))[:-1])
+                    userleaf.taxon.label).iteritems(), key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
+                sorted_prefilter_dict = sorted(prefilter_reference_dictionary.iteritems(),
+                                               key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
+
                 summary_list[0] = userleaf.taxon.label
-                summary_list[1] = self.standardise_taxonomy(taxa_str)
-                summary_list[2] = fastani_matching_reference
-                summary_list[3] = str(
-                    self.species_radius.get(fastani_matching_reference))
-                summary_list[4] = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference)))
-                current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                    fastani_matching_reference).get('ani')
-                summary_list[5] = round(current_ani, 2)
-                summary_list[6] = all_fastani_dict.get(userleaf.taxon.label).get(
-                    fastani_matching_reference).get('af')
                 summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
                 summary_list[12] = 'ANI/Placement'
                 summary_list[15] = self.aa_percent_msa(
-                        msa_dict.get(summary_list[0]))
+                    msa_dict.get(summary_list[0]))
                 summary_list[16] = trans_table_dict.get(summary_list[0])
-                if self.species_radius.get(fastani_matching_reference) <= current_ani:
+                fastani_matching_reference = None
+                if len(sorted_prefilter_dict) > 0:
+                    fastani_matching_reference = sorted_prefilter_dict[0][0]
+                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('ani')
+                    current_af = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('af')
+
+                    taxa_str = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(fastani_matching_reference))[:-1])
+
+                    summary_list[1] = self.standardise_taxonomy(taxa_str)
+                    summary_list[2] = fastani_matching_reference
+                    summary_list[3] = str(
+                        self.species_radius.get(fastani_matching_reference))
+                    summary_list[4] = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(fastani_matching_reference)))
+                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('ani')
+                    summary_list[5] = round(current_ani, 2)
+                    current_af = all_fastani_dict.get(userleaf.taxon.label).get(
+                        fastani_matching_reference).get('af')
+                    summary_list[6] = current_af
+
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(fastani_matching_reference)))
                     summary_list[1] = self.standardise_taxonomy(
-                                taxa_str)
+                        taxa_str)
 
                     summary_list[13] = 'topological placement and ANI have incongruent species assignments'
                     if len(sorted_dict) > 0:
@@ -1007,7 +1056,7 @@ class Classify():
                 else:
                     if len(sorted_dict) > 0:
                         other_ref = '; '.join(self._formatnote(
-                            sorted_dict, [fastani_matching_reference]))
+                            sorted_dict, []))
                         if len(other_ref) == 0:
                             summary_list[14] = None
                         else:
@@ -1187,48 +1236,68 @@ class Classify():
         try:
             self.tmp_output_dir = tempfile.mkdtemp()
             make_sure_path_exists(self.tmp_output_dir)
+            dict_parser_distance = {}
 
+            # we first calculate the user genome vs the reference
             # we write the two input files for fastani, the query file and
             # reference file
-            path_query_list = os.path.join(
+            path_user_list = os.path.join(
                 self.tmp_output_dir, 'query_list.txt')
-            with open(path_query_list, 'w') as f:
+            with open(path_user_list, 'w') as f:
                 f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
 
-            path_ref_list = os.path.join(self.tmp_output_dir, 'ref_list.txt')
-            with open(path_ref_list, 'w') as f:
-                leafnodes = list_leaf.get("potential_g")
-                for node in leafnodes:
-                    leafnode = node[0]
-                    shortleaf = leafnode.taxon.label
-                    if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
-                        shortleaf = leafnode.taxon.label[3:]
+            leafnodes = list_leaf.get("potential_g")
+            for node in leafnodes:
+                leafnode = node[0]
+                shortleaf = leafnode.taxon.label
+                path_ref_list = os.path.join(self.tmp_output_dir, 'ref_{}.txt'.format(shortleaf))
+                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
+                    shortleaf = leafnode.taxon.label[3:]
+                with open(path_ref_list, 'w') as f:
                     f.write('{}\n'.format(os.path.join(
                         Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
+                # run fastANI
+                if not os.path.isfile(path_user_list) or not os.path.isfile(path_ref_list):
+                    raise
 
-            # run fastANI
-            if not os.path.isfile(path_query_list) or not os.path.isfile(path_ref_list):
-                raise
+                path_results = os.path.join(self.tmp_output_dir, 'results_{}_UvsRef.tab'.format(shortleaf))
+                path_error = os.path.join(self.tmp_output_dir, 'error_{}.log'.format(shortleaf))
 
-            path_results = os.path.join(self.tmp_output_dir, 'results.tab')
-            path_error = os.path.join(self.tmp_output_dir, 'error.log')
+                cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_user_list,
+                                                                                  path_ref_list,
+                                                                                  path_results,
+                                                                                  path_error)
 
-            cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_query_list,
-                                                                              path_ref_list,
-                                                                              path_results,
-                                                                              path_error)
-            os.system(cmd)
+                os.system(cmd)
 
-            if not os.path.isfile(path_results):
-                errstr = 'FastANI has stopped:\n'
-                if os.path.isfile(path_error):
-                    with open(path_error) as debug:
-                        for line in debug:
-                            finalline = line
-                        errstr += finalline
-                raise ValueError(errstr)
+                if not os.path.isfile(path_results):
+                    errstr = 'FastANI has stopped:\n'
+                    if os.path.isfile(path_error):
+                        with open(path_error) as debug:
+                            for line in debug:
+                                finalline = line
+                            errstr += finalline
+                    raise ValueError(errstr)
 
-            dict_parser_distance = self._parse_fastani_results(path_results)
+                dict_parser_distance = self._parse_fastani_results(path_results, dict_parser_distance)
+
+                # We then calculate the reference vs user genome
+                path_results_reverse = os.path.join(self.tmp_output_dir, 'results_{}_RefvsU.tab'.format(shortleaf))
+                cmd_reverse = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_ref_list,
+                                                                                          path_user_list,
+                                                                                          path_results_reverse,
+                                                                                          path_error)
+                os.system(cmd_reverse)
+                if not os.path.isfile(path_results_reverse):
+                    errstr = 'FastANI has stopped:\n'
+                    if os.path.isfile(path_error):
+                        with open(path_error) as debug:
+                            for line in debug:
+                                finalline = line
+                            errstr += finalline
+                    raise ValueError(errstr)
+                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse, dict_parser_distance)
+
             shutil.rmtree(self.tmp_output_dir)
             return dict_parser_distance
 
@@ -1241,7 +1310,7 @@ class Classify():
                 shutil.rmtree(self.tmp_output_dir)
             raise error
 
-    def _parse_fastani_results(self, fastout_file):
+    def _parse_fastani_results(self, fastout_file, dict_results):
         """ Parse the fastani output file
 
 
@@ -1255,7 +1324,6 @@ class Classify():
         dictionary
             dict_results[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         """
-        dict_results = {}
         with open(fastout_file) as fastfile:
             for line in fastfile:
                 info = line.strip().split()
@@ -1270,6 +1338,43 @@ class Classify():
                     dict_results[user_g] = {ref_genome: {"ani": ani, "af": af}}
 
         return dict_results
+
+    def _parse_fastani_results_reverse(self, fastout_file, dict_parser_distance):
+        # TODO: Merge _parse_fastani_results and _parse_fastani_results_reverse
+        """ Parse the fastani output file for the reverse comparison and pick the best ANI and AF
+
+
+        Parameters
+        ----------
+        fastout_file : fastani output file.
+        dict_parser_distance: dictionaryof user genomes vs list of refrence genomes with ANI and AF
+
+
+        Returns
+        -------
+        dictionary
+            dict_parser_distance[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
+        """
+        with open(fastout_file) as fastfile:
+            for line in fastfile:
+                info = line.strip().split()
+                ref_genome = os.path.basename(info[0]).replace(
+                    Config.FASTANI_GENOMES_EXT, "")
+                user_g = remove_extension(os.path.basename(info[1]))
+                ani = float(info[2])
+                af = round(float(info[3]) / float(info[4]), 2)
+                if user_g in dict_parser_distance:
+                    if ref_genome in dict_parser_distance.get(user_g):
+                        if dict_parser_distance.get(user_g).get(ref_genome).get('ani') < ani:
+                            dict_parser_distance[user_g][ref_genome]["ani"] = ani
+                        if dict_parser_distance.get(user_g).get(ref_genome).get('af') < af:
+                            dict_parser_distance[user_g][ref_genome]["af"] = af
+                    else:
+                        dict_parser_distance[user_g][ref_genome] = {"ani": ani, 'af': af}
+                else:
+                    dict_parser_distance[user_g] = {ref_genome: {"ani": ani, "af": af}}
+
+        return dict_parser_distance
 
     def _filter_taxa_for_dist_inference(self, tree, taxonomy, trusted_taxa, min_children, min_support):
         """Determine taxa to use for inferring distribution of relative divergences.
