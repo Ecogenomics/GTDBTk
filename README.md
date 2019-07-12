@@ -6,7 +6,7 @@
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes. It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-GTDB-Tk is **under active development and validation**. Please independently confirm the GTDB-Tk predictions by manually inspecting the tree and bring any discrepancies to our attention. Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
+Notifications about GTDB-Tk releases will be available through the GTDB Twitter account (https://twitter.com/ace_gtdb).
 
 Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) for the latest updates about the software.
 
@@ -32,8 +32,14 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 
 ## Announcements
 
+**Note (July 12, 2019)**:
+* GTDB-Tk v0.3.2 has been released (**we recommend all users update to this version**)
+    * FastANI calculations are more robust.
+    * Optimisation of RED calculations.
+    * Improved output messages when errors are encountered.
+
 **Note (July 08, 2019)**:
-* GTDB-Tk v0.3.1 has been released (**we recommend all users update to this version**):
+* GTDB-Tk v0.3.1 has been released:
   * Pplacer taxonomy is now available in the summary file.
   * FastANI species assignment will be selected over phylogenetic placement (Topology case).
   

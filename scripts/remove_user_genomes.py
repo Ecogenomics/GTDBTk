@@ -31,7 +31,6 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@qfab.org'
 __status__ = 'Development'
 
-import os
 import argparse
 
 

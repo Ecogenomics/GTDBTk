@@ -64,7 +64,7 @@ class TrimMSA(object):
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-        self.subset = cols_per_gene     # default: 42 * ~120 genes ~= 5,000 columns
+        self.subset = cols_per_gene  # default: 42 * ~120 genes ~= 5,000 columns
 
         # only consider columns with less than this percentage of gaps
         self.max_gaps = 1.0 - min_perc_taxa
@@ -232,7 +232,7 @@ class TrimMSA(object):
             valid_cols = self.identify_valid_columns(start,
                                                      end,
                                                      seqs)
-            assert(len(valid_cols) <= marker_len)  # sanity check
+            assert (len(valid_cols) <= marker_len)  # sanity check
 
             self.logger.info('%s: S:%d, E:%d, LEN:%d, COLS:%d, PERC:%.1f' % (
                 marker_name,

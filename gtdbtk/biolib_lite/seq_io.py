@@ -19,11 +19,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from future.utils import viewitems
-
+import gzip
 import os
 import sys
-import gzip
 import traceback
 
 from .exceptions import BioLibError
@@ -67,20 +65,22 @@ def read_fasta(fasta_file, keep_annotation=False):
             open_file = gzip.open
 
         seqs = {}
-        for line in open_file(fasta_file):
-            # skip blank lines
-            if not line.strip():
-                continue
+        with open_file(fasta_file, 'r') as f:
 
-            if line[0] == '>':
-                if keep_annotation:
-                    seq_id = line[1:-1]
+            for line in f.readlines():
+                # skip blank lines
+                if not line.strip():
+                    continue
+
+                if line[0] == '>':
+                    if keep_annotation:
+                        seq_id = line[1:-1]
+                    else:
+                        seq_id = line[1:].split(None, 1)[0]
+
+                    seqs[seq_id] = []
                 else:
-                    seq_id = line[1:].split(None, 1)[0]
-
-                seqs[seq_id] = []
-            else:
-                seqs[seq_id].append(line.strip())
+                    seqs[seq_id].append(line.strip())
 
         for seq_id, seq in seqs.items():
             seqs[seq_id] = ''.join(seq).replace(' ', '')
@@ -134,27 +134,29 @@ def read_fasta_seq(fasta_file, keep_annotation=False):
         seq_id = None
         annotation = None
         seq = None
-        for line in open_file(fasta_file):
-            # skip blank lines
-            if not line.strip():
-                continue
+        with open_file(fasta_file, 'r') as f:
 
-            if line[0] == '>':
-                if seq_id != None:
-                    if keep_annotation:
-                        yield seq_id, ''.join(seq).replace(' ', ''), annotation
+            for line in f.readlines():
+                # skip blank lines
+                if not line.strip():
+                    continue
+
+                if line[0] == '>':
+                    if seq_id is not None:
+                        if keep_annotation:
+                            yield seq_id, ''.join(seq).replace(' ', ''), annotation
+                        else:
+                            yield seq_id, ''.join(seq).replace(' ', '')
+
+                    line_split = line[1:-1].split(None, 1)
+                    if len(line_split) == 2:
+                        seq_id, annotation = line_split
                     else:
-                        yield seq_id, ''.join(seq).replace(' ', '')
-
-                line_split = line[1:-1].split(None, 1)
-                if len(line_split) == 2:
-                    seq_id, annotation = line_split
+                        seq_id = line_split[0]
+                        annotation = ''
+                    seq = []
                 else:
-                    seq_id = line_split[0]
-                    annotation = ''
-                seq = []
-            else:
-                seq.append(line.strip())
+                    seq.append(line.strip())
 
         # report last sequence
         if seq:
@@ -208,12 +210,13 @@ def read_seq(seq_file, keep_annotation=False):
         for rtn in read_fasta_seq(seq_file, keep_annotation):
             yield rtn
 
+
 def write_fasta(seqs, fasta_file, wrap=80):
     """Write sequences to a fasta file.
 
     Parameters
     ----------
-    dict : dict[seq_id] -> seq
+    seqs : dict[seq_id] -> seq
         Sequences indexed by sequence id.
     fasta_file : str
         Path to write the sequences to.
@@ -224,4 +227,4 @@ def write_fasta(seqs, fasta_file, wrap=80):
         for gid, gseq in seqs.items():
             f.write('>{}\n'.format(gid))
             for i in range(0, len(gseq), wrap):
-                f.write('{}\n'.format(gseq[i:i+wrap]))
+                f.write('{}\n'.format(gseq[i:i + wrap]))

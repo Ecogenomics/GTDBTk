@@ -195,19 +195,32 @@ class Markers(object):
 
         # Create a symlink to store the summary files in the root.
         symlink_f(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
-                   os.path.join(outdir, os.path.basename(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))))
+                  os.path.join(outdir, os.path.basename(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))))
         symlink_f(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix),
-                   os.path.join(outdir, os.path.basename(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))))
+                  os.path.join(outdir, os.path.basename(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))))
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
-                   os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
+                  os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
-    def identify(self,
-                 genomes,
-                 out_dir,
-                 prefix,
-                 force):
-        """Identify marker genes in genomes."""
+    def identify(self, genomes, out_dir, prefix, force):
+        """Identify marker genes in genomes.
 
+        Parameters
+        ----------
+        genomes : dict
+            Genome IDs as the key, path to genome file as value.
+        out_dir : str
+            Path to the output directory.
+        prefix : str
+            Prefix to append to generated files.
+        force : bool
+            Overwrite any existing files.
+
+        Raises
+        ------
+        GTDBTkException
+            If an exception is encountered during the identify step.
+
+        """
         check_dependencies(['prodigal', 'hmmsearch'])
 
         self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes),
@@ -250,7 +263,6 @@ class Markers(object):
 
         self._report_identified_marker_genes(
             genome_dictionary, out_dir, self.marker_gene_dir, prefix)
-
 
     def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
@@ -305,7 +317,8 @@ class Markers(object):
 
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
 
-        mask = open(msa_mask).readline().strip()
+        with open(msa_mask, 'r') as f:
+            mask = f.readline().strip()
         list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
 
         if len(mask) != len(aligned_genomes.values()[0]):
@@ -537,7 +550,7 @@ class Markers(object):
                                                              gtdb_msa_mask,
                                                              min_perc_aa / 100.0)
                 self.logger.info('Masked alignment from %d to %d AAs.' % (len(user_msa.values()[0]),
-                                                                         len(trimmed_seqs.values()[0])))
+                                                                          len(trimmed_seqs.values()[0])))
 
                 if min_perc_aa > 0:
                     self.logger.info('%d user genomes have amino acids in <%.1f%% of columns in filtered MSA.' % (
@@ -594,4 +607,3 @@ class Markers(object):
             else:
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
-

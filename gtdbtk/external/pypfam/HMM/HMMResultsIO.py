@@ -33,7 +33,6 @@ class HMMResultsIO(object):
     """
 
     def __init__(self):
-        
         self.align = 0
         self.outfile = 'OUTPUT'
         self.pfamout = 'PFAMOUT'
@@ -83,7 +82,7 @@ class HMMResultsIO(object):
         self.re_unitd_14 = re.compile(r'^$')
         self.re_unitd_15 = re.compile(r'^[(\/\/|Internal)]')
         self.re_unitd_16 = re.compile(r'^\>\>\s+(\S+)')
-        
+
         # Python adaptation: Pre-compile the regex used in parsing the footer.
         self.re_footer_1 = re.compile(r'\/\/')
 
@@ -446,7 +445,7 @@ class HMMResultsIO(object):
 
         hmmRes.eof = eof
 
-        if (recurse and nextSeqId):
+        if recurse and nextSeqId:
             self._readUnitData(nextSeqId, fh, hmmRes)
 
         return
@@ -508,21 +507,21 @@ class HMMResultsIO(object):
 
                 seq_name_padded = HMMResults.seqName + ' ' * (scanData._max_seqname - len(HMMResults.seqName))
                 fh.write('%s %6d %6d %6d %6d %-11s %-16s %7s %5d %5d %5d %8s %9s %3d %-8s ' %
-                      (seq_name_padded,
-                       unit.seqFrom,
-                       unit.seqTo,
-                       unit.envFrom,
-                       unit.envTo,
-                       scanData._accmap[unit.name],
-                       unit.name,
-                       scanData._type[unit.name],
-                       unit.hmmFrom,
-                       unit.hmmTo,
-                       scanData._model_len[unit.name],
-                       unit.bits,
-                       unit.evalue,
-                       unit.sig,
-                       clan))
+                         (seq_name_padded,
+                          unit.seqFrom,
+                          unit.seqTo,
+                          unit.envFrom,
+                          unit.envTo,
+                          scanData._accmap[unit.name],
+                          unit.name,
+                          scanData._type[unit.name],
+                          unit.hmmFrom,
+                          unit.hmmTo,
+                          scanData._model_len[unit.name],
+                          unit.bits,
+                          unit.evalue,
+                          unit.sig,
+                          clan))
 
                 fh.write('\n')
 

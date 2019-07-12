@@ -15,15 +15,10 @@
 #                                                                             #
 ###############################################################################
 
-import os
-import sys
 import logging
 import ntpath
-
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+import os
+import sys
 
 from common import make_sure_path_exists
 

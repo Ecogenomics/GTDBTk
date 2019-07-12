@@ -18,7 +18,6 @@
 
 from common import is_float
 
-
 '''Helper functions for parsing Newick information.'''
 
 

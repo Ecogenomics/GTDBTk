@@ -22,6 +22,7 @@ import unittest
 from gtdbtk.biolib_lite.common import *
 from gtdbtk.biolib_lite.exceptions import BioLibFileNotFound, BioLibDirNotFound
 
+
 class TestBiolibLiteCommon(unittest.TestCase):
 
     def setUp(self):
