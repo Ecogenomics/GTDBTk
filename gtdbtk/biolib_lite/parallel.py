@@ -103,7 +103,7 @@ class Parallel(object):
         """
         while True:
             dataItem = producer_queue.get(block=True, timeout=None)
-            if dataItem == None:
+            if dataItem is None:
                 break
 
             rtn = producer_callback(dataItem)
@@ -186,7 +186,7 @@ class Parallel(object):
                     sys.stdout.flush()
 
                 produced_data = consumer_queue.get(block=True, timeout=None)
-                if produced_data == None:
+                if produced_data is None:
                     break
 
                 if consumer:
@@ -261,7 +261,7 @@ class Parallel(object):
                     sys.stdout.flush()
 
                 produced_data = consumer_queue.get(block=True, timeout=None)
-                if produced_data == None:
+                if produced_data is None:
                     break
 
                 if not read_all_seqs:

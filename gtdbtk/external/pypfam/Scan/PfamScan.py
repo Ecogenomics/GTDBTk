@@ -357,10 +357,10 @@ class PfamScan(object):
                 hmmscan_cut_off.append('-E %s' % seq_evalue)
                 hmmscan_cut_off.append('--domE %s' % dom_evalue)
 
-            params = list()
             if self._cpu:
                 params = ['hmmsearch', '--notextw', '--cpu', str(self._cpu),
-                          ' '.join(hmmscan_cut_off), os.path.join(self._dir, hmmlib), self._fasta]
+                          ' '.join(hmmscan_cut_off),
+                          os.path.join(self._dir, hmmlib), self._fasta]
             else:
                 params = ['hmmsearch', '--notextw', ' '.join(hmmscan_cut_off),
                           os.path.join(self._dir, hmmlib), self._fasta]

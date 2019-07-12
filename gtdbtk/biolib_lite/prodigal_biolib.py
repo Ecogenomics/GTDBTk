@@ -76,14 +76,12 @@ class Prodigal(object):
         best_translation_table = -1
         table_coding_density = {4: -1, 11: -1}
         if self.called_genes:
-            os.system('cp %s %s' %
-                      (os.path.abspath(genome_file), aa_gene_file))
+            os.system('cp %s %s' % (os.path.abspath(genome_file), aa_gene_file))
         else:
-
             seqs = read_fasta(genome_file)
 
             if len(seqs) == 0:
-                self.logger.warn('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                self.logger.warning('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
                 return None
 
             tmp_dir = tempfile.mkdtemp()

@@ -140,18 +140,22 @@ class OptionsParser(object):
                 genomic_files[genome_id] = genome_file
 
         for genome_key in genomic_files.iterkeys():
-            if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
-                self.logger.error(
-                    "Submitted genomes start with the same prefix (RS_,GB_,UBA) as reference genomes in GTDB-Tk. This will cause issues for downstream analysis.")
+            if genome_key.startswith("RS_") or genome_key.startswith("GB_") \
+                    or genome_key.startswith("UBA"):
+                self.logger.error("Submitted genomes start with the same prefix"
+                                  " (RS_,GB_,UBA) as reference genomes in"
+                                  " GTDB-Tk. This will cause issues for"
+                                  " downstream analysis.")
                 raise GenomeNameInvalid
 
         if len(genomic_files) == 0:
             if genome_dir:
-                self.logger.error(
-                    'No genomes found in directory: %s. Check the --extension flag used to identify genomes.' % genome_dir)
+                self.logger.error('No genomes found in directory: %s. Check '
+                                  'the --extension flag used to identify '
+                                  'genomes.' % genome_dir)
             else:
-                self.logger.error(
-                    'No genomes found in batch file: %s. Please check the format of this file.' % batchfile)
+                self.logger.error('No genomes found in batch file: %s. Please '
+                                  'check the format of this file.' % batchfile)
             raise NoGenomesFound
 
         return genomic_files
@@ -592,6 +596,8 @@ class OptionsParser(object):
         elif options.subparser_name == 'export_msa':
             self.export_msa(options)
         elif options.subparser_name == 'test':
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
+                                'fastANI'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':
             self.check_install()

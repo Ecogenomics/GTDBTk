@@ -258,11 +258,11 @@ class Classify(object):
             for line in msf:
                 infos = line.strip().split('\t')
                 if marker_set_id == "bac120":
-                    multi_hits_percent = (
-                                                 100 * float(infos[2])) / Config.BAC_MARKER_COUNT
+                    multi_hits_percent = (100 * float(infos[2])) / \
+                                         Config.BAC_MARKER_COUNT
                 elif marker_set_id == "ar122":
-                    multi_hits_percent = (
-                                                 100 * float(infos[2])) / Config.AR_MARKER_COUNT
+                    multi_hits_percent = (100 * float(infos[2])) / \
+                                         Config.AR_MARKER_COUNT
                 # print (marker_set_id, float(infos[3]), multi_hits_percent)
                 if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
                     results[infos[0]] = round(multi_hits_percent, 1)
@@ -841,9 +841,11 @@ class Classify(object):
         note_list = []
         for element in sorted_dict:
             if element[0] not in labels:
-                note_str = "{}, {}, {}, {}, {}".format(element[0], self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(element[0]))[6], self.species_radius.get(element[0]),
-                                                       round(element[1].get('ani'), 2), element[1].get('af'))
+                note_str = "{}, {}, {}, {}, {}".format(element[0],
+                                                       self.gtdb_taxonomy.get(add_ncbi_prefix(element[0]))[6],
+                                                       self.species_radius.get(element[0]),
+                                                       round(element[1].get('ani'), 2),
+                                                       element[1].get('af'))
                 note_list.append(note_str)
         return note_list
 
@@ -852,8 +854,9 @@ class Classify(object):
         aa_perc = float(aa_len) / len(aa_string)
         return round(aa_perc * 100, 2)
 
-    def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict,
-                              percent_multihit_dict, trans_table_dict, bac_ar_diff, summaryfout):
+    def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict,
+                              all_fastani_dict, msa_dict, percent_multihit_dict,
+                              trans_table_dict, bac_ar_diff, summaryfout):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters

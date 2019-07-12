@@ -150,7 +150,7 @@ class RelativeDistance(object):
 
             most_specific_rank = taxon_name[0:3]
             rel_dists[Taxonomy.rank_index[most_specific_rank]
-            ][taxon_name] = node.rel_dist
+                      ][taxon_name] = node.rel_dist
 
         return rel_dists
 

@@ -261,7 +261,7 @@ class HmmAligner(object):
         hit_seq = None
         mask_seq = None
 
-        for line in result_file:
+        for line in result_file.splitlines():
             splitline = line.split(" ", 1)
             if splitline[0] == hit_name.split(" ", 1)[0]:
                 rsplitline = line.rsplit(" ", 1)
