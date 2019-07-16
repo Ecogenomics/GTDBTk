@@ -219,7 +219,8 @@ class OptionsParser(object):
         markers.identify(genomes,
                          options.out_dir,
                          options.prefix,
-                         options.force)
+                         options.force,
+                         options.genes)
 
         self.logger.info('Done.')
 

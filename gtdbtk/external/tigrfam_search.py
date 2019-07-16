@@ -20,6 +20,7 @@ import multiprocessing as mp
 import os
 import sys
 
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.tools import sha256, file_has_checksum
 
 
@@ -94,17 +95,13 @@ class TigrfamSearch(object):
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
         while True:
-            gene_file = queueIn.get(block=True, timeout=None)
-            if gene_file is None:
+            queue_next = queueIn.get(block=True, timeout=None)
+            if queue_next is None:
                 break
+            genome_id, gene_file = queue_next
 
-            assembly_dir, filename = os.path.split(gene_file)
-            genome_id = filename.replace(self.protein_file_suffix, '')
-            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                        self.tigrfam_suffix))
-
-            output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.tigrfam_suffix,
-                                                                                           self.tigrfam_top_hit_suffix))
+            output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.tigrfam_suffix))
+            output_tophit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.tigrfam_top_hit_suffix))
 
             # Genome has already been processed
             if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
@@ -112,8 +109,9 @@ class TigrfamSearch(object):
 
             # Process this genome
             else:
-                hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                          '_tigrfam.out'))
+                genome_dir = os.path.join(self.output_dir, genome_id)
+                hmmsearch_out = os.path.join(genome_dir, '{}_tigrfam.out'.format(genome_id))
+                make_sure_path_exists(genome_dir)
                 cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
                                                                                                  output_hit_file,
                                                                                                  self.cpus_per_genome,
