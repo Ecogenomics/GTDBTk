@@ -277,8 +277,6 @@ class PfamScan(object):
 
         return values
 
-
-
     def _read_fasta(self):
         """
         Reads a sequence from the fasta-format file that was specified in the parameters.
@@ -359,11 +357,13 @@ class PfamScan(object):
                 hmmscan_cut_off.append('-E %s' % seq_evalue)
                 hmmscan_cut_off.append('--domE %s' % dom_evalue)
 
-            params = list()
             if self._cpu:
-                params = ['hmmsearch', '--notextw', '--cpu', str(self._cpu), ' '.join(hmmscan_cut_off), os.path.join(self._dir, hmmlib), self._fasta]
+                params = ['hmmsearch', '--notextw', '--cpu', str(self._cpu),
+                          ' '.join(hmmscan_cut_off),
+                          os.path.join(self._dir, hmmlib), self._fasta]
             else:
-                params = ['hmmsearch', '--notextw', ' '.join(hmmscan_cut_off), os.path.join(self._dir, hmmlib), self._fasta]
+                params = ['hmmsearch', '--notextw', ' '.join(hmmscan_cut_off),
+                          os.path.join(self._dir, hmmlib), self._fasta]
 
             proc = subprocess.Popen(params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             proc_out, proc_err = proc.communicate()

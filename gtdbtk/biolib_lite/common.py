@@ -117,7 +117,6 @@ def make_sure_path_exists(path):
     BioLibIOException
         If an error was encountered while creating the directory.
     """
-
     if not path:
         # lack of a path qualifier is acceptable as this
         # simply specifies the current directory

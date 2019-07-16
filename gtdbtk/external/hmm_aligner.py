@@ -191,7 +191,7 @@ class HmmAligner(object):
                 if mid not in gene_dict and mid not in result_aligns.get(db_genome_id):
                     size = self._get_hmm_size(mpath)
                     result_aligns.get(db_genome_id).update({mid: "-" * size})
-                    #final_genome.append((db_genome_id, mid, "-" * size))
+                    # final_genome.append((db_genome_id, mid, "-" * size))
 
             result_aligns.get(db_genome_id).update(
                 self._run_align(gene_dict, db_genome_id))

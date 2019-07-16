@@ -665,7 +665,7 @@ class Taxonomy(object):
             Extant taxa for named groups at the specified rank.
         """
 
-        assert(rank_label in Taxonomy.rank_labels)
+        assert (rank_label in Taxonomy.rank_labels)
 
         d = defaultdict(set)
         rank_index = Taxonomy.rank_labels.index(rank_label)

@@ -48,10 +48,10 @@ def run(cmd):
     except subprocess.CalledProcessError as e:
         return False, e
 
-        #logging.error('Failed to execute:')
+        # logging.error('Failed to execute:')
         # logging.error(e.cmd)
         # logging.error('')
-        #logging.error('Program %s returned:' % args[0])
+        # logging.error('Program %s returned:' % args[0])
         # logging.error(e.output)
 
 

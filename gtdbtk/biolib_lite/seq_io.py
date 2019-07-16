@@ -210,6 +210,7 @@ def read_seq(seq_file, keep_annotation=False):
         for rtn in read_fasta_seq(seq_file, keep_annotation):
             yield rtn
 
+
 def write_fasta(seqs, fasta_file, wrap=80):
     """Write sequences to a fasta file.
 
@@ -226,4 +227,4 @@ def write_fasta(seqs, fasta_file, wrap=80):
         for gid, gseq in seqs.items():
             f.write('>{}\n'.format(gid))
             for i in range(0, len(gseq), wrap):
-                f.write('{}\n'.format(gseq[i:i+wrap]))
+                f.write('{}\n'.format(gseq[i:i + wrap]))

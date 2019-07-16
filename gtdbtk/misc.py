@@ -125,13 +125,13 @@ class Misc(object):
         ok = ok and self.checkfile(Config.TAXONOMY_FILE, 'Taxonomy')
         ok = ok and self.checkfile(Config.CONCAT_BAC120, 'concat_bac120')
         ok = ok and self.checkfile(Config.CONCAT_AR122, 'concat_ar122')
-        ok = ok and self.checkfile(os.path.join(Config.MASK_DIR,  Config.MASK_BAC120), 'mask_bac120')
-        ok = ok and self.checkfile(os.path.join(Config.MASK_DIR,  Config.MASK_AR122), 'mask_ar122')
+        ok = ok and self.checkfile(os.path.join(Config.MASK_DIR, Config.MASK_BAC120), 'mask_bac120')
+        ok = ok and self.checkfile(os.path.join(Config.MASK_DIR, Config.MASK_AR122), 'mask_ar122')
         ok = ok and self.checkfile(Config.TIGRFAM_HMMS, 'tirgfam_hmms')
         ok = ok and self.checkfile(os.path.join(Config.PFAM_HMM_DIR, 'Pfam-A.hmm'), 'pfam_hmms')
 
         ok = ok and self.checkfolder(Config.FASTANI_GENOMES, 'fastani_genomes')
-        ok = ok and self.checkfolder(os.path.join(Config.PPLACER_DIR,  Config.PPLACER_BAC120_REF_PKG), 'pplacer_bac120')
+        ok = ok and self.checkfolder(os.path.join(Config.PPLACER_DIR, Config.PPLACER_BAC120_REF_PKG), 'pplacer_bac120')
         ok = ok and self.checkfolder(os.path.join(Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG), 'pplacer_ar122')
 
         if not ok:

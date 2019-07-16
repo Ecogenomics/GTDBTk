@@ -40,10 +40,10 @@ class RelativeDistance(object):
         """Initialization."""
         self.logger = logging.getLogger()
 
-        #Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
-        #options = Options(6, 6, 12, 12, 96)
-        #AbstractPlot.__init__(self, options)
-        #self.dpi = 96
+        # Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
+        # options = Options(6, 6, 12, 12, 96)
+        # AbstractPlot.__init__(self, options)
+        # self.dpi = 96
 
     def _avg_descendant_rate(self, tree):
         """Calculate average rate of divergence for each nodes in a tree.

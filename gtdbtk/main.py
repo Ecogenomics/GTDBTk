@@ -50,12 +50,9 @@ class OptionsParser(object):
         version : str
             The current version number (e.g. 0.2.2).
         """
-
         self.version = version
         self.logger = logging.getLogger('timestamp')
-        self.logger.warning(
-            "Results are still being validated and taxonomic assignments may be incorrect! Use at your own risk!")
-
+        self.version = version
         self._check_package_compatibility()
 
     def _check_package_compatibility(self):
@@ -270,6 +267,12 @@ class OptionsParser(object):
         assert_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
 
+        if options.cpus > 1:
+            check_dependencies(['FastTreeMP'])
+            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
+        else:
+            check_dependencies(['FastTree'])
+
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
                                        PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix,
@@ -292,6 +295,11 @@ class OptionsParser(object):
         fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
                      options.no_support, options.no_gamma, options.msa_file,
                      options.cpus)
+
+        if options.subparser_name == 'infer':
+            symlink_f(output_tree[len(options.out_dir) + 1:],
+                      os.path.join(options.out_dir,
+                                   os.path.basename(output_tree)))
 
         self.logger.info('Done.')
 
@@ -319,9 +327,9 @@ class OptionsParser(object):
         output_dir = os.path.join(options.out_dir, 'output')
         genome_test_dir = os.path.join(options.out_dir, 'genomes')
         if os.path.exists(genome_test_dir):
-            self.logger.error('Test directory {} already exists. Test must be run with a new directory.'.format(
-                                genome_test_dir))
-            raise GTDBTkTestFailure('Test directory {} already exists.'.format(genome_test_dir))
+            self.logger.error('Test directory {} already exists'.format(genome_test_dir))
+            self.logger.error('Test must be run in a new directory.')
+            sys.exit(1)
 
         current_path = os.path.dirname(os.path.realpath(__file__))
         input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
@@ -331,19 +339,27 @@ class OptionsParser(object):
         args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
                 '--out_dir', output_dir, '--cpus', str(options.cpus)]
         self.logger.info('Command: {}'.format(' '.join(args)))
-        proc = subprocess.Popen(args)
-        proc.communicate()
+
+        path_stdout = os.path.join(options.out_dir, 'test_execution.log')
+        with open(path_stdout, 'w') as fh_stdout:
+            proc = subprocess.Popen(args, stdout=fh_stdout,
+                                    stderr=subprocess.PIPE)
+            proc.communicate()
 
         summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
 
         if proc.returncode != 0:
             self.logger.error('The test returned a non-zero exit code.')
-            self.logger.info('The test has failed.')
-            raise GTDBTkTestFailure('Test returned non-zero exit code.')
+            self.logger.error('A detailed summary of the execution log can be '
+                              'found here: {}'.format(path_stdout))
+            self.logger.error('The test has failed.')
+            sys.exit(1)
         if not os.path.exists(summary_file):
-            self.logger.error("{} is missing.\nTest has failed.".format(summary_file))
-            self.logger.info('The test has failed.')
-            raise GTDBTkTestFailure('Summary output file is missing.')
+            self.logger.error("{} is missing.".format(summary_file))
+            self.logger.error('A detailed summary of the execution log can be '
+                              'found here: {}'.format(path_stdout))
+            self.logger.error('The test has failed.')
+            sys.exit(1)
 
         self.logger.info('Test has successfully finished.')
         return True
@@ -440,10 +456,12 @@ class OptionsParser(object):
         # Symlink to the tree summary file
         if options.suffix == 'bac120':
             symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
-                       os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                      os.path.join(options.out_dir,
+                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
         elif options.suffix == 'ar122':
             symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
-                       os.path.join(options.out_dir, os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                      os.path.join(options.out_dir,
+                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -522,11 +540,15 @@ class OptionsParser(object):
             self.infer(options)
 
             if options.suffix == 'bac120':
-                options.input_tree = os.path.join(options.out_dir, PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
-                options.output_tree = os.path.join(options.out_dir, PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
+                options.input_tree = os.path.join(options.out_dir,
+                                                  PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir,
+                                                   PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
             elif options.suffix == 'ar122':
-                options.input_tree = os.path.join(options.out_dir, PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
-                options.output_tree = os.path.join(options.out_dir, PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                options.input_tree = os.path.join(options.out_dir,
+                                                  PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir,
+                                                   PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
                 self.logger.error('There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
@@ -571,6 +593,8 @@ class OptionsParser(object):
         elif options.subparser_name == 'export_msa':
             self.export_msa(options)
         elif options.subparser_name == 'test':
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
+                                'fastANI'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':
             self.check_install()
