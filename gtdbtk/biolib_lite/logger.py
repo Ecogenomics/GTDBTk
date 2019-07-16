@@ -23,6 +23,38 @@ import sys
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 
 
+def colour(to_fmt, attr=None, fg=None, bg=None):
+    """Format a string according to the following rules.
+    http://www.termsys.demon.co.uk/vtansi.htm
+
+    Parameters
+    ----------
+    to_fmt : str
+        The string to be formatted.
+    attr : list
+        A list of attributes to be applied.
+    fg : str
+        The foreground colour to apply.
+    bg : str
+        The background colour to apply.
+
+    Returns
+    -------
+    str
+        A string formatted according to the specifications.
+    """
+    options_attr = {'reset': 0, 'bright': 1, 'dim': 2, 'underscore': 4,
+                    'blink': 5, 'reverse': 7, 'hidden': 8}
+    options_col = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4,
+                   'magenta': 5, 'cyan': 6, 'white': 7}
+    options = list() if not attr else [str(options_attr[x]) for x in attr]
+    if fg:
+        options.append(str(30 + options_col[fg]))
+    if bg:
+        options.append(str(40 + options_col[bg]))
+    return '\x1b[{}m{}\x1b[0m'.format(';'.join(options), to_fmt)
+
+
 def logger_setup(log_dir, log_file, program_name, version, silent):
     """Setup loggers.
 
@@ -47,18 +79,46 @@ def logger_setup(log_dir, log_file, program_name, version, silent):
         Flag indicating if output to stdout should be suppressed.
     """
 
+    class SpecialFormatter(logging.Formatter):
+
+        default_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                        format(colour('INFO:', ['bright'])),
+                                        datefmt="%Y-%m-%d %H:%M:%S")
+        debug_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                      format(colour('DEBUG:', ['bright'], 'green')),
+                                      datefmt="%Y-%m-%d %H:%M:%S")
+        info_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                     format(colour('INFO:', ['bright'])),
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+        warn_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                     format(colour('WARNING:', ['bright'], 'yellow')),
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+        err_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                    format(colour('ERROR:', ['bright'], 'red')),
+                                    datefmt="%Y-%m-%d %H:%M:%S")
+
+        def format(self, record):
+            if record.levelno >= logging.ERROR:
+                return self.err_fmt.format(record)
+            elif record.levelno >= logging.WARNING:
+                return self.warn_fmt.format(record)
+            elif record.levelno >= logging.INFO:
+                return self.info_fmt.format(record)
+            elif record.levelno >= logging.DEBUG:
+                return self.debug_fmt.format(record)
+            else:
+                return self.default_fmt.format(record)
+
     # setup general properties of loggers
     timestamp_logger = logging.getLogger('timestamp')
     timestamp_logger.setLevel(logging.DEBUG)
-    log_format = logging.Formatter(fmt="[%(asctime)s] %(levelname)s: %(message)s",
-                                   datefmt="%Y-%m-%d %H:%M:%S")
 
     no_timestamp_logger = logging.getLogger('no_timestamp')
     no_timestamp_logger.setLevel(logging.DEBUG)
 
     # setup logging to console
     timestamp_stream_logger = logging.StreamHandler(sys.stdout)
-    timestamp_stream_logger.setFormatter(log_format)
+    timestamp_stream_logger.setFormatter(SpecialFormatter())
     timestamp_logger.addHandler(timestamp_stream_logger)
 
     no_timestamp_stream_logger = logging.StreamHandler(sys.stdout)
@@ -76,7 +136,7 @@ def logger_setup(log_dir, log_file, program_name, version, silent):
         make_sure_path_exists(log_dir)
         timestamp_file_logger = logging.FileHandler(
             os.path.join(log_dir, log_file), 'a')
-        timestamp_file_logger.setFormatter(log_format)
+        timestamp_file_logger.setFormatter(SpecialFormatter())
         timestamp_logger.addHandler(timestamp_file_logger)
 
         no_timestamp_file_logger = logging.FileHandler(
