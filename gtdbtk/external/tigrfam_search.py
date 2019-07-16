@@ -147,6 +147,7 @@ class TigrfamSearch(object):
 
         sys.stdout.write('\n')
 
+
     def run(self, gene_files):
         """Annotate genes with TIGRFAM HMMs.
 
