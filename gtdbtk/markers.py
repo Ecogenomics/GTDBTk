@@ -21,18 +21,18 @@ from shutil import copy
 
 import numpy as np
 
-import config.config as Config
-from biolib_lite.execute import check_dependencies
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.taxonomy import Taxonomy
-from external.hmm_aligner import HmmAligner
-from external.pfam_search import PfamSearch
-from external.prodigal import Prodigal
-from external.tigrfam_search import TigrfamSearch
+import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
-from tools import merge_two_dicts, symlink_f
-from trim_msa import TrimMSA
+from gtdbtk.external.hmm_aligner import HmmAligner
+from gtdbtk.external.pfam_search import PfamSearch
+from gtdbtk.external.prodigal import Prodigal
+from gtdbtk.external.tigrfam_search import TigrfamSearch
+from gtdbtk.tools import merge_two_dicts, symlink_f
+from gtdbtk.trim_msa import TrimMSA
 
 
 class Markers(object):
@@ -276,7 +276,7 @@ class Markers(object):
                 continue
 
             genomic_files[gid] = {'aa_gene_path': os.path.join(gid_dir, gid + self.protein_file_suffix),
-                                  'translation_table_path': os.path.join(gid_dir, 'prodigal_translation_table.tsv'),
+                                  'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
                                   'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                   'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                   }
@@ -321,13 +321,14 @@ class Markers(object):
             mask = f.readline().strip()
         list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
 
-        if len(mask) != len(aligned_genomes.values()[0]):
-            self.logger.error('Mask and alignment length do not match.')
-            raise MSAMaskLengthMismatch
-
         output_seqs = {}
         pruned_seqs = {}
         for seq_id, seq in aligned_genomes.iteritems():
+
+            if len(mask) != len(seq):
+                self.logger.error('Mask and alignment length do not match.')
+                raise MSAMaskLengthMismatch('Mask and alignment length do not match.')
+
             masked_seq = ''.join(np.array(list(seq), dtype=str)[list_mask])
 
             valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
@@ -342,15 +343,14 @@ class Markers(object):
     def _write_msa(self, seqs, output_file, gtdb_taxonomy):
         """Write sequences to FASTA file."""
 
-        fout = open(output_file, 'w')
-        for genome_id, alignment in seqs.iteritems():
-            if genome_id in gtdb_taxonomy:
-                fout.write('>%s %s\n' %
-                           (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
-            else:
-                fout.write('>%s\n' % genome_id)
-            fout.write('%s\n' % alignment)
-        fout.close()
+        with open(output_file, 'w') as fout:
+            for genome_id, alignment in seqs.iteritems():
+                if genome_id in gtdb_taxonomy:
+                    fout.write('>%s %s\n' %
+                               (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
+                else:
+                    fout.write('>%s\n' % genome_id)
+                fout.write('%s\n' % alignment)
 
     def genome_domain(self, identity_dir, prefix):
         """Determine domain of User genomes based on identified marker genes."""
@@ -393,27 +393,26 @@ class Markers(object):
         marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
                         "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmms), 'individual_hmms')}
 
-        fout = open(marker_file, 'w')
-        fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
-        for db_marker in sorted(marker_db):
-            for marker in marker_db[db_marker]:
-                marker_id = marker[0:marker.rfind('.')]
-                marker_path = os.path.join(marker_paths[db_marker], marker)
+        with open(marker_file, 'w') as fout:
+            fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
+            for db_marker in sorted(marker_db):
+                for marker in marker_db[db_marker]:
+                    marker_id = marker[0:marker.rfind('.')]
+                    marker_path = os.path.join(marker_paths[db_marker], marker)
 
-                # get marker name, description, and size
-                with open(marker_path) as fp:
-                    for line in fp:
-                        if line.startswith("NAME  "):
-                            marker_name = line.split("  ")[1].strip()
-                        elif line.startswith("DESC  "):
-                            marker_desc = line.split("  ")[1].strip()
-                        elif line.startswith("LENG  "):
-                            marker_size = line.split("  ")[1].strip()
-                            break
+                    # get marker name, description, and size
+                    with open(marker_path, 'r') as fp:
+                        for line in fp:
+                            if line.startswith("NAME  "):
+                                marker_name = line.split("  ")[1].strip()
+                            elif line.startswith("DESC  "):
+                                marker_desc = line.split("  ")[1].strip()
+                            elif line.startswith("LENG  "):
+                                marker_size = line.split("  ")[1].strip()
+                                break
 
-                fout.write('%s\t%s\t%s\t%s\n' %
-                           (marker_id, marker_name, marker_desc, marker_size))
-        fout.close()
+                    fout.write('%s\t%s\t%s\t%s\n' %
+                               (marker_id, marker_name, marker_desc, marker_size))
 
     def align(self,
               identify_dir,

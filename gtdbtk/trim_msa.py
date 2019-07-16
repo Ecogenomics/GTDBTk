@@ -36,9 +36,8 @@ import sys
 import argparse
 import random
 import logging
-
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.logger import logger_setup
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.biolib_lite.logger import logger_setup
 
 from collections import defaultdict, Counter
 
@@ -96,12 +95,11 @@ class TrimMSA(object):
             self.min_perc_aa))
 
         # write out trimmed sequences
-        filter_file = open(os.path.join(
-            self.output_dir, "filtered_msa.faa"), 'w')
-        for gid, seq in filtered_seqs.items():
-            fasta_outstr = ">%s\n%s\n" % (gid, seq)
-            filter_file.write(fasta_outstr)
-        filter_file.close()
+        with open(os.path.join(
+            self.output_dir, "filtered_msa.faa"), 'w') as filter_file:
+            for gid, seq in filtered_seqs.items():
+                fasta_outstr = ">%s\n%s\n" % (gid, seq)
+                filter_file.write(fasta_outstr)
 
         self.logger.info('Done.')
 
@@ -146,36 +144,32 @@ class TrimMSA(object):
         mask, output_seqs = self.subsample_msa(msa, markers)
 
         # write mask to file
-        mask_file = open(os.path.join(self.output_dir, "mask.txt"), 'w')
-        mask_file.write(''.join([str(n) for n in mask]))
-        mask_file.close()
+        with open(os.path.join(self.output_dir, "mask.txt"), 'w') as mask_file:
+            mask_file.write(''.join([str(n) for n in mask]))
 
         # write subsampled MSA to file
-        nbr_aa_seqs = open(os.path.join(
-            self.output_dir, "genome_msa_stats.tsv"), 'w')
-        nbr_aa_seqs.write(
-            'Genome ID\tMSA length\tAmino acids\tAmino acids (%)\n')
-        filtered_msa = {}
-        pruned_seqs = {}
-        for genome_id, aligned_seq in output_seqs.iteritems():
-            aa_len = sum([1 for c in aligned_seq if c.isalpha()])
-            if aa_len != 0:
-                aa_perc = float(aa_len) / len(aligned_seq)
-            else:
-                aa_perc = 0
-            len_outstr = "%s\t%d\t%d\t%.2f\n" % (
-                genome_id,
-                len(aligned_seq),
-                aa_len,
-                aa_perc * 100.0)
-            nbr_aa_seqs.write(len_outstr)
+        with open(os.path.join(self.output_dir, "genome_msa_stats.tsv"), 'w') as nbr_aa_seqs:
+            nbr_aa_seqs.write(
+                'Genome ID\tMSA length\tAmino acids\tAmino acids (%)\n')
+            filtered_msa = {}
+            pruned_seqs = {}
+            for genome_id, aligned_seq in output_seqs.items():
+                aa_len = sum([1 for c in aligned_seq if c.isalpha()])
+                if aa_len != 0:
+                    aa_perc = float(aa_len) / len(aligned_seq)
+                else:
+                    aa_perc = 0
+                len_outstr = "%s\t%d\t%d\t%.2f\n" % (
+                    genome_id,
+                    len(aligned_seq),
+                    aa_len,
+                    aa_perc * 100.0)
+                nbr_aa_seqs.write(len_outstr)
 
-            if aa_perc >= self.min_perc_aa:
-                filtered_msa[genome_id] = aligned_seq
-            else:
-                pruned_seqs[genome_id] = aligned_seq
-
-        nbr_aa_seqs.close()
+                if aa_perc >= self.min_perc_aa:
+                    filtered_msa[genome_id] = aligned_seq
+                else:
+                    pruned_seqs[genome_id] = aligned_seq
 
         return filtered_msa, pruned_seqs
 

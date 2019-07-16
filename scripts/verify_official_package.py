@@ -29,15 +29,14 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
 
+import sys
 import argparse
-import copy
+from gtdbtk.biolib_lite.seq_io import read_fasta
 import glob
 import os
-import sys
-import tarfile
-
 import dendropy
-from biolib.seq_io import read_fasta
+import tarfile
+import copy
 
 
 class PackageChecker(object):

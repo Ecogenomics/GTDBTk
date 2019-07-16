@@ -20,7 +20,7 @@ import ntpath
 import os
 import sys
 
-from common import make_sure_path_exists
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 
 
 def logger_setup(log_dir, log_file, program_name, version, silent):

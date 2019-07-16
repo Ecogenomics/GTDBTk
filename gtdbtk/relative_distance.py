@@ -25,8 +25,8 @@ from numpy import (median as np_median,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
 
-from biolib_lite.newick import parse_label
-from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.biolib_lite.newick import parse_label
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
 
 
 class RelativeDistance(object):
@@ -74,7 +74,7 @@ class RelativeDistance(object):
                 for c in node.child_node_iter():
                     num_tips = c.num_taxa
                     avg_div += (float(c.num_taxa) / node.num_taxa) * \
-                               (c.mean_dist + c.edge_length)
+                        (c.mean_dist + c.edge_length)
 
             node.mean_dist = avg_div
 
@@ -341,65 +341,63 @@ class RelativeDistance(object):
         median_for_rank = self.rank_median_rd(
             phylum_rel_dists, taxa_for_dist_inference)
 
-        fout_rank = open(rank_file, 'w')
-        median_str = []
-        for rank in sorted(median_for_rank.keys()):
-            median_str.append(
-                '"' + Taxonomy.rank_labels[rank] + '":' + str(median_for_rank[rank]))
-        fout_rank.write('{' + ','.join(median_str) + '}\n')
-        fout_rank.close()
+        with open(rank_file, 'w') as fout_rank:
+            median_str = []
+            for rank in sorted(median_for_rank.keys()):
+                median_str.append(
+                    '"' + Taxonomy.rank_labels[rank] + '":' + str(median_for_rank[rank]))
+            fout_rank.write('{' + ','.join(median_str) + '}\n')
 
-        fout = open(outlier_table, 'w')
-        if verbose_table:
-            fout.write('Taxa\tGTDB taxonomy\tMedian distance')
-            fout.write('\tMedian of rank\tMedian difference')
-            fout.write('\tClosest rank\tClassifciation\n')
-        else:
-            fout.write(
-                'Taxa\tGTDB taxonomy\tMedian distance\tMedian difference\tClosest rank\tClassification\n')
+        with open(outlier_table, 'w') as fout:
+            if verbose_table:
+                fout.write('Taxa\tGTDB taxonomy\tMedian distance')
+                fout.write('\tMedian of rank\tMedian difference')
+                fout.write('\tClosest rank\tClassifciation\n')
+            else:
+                fout.write(
+                    'Taxa\tGTDB taxonomy\tMedian distance\tMedian difference\tClosest rank\tClassification\n')
 
-        for rank in sorted(median_for_rank.keys()):
-            for clade_label, dists in medians_for_taxa[rank].iteritems():
-                dists = np_array(dists)
+            for rank in sorted(median_for_rank.keys()):
+                for clade_label, dists in medians_for_taxa[rank].iteritems():
+                    dists = np_array(dists)
 
-                taxon_median = np_median(dists)
-                delta = taxon_median - median_for_rank[rank]
+                    taxon_median = np_median(dists)
+                    delta = taxon_median - median_for_rank[rank]
 
-                closest_rank_dist = 1e10
-                for test_rank, test_median in median_for_rank.iteritems():
-                    abs_dist = abs(taxon_median - test_median)
-                    if abs_dist < closest_rank_dist:
-                        closest_rank_dist = abs_dist
-                        closest_rank = Taxonomy.rank_labels[test_rank]
+                    closest_rank_dist = 1e10
+                    for test_rank, test_median in median_for_rank.iteritems():
+                        abs_dist = abs(taxon_median - test_median)
+                        if abs_dist < closest_rank_dist:
+                            closest_rank_dist = abs_dist
+                            closest_rank = Taxonomy.rank_labels[test_rank]
 
-                classification = "OK"
-                if delta < -0.2:
-                    classification = "very overclassified"
-                elif delta < -0.1:
-                    classification = "overclassified"
-                elif delta > 0.2:
-                    classification = "very underclassified"
-                elif delta > 0.1:
-                    classification = "underclassified"
+                    classification = "OK"
+                    if delta < -0.2:
+                        classification = "very overclassified"
+                    elif delta < -0.1:
+                        classification = "overclassified"
+                    elif delta > 0.2:
+                        classification = "very underclassified"
+                    elif delta > 0.1:
+                        classification = "underclassified"
 
-                if verbose_table:
-                    fout.write('%s\t%s\t%.2f\t%.3f\t%.3f\t%s\t%s\n' % (clade_label,
-                                                                       ';'.join(
-                                                                           gtdb_parent_ranks[clade_label]),
-                                                                       taxon_median,
-                                                                       median_for_rank[rank],
-                                                                       delta,
-                                                                       closest_rank,
-                                                                       classification))
-                else:
-                    fout.write('%s\t%s\t%.3f\t%.3f\t%s\t%s\n' % (clade_label,
-                                                                 ';'.join(
-                                                                     gtdb_parent_ranks[clade_label]),
-                                                                 taxon_median,
-                                                                 delta,
-                                                                 closest_rank,
-                                                                 classification))
-        fout.close()
+                    if verbose_table:
+                        fout.write('%s\t%s\t%.2f\t%.3f\t%.3f\t%s\t%s\n' % (clade_label,
+                                                                           ';'.join(
+                                                                               gtdb_parent_ranks[clade_label]),
+                                                                           taxon_median,
+                                                                           median_for_rank[rank],
+                                                                           delta,
+                                                                           closest_rank,
+                                                                           classification))
+                    else:
+                        fout.write('%s\t%s\t%.3f\t%.3f\t%s\t%s\n' % (clade_label,
+                                                                     ';'.join(
+                                                                         gtdb_parent_ranks[clade_label]),
+                                                                     taxon_median,
+                                                                     delta,
+                                                                     closest_rank,
+                                                                     classification))
 
     def rank_median_rd(self, phylum_rel_dists, taxa_for_dist_inference):
         """Calculate median relative divergence for each rank.

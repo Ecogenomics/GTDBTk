@@ -46,11 +46,10 @@ def is_float(s):
         float(s)
     except ValueError:
         return False
-
     return True
 
 
-def check_file_exists(input_file):
+def assert_file_exists(input_file):
     """Assert that a file exists.
 
     Parameters
@@ -75,7 +74,7 @@ def check_file_exists(input_file):
     return True
 
 
-def check_dir_exists(input_dir):
+def assert_dir_exists(input_dir):
     """Assert that a directory exists.
 
     Parameters

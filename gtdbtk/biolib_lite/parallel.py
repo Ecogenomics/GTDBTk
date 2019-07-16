@@ -29,7 +29,7 @@ import logging
 import traceback
 import multiprocessing as mp
 
-import seq_io as seq_io
+import gtdbtk.biolib_lite.seq_io as seq_io
 
 
 class Parallel(object):

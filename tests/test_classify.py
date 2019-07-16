@@ -15,24 +15,19 @@
 #                                                                             #
 ###############################################################################
 
-import unittest
-import string
 import random
-import os
 import shutil
+import string
+import unittest
+
 import dendropy
-import hashlib
-
-
-import gtdbtk
-from gtdbtk.classify import Classify
-
-from gtdbtk.biolib_lite.taxonomy import Taxonomy
 
 import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
+from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
 
-from itertools import islice
+os.nice(10)
 
 
 class TestClassify(unittest.TestCase):
@@ -67,13 +62,13 @@ class TestClassify(unittest.TestCase):
         marker_dict = self.classify._write_red_dict(
             self.out_dir, self.prefix, 'bac120')
         self.assertTrue(len(marker_dict) == 6)
-        self.assertTrue(marker_dict.has_key('d__'))
+        self.assertTrue('d__' in marker_dict)
         self.assertTrue(marker_dict.get('d__') == 0)
-        self.assertTrue(marker_dict.has_key('p__'))
-        self.assertTrue(marker_dict.has_key('c__'))
-        self.assertTrue(marker_dict.has_key('o__'))
-        self.assertTrue(marker_dict.has_key('f__'))
-        self.assertTrue(marker_dict.has_key('g__'))
+        self.assertTrue('p__' in marker_dict)
+        self.assertTrue('c__' in marker_dict)
+        self.assertTrue('o__' in marker_dict)
+        self.assertTrue('f__' in marker_dict)
+        self.assertTrue('g__' in marker_dict)
 
     def test_get_pplacer_taxonomy(self):
         if not os.path.exists(self.out_dir):

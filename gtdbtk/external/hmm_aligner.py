@@ -24,9 +24,9 @@ import subprocess
 import tempfile
 import time
 
-from ..biolib_lite.execute import check_dependencies
-from ..biolib_lite.seq_io import read_fasta
-from ..tools import splitchunks
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.tools import splitchunks
 
 
 class HmmAligner(object):
@@ -112,21 +112,21 @@ class HmmAligner(object):
         if marker_set_id == "bac120":
             for db_marker in sorted(self.bac120_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
-                    for marker in self.bac120_markers[db_marker]})
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.bac120_markers[db_marker]})
         elif marker_set_id == "ar122":
             for db_marker in sorted(self.ar122_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
-                    for marker in self.ar122_markers[db_marker]})
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.ar122_markers[db_marker]})
         elif marker_set_id == "rps23":
             for db_marker in sorted(self.rps23_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
-                    for marker in self.rps23_markers[db_marker]})
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.rps23_markers[db_marker]})
 
         result_aligns = {db_genome_id: {}}
 
