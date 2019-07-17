@@ -456,6 +456,11 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         logger.error('Controlled exit resulting from interrupt signal.')
         sys.exit(1)
+    except GTDBTkExit as e:
+        if len(str(e)) > 0:
+            logger.error('{}'.format(e))
+        logger.error('Controlled exit resulting from an unrecoverable error or warning.')
+        sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
         msg += '=' * 80 + '\n'
