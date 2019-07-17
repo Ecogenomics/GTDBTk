@@ -18,6 +18,7 @@
 import logging
 import ntpath
 import os
+import re
 import sys
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
@@ -55,7 +56,7 @@ def colour(to_fmt, attr=None, fg=None, bg=None):
     return '\x1b[{}m{}\x1b[0m'.format(';'.join(options), to_fmt)
 
 
-def logger_setup(log_dir, log_file, program_name, version, silent):
+def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
     """Setup loggers.
 
     Two logger are setup which both print to the stdout and a 
@@ -80,7 +81,6 @@ def logger_setup(log_dir, log_file, program_name, version, silent):
     """
 
     class SpecialFormatter(logging.Formatter):
-
         default_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
                                         format(colour('INFO:', ['bright'])),
                                         datefmt="%Y-%m-%d %H:%M:%S")
@@ -109,12 +109,21 @@ def logger_setup(log_dir, log_file, program_name, version, silent):
             else:
                 return self.default_fmt.format(record)
 
+    class ColourlessFormatter(SpecialFormatter):
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        fmt = logging.Formatter(fmt="[%(asctime)s] %(levelname)s: %(message)s",
+                                datefmt="%Y-%m-%d %H:%M:%S")
+
+        def format(self, record):
+            record.msg = self.ansi_escape.sub('', record.msg)
+            return self.fmt.format(record)
+
     # setup general properties of loggers
     timestamp_logger = logging.getLogger('timestamp')
-    timestamp_logger.setLevel(logging.DEBUG)
+    timestamp_logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
     no_timestamp_logger = logging.getLogger('no_timestamp')
-    no_timestamp_logger.setLevel(logging.DEBUG)
+    no_timestamp_logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
     # setup logging to console
     timestamp_stream_logger = logging.StreamHandler(sys.stdout)
@@ -134,13 +143,14 @@ def logger_setup(log_dir, log_file, program_name, version, silent):
 
     if log_dir:
         make_sure_path_exists(log_dir)
-        timestamp_file_logger = logging.FileHandler(
-            os.path.join(log_dir, log_file), 'a')
-        timestamp_file_logger.setFormatter(SpecialFormatter())
+        timestamp_file_logger = logging.FileHandler(os.path.join(log_dir,
+                                                                 log_file), 'a')
+        timestamp_file_logger.setFormatter(ColourlessFormatter())
         timestamp_logger.addHandler(timestamp_file_logger)
 
-        no_timestamp_file_logger = logging.FileHandler(
-            os.path.join(log_dir, log_file), 'a')
+        no_timestamp_file_logger = logging.FileHandler(os.path.join(log_dir,
+                                                                    log_file),
+                                                       'a')
         no_timestamp_file_logger.setFormatter(None)
         no_timestamp_logger.addHandler(no_timestamp_file_logger)
 

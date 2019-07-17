@@ -29,6 +29,7 @@ from gtdbtk.biolib_lite.common import (assert_dir_exists,
                                        make_sure_path_exists,
                                        remove_extension)
 from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
@@ -62,8 +63,10 @@ class OptionsParser(object):
         self.logger.info('Using GTDB-Tk reference data version {}: {}'
                          .format(Config.VERSION_DATA, Config.GENERIC_PATH))
         if pkg_ver < min_ver:
-            self.logger.warning('You are not using the reference data intended '
-                                'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
+            self.logger.warning(colour('You are not using the reference data '
+                                       'intended for this release: {}'
+                                       .format(Config.MIN_REF_DATA_VERSION),
+                                       ['bright'], fg='yellow'))
 
     def _assert_genome_id_valid(self, genome_id):
         """Ensure genome ID will be valid in Newick tree.
