@@ -23,18 +23,21 @@ from gtdbtk.exceptions import PplacerException, TogException
 
 
 class Pplacer(object):
-    """ Phylogenetic placement of genomes into a tree (http://matsen.fredhutch.org/pplacer/). """
+    """Phylogenetic placement of genomes into a reference tree
+    (http://matsen.fredhutch.org/pplacer/).
+    """
 
     def __init__(self):
         """ Instantiate the class. """
         self.logger = logging.getLogger('timestamp')
 
-    def run(self, cpus, model, ref_pkg, json_out, msa_file, pplacer_out, mmap_file=None):
-        """ Place genomes into the tree.
+    def run(self, cpus, model, ref_pkg, json_out, msa_file, pplacer_out,
+            mmap_file=None):
+        """Place genomes into a reference.
 
         Args:
             cpus (int): The number of threads to use.
-            model (str): The model to use. Protein: LG, WAG, JTT. Nucleotides: GTR.
+            model (str): The model to use. PROT: LG, WAG, JTT. NT: GTR.
             ref_pkg (str): The path to the reference package.
             json_out (str): The path to write the json output to.
             msa_file (str): The path to the input MSA file.
@@ -42,26 +45,36 @@ class Pplacer(object):
             mmap_file (str, optional): The path to write a scratch file to.
 
         Raises:
-            PplacerException: if a non-zero exit code, or if the json output file isn't generated.
+            PplacerException: if a non-zero exit code, or if the json output
+                              file isn't generated.
 
         """
 
-        args = ['pplacer', '-m', model, '-j', str(cpus), '-c', ref_pkg, '-o', json_out, msa_file]
+        args = ['pplacer', '-m', model, '-j', str(cpus), '-c', ref_pkg, '-o',
+                json_out, msa_file]
 
         if mmap_file:
             args.append('--mmap-file')
             args.append(mmap_file)
 
-        with open(pplacer_out, 'w') as f_out:
-            proc = subprocess.Popen(args, stdout=f_out, stderr=subprocess.PIPE)
-            proc_out, proc_err = proc.communicate()
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        with open(pplacer_out, 'w') as fh:
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    break
+                fh.write(line)
+                self.logger.info('[pplacer] {}'.format(line.strip()))
+        proc.wait()
 
         if proc.returncode != 0:
-            self.logger.error('An error was encountered while running pplacer.')
-            raise PplacerException(proc_err)
+            raise PplacerException('An error was encountered while '
+                                   'running pplacer, check the log '
+                                   'file: {}'.format(pplacer_out))
 
         if not os.path.isfile(json_out):
-            self.logger.error('pplacer returned a zero exit code but no output file was generated.')
+            self.logger.error('pplacer returned a zero exit code but no output '
+                              'file was generated.')
             raise PplacerException
 
     def tog(self, pplacer_json_out, tree_file):
@@ -72,11 +85,13 @@ class Pplacer(object):
             tree_file (str): The path to output the newick file to.
 
         Raises:
-            TogException: If a non-zero exit code is returned, or the tree file isn't output.
+            TogException: If a non-zero exit code is returned, or the tree file
+                          isn't output.
         """
 
         args = ['guppy', 'tog', '-o', tree_file, pplacer_json_out]
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
         proc_out, proc_err = proc.communicate()
 
         if proc.returncode != 0:
@@ -84,5 +99,6 @@ class Pplacer(object):
             raise TogException(proc_err)
 
         if not os.path.isfile(pplacer_json_out):
-            self.logger.error('tog returned a zero exit code but no output file was generated.')
+            self.logger.error('tog returned a zero exit code but no output '
+                              'file was generated.')
             raise TogException
