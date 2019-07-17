@@ -40,9 +40,9 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
     * # ????
 
 **Note (July 12, 2019)**:
-    * FastANI calculations are more robust.
-    * Optimisation of RED calculations.
-    * Improved output messages when errors are encountered.
+   * FastANI calculations are more robust.
+   * Optimisation of RED calculations.
+   * Improved output messages when errors are encountered.
 
 **Note (July 08, 2019)**:
 * GTDB-Tk v0.3.1 has been released:
