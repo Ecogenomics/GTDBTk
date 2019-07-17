@@ -168,7 +168,7 @@ class TigrfamSearch(object):
                                                                                         processedItems) * 100 / numDataItems)
                 sys.stdout.write('%s\r' % statusStr)
                 sys.stdout.flush()
-                sys.stdout.write('\n')
+        sys.stdout.write('\n')
 
     def run(self, gene_files):
         """Annotate genes with TIGRFAM HMMs.
