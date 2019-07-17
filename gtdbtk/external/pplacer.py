@@ -17,9 +17,82 @@
 
 import logging
 import os
+import re
 import subprocess
+import sys
 
 from gtdbtk.exceptions import PplacerException, TogException
+
+
+class PplacerLogger(object):
+    """Helper class for writing pplacer output."""
+
+    def __init__(self, fh):
+        """Initialise the class.
+
+        Parameters
+        ----------
+        fh : file
+            The file to write to .
+        """
+        self.fh = fh
+        self.init_dots = 0
+
+    def _disp_progress(self, line):
+        """Calculates the progress and writes it to stdout.
+
+        Parameters
+        ----------
+        line : str
+            The line passed from pplacer stdout.
+        """
+        if not line.startswith('working on '):
+            sys.stdout.write('\rInitialising pplacer{}'.format('.' *
+                                                               self.init_dots))
+            sys.stdout.flush()
+            self.init_dots = (self.init_dots + 1) % 4
+        else:
+            re_hits = re.search(r'\((\d+)\/(\d+)\)', line)
+            current = int(re_hits.group(1))
+            total = int(re_hits.group(2))
+            sys.stdout.write('\r{}'.format(self._get_progress_str(current,
+                                                                  total)))
+            sys.stdout.flush()
+
+    def _get_progress_str(self, current, total):
+        """Determines the format of the genomes % string.
+
+        Parameters
+        ----------
+        current : int
+            The current number of genomes which have been placed.
+        total : int
+            The total number of genomes which are to be placed.
+
+        Returns
+        -------
+        out : str
+            A string formatted to show the progress of placement.
+        """
+        width = 50
+        bar = str()
+        prop = float(current) / total
+        bar += '#' * int(prop * width)
+        bar += '-' * (width - len(bar))
+        return 'Placing genomes |{}| {}/{} ({:.2f}%)'.format(bar, current,
+                                                             total, prop * 100)
+
+    def read(self, line):
+        """Reads a line and writes the progress to stdout and the file.
+
+        Parameters
+        ----------
+        line : str
+            A line returned from Prodigal stdout.
+        """
+        self.fh.write(line)
+        line = line.strip()
+        self._disp_progress(line)
 
 
 class Pplacer(object):
@@ -59,12 +132,13 @@ class Pplacer(object):
 
         proc = subprocess.Popen(args, stdout=subprocess.PIPE)
         with open(pplacer_out, 'w') as fh:
+            pplacer_logger = PplacerLogger(fh)
             while True:
                 line = proc.stdout.readline()
                 if not line:
+                    sys.stdout.write('\n')
                     break
-                fh.write(line)
-                self.logger.info('[pplacer] {}'.format(line.strip()))
+                pplacer_logger.read(line)
         proc.wait()
 
         if proc.returncode != 0:
