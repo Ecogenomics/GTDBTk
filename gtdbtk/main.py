@@ -114,12 +114,15 @@ class OptionsParser(object):
 
         genomic_files = OrderedDict()
         if genome_dir:
+            self.logger.debug('Looking for genomes with extension *.{} in: {}'.format(extension, genome_dir))
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
                     genome_id = remove_extension(f)
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
+                    self.logger.debug('Found genome: {}'.format(genome_id))
 
         elif batchfile:
+            self.logger.debug('Using genomes specified in: {}'.format(batchfile))
             with open(batchfile, 'r') as f:
                 for line_no, line in enumerate(f.readlines()):
                     line_split = line.strip().split('\t')
@@ -146,6 +149,7 @@ class OptionsParser(object):
                         self.logger.warning('Genome file appears multiple times: %s' % genome_file)
 
                     genomic_files[genome_id] = genome_file
+                    self.logger.debug('Found genome {} at: {}'.format(genome_id, genome_file))
 
         for genome_key in genomic_files.iterkeys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
@@ -215,8 +219,8 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes = self._genomes_to_process(options.genome_dir,
+                                           options.batchfile, options.extension)
 
         markers = Markers(options.cpus)
         markers.identify(genomes,

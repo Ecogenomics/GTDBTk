@@ -144,7 +144,7 @@ class TigrfamSearch(object):
             statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
                                                                                 numDataItems,
                                                                                 float(processedItems) * 100 / numDataItems)
-            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
 
         sys.stdout.write('\n')

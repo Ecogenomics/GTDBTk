@@ -122,6 +122,8 @@ class Prodigal(object):
                 if self.closed_ends:
                     args.append('-c')
 
+                self.logger.debug('{}: {}'.format(genome_id, ' '.join(args)))
+
                 proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 proc_out, proc_err = proc.communicate()
                 gff_stdout = proc_out
