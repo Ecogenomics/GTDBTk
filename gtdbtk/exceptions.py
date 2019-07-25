@@ -23,6 +23,13 @@ class GTDBTkException(Exception):
         Exception.__init__(self, message)
 
 
+class GTDBTkExit(Exception):
+    """Raised when GTDB-Tk is to quietly exit."""
+
+    def __init__(self, message=''):
+        Exception.__init__(self, message)
+
+
 class GenomeNameInvalid(GTDBTkException):
     """ Thrown when a genome name contains characters which are not supported. """
 

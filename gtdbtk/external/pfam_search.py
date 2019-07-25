@@ -21,6 +21,7 @@ import os
 import sys
 from collections import defaultdict
 
+from gtdbtk.exceptions import GTDBTkExit
 from .pypfam.Scan.PfamScan import PfamScan
 from ..tools import sha256, file_has_checksum
 
@@ -39,7 +40,7 @@ class PfamSearch(object):
         """Initialization."""
 
         self.threads = threads
-
+        self.cpus_per_genome = 1
         self.pfam_hmm_dir = pfam_hmm_dir
         self.protein_file_suffix = protein_file_suffix
         self.pfam_suffix = pfam_suffix
@@ -146,7 +147,6 @@ class PfamSearch(object):
                                                                                 float(processedItems) * 100 / numDataItems)
             sys.stdout.write('%s\r' % statusStr)
             sys.stdout.flush()
-
         sys.stdout.write('\n')
 
     def run(self, gene_files):
@@ -183,14 +183,13 @@ class PfamSearch(object):
 
             for p in workerProc:
                 p.join()
-                if p.exitcode == 1:
-                    raise ValueError("Pfam Error")
+                if p.exitcode != 0:
+                    raise GTDBTkExit('An error was encountered while running hmmsearch.')
 
             writerQueue.put(None)
             writeProc.join()
-        except:
+        except Exception:
             for p in workerProc:
                 p.terminate()
-
             writeProc.terminate()
             raise
