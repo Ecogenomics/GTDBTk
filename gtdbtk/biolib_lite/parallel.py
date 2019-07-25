@@ -182,7 +182,7 @@ class Parallel(object):
             while True:
                 if progress:
                     status = progress(items_processed, len(data_items))
-                    sys.stdout.write('%s\r' % status)
+                    sys.stdout.write('\r%s' % status)
                     sys.stdout.flush()
 
                 produced_data = consumer_queue.get(block=True, timeout=None)
@@ -257,7 +257,7 @@ class Parallel(object):
             while True:
                 if progress:
                     status = progress(items_processed, data_items)
-                    sys.stdout.write('%s\r' % status)
+                    sys.stdout.write('\r%s' % status)
                     sys.stdout.flush()
 
                 produced_data = consumer_queue.get(block=True, timeout=None)

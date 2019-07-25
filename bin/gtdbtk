@@ -149,6 +149,8 @@ if __name__ == '__main__':
                                    help='indicates input are called genes (skip gene calling)')
     optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
                                     help='continue processing if an error occurrs on a single genome')
+    optional_denovo_wf.add_argument('-d', '--debug', action="store_true",
+                                      help='create intermediate files for debugging purposes')
     optional_denovo_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
@@ -216,6 +218,8 @@ if __name__ == '__main__':
                                    help='continue processing if an error occurrs on a single genome')
     optional_identify.add_argument('--cpus', default=1, type=int,
                                    help='number of CPUs to use')
+    optional_identify.add_argument('-d', '--debug', action="store_true",
+                                    help='create intermediate files for debugging purposes')
     optional_identify.add_argument('-h', '--help', action="help",
                                    help="show help message")
 
@@ -264,6 +268,8 @@ if __name__ == '__main__':
                                 help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
                                 help='number of CPUs to use')
+    optional_align.add_argument('-d', '--debug', action="store_true",
+                                   help='create intermediate files for debugging purposes')
     optional_align.add_argument('-h', '--help', action="help",
                                 help="show help message")
 
@@ -289,6 +295,8 @@ if __name__ == '__main__':
                                 help='desired prefix for output files')
     optional_infer.add_argument('--cpus', default=1, type=int,
                                 help='number of CPUs to use')
+    optional_infer.add_argument('-d', '--debug', action="store_true",
+                                help='create intermediate files for debugging purposes')
     optional_infer.add_argument('-h', '--help', action="help",
                                 help="show help message")
 
@@ -342,6 +350,8 @@ if __name__ == '__main__':
     optional_root = root_parser.add_argument_group('optional arguments')
     optional_root.add_argument('--custom_taxonomy_file',
                                help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
+    optional_root.add_argument('-d', '--debug', action="store_true",
+                                help='create intermediate files for debugging purposes')
     optional_root.add_argument('-h', '--help', action="help",
                                help="show help message")
 
@@ -357,6 +367,8 @@ if __name__ == '__main__':
                                    help='output tree')
 
     optional_decorate = decorate_parser.add_argument_group('optional arguments')
+    optional_decorate.add_argument('-d', '--debug', action="store_true",
+                               help='create intermediate files for debugging purposes')
     optional_decorate.add_argument('-h', '--help', action="help",
                                    help="show help message")
 
@@ -370,6 +382,8 @@ if __name__ == '__main__':
     optional_test = test_parser.add_argument_group('optional arguments')
     optional_test.add_argument('--cpus', default=1, type=int,
                                help='number of CPUs to use')
+    optional_test.add_argument('-d', '--debug', action="store_true",
+                                   help='create intermediate files for debugging purposes')
     optional_test.add_argument('-h', '--help', action="help",
                                help="show help message")
 
@@ -392,6 +406,8 @@ if __name__ == '__main__':
                                  help="reference mask already present in GTDB-Tk")
 
     optional_msa = msa_parser.add_argument_group('optional arguments')
+    optional_msa.add_argument('-d', '--debug', action="store_true",
+                               help='create intermediate files for debugging purposes')
     optional_msa.add_argument('-h', '--help', action="help",
                               help="show help message")
 
@@ -405,6 +421,8 @@ if __name__ == '__main__':
     required_export_msa.add_argument('--output', required=True,
                                      help='output file')
     optional_export_msa = export_msa_parser.add_argument_group('optional arguments')
+    optional_export_msa.add_argument('-d', '--debug', action="store_true",
+                              help='create intermediate files for debugging purposes')
     optional_export_msa.add_argument('-h', '--help', action="help",
                                      help="show help message")
 
@@ -413,6 +431,8 @@ if __name__ == '__main__':
                                                  formatter_class=CustomHelpFormatter,
                                                  help='Verify if all gtdb data files are present to run GTDB-Tk.', )
     optional_check_install = check_install_parser.add_argument_group('optional arguments')
+    optional_check_install.add_argument('-d', '--debug', action="store_true",
+                                     help='create intermediate files for debugging purposes')
     optional_check_install.add_argument('-h', '--help', action="help",
                                         help="show help message")
 
@@ -440,10 +460,9 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
     # setup logger
-    if hasattr(args, 'out_dir'):
-        logger_setup(args.out_dir, "gtdbtk.log", "GTDB-Tk", version(), False)
-    else:
-        logger_setup(None, "gtdbtk.log", "GTDB-Tk", version(), False)
+    logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
+                 "gtdbtk.log", "GTDB-Tk", version(), False,
+                 hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
 
     # -------------------------------------------------

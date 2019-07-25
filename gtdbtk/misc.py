@@ -21,6 +21,7 @@ from shutil import copyfile
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists
+from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import GTDBTkException
 
@@ -92,10 +93,12 @@ class Misc(object):
             True if the folder exists, False otherwise.
         """
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-            self.logger.info("Check file {} ({}): OK".format(file_name, file_path))
+            self.logger.info("Check file {} ({}): {}".format(
+                file_name, file_path, colour('OK', ['bright'], fg='green')))
             return True
         else:
-            self.logger.warning("Check file {} ({}): missing".format(file_name, file_path))
+            self.logger.warning("Check file {} ({}): {}".format(
+                file_name, file_path, colour('MISSING', ['bright'], fg='red')))
             return False
 
     def checkfolder(self, folder_path, folder_name):
@@ -107,10 +110,12 @@ class Misc(object):
             True if the folder exists, False otherwise.
         """
         if os.path.isdir(folder_path) and len(os.listdir(folder_path)) > 0:
-            self.logger.info("Check folder {} ({}): OK".format(folder_name, folder_path))
+            self.logger.info("Check folder {} ({}): {}".format(
+                folder_name, folder_path, colour('OK', ['bright'], fg='green')))
             return True
         else:
-            self.logger.warning("Check folder {} ({}): missing".format(folder_name, folder_path))
+            self.logger.warning("Check folder {} ({}): {}".format(
+                folder_name, folder_path, colour('MISSING', ['bright'], fg='red')))
             return False
 
     def check_install(self):

@@ -29,6 +29,7 @@ from gtdbtk.biolib_lite.common import (assert_dir_exists,
                                        make_sure_path_exists,
                                        remove_extension)
 from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
@@ -62,8 +63,10 @@ class OptionsParser(object):
         self.logger.info('Using GTDB-Tk reference data version {}: {}'
                          .format(Config.VERSION_DATA, Config.GENERIC_PATH))
         if pkg_ver < min_ver:
-            self.logger.warning('You are not using the reference data intended '
-                                'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
+            self.logger.warning(colour('You are not using the reference data '
+                                       'intended for this release: {}'
+                                       .format(Config.MIN_REF_DATA_VERSION),
+                                       ['bright'], fg='yellow'))
 
     def _assert_genome_id_valid(self, genome_id):
         """Ensure genome ID will be valid in Newick tree.
@@ -111,12 +114,15 @@ class OptionsParser(object):
 
         genomic_files = OrderedDict()
         if genome_dir:
+            self.logger.debug('Looking for genomes with extension *.{} in: {}'.format(extension, genome_dir))
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
                     genome_id = remove_extension(f)
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
+                    self.logger.debug('Found genome: {}'.format(genome_id))
 
         elif batchfile:
+            self.logger.debug('Using genomes specified in: {}'.format(batchfile))
             with open(batchfile, 'r') as f:
                 for line_no, line in enumerate(f.readlines()):
                     line_split = line.strip().split('\t')
@@ -143,6 +149,7 @@ class OptionsParser(object):
                         self.logger.warning('Genome file appears multiple times: %s' % genome_file)
 
                     genomic_files[genome_id] = genome_file
+                    self.logger.debug('Found genome {} at: {}'.format(genome_id, genome_file))
 
         for genome_key in genomic_files.iterkeys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") or genome_key.startswith("UBA"):
@@ -212,8 +219,8 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes = self._genomes_to_process(options.genome_dir,
+                                           options.batchfile, options.extension)
 
         markers = Markers(options.cpus)
         markers.identify(genomes,
