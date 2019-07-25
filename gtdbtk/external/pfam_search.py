@@ -105,17 +105,13 @@ class PfamSearch(object):
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
         while True:
-            gene_file = queueIn.get(block=True, timeout=None)
-            if gene_file is None:
+            queue_next = queueIn.get(block=True, timeout=None)
+            if queue_next is None:
                 break
+            genome_id, gene_file = queue_next
 
-            genome_dir, filename = os.path.split(gene_file)
-            genome_id = filename.replace(self.protein_file_suffix, '')
-            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                        self.pfam_suffix))
-
-            output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
-                                                                                           self.pfam_top_hit_suffix))
+            output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_suffix))
+            output_tophit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_top_hit_suffix))
 
             # Genome has already been processed
             if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):

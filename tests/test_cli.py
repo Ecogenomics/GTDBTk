@@ -289,6 +289,16 @@ class TestCli(unittest.TestCase):
                         os.path.join(self.generic_out_path, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
                         ignore_order=True))
 
+    def test_root(self):
+        """Test that rooting is successful when called through the CLI"""
+        options = argparse.ArgumentParser()
+        options.input_tree = 'tests/data/pplacer_dir_reference/gtdbtk.ar122.classify.tree'
+        options.outgroup_taxon = 'p__Altiarchaeota'
+        options.output_tree = os.path.join(self.generic_out_path, 'test.rooted.tree')
+        options.custom_taxonomy_file = None
+        self.optionparser.root(options)
+        self.assertTrue(os.path.isfile(options.output_tree))
+
     def tearDown(self):
         shutil.rmtree(self.generic_out_path)
 
