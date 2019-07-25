@@ -40,12 +40,13 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
         * Prodigal will be skipped.
         * TIGR/PFAM markers will be run on the supplied genomes.
         * Be sure to check the file extension `-x` is provided.
+    * Fixed an issue where the `root` command would fail when run independently.
     * # ????
 
 **Note (July 12, 2019)**:
-    * FastANI calculations are more robust.
-    * Optimisation of RED calculations.
-    * Improved output messages when errors are encountered.
+   * FastANI calculations are more robust.
+   * Optimisation of RED calculations.
+   * Improved output messages when errors are encountered.
 
 **Note (July 08, 2019)**:
 * GTDB-Tk v0.3.1 has been released:
