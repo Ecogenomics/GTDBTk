@@ -36,6 +36,8 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 * GTDB-Tk v0.3.3 has been released (**we recommend all users update to this version**)
     * Genomes processed with Prodigal/HMMER will be skipped if an output file is found.
     * Translation table prediction is now done using a logistic classifier.
+    * Logging output coloured in terminal window.
+    * `--debug` (`-d`) flag added to output debugging information.
     * # ????
 
 **Note (July 12, 2019)**:

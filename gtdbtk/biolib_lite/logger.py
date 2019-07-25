@@ -81,6 +81,7 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
     """
 
     class SpecialFormatter(logging.Formatter):
+        """Terminal output rules"""
         default_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
                                         format(colour('INFO:', ['bright'])),
                                         datefmt="%Y-%m-%d %H:%M:%S")
@@ -110,6 +111,7 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
                 return self.default_fmt.format(record)
 
     class ColourlessFormatter(SpecialFormatter):
+        """Log file output rules (removes all colour characters)."""
         ansi_escape = re.compile(r'\x1b[^m]*m')
         fmt = logging.Formatter(fmt="[%(asctime)s] %(levelname)s: %(message)s",
                                 datefmt="%Y-%m-%d %H:%M:%S")
@@ -149,8 +151,7 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
         timestamp_logger.addHandler(timestamp_file_logger)
 
         no_timestamp_file_logger = logging.FileHandler(os.path.join(log_dir,
-                                                                    log_file),
-                                                       'a')
+                                                                    log_file), 'a')
         no_timestamp_file_logger.setFormatter(None)
         no_timestamp_logger.addHandler(no_timestamp_file_logger)
 
