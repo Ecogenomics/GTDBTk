@@ -23,7 +23,7 @@ import sys
 
 from gtdbtk.biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
 from gtdbtk.config.output import TRANSLATION_TABLE_SUFFIX, CHECKSUM_SUFFIX
-from gtdbtk.exceptions import ProdigalException
+from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import sha256, file_has_checksum
 
 
@@ -99,8 +99,9 @@ class Prodigal(object):
             if self.force:
                 return None
             else:
-                raise Exception(
-                    "An error was encountered while running Prodigal.")
+                raise GTDBTkExit("Prodigal failed to call genes for: {} "
+                                 "(to skip these genomes, re-run with --force)"
+                                 .format(genome_id))
 
         summary_stats = list(summary_stats.values())[0]
 
@@ -214,18 +215,15 @@ class Prodigal(object):
 
                 # Gracefully terminate the program.
                 if p.exitcode != 0:
-                    self.logger.error('Prodigal returned a non-zero exit code.')
-                    raise ProdigalException
+                    raise GTDBTkExit('Prodigal returned a non-zero exit code.')
 
             writer_queue.put(None)
             writer_proc.join()
         except Exception:
             for p in worker_proc:
                 p.terminate()
-
             writer_proc.terminate()
-            self.logger.error('An exception was caught while running Prodigal.')
-            raise ProdigalException
+            raise
 
         result_dict = {k: v for k, v in out_dict.items()}
         return result_dict

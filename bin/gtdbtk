@@ -145,6 +145,8 @@ if __name__ == '__main__':
                                     help='desired prefix for output files')
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
+    optional_denovo_wf.add_argument('--genes', action='store_const', const=True, default=False,
+                                   help='indicates input are called genes (skip gene calling)')
     optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
                                     help='continue processing if an error occurrs on a single genome')
     optional_denovo_wf.add_argument('-d', '--debug', action="store_true",
@@ -177,6 +179,8 @@ if __name__ == '__main__':
                                       help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                       help='number of CPUs to use')
+    optional_classify_wf.add_argument('--genes', action='store_const', const=True, default=False,
+                                    help='indicates input are called genes (skip gene calling)')
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
                                       help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
@@ -208,10 +212,12 @@ if __name__ == '__main__':
                                    help='extension of files to process, gz = gzipped')
     optional_identify.add_argument('--prefix', default='gtdbtk',
                                    help='desired prefix for output files')
-    optional_identify.add_argument('--cpus', default=1, type=int,
-                                   help='number of CPUs to use')
+    optional_identify.add_argument('--genes', action='store_const', const=True, default=False,
+                                   help='indicates input are called genes (skip gene calling)')
     optional_identify.add_argument('--force', action='store_const', const=True, default=False,
                                    help='continue processing if an error occurrs on a single genome')
+    optional_identify.add_argument('--cpus', default=1, type=int,
+                                   help='number of CPUs to use')
     optional_identify.add_argument('-d', '--debug', action="store_true",
                                     help='create intermediate files for debugging purposes')
     optional_identify.add_argument('-h', '--help', action="help",
@@ -474,6 +480,11 @@ if __name__ == '__main__':
         sys.exit(1)
     except KeyboardInterrupt:
         logger.error('Controlled exit resulting from interrupt signal.')
+        sys.exit(1)
+    except GTDBTkExit as e:
+        if len(str(e)) > 0:
+            logger.error('{}'.format(e))
+        logger.error('Controlled exit resulting from an unrecoverable error or warning.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'

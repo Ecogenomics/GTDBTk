@@ -21,6 +21,7 @@ import os
 import sys
 from collections import defaultdict
 
+from gtdbtk.exceptions import GTDBTkExit
 from .pypfam.Scan.PfamScan import PfamScan
 from ..tools import sha256, file_has_checksum
 
@@ -39,7 +40,7 @@ class PfamSearch(object):
         """Initialization."""
 
         self.threads = threads
-
+        self.cpus_per_genome = 1
         self.pfam_hmm_dir = pfam_hmm_dir
         self.protein_file_suffix = protein_file_suffix
         self.pfam_suffix = pfam_suffix
@@ -103,42 +104,34 @@ class PfamSearch(object):
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
-        try:
-            while True:
-                gene_file = queueIn.get(block=True, timeout=None)
-                if gene_file is None:
-                    break
+        while True:
+            queue_next = queueIn.get(block=True, timeout=None)
+            if queue_next is None:
+                break
+            genome_id, gene_file = queue_next
 
-                genome_dir, filename = os.path.split(gene_file)
-                genome_id = filename.replace(self.protein_file_suffix, '')
-                output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                            self.pfam_suffix))
+            output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_suffix))
+            output_tophit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_top_hit_suffix))
 
-                output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
-                                                                                               self.pfam_top_hit_suffix))
+            # Genome has already been processed
+            if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
+                self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
 
-                # Genome has already been processed
-                if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
-                    self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
+            # Process this genome
+            else:
+                pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
+                pfam_scan.search()
+                pfam_scan.write_results(output_hit_file, None, None, None, None)
 
-                # Process this genome
-                else:
-                    pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
-                    pfam_scan.search()
-                    pfam_scan.write_results(output_hit_file, None, None, None, None)
+                # calculate checksum
+                checksum = sha256(output_hit_file)
+                with open(output_hit_file + self.checksum_suffix, 'w') as fout:
+                    fout.write(checksum)
 
-                    # calculate checksum
-                    checksum = sha256(output_hit_file)
-                    with open(output_hit_file + self.checksum_suffix, 'w') as fout:
-                        fout.write(checksum)
+                # identify top hit for each gene
+                self._topHit(output_hit_file)
 
-                    # identify top hit for each gene
-                    self._topHit(output_hit_file)
-
-                queueOut.put(gene_file)
-
-        except Exception as error:
-            raise error
+            queueOut.put(gene_file)
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
@@ -154,7 +147,6 @@ class PfamSearch(object):
                                                                                 float(processedItems) * 100 / numDataItems)
             sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
-
         sys.stdout.write('\n')
 
     def run(self, gene_files):
@@ -191,14 +183,13 @@ class PfamSearch(object):
 
             for p in workerProc:
                 p.join()
-                if p.exitcode == 1:
-                    raise ValueError("Pfam Error")
+                if p.exitcode != 0:
+                    raise GTDBTkExit('An error was encountered while running hmmsearch.')
 
             writerQueue.put(None)
             writeProc.join()
-        except:
+        except Exception:
             for p in workerProc:
                 p.terminate()
-
             writeProc.terminate()
             raise

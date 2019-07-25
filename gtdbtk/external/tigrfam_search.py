@@ -18,8 +18,11 @@
 import logging
 import multiprocessing as mp
 import os
+import subprocess
 import sys
 
+from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.tools import sha256, file_has_checksum
 
 
@@ -36,6 +39,7 @@ class TigrfamSearch(object):
                  output_dir):
         """Initialization."""
 
+        self.cpus_per_genome = 1
         self.threads = threads
         self.tigrfam_hmms = tigrfam_hmms
         self.protein_file_suffix = protein_file_suffix
@@ -94,17 +98,13 @@ class TigrfamSearch(object):
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
         while True:
-            gene_file = queueIn.get(block=True, timeout=None)
-            if gene_file is None:
+            queue_next = queueIn.get(block=True, timeout=None)
+            if queue_next is None:
                 break
+            genome_id, gene_file = queue_next
 
-            assembly_dir, filename = os.path.split(gene_file)
-            genome_id = filename.replace(self.protein_file_suffix, '')
-            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                        self.tigrfam_suffix))
-
-            output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.tigrfam_suffix,
-                                                                                           self.tigrfam_top_hit_suffix))
+            output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.tigrfam_suffix))
+            output_tophit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.tigrfam_top_hit_suffix))
 
             # Genome has already been processed
             if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
@@ -112,14 +112,20 @@ class TigrfamSearch(object):
 
             # Process this genome
             else:
-                hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                          '_tigrfam.out'))
-                cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
-                                                                                                 output_hit_file,
-                                                                                                 self.cpus_per_genome,
-                                                                                                 self.tigrfam_hmms,
-                                                                                                 gene_file)
-                os.system(cmd)
+                genome_dir = os.path.join(self.output_dir, genome_id)
+                hmmsearch_out = os.path.join(genome_dir, '{}_tigrfam.out'.format(genome_id))
+                make_sure_path_exists(genome_dir)
+
+                args = ['hmmsearch', '-o', hmmsearch_out, '--tblout',
+                        output_hit_file, '--noali', '--notextw', '--cut_nc',
+                        '--cpu', str(self.cpus_per_genome), self.tigrfam_hmms,
+                        gene_file]
+                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                proc_out, proc_err = proc.communicate()
+
+                if proc.returncode != 0:
+                    queueOut.put((proc.returncode, genome_id, proc_out, proc_err))
+                    sys.exit(proc.returncode)
 
                 # calculate checksum
                 checksum = sha256(output_hit_file)
@@ -130,23 +136,36 @@ class TigrfamSearch(object):
                 self._topHit(output_hit_file)
 
             # allow results to be processed or written to file
-            queueOut.put(gene_file)
+            queueOut.put((0, genome_id, None, None))
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
         processedItems = 0
         while True:
-            a = writerQueue.get(block=True, timeout=None)
-            if a is None:
+            t = writerQueue.get(block=True, timeout=None)
+            if t is None:
                 break
 
-            processedItems += 1
-            statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
-                                                                                numDataItems,
-                                                                                float(processedItems) * 100 / numDataItems)
-            sys.stdout.write('\r%s' % statusStr)
-            sys.stdout.flush()
+            exit_code, genome_id, stdout, stderr = t
 
+            if exit_code != 0:
+                proc_msg = '\n' + '=' * 80 + '\n'
+                proc_msg += stdout + '\n'
+                proc_msg += '-' * 80 + '\n\n' if stderr else ''
+                proc_msg += stderr + '\n' if stderr else ''
+                proc_msg += '=' * 80 + '\n'
+                self.logger.error('hmmsearch returned exit code {} while '
+                                  'processing: {}\n{}'.format(exit_code,
+                                                              genome_id,
+                                                              proc_msg))
+            else:
+                processedItems += 1
+                statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
+                                                                                    numDataItems,
+                                                                                    float(
+                                                                                        processedItems) * 100 / numDataItems)
+                sys.stdout.write('\r%s' % statusStr)
+                sys.stdout.flush()
         sys.stdout.write('\n')
 
     def run(self, gene_files):
@@ -157,7 +176,6 @@ class TigrfamSearch(object):
         gene_files : iterable
             Gene files in FASTA format to process.
         """
-
         self.cpus_per_genome = max(1, self.threads / len(gene_files))
 
         # populate worker queue with data to process
@@ -186,7 +204,12 @@ class TigrfamSearch(object):
 
             writerQueue.put(None)
             writeProc.join()
-        except:
+
+            for proc in workerProc:
+                if proc.exitcode != 0:
+                    raise GTDBTkExit('An error was encountered while running hmmsearch.')
+
+        except Exception:
             for p in workerProc:
                 p.terminate()
 
