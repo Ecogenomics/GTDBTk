@@ -41,6 +41,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
         * TIGR/PFAM markers will be run on the supplied genomes.
         * Be sure to check the file extension `-x` is provided.
     * Fixed an issue where the `root` command would fail when run independently.
+    * pplacer progress is now displayed.
     * # ????
 
 **Note (July 12, 2019)**:
