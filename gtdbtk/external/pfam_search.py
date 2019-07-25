@@ -103,42 +103,34 @@ class PfamSearch(object):
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
-        try:
-            while True:
-                gene_file = queueIn.get(block=True, timeout=None)
-                if gene_file is None:
-                    break
+        while True:
+            queue_next = queueIn.get(block=True, timeout=None)
+            if queue_next is None:
+                break
+            genome_id, gene_file = queue_next
 
-                genome_dir, filename = os.path.split(gene_file)
-                genome_id = filename.replace(self.protein_file_suffix, '')
-                output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                            self.pfam_suffix))
+            output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_suffix))
+            output_tophit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_top_hit_suffix))
 
-                output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
-                                                                                               self.pfam_top_hit_suffix))
+            # Genome has already been processed
+            if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
+                self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
 
-                # Genome has already been processed
-                if file_has_checksum(output_hit_file) and file_has_checksum(output_tophit_file):
-                    self.logger.info('Skipping result from a previous run: {}'.format(genome_id))
+            # Process this genome
+            else:
+                pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
+                pfam_scan.search()
+                pfam_scan.write_results(output_hit_file, None, None, None, None)
 
-                # Process this genome
-                else:
-                    pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
-                    pfam_scan.search()
-                    pfam_scan.write_results(output_hit_file, None, None, None, None)
+                # calculate checksum
+                checksum = sha256(output_hit_file)
+                with open(output_hit_file + self.checksum_suffix, 'w') as fout:
+                    fout.write(checksum)
 
-                    # calculate checksum
-                    checksum = sha256(output_hit_file)
-                    with open(output_hit_file + self.checksum_suffix, 'w') as fout:
-                        fout.write(checksum)
+                # identify top hit for each gene
+                self._topHit(output_hit_file)
 
-                    # identify top hit for each gene
-                    self._topHit(output_hit_file)
-
-                queueOut.put(gene_file)
-
-        except Exception as error:
-            raise error
+            queueOut.put(gene_file)
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
