@@ -129,7 +129,7 @@ The GTDB-Tk reference data is not available as a part of the recipe, but it can 
 ### KBase web-based platform
 
 The GTDB-Tk classify workflow can be run through [KBase](https://kbase.us/):
-https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk/release
+https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk
 
 ### Testing installation
 
