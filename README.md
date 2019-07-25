@@ -20,6 +20,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 * [Installation](#installation)
   * [pip installation](#pip-installation)
   * [Bioconda installation](#bioconda-installation)
+  * [KBase web-based platform](#kBase-web-based-platform)
   * [Testing installation](#testing-installation)
 * [FAQ](docs/faq.md)
 * [Quick start](#quick-start)
