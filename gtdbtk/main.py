@@ -304,7 +304,7 @@ class OptionsParser(object):
                      options.no_support, options.no_gamma, options.msa_file,
                      options.cpus)
 
-        if options.subparser_name == 'infer':
+        if hasattr(options, 'subparser_name') and options.subparser_name == 'infer':
             symlink_f(output_tree[len(options.out_dir) + 1:],
                       os.path.join(options.out_dir,
                                    os.path.basename(output_tree)))

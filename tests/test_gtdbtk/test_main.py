@@ -318,8 +318,8 @@ class TestOptionsParser(unittest.TestCase):
             for gid, seq in re_hits:
                 results[gid] = hashlib.sha256(seq).hexdigest()
 
-        expected = {'genome_1': '332b8cd125a36c375196064e136efab78db38e41bbd8bd8484243531bc57df6d',
-                    'genome_2': '84e91b9f5fa1ec0bedc0097233044e6dd0e79557bb6df3625928dc9573795989'}
+        expected = {'genome_1': '4975c04d640415de4c715552f6f6b460a8996226239440faa6539ac777622515',
+                    'genome_2': '7b53881aecb13bbe54612962e22736db7ab83271ffe4685d63c16e962e3561d9'}
 
         self.assertDictEqual(results, expected)
 
@@ -355,8 +355,8 @@ class TestOptionsParser(unittest.TestCase):
             for gid, seq in re_hits:
                 results[gid] = hashlib.sha256(seq).hexdigest()
 
-        expected = {'genome_1': '35e080f9ab7d318e8f4a7cef46ce6044bd9c538e6fbe8a69b17431df44bd5a81',
-                    'genome_2': 'bb4beed69063dad0092a809ee5854ff124da0b55c651edd50c47b1d8fdff0d7b'}
+        expected = {'genome_1': '32798bdc3245b2ac5ecd8a15ea2cfb21011b22b6021baa51066864b1c02d72b4',
+                    'genome_2': '0b63d416c72e9641011f80fcf64fa41eb3f0e8e85dbaa4bd8feba12cf3b64c62'}
 
         self.assertDictEqual(results, expected)
 
@@ -372,7 +372,7 @@ class TestOptionsParser(unittest.TestCase):
 
         with open(path_out, 'r') as f:
             out_hash = hashlib.sha256(f.read()).hexdigest()
-        self.assertEqual(out_hash, '11eb12b91ab20c43824abafb909ccc20bed84a8609a9bf82748b2cdbdd8b7aad')
+        self.assertEqual(out_hash, 'e84edf65511002b73f110ff44c9acee3ae44220448dfc971a2778d43c966bbba')
 
     def test_export_msa__bac(self):
         """ Test that the untrimmed bacterial MSA is exported correctly """
@@ -386,4 +386,4 @@ class TestOptionsParser(unittest.TestCase):
 
         with open(path_out, 'r') as f:
             out_hash = hashlib.sha256(f.read()).hexdigest()
-        self.assertEqual(out_hash, '50dde1e96df9533def7c7047a1e8627d4ad566db10f8ab3de72751e62c4ac10a')
+        self.assertEqual(out_hash, '5e37bc123819061490681068b49450fc43587d09b87df90ef62452bd73f961cc')
