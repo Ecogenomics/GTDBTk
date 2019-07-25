@@ -125,6 +125,11 @@ A Bioconda recipe is available as an alternative installation source (thanks to 
 The GTDB-Tk reference data is not available as a part of the recipe, but it can be automatically downloaded to the conda package by executing the command: `download-db.sh`
 
 
+### KBase web-based platform
+
+The GTDB-Tk classify workflow can be run through [KBase](https://kbase.us/):
+https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk/release
+
 ### Testing installation
 
 You can test your GTDB-Tk installation by running:
