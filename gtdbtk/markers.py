@@ -61,7 +61,7 @@ class Markers(object):
         self.tigrfam_suffix = TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = TIGRFAM_TOP_HIT_SUFFIX
 
-    def _report_identified_marker_genes(self, gene_dict, outdir, marker_gene_dir, prefix):
+    def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
         """Report statistics for identified marker genes."""
 
         translation_table_file = open(os.path.join(outdir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix)), "w")
@@ -94,10 +94,10 @@ class Markers(object):
             gene_bac_dict, gene_arc_dict = {}, {}
 
             path = info.get("aa_gene_path")
-            for _marker_db, marker_suffix in marker_dbs.iteritems():
+            for _marker_db, marker_suffix in marker_dbs.items():
                 # get all gene sequences
                 protein_file = str(path)
-                tophit_path = protein_file.replace(PROTEIN_FILE_SUFFIX, marker_suffix)
+                tophit_path = os.path.join(outdir, DIR_MARKER_GENE, db_genome_id, '{}{}'.format(db_genome_id, marker_suffix))
 
                 # we load the list of all the genes detected in the genome
                 all_genes_dict = read_fasta(protein_file, False)
@@ -105,7 +105,7 @@ class Markers(object):
                 # Prodigal adds an asterisks at the end of each called genes.
                 # These asterisks sometimes appear in the MSA, which can be
                 # an issue for some downstream software
-                for seq_id, seq in all_genes_dict.iteritems():
+                for seq_id, seq in all_genes_dict.items():
                     if seq[-1] == '*':
                         all_genes_dict[seq_id] = seq[:-1]
 
@@ -201,7 +201,7 @@ class Markers(object):
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                   os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
-    def identify(self, genomes, out_dir, prefix, force):
+    def identify(self, genomes, out_dir, prefix, force, genes):
         """Identify marker genes in genomes.
 
         Parameters
@@ -214,6 +214,8 @@ class Markers(object):
             Prefix to append to generated files.
         force : bool
             Overwrite any existing files.
+        genes : bool
+            True if the supplied genomes are called genes, False otherwise.
 
         Raises
         ------
@@ -225,30 +227,41 @@ class Markers(object):
 
         self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes),
                                                                                  self.cpus))
+        marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
 
-        self.logger.info("Running Prodigal to identify genes.")
-        self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
-        prodigal = Prodigal(self.cpus,
-                            False,
-                            self.marker_gene_dir,
-                            self.protein_file_suffix,
-                            self.nt_gene_file_suffix,
-                            self.gff_file_suffix,
-                            force)
-        genome_dictionary = prodigal.run(genomes)
+        if not genes:
+            self.logger.info("Running Prodigal to identify genes.")
+            prodigal = Prodigal(self.cpus,
+                                False,
+                                marker_gene_dir,
+                                self.protein_file_suffix,
+                                self.nt_gene_file_suffix,
+                                self.gff_file_suffix,
+                                force)
+            genome_dictionary = prodigal.run(genomes)
+
+        else:
+            self.logger.info('Using supplied genomes as called genes, skipping Prodigal.')
+            genome_dictionary = dict()
+            for gid, gpath in genomes.items():
+                genome_dictionary[gid] = {'aa_gene_path': gpath,
+                                          'translation_table_path': None,
+                                          'nt_gene_path': None,
+                                          'best_translation_table': 'user_supplied',
+                                          'gff_path': None}
+
+        gene_files = [(db_genome_id, genome_dictionary[db_genome_id]['aa_gene_path'])
+                      for db_genome_id in genome_dictionary.keys()]
 
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.info("Identifying TIGRFAM protein families.")
-        gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
-                      for db_genome_id in genome_dictionary.keys()]
-
         tigr_search = TigrfamSearch(self.cpus,
                                     self.tigrfam_hmms,
                                     self.protein_file_suffix,
                                     self.tigrfam_suffix,
                                     self.tigrfam_top_hit_suffix,
                                     self.checksum_suffix,
-                                    self.marker_gene_dir)
+                                    marker_gene_dir)
         tigr_search.run(gene_files)
 
         self.logger.info("Identifying Pfam protein families.")
@@ -258,11 +271,10 @@ class Markers(object):
                                  self.pfam_suffix,
                                  self.pfam_top_hit_suffix,
                                  self.checksum_suffix,
-                                 self.marker_gene_dir)
+                                 marker_gene_dir)
         pfam_search.run(gene_files)
 
-        self._report_identified_marker_genes(
-            genome_dictionary, out_dir, self.marker_gene_dir, prefix)
+        self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
 
     def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
