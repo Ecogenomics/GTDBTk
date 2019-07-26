@@ -326,30 +326,31 @@ class Markers(object):
 
     def _apply_mask(self, gtdb_msa, user_msa, msa_mask, min_perc_aa):
         """Apply canonical mask to MSA file."""
-
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-
-        with open(msa_mask, 'r') as f:
-            mask = f.readline().strip()
-        list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
+        list_mask = np.fromfile(msa_mask, dtype='S1') == '1'
 
         output_seqs = {}
         pruned_seqs = {}
         for seq_id, seq in aligned_genomes.iteritems():
-
-            if len(mask) != len(seq):
-                self.logger.error('Mask and alignment length do not match.')
+            list_seq = np.fromstring(seq, dtype='S1')
+            if list_mask.shape[0] != list_seq.shape[0]:
                 raise MSAMaskLengthMismatch('Mask and alignment length do not match.')
 
-            masked_seq = ''.join(np.array(list(seq), dtype=str)[list_mask])
+            list_masked_seq = list_seq[list_mask]
 
-            valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
-            if seq_id in user_msa and valid_bases < len(masked_seq) * min_perc_aa:
+            masked_seq_unique = np.unique(list_masked_seq, return_counts=True)
+            masked_seq_counts = defaultdict(lambda: 0)
+            for aa_char, aa_count in zip(masked_seq_unique[0], masked_seq_unique[1]):
+                masked_seq_counts[aa_char] = aa_count
+
+            masked_seq = list_masked_seq.tostring()
+
+            valid_bases = list_masked_seq.shape[0] - masked_seq_counts['.'] - masked_seq_counts['-']
+            if seq_id in user_msa and valid_bases < list_masked_seq.shape[0] * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue
 
             output_seqs[seq_id] = masked_seq
-
         return output_seqs, pruned_seqs
 
     def _write_msa(self, seqs, output_file, gtdb_taxonomy):

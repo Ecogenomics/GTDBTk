@@ -44,6 +44,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
         * Be sure to check the file extension `-x` is provided.
     * Fixed an issue where the `root` command would fail when run independently.
     * pplacer progress is now displayed.
+    * Improved MSA masking performance from ~2min to ~12 seconds (23k bacterial genomes).
     * # ????
 
 **Note (July 12, 2019)**:
