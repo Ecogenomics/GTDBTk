@@ -26,7 +26,7 @@ __author__ = 'Donovan Parks'
 __copyright__ = 'Copyright 2019'
 __credits__ = ['Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 __status__ = 'Development'
@@ -47,19 +47,12 @@ class Translate(object):
         
         self.rank_prefix = ['d__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__']
         
-    def get_ncbi_descendants(self, user_gid, tree, ncbi_sp_classification):
+    def get_ncbi_descendants(self, user_gid, tree, leaf_node_map, ncbi_sp_classification):
         """Move up tree until lineage contains at least one NCBI-defined species cluster."""
-        
-        # find node in tree
-        cur_node = None
-        for leaf in tree.leaf_node_iter():
-            if leaf.taxon.label == user_gid:
-                cur_node = leaf
-                break
-        
+
         # traverse up tree until lineage contains >=1 species with an
         # NCBI classification
-        parent = cur_node
+        parent = leaf_node_map[user_gid]
         while parent:
             ncbi_rep_ids = set()
             for leaf in parent.leaf_iter():
@@ -160,6 +153,12 @@ class Translate(object):
                                             rooting='force-rooted', 
                                             preserve_underscores=True)
                                             
+            # map genomes IDs to leaf nodes
+            leaf_node_map = {}
+            for leaf in tree.leaf_node_iter():
+                leaf_node_map[leaf.taxon.label] = leaf
+            
+            # get majority vote NCBI classification for each user genome
             print('Reclassifying genomes in %s.' % summary_file)
             with open(summary_file) as f:
                 header = f.readline().strip().split('\t')
@@ -175,13 +174,16 @@ class Translate(object):
                     gtdb_taxa = [t.strip() for t in gtdb_taxonomy.split(';')]
                     gtdb_species = gtdb_taxa[6]
                     
-                    ncbi_rep_ids = self.get_ncbi_descendants(user_gid, tree, ncbi_sp_classification)
-                    
+                    ncbi_rep_ids = self.get_ncbi_descendants(user_gid, 
+                                                                tree, 
+                                                                leaf_node_map, 
+                                                                ncbi_sp_classification)
+
                     # take a majority vote over species with a NCBI classification, and
                     # limit taxonomic resolution to most-specific rank reported by GTDB-Tk
                     ncbi_classification = []
                     for rank in xrange(6, -1, -1):
-                        if len(gtdb_taxa[rank]) > 3:
+                        if len(gtdb_taxa[rank]) == 3:
                             continue
                             
                         ncbi_taxon_list = []
@@ -190,7 +192,7 @@ class Translate(object):
                                 
                         counter = Counter(ncbi_taxon_list)
                         mc_taxon, mc_count = counter.most_common(1)[0]
-                        
+
                         if mc_count >= 0.5*len(ncbi_taxon_list) and len(mc_taxon) > 3:
                             ncbi_classification = ncbi_lineages[mc_taxon]
                             break
