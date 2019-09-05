@@ -35,15 +35,16 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 **Note (????)**:
 * GTDB-Tk v0.3.3 has been released (**we recommend all users update to this version**)
     * Genomes processed with Prodigal/HMMER will be skipped if an output file is found.
-    * Translation table prediction is now done using a logistic classifier.
-    * Logging output coloured in terminal window.
+    * Translation table prediction is now done using a logistic classifier (see [FAQ](docs/faq.md)).
+    * Updates to logging
+        * Severity is now coloured.
+        * Align, FastANI, pplacer progress displayed.
     * `--debug` (`-d`) flag added to output debugging information.
     * Genomes supplied with the `--genes` flag will be treated as called genes.
         * Prodigal will be skipped.
         * TIGR/PFAM markers will be run on the supplied genomes.
         * Be sure to check the file extension `-x` is provided.
     * Fixed an issue where the `root` command would fail when run independently.
-    * pplacer progress is now displayed.
     * Improved MSA masking performance from ~2min to ~12 seconds (23k bacterial genomes).
     * # ????
 
