@@ -15,15 +15,15 @@
 #                                                                             #
 ###############################################################################
 
-import multiprocessing
+import multiprocessing as mp
 import os
 import shutil
+import sys
 import tempfile
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists, remove_extension
-from gtdbtk.exceptions import FastANIException
-from gtdbtk.tools import splitchunks
+from gtdbtk.exceptions import FastANIException, GTDBTkException
 
 
 class FastANI(object):
@@ -43,42 +43,96 @@ class FastANI(object):
     def run(self, fastani_verification, genomes):
         """Using the instance defined number of CPUs, run FastANI."""
 
-        manager = multiprocessing.Manager()
-        out_q = manager.dict()
-        procs = []
-        nprocs = self.cpus
+        q_worker = mp.Queue()
+        q_writer = mp.Queue()
 
-        for item in splitchunks(fastani_verification, nprocs):
-            p = multiprocessing.Process(
-                target=self._fastaniWorker,
-                args=(item, genomes, out_q))
-            procs.append(p)
-            p.start()
+        for userleaf, potential_nodes in fastani_verification.items():
+            q_worker.put((userleaf, potential_nodes))
+        [q_worker.put(None) for _ in range(self.cpus)]
 
-        # Wait for all worker processes to finish
-        for p in procs:
-            p.join()
-            if p.exitcode == 1:
-                raise FastANIException("A process returned a non-zero exit code.")
+        manager = mp.Manager()
+        dict_out = manager.dict()
 
-        all_fastani_dict = dict(out_q)
+        p_workers = [mp.Process(target=self._worker,
+                                args=(q_worker, q_writer, genomes, dict_out))
+                     for _ in range(self.cpus)]
 
-        return all_fastani_dict
+        p_writer = mp.Process(target=self._writer,
+                              args=(q_writer, len(fastani_verification)))
 
-    def _fastaniWorker(self, sublist_genomes, genomes, out_q):
-        """Multi thread worker to calculate FastANI"""
         try:
-            for userleaf, potential_nodes in sublist_genomes.items():
-                dict_parser_distance = self._calculate_fastani_distance(
-                    userleaf, potential_nodes, genomes)
-                for k, v in dict_parser_distance.items():
-                    if k in out_q:
-                        raise Exception("{} not in output.".format(k))
-                    out_q[k] = v
-            return True
-        except Exception as error:
-            print(error)
-            FastANIException(error)
+            p_writer.start()
+            for p_worker in p_workers:
+                p_worker.start()
+
+            for p_worker in p_workers:
+                p_worker.join()
+
+                # Gracefully terminate the program.
+                if p_worker.exitcode != 0:
+                    raise GTDBTkException('FastANI returned a non-zero exit code.')
+
+            q_writer.put(None)
+            p_writer.join()
+
+        except Exception:
+            for p in p_workers:
+                p.terminate()
+
+            p_writer.terminate()
+            raise
+
+        return {k: v for k, v in dict_out.items()}
+
+    def _worker(self, q_worker, q_writer, genomes, dict_out):
+        """The worker function, invoked in a process.
+
+        Parameters
+        ----------
+        q_worker : multiprocessing.Queue
+            A queue of tuples containing the genome id, aa path, and marker.
+        q_writer : multiprocessing.Queue
+            A queue consumed by the writer, to track progress.
+        genomes : dict
+            The list of user genomes.
+        dict_out : dict
+            A thread-safe managed dictionary of results.
+        """
+        job = q_worker.get(block=True, timeout=None)
+        while job is not None:
+            userleaf, potential_nodes = job
+            dict_parser_distance = self._calculate_fastani_distance(
+                userleaf, potential_nodes, genomes)
+            for k, v in dict_parser_distance.items():
+                if k in dict_out:
+                    raise Exception("{} not in output.".format(k))
+                dict_out[k] = v
+            q_writer.put(True)
+            job = q_worker.get(block=True, timeout=None)
+        return True
+
+    def _writer(self, q_writer, n_total):
+        """The writer function, which reports the progress of the workers.
+
+        Parameters
+        ----------
+        q_writer : multiprocessing.Queue
+            A queue of genome ids which have been processed.
+        n_total : int
+            The total number of items to be processed.
+        """
+        processed_items = 0
+        result = q_writer.get(block=True, timeout=None)
+
+        while result is not None:
+            processed_items += 1
+            statusStr = '==> Processing %d of %d (%.1f%%) genomes.' % (processed_items,
+                                                                       n_total,
+                                                                       float(processed_items) * 100 / n_total)
+            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.flush()
+            result = q_writer.get(block=True, timeout=None)
+        sys.stdout.write('\n')
 
     def _calculate_fastani_distance(self, user_leaf, list_leaf, genomes):
         """ Calculate the FastANI distance between all user genomes and the reference to classfy them at the species level
