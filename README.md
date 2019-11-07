@@ -83,7 +83,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [Prodigal](http://compbio.ornl.gov/prodigal/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
-* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
+* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.2: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 Please cite these tools if you use GTDB-Tk in your work.
@@ -202,7 +202,7 @@ Classify step:
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is only classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.65. In some circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology. The species-specific ANI circumscription radii are avaliable from the [GTDB](https://gtdb.ecogenomic.org/) website.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. We  recommend you have FastANI >= 1.2 as this version introduces a fix that makes the results deterministic. A query genome is only classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.65. In some circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology. The species-specific ANI circumscription radii are avaliable from the [GTDB](https://gtdb.ecogenomic.org/) website.
 
 ## Classification summary file 
 
