@@ -67,7 +67,7 @@ class Prodigal(object):
         summary_stats = prodigal.run(
             [fasta_path], output_dir, called_genes=self.proteins)
 
-        # An error occured in BioLib Prodigal.
+        # An error occurred in BioLib Prodigal.
         if not summary_stats:
             if self.force:
                 return None

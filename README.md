@@ -49,7 +49,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 * GTDB-Tk v0.3.0 has been released:
   * Best translation table displayed in summary file.
   * GTDB-Tk now supports gzipped genomes as inputs (--extension .gz).
-  * By default, GTDB-Tk uses precalculated RED values.
+  * By default, GTDB-Tk uses pre-calculated RED values.
   * New option to recalculate RED value during classify step (--recalculate_red).
   * New option to export the untrimmed reference MSA files.
   * New option to skip_trimming during align step.
@@ -202,7 +202,7 @@ Classify step:
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is only classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.65. In some circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology. The species-specific ANI circumscription radii are avaliable from the [GTDB](https://gtdb.ecogenomic.org/) website.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is only classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.65. In some circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology. The species-specific ANI circumscription radii are available from the [GTDB](https://gtdb.ecogenomic.org/) website.
 
 ## Classification summary file 
 
@@ -220,7 +220,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * closest_placement_ani: indicates the ANI between the query and above reference genome.
 * closest_placement_af: indicates the AF between the query and above reference genome.
 * pplacer_taxonomy: indicates the pplacer taxonomy of the query genome.
-* classification_method:	indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
+* classification_method:	indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignment was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination is made and indicates if the placement of the genome in the reference tree and closest reference according to ANI/AF are the same (congruent) or different (incongruent). 
 * other_related_references: lists up to the 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
 * aa_percent: indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid). 

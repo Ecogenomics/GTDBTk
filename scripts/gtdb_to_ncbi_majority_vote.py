@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--gtdbtk_output_dir', required=True, help='output directory produced by GTDB-Tk classify workflow')
-    parser.add_argument('--ar122_metadata_file', required=True, help='archeal GTDB metadata file')
+    parser.add_argument('--ar122_metadata_file', required=True, help='archaeal GTDB metadata file')
     parser.add_argument('--bac120_metadata_file', required=True, help='bacterial GTDB metadata file')
     parser.add_argument('--output_file', required=True, help='output file')
     parser.add_argument('--gtdbtk_prefix', required=False, default='gtdbtk', help='prefix of GTDB-Tk output files')

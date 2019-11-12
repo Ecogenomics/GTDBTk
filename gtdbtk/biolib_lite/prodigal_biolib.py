@@ -109,7 +109,7 @@ class Prodigal(object):
                 # check if there is sufficient bases to calculate prodigal
                 # parameters
                 if total_bases < 100000 or self.meta:
-                    proc_str = 'meta'  # use best precalculated parameters
+                    proc_str = 'meta'  # use best pre-calculated parameters
                 else:
                     proc_str = 'single'  # estimate parameters from data
 

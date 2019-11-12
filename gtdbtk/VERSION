@@ -2,7 +2,7 @@
 - Migrated to Python3.
 0.3.2
 - Classify step is now taking the alignment fraction into account.
-- Assigning precalcualted RED value to the tree now takes seconds.
+- Assigning pre-calculated RED value to the tree now takes seconds.
 - FastANI now runs G1vsG2 and G2vsG1 and takes the best value.
 - Logging has been improved.
 0.3.1
@@ -11,7 +11,7 @@
 0.3.0
 - New options to export the untrimmed reference MSA files.
 - Support for gzipped genomes (--extension .gz).
-- By default, GTDB-Tk uses precalculated RED values.
+- By default, GTDB-Tk uses pre-calculated RED values.
 - New option to recalculate RED value during classify step (--recalculate_red).
 - Best translation table displayed in summary file.
 - New option to skip_trimming during align step.
@@ -79,7 +79,7 @@
 0.0.4-beta
 - Code cleaning
 0.0.3
-- FastAni multithreaded.
+- FastAni multi-threaded.
 0.0.2
 - modified align command to automatically determine domain of each genome and process accordingly
 0.0.1

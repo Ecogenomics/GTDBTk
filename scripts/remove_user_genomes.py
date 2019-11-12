@@ -57,7 +57,7 @@ if __name__ == "__main__":
     parser.add_argument('--input', dest="inf",
                         required=True, help='path to taxonomy file.')
     parser.add_argument('--output', dest="outf",
-                        required=True, help='path to procesed output file')
+                        required=True, help='path to processed output file')
 
     args = parser.parse_args()
 
