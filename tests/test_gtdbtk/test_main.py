@@ -335,7 +335,7 @@ class TestOptionsParser(unittest.TestCase):
             with open(path_output, 'r') as f:
                 re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
                 for gid, seq in re_hits:
-                    results[gid] = hashlib.sha256(seq).hexdigest()
+                    results[gid] = hashlib.sha256(seq.encode()).hexdigest()
 
             expected = {'genome_1': '332b8cd125a36c375196064e136efab78db38e41bbd8bd8484243531bc57df6d',
                         'genome_2': '84e91b9f5fa1ec0bedc0097233044e6dd0e79557bb6df3625928dc9573795989'}
@@ -376,7 +376,7 @@ class TestOptionsParser(unittest.TestCase):
             with open(path_output, 'r') as f:
                 re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
                 for gid, seq in re_hits:
-                    results[gid] = hashlib.sha256(seq).hexdigest()
+                    results[gid] = hashlib.sha256(seq.encode()).hexdigest()
 
             expected = {'genome_1': '35e080f9ab7d318e8f4a7cef46ce6044bd9c538e6fbe8a69b17431df44bd5a81',
                         'genome_2': 'bb4beed69063dad0092a809ee5854ff124da0b55c651edd50c47b1d8fdff0d7b'}
@@ -397,7 +397,7 @@ class TestOptionsParser(unittest.TestCase):
 
             self.options_parser.export_msa(options)
 
-            with open(path_out, 'r') as f:
+            with open(path_out, 'rb') as f:
                 out_hash = hashlib.sha256(f.read()).hexdigest()
             self.assertEqual(out_hash, '11eb12b91ab20c43824abafb909ccc20bed84a8609a9bf82748b2cdbdd8b7aad')
         finally:
@@ -415,7 +415,7 @@ class TestOptionsParser(unittest.TestCase):
 
             self.options_parser.export_msa(options)
 
-            with open(path_out, 'r') as f:
+            with open(path_out, 'rb') as f:
                 out_hash = hashlib.sha256(f.read()).hexdigest()
             self.assertEqual(out_hash, '50dde1e96df9533def7c7047a1e8627d4ad566db10f8ab3de72751e62c4ac10a')
         finally:

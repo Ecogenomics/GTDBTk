@@ -17,7 +17,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 __prog_name__ = 'trim_msa_based_on_mask.py'
 __prog_desc__ = 'Trim an MSA based on a prexisting mask. We assumed the mask has the same length as the MSA'
@@ -49,7 +49,7 @@ class MSATrimmer(object):
         print(maskstr)
         print(len(maskstr))
 
-        for k, v in dict_genomes.iteritems():
+        for k, v in dict_genomes.items():
             aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
             fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
             outfwriter.write(fasta_outstr)

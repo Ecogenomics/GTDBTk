@@ -25,8 +25,8 @@ from numpy import (median as np_median,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
 
-from biolib_lite.newick import parse_label
-from biolib_lite.taxonomy import Taxonomy
+from .biolib_lite.newick import parse_label
+from .biolib_lite.taxonomy import Taxonomy
 
 
 class RelativeDistance(object):
@@ -177,7 +177,7 @@ class RelativeDistance(object):
         # create percentile and classification boundary lines
         percentiles = {}
         for i, rank in enumerate(sorted(medians_for_taxa.keys())):
-            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].iteritems(
+            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].items(
             ) if taxon in taxa_for_dist_inference]
             if not v:
                 # not taxa at rank suitable for creating classification
@@ -218,7 +218,7 @@ class RelativeDistance(object):
             mono = []
             poly = []
             no_inference = []
-            for clade_label, dists in medians_for_taxa[rank].iteritems():
+            for clade_label, dists in medians_for_taxa[rank].items():
                 md = np_median(dists)
                 x.append(md)
                 y.append(i)
@@ -294,7 +294,7 @@ class RelativeDistance(object):
         ax.set_xlim([-0.01, 1.01])
 
         ax.set_ylabel('rank (no. taxa)')
-        ax.set_yticks(range(0, len(medians_for_taxa)))
+        ax.set_yticks(list(range(0, len(medians_for_taxa))))
         ax.set_ylim([-0.2, len(medians_for_taxa) - 0.01])
         ax.set_yticklabels(rank_labels)
 
@@ -359,14 +359,14 @@ class RelativeDistance(object):
                 'Taxa\tGTDB taxonomy\tMedian distance\tMedian difference\tClosest rank\tClassification\n')
 
         for rank in sorted(median_for_rank.keys()):
-            for clade_label, dists in medians_for_taxa[rank].iteritems():
+            for clade_label, dists in medians_for_taxa[rank].items():
                 dists = np_array(dists)
 
                 taxon_median = np_median(dists)
                 delta = taxon_median - median_for_rank[rank]
 
                 closest_rank_dist = 1e10
-                for test_rank, test_median in median_for_rank.iteritems():
+                for test_rank, test_median in median_for_rank.items():
                     abs_dist = abs(taxon_median - test_median)
                     if abs_dist < closest_rank_dist:
                         closest_rank_dist = abs_dist
@@ -416,7 +416,7 @@ class RelativeDistance(object):
 
         median_for_rank = {}
         for i, rank in enumerate(sorted(medians_for_taxa.keys())):
-            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].iteritems(
+            v = [np_median(dists) for taxon, dists in medians_for_taxa[rank].items(
             ) if taxon in taxa_for_dist_inference]
 
             if v:
@@ -435,8 +435,8 @@ class RelativeDistance(object):
 
         medians_for_taxa = defaultdict(lambda: defaultdict(list))
         for p in phylum_rel_dists:
-            for rank, d in phylum_rel_dists[p].iteritems():
-                for taxon, dist in d.iteritems():
+            for rank, d in phylum_rel_dists[p].items():
+                for taxon, dist in d.items():
                     medians_for_taxa[rank][taxon].append(dist)
 
         return medians_for_taxa

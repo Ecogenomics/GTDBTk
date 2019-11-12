@@ -21,18 +21,18 @@ from shutil import copy
 
 import numpy as np
 
-import config.config as Config
-from biolib_lite.execute import check_dependencies
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.taxonomy import Taxonomy
-from external.hmm_aligner import HmmAligner
-from external.pfam_search import PfamSearch
-from external.prodigal import Prodigal
-from external.tigrfam_search import TigrfamSearch
+import gtdbtk.config.config as Config
+from .biolib_lite.execute import check_dependencies
+from .biolib_lite.seq_io import read_fasta
+from .biolib_lite.taxonomy import Taxonomy
+from .external.hmm_aligner import HmmAligner
+from .external.pfam_search import PfamSearch
+from .external.prodigal import Prodigal
+from .external.tigrfam_search import TigrfamSearch
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
-from tools import merge_two_dicts, symlink_f
-from trim_msa import TrimMSA
+from .tools import merge_two_dicts, symlink_f
+from .trim_msa import TrimMSA
 
 
 class Markers(object):
@@ -94,7 +94,7 @@ class Markers(object):
             gene_bac_dict, gene_arc_dict = {}, {}
 
             path = info.get("aa_gene_path")
-            for _marker_db, marker_suffix in marker_dbs.iteritems():
+            for _marker_db, marker_suffix in marker_dbs.items():
                 # get all gene sequences
                 protein_file = str(path)
                 tophit_path = protein_file.replace(PROTEIN_FILE_SUFFIX, marker_suffix)
@@ -105,7 +105,7 @@ class Markers(object):
                 # Prodigal adds an asterisks at the end of each called genes.
                 # These asterisks sometimes appear in the MSA, which can be
                 # an issue for some downstream software
-                for seq_id, seq in all_genes_dict.iteritems():
+                for seq_id, seq in all_genes_dict.items():
                     if seq[-1] == '*':
                         all_genes_dict[seq_id] = seq[:-1]
 
@@ -297,7 +297,7 @@ class Markers(object):
                 taxa_to_keep.add(outgroup_taxon)
 
             filtered_genomes = 0
-            for genome_id, taxa in gtdb_taxonomy.iteritems():
+            for genome_id, taxa in gtdb_taxonomy.items():
                 common_taxa = taxa_to_keep.intersection(taxa)
                 if len(common_taxa) == 0:
                     if genome_id in msa:
@@ -321,13 +321,13 @@ class Markers(object):
             mask = f.readline().strip()
         list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
 
-        if len(mask) != len(aligned_genomes.values()[0]):
+        if len(mask) != len(list(aligned_genomes.values())[0]):
             self.logger.error('Mask and alignment length do not match.')
             raise MSAMaskLengthMismatch
 
         output_seqs = {}
         pruned_seqs = {}
-        for seq_id, seq in aligned_genomes.iteritems():
+        for seq_id, seq in aligned_genomes.items():
             masked_seq = ''.join(np.array(list(seq), dtype=str)[list_mask])
 
             valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
@@ -343,7 +343,7 @@ class Markers(object):
         """Write sequences to FASTA file."""
 
         fout = open(output_file, 'w')
-        for genome_id, alignment in seqs.iteritems():
+        for genome_id, alignment in seqs.items():
             if genome_id in gtdb_taxonomy:
                 fout.write('>%s %s\n' %
                            (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
@@ -482,7 +482,7 @@ class Markers(object):
                 marker_user_msa_path = os.path.join(out_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
 
             cur_genome_files = {
-                gid: f for gid, f in genomic_files.iteritems() if gid in gids}
+                gid: f for gid, f in genomic_files.items() if gid in gids}
 
             if skip_gtdb_refs:
                 gtdb_msa = {}
@@ -530,8 +530,8 @@ class Markers(object):
 
                 if trimmed_seqs:
                     self.logger.info('Filtered MSA from %d to %d AAs.' % (
-                        len(aligned_genomes.values()[0]),
-                        len(trimmed_seqs.values()[0])))
+                        len(list(aligned_genomes.values())[0]),
+                        len(list(trimmed_seqs.values())[0])))
 
                 self.logger.info('Filtered %d genomes with amino acids in <%.1f%% of columns in filtered MSA.' % (
                     len(pruned_seqs),
@@ -549,8 +549,8 @@ class Markers(object):
                                                              user_msa,
                                                              gtdb_msa_mask,
                                                              min_perc_aa / 100.0)
-                self.logger.info('Masked alignment from %d to %d AAs.' % (len(user_msa.values()[0]),
-                                                                          len(trimmed_seqs.values()[0])))
+                self.logger.info('Masked alignment from %d to %d AAs.' % (len(list(user_msa.values())[0]),
+                                                                          len(list(trimmed_seqs.values())[0])))
 
                 if min_perc_aa > 0:
                     self.logger.info('%d user genomes have amino acids in <%.1f%% of columns in filtered MSA.' % (
@@ -575,7 +575,7 @@ class Markers(object):
                 self._write_msa(trimmed_seqs, marker_msa_path, gtdb_taxonomy)
 
             trimmed_user_msa = {
-                k: v for k, v in trimmed_seqs.iteritems() if k in user_msa}
+                k: v for k, v in trimmed_seqs.items() if k in user_msa}
             if len(trimmed_user_msa) > 0:
                 self.logger.info('Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
                 self._write_msa(trimmed_user_msa, marker_user_msa_path, gtdb_taxonomy)

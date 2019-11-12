@@ -15,7 +15,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 import logging
 import multiprocessing
@@ -29,18 +29,18 @@ from operator import itemgetter
 import dendropy
 from numpy import median as np_median
 
-import config.config as Config
-from biolib_lite.common import remove_extension, make_sure_path_exists
-from biolib_lite.execute import check_dependencies
-from biolib_lite.newick import parse_label
-from biolib_lite.seq_io import read_seq, read_fasta
-from biolib_lite.taxonomy import Taxonomy
+import gtdbtk.config.config as Config
+from .biolib_lite.common import remove_extension, make_sure_path_exists
+from .biolib_lite.execute import check_dependencies
+from .biolib_lite.newick import parse_label
+from .biolib_lite.seq_io import read_seq, read_fasta
+from .biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
-from relative_distance import RelativeDistance
-from tools import add_ncbi_prefix, splitchunks, symlink_f
+from .relative_distance import RelativeDistance
+from .tools import add_ncbi_prefix, splitchunks, symlink_f
 
 sys.setrecursionlimit(15000)
 
@@ -234,7 +234,7 @@ class Classify(object):
 
     def _parse_red_dict(self, red_dist_dict):
         results = {}
-        for k, v in red_dist_dict.iteritems():
+        for k, v in red_dist_dict.items():
             if k in ['d__', 'domain']:
                 results['d__'] = v
             elif k in ['p__', 'phylum']:
@@ -414,7 +414,7 @@ class Classify(object):
                                 ) - mrca.distance_from_root()) + (
                                                                                ref_genome.distance_from_root() - mrca.distance_from_root())
                             sorted_l = sorted(
-                                dict_dist_refgenomes.iteritems(), key=itemgetter(1))
+                                iter(dict_dist_refgenomes.items()), key=itemgetter(1))
                             sorted_l = sorted_l[0:100]
                             number_comparison += len(sorted_l)
                             fastani_verification[userleaf] = {
@@ -874,7 +874,7 @@ class Classify(object):
         """
         classified_user_genomes = []
         unclassified_user_genomes = {}
-        for userleaf, potential_nodes in fastani_verification.iteritems():
+        for userleaf, potential_nodes in fastani_verification.items():
             summary_list = [None] * 19
 
             notes = []
@@ -895,13 +895,13 @@ class Classify(object):
                 if userleaf.taxon.label in all_fastani_dict:
                     # import IPython; IPython.embed()
                     prefilter_reference_dictionary = {k: v for k, v in
-                                                      all_fastani_dict.get(userleaf.taxon.label).iteritems() if (
+                                                      all_fastani_dict.get(userleaf.taxon.label).items() if (
                                                                   v.get('ani') >= self.species_radius.get(k) and v.get(
                                                               'af') >= self.af_threshold)}
-                    sorted_dict = sorted(all_fastani_dict.get(
-                        userleaf.taxon.label).iteritems(), key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
-                    sorted_prefilter_dict = sorted(prefilter_reference_dictionary.iteritems(),
-                                                   key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
+                    sorted_dict = sorted(iter(all_fastani_dict.get(
+                        userleaf.taxon.label).items()), key=lambda _x_y: (_x_y[1]['ani'], _x_y[1]['af']), reverse=True)
+                    sorted_prefilter_dict = sorted(iter(prefilter_reference_dictionary.items()),
+                                                   key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
 
                     fastani_matching_reference = None
                     if len(sorted_prefilter_dict) > 0:
@@ -997,13 +997,13 @@ class Classify(object):
             elif userleaf.taxon.label in all_fastani_dict:
                 # import IPython; IPython.embed()
                 prefilter_reference_dictionary = {k: v for k, v in
-                                                  all_fastani_dict.get(userleaf.taxon.label).iteritems() if (
+                                                  all_fastani_dict.get(userleaf.taxon.label).items() if (
                                                               v.get('ani') >= self.species_radius.get(k) and v.get(
                                                           'af') >= self.af_threshold)}
-                sorted_dict = sorted(all_fastani_dict.get(
-                    userleaf.taxon.label).iteritems(), key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
-                sorted_prefilter_dict = sorted(prefilter_reference_dictionary.iteritems(),
-                                               key=lambda (_x, y): (y['ani'], y['af']), reverse=True)
+                sorted_dict = sorted(iter(all_fastani_dict.get(
+                    userleaf.taxon.label).items()), key=lambda _x_y2: (_x_y2[1]['ani'], _x_y2[1]['af']), reverse=True)
+                sorted_prefilter_dict = sorted(iter(prefilter_reference_dictionary.items()),
+                                               key=lambda _x_y3: (_x_y3[1]['ani'], _x_y3[1]['af']), reverse=True)
 
                 summary_list[0] = userleaf.taxon.label
                 summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
@@ -1067,10 +1067,10 @@ class Classify(object):
     def _fastaniWorker(self, sublist_genomes, genomes, out_q):
         """Multi thread worker to calculate FastANI"""
         try:
-            for userleaf, potential_nodes in sublist_genomes.iteritems():
+            for userleaf, potential_nodes in sublist_genomes.items():
                 dict_parser_distance = self._calculate_fastani_distance(
                     userleaf, potential_nodes, genomes)
-                for k, v in dict_parser_distance.iteritems():
+                for k, v in dict_parser_distance.items():
                     if k in out_q:
                         raise Exception("{} not in output.".format(k))
                     out_q[k] = v
@@ -1398,13 +1398,13 @@ class Classify(object):
 
         # get all named groups
         taxa_for_dist_inference = set()
-        for taxon_id, taxa in taxonomy.iteritems():
+        for taxon_id, taxa in taxonomy.items():
             for taxon in taxa:
                 taxa_for_dist_inference.add(taxon)
 
         # sanity check species names as these are a common problem
         species = set()
-        for taxon_id, taxa in taxonomy.iteritems():
+        for taxon_id, taxa in taxonomy.items():
             if len(taxa) > Taxonomy.rank_index['s__']:
                 species_name = taxa[Taxonomy.rank_index['s__']]
                 valid, error_msg = True, None
@@ -1423,7 +1423,7 @@ class Classify(object):
         # this filtering criteria.
         if min_children > 0:
             valid_taxa = set()
-            for taxon, children_taxa in taxon_children.iteritems():
+            for taxon, children_taxa in taxon_children.items():
                 if len(children_taxa) >= min_children:
                     valid_taxa.add(taxon)
 
@@ -1590,7 +1590,7 @@ class Classify(object):
         new_tree = input_tree.clone()
 
         outgroup = set()
-        for genome_id, taxa in taxonomy.iteritems():
+        for genome_id, taxa in taxonomy.items():
             if outgroup_taxa in taxa:
                 outgroup.add(genome_id)
 

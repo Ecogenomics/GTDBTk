@@ -17,7 +17,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 __prog_name__ = 'trim_msa.py'
 __prog_desc__ = 'Randomly select a subset of columns from the MSA of each marker.'
@@ -37,8 +37,8 @@ import argparse
 import random
 import logging
 
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.logger import logger_setup
+from .biolib_lite.seq_io import read_fasta
+from .biolib_lite.logger import logger_setup
 
 from collections import defaultdict, Counter
 
@@ -131,12 +131,12 @@ class TrimMSA(object):
                 markers.append((marker_id, marker_name, marker_len))
                 total_msa_len += marker_len
 
-        if len(msa.values()[0]) == total_msa_len:
+        if len(list(msa.values())[0]) == total_msa_len:
             self.logger.info(
                 'Length of MSA and length of marker genes both equal %d columns' % total_msa_len)
         else:
             self.logger.error('Length of MSA (%d columns) does not equal length of marker genes (%d columns).' % (
-                len(msa.values()[0]),
+                len(list(msa.values())[0]),
                 total_msa_len))
             raise MSAMarkerLengthMismatch
 
@@ -157,7 +157,7 @@ class TrimMSA(object):
             'Genome ID\tMSA length\tAmino acids\tAmino acids (%)\n')
         filtered_msa = {}
         pruned_seqs = {}
-        for genome_id, aligned_seq in output_seqs.iteritems():
+        for genome_id, aligned_seq in output_seqs.items():
             aa_len = sum([1 for c in aligned_seq if c.isalpha()])
             if aa_len != 0:
                 aa_perc = float(aa_len) / len(aligned_seq)
@@ -189,7 +189,7 @@ class TrimMSA(object):
         gap_count = defaultdict(int)
         amino_acids = [list() for _ in range(end - start)]
         num_genomes = 0
-        for seq_id, seq in seqs.iteritems():
+        for seq_id, seq in seqs.items():
             num_genomes += 1
             gene_seq = seq[start:end].upper()
             for i, ch in enumerate(gene_seq):
@@ -220,7 +220,7 @@ class TrimMSA(object):
         # type: (dict, list) -> (list, dict)
         """Sample columns from each marker in multiple sequence alignment."""
 
-        alignment_length = len(seqs.values()[0])
+        alignment_length = len(list(seqs.values())[0])
         sampled_cols = []
         start = 0
         lack_sufficient_cols = 0
@@ -271,7 +271,7 @@ class TrimMSA(object):
 
         # trim columns
         output_seqs = {}
-        for seq_id, seq in seqs.iteritems():
+        for seq_id, seq in seqs.items():
             masked_seq = ''.join([seq[i]
                                   for i in range(0, len(mask)) if mask[i]])
             output_seqs[seq_id] = masked_seq

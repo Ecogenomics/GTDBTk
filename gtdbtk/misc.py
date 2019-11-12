@@ -19,9 +19,9 @@ import logging
 import os
 from shutil import copyfile
 
-import config.config as Config
-from biolib_lite.common import make_sure_path_exists
-from biolib_lite.seq_io import read_fasta
+import gtdbtk.config.config as Config
+from .biolib_lite.common import make_sure_path_exists
+from .biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import ReferenceFileMalformed
 
 
@@ -57,7 +57,7 @@ class Misc(object):
         outfwriter = open(output_file, 'w')
         dict_genomes = read_fasta(untrimmed_msa, False)
 
-        for k, v in dict_genomes.iteritems():
+        for k, v in dict_genomes.items():
             aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
             fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
             outfwriter.write(fasta_outstr)

@@ -75,7 +75,7 @@ class Prodigal(object):
                 raise Exception(
                     "An error was encountered while running Prodigal.")
 
-        summary_stats = summary_stats[summary_stats.keys()[0]]
+        summary_stats = summary_stats[list(summary_stats.keys())[0]]
 
         # rename output files to adhere to GTDB conventions and desired genome
         # ID
@@ -164,7 +164,7 @@ class Prodigal(object):
         worker_queue = mp.Queue()
         writer_queue = mp.Queue()
 
-        for genome_id, file_path in genomic_files.iteritems():
+        for genome_id, file_path in genomic_files.items():
             worker_queue.put([genome_id, file_path])
 
         for _ in range(self.threads):

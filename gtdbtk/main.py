@@ -15,27 +15,27 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 import logging
 import shutil
 import subprocess
 import sys
 
-import config.config as Config
-from biolib_lite.common import (check_dir_exists,
+import gtdbtk.config.config as Config
+from .biolib_lite.common import (check_dir_exists,
                                 check_file_exists,
                                 make_sure_path_exists,
                                 remove_extension)
-from biolib_lite.execute import check_dependencies
-from biolib_lite.taxonomy import Taxonomy
-from classify import Classify
+from .biolib_lite.execute import check_dependencies
+from .biolib_lite.taxonomy import Taxonomy
+from .classify import Classify
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
 from gtdbtk.tools import symlink_f
-from markers import Markers
-from misc import Misc
-from reroot_tree import RerootTree
+from .markers import Markers
+from .misc import Misc
+from .reroot_tree import RerootTree
 
 
 class OptionsParser(object):
@@ -114,7 +114,7 @@ class OptionsParser(object):
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
 
         elif batchfile:
-            for line_no, line in enumerate(open(batchfile, "rb")):
+            for line_no, line in enumerate(open(batchfile, "r")):
                 line_split = line.strip().split("\t")
                 if line_split[0] == '':
                     continue  # blank line
@@ -140,7 +140,7 @@ class OptionsParser(object):
 
                 genomic_files[genome_id] = genome_file
 
-        for genome_key in genomic_files.iterkeys():
+        for genome_key in genomic_files.keys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") \
                     or genome_key.startswith("UBA"):
                 self.logger.error("Submitted genomes start with the same prefix"
@@ -468,7 +468,7 @@ class OptionsParser(object):
 
         self.logger.info('Identifying genomes from the specified outgroup.')
         outgroup = set()
-        for genome_id, taxa in taxonomy.iteritems():
+        for genome_id, taxa in taxonomy.items():
             if options.outgroup_taxon in taxa:
                 outgroup.add(genome_id)
 

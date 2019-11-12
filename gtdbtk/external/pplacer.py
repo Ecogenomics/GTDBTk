@@ -53,7 +53,7 @@ class Pplacer(object):
             args.append(mmap_file)
 
         with open(pplacer_out, 'w') as f_out:
-            proc = subprocess.Popen(args, stdout=f_out, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(args, stdout=f_out, stderr=subprocess.PIPE, encoding='utf-8')
             proc_out, proc_err = proc.communicate()
 
         if proc.returncode != 0:

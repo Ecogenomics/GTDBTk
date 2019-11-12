@@ -17,7 +17,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 __prog_name__ = 'gtdb_to_ncbi_majority_vote.py'
 __prog_desc__ = ('Translate GTDB to NCBI classification via majority vote.')
@@ -111,7 +111,7 @@ class Translate(object):
         # get majority vote NCBI classification for each GTDB species cluster
         ncbi_sp_classification = defaultdict(list)
         for rep_id, cluster_ids in gtdb_sp_clusters.items():
-            for rank in xrange(6, -1, -1):
+            for rank in range(6, -1, -1):
                 ncbi_taxon_list = []
                 for cid in cluster_ids:
                     if cid in ncbi_taxa:
@@ -182,7 +182,7 @@ class Translate(object):
                     # take a majority vote over species with a NCBI classification, and
                     # limit taxonomic resolution to most-specific rank reported by GTDB-Tk
                     ncbi_classification = []
-                    for rank in xrange(6, -1, -1):
+                    for rank in range(6, -1, -1):
                         if len(gtdb_taxa[rank]) == 3:
                             continue
                             

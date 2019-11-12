@@ -67,13 +67,13 @@ class TestClassify(unittest.TestCase):
         marker_dict = self.classify._write_red_dict(
             self.out_dir, self.prefix, 'bac120')
         self.assertTrue(len(marker_dict) == 6)
-        self.assertTrue(marker_dict.has_key('d__'))
+        self.assertTrue('d__' in marker_dict)
         self.assertTrue(marker_dict.get('d__') == 0)
-        self.assertTrue(marker_dict.has_key('p__'))
-        self.assertTrue(marker_dict.has_key('c__'))
-        self.assertTrue(marker_dict.has_key('o__'))
-        self.assertTrue(marker_dict.has_key('f__'))
-        self.assertTrue(marker_dict.has_key('g__'))
+        self.assertTrue('p__' in marker_dict)
+        self.assertTrue('c__' in marker_dict)
+        self.assertTrue('o__' in marker_dict)
+        self.assertTrue('f__' in marker_dict)
+        self.assertTrue('g__' in marker_dict)
 
     def test_get_pplacer_taxonomy(self):
         if not os.path.exists(self.out_dir):
@@ -110,7 +110,7 @@ class TestClassify(unittest.TestCase):
         self.assertTrue(last_line.endswith('d__Archaea;'))
 
     def test_formatnote(self):
-        first3genomes = self.gtdb_taxonomy.keys()[:3]
+        first3genomes = list(self.gtdb_taxonomy.keys())[:3]
         sorted_dict = ((first3genomes[0], {'ani': 98.5, 'af': 1.0}), (first3genomes[1], {
                        'ani': 92.6, 'af': 1.0}), (first3genomes[2], {'ani': 90.3, 'af': 1.3}))
         labels = [first3genomes[0]]

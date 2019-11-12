@@ -87,7 +87,7 @@ class OptionsParser():
             filenamef = os.path.basename(genome)
             filenamef = filenamef.replace("_genomic.fna", "")
             if filenamef.startswith("U_"):
-                print filenamef
+                print(filenamef)
                 subdict = uba_acc.get(filenamef)
                 if "gca" in subdict.keys():
                     copyfile(genome, os.path.join(
@@ -124,7 +124,7 @@ class OptionsParser():
                 line_split = line.strip().split('\t')
                 genomes_to_retain.add(line_split[0])
 
-        print 'Genome to retain: %d' % len(genomes_to_retain)
+        print('Genome to retain: %d' % len(genomes_to_retain))
         # get mapping from published UBA genomes to NCBI accessions
         __location__ = os.path.realpath(os.path.join(
             os.getcwd(), os.path.dirname(__file__)))
@@ -168,9 +168,9 @@ class OptionsParser():
             if filenamef.startswith("U_"):
                 subdict = uba_acc.get(filenamef)
                 if filenamef == "U_74684":
-                    print subdict
-                    print genome
-                    print os.path.join(fastani_dir, subdict.get("gca")[3:] + "_genomic.fna")
+                    print(subdict)
+                    print(genome)
+                    print(os.path.join(fastani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
                 if "gca" in subdict.keys():
                     copyfile(genome, os.path.join(
                         fastani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
@@ -190,7 +190,7 @@ class OptionsParser():
                 dirin, dom, 'gtdb_concatenated.faa'))
             seqout = open(os.path.join(msadir, 'gtdb_r' +
                                        release + '_' + dom + '.faa'), 'w')
-            for id, seq in msa_dict.iteritems():
+            for id, seq in msa_dict.items():
                 if id in genomes_to_retain:
                     if id.startswith("U_"):
                         subdict = uba_acc.get(id)
@@ -211,19 +211,19 @@ class OptionsParser():
 
             trees = glob.glob(os.path.join(dirin, dom, 'pplacer', "*.tree"))
             if len(trees) != 1:
-                print "Error"
+                print("Error")
                 sys.exit()
             else:
                 treef = trees[0]
             fastas = glob.glob(os.path.join(dirin, dom, 'pplacer', "*.fa"))
             if len(fastas) != 1:
-                print "Error"
+                print("Error")
                 sys.exit()
             else:
                 seqfile = fastas[0]
             logs = glob.glob(os.path.join(dirin, dom, 'pplacer', "*.log"))
             if len(logs) != 1:
-                print "Error"
+                print("Error")
                 sys.exit()
             else:
                 logfile = logs[0]
@@ -248,7 +248,7 @@ class OptionsParser():
             trimmed_seqout = open(os.path.join(
                 dirout, dom, 'pplacer', 'trimmed_msa_' + dom + '.faa'), 'w')
             trimmed_fasta = read_fasta(seqfile)
-            for id, seq in trimmed_fasta.iteritems():
+            for id, seq in trimmed_fasta.items():
                 if id in genomes_to_retain:
                     if id.startswith("U_"):
                         subdict = uba_acc.get(id)
@@ -266,7 +266,7 @@ class OptionsParser():
                                         'fitting_' + dom + '.log'), 'w')
             with open(logfile) as logfin:
                 for line in logfin:
-                    for k, subdict in uba_acc.iteritems():
+                    for k, subdict in uba_acc.items():
                         if "gca" in subdict.keys():
                             line = line.replace(
                                 k + ":", subdict.get("gca") + ":")
@@ -297,8 +297,8 @@ def print_help():
 
 
 if __name__ == "__main__":
-    print __prog_name__ + ' v' + __version__ + ': ' + __prog_desc__
-    print '  by ' + __author__ + ' (' + __email__ + ')' + '\n'
+    print(__prog_name__ + ' v' + __version__ + ': ' + __prog_desc__)
+    print('  by ' + __author__ + ' (' + __email__ + ')' + '\n')
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)

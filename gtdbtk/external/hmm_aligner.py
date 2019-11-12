@@ -15,7 +15,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
+
 
 import multiprocessing
 import os
@@ -132,7 +132,7 @@ class HmmAligner(object):
 
         marker_dbs = {"PFAM": self.pfam_top_hit_suffix,
                       "TIGRFAM": self.tigrfam_top_hit_suffix}
-        for marker_db, marker_suffix in marker_dbs.iteritems():
+        for marker_db, marker_suffix in marker_dbs.items():
             # get all gene sequences
             genome_path = str(path)
             tophit_path = genome_path.replace(
@@ -146,7 +146,7 @@ class HmmAligner(object):
             # Prodigal adds an asterisks at the end of each called genes,
             # These asterisks sometimes appear in the MSA, which can be an
             # issue for some softwares downstream
-            for seq_id, seq in all_genes_dict.iteritems():
+            for seq_id, seq in all_genes_dict.items():
                 if seq[-1] == '*':
                     all_genes_dict[seq_id] = seq[:-1]
 
@@ -187,7 +187,7 @@ class HmmAligner(object):
                                                    "gene_seq": all_genes_dict.get(genename),
                                                    "bitscore": bitscore}
 
-            for mid, mpath in marker_dict_original.iteritems():
+            for mid, mpath in marker_dict_original.items():
                 if mid not in gene_dict and mid not in result_aligns.get(db_genome_id):
                     size = self._get_hmm_size(mpath)
                     result_aligns.get(db_genome_id).update({mid: "-" * size})
@@ -198,7 +198,7 @@ class HmmAligner(object):
 
         # we concatenate the aligned markers together and associate them with
         # the genome.
-        for gid, markids in result_aligns.iteritems():
+        for gid, markids in result_aligns.items():
             seq = ""
             for markid in sorted(markids.keys()):
                 seq = seq + markids.get(markid)
@@ -217,16 +217,17 @@ class HmmAligner(object):
         result_genomes_dict = {}
         hmmalign_dir = tempfile.mkdtemp()
         input_count = 0
-        for markerid, marker_info in marker_dict.iteritems():
+        for markerid, marker_info in marker_dict.items():
             hmmalign_gene_input = os.path.join(
                 hmmalign_dir, "input_gene{0}.fa".format(input_count))
             input_count += 1
-            out_fh = open(hmmalign_gene_input, 'wb')
+            out_fh = open(hmmalign_gene_input, 'w')
             out_fh.write(">{0}\n".format(marker_info.get("gene")))
             out_fh.write("{0}".format(marker_info.get("gene_seq")))
             out_fh.close()
             proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
-                "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='utf-8')
             stdout, stderr = proc.communicate()
 
             for line in stderr.splitlines():

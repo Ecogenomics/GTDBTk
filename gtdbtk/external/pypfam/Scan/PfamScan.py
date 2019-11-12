@@ -272,7 +272,7 @@ class PfamScan(object):
                 this_scan_result.eof = True
 
         values = list()
-        for key, value in sorted(scan_results.iteritems()):
+        for key, value in sorted(scan_results.items()):
             values.append(value)
 
         return values
@@ -365,7 +365,8 @@ class PfamScan(object):
                 params = ['hmmsearch', '--notextw', ' '.join(hmmscan_cut_off),
                           os.path.join(self._dir, hmmlib), self._fasta]
 
-            proc = subprocess.Popen(params, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.Popen(params, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, encoding='utf-8')
             proc_out, proc_err = proc.communicate()
             proc_out_ascii = proc_out
 

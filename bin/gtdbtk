@@ -17,8 +17,6 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
-
 __author__ = "Pierre Chaumeil"
 __copyright__ = "Copyright 2017"
 __credits__ = ["Pierre Chaumeil"]
@@ -28,15 +26,15 @@ __email__ = "uqpchaum@uq.edu.au"
 __status__ = "Development"
 
 import argparse
-import sys
+import logging
 import os
+import sys
+import traceback
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
-import traceback
-import logging
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.exceptions import *
