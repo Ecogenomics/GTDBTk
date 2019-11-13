@@ -157,7 +157,7 @@ class PfamSearch(object):
             Gene files in FASTA format to process.
         """
 
-        self.cpus_per_genome = max(1, self.threads / len(gene_files))
+        self.cpus_per_genome = max(1, int(self.threads / len(gene_files)))
 
         # populate worker queue with data to process
         workerQueue = mp.Queue()
