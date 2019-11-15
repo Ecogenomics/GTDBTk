@@ -1237,6 +1237,7 @@ class Classify(object):
             self.tmp_output_dir = tempfile.mkdtemp()
             make_sure_path_exists(self.tmp_output_dir)
             dict_parser_distance = {}
+            user_leaf_label = user_leaf.taxon.label
 
             # we first calculate the user genome vs the reference
             # we write the two input files for fastani, the query file and
@@ -1244,7 +1245,7 @@ class Classify(object):
             path_user_list = os.path.join(
                 self.tmp_output_dir, 'query_list.txt')
             with open(path_user_list, 'w') as f:
-                f.write('{0}\n'.format(genomes.get(user_leaf.taxon.label)))
+                f.write('{0}\n'.format(genomes.get(user_leaf_label)))
 
             leafnodes = list_leaf.get("potential_g")
             for node in leafnodes:
@@ -1279,7 +1280,7 @@ class Classify(object):
                             errstr += finalline
                     raise ValueError(errstr)
 
-                dict_parser_distance = self._parse_fastani_results(path_results, dict_parser_distance)
+                dict_parser_distance = self._parse_fastani_results(path_results, dict_parser_distance, user_leaf_label)
 
                 # We then calculate the reference vs user genome
                 path_results_reverse = os.path.join(self.tmp_output_dir, 'results_{}_RefvsU.tab'.format(shortleaf))
@@ -1296,7 +1297,7 @@ class Classify(object):
                                 finalline = line
                             errstr += finalline
                     raise ValueError(errstr)
-                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse, dict_parser_distance)
+                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse, dict_parser_distance, user_leaf_label)
 
             shutil.rmtree(self.tmp_output_dir)
             return dict_parser_distance
@@ -1310,18 +1311,21 @@ class Classify(object):
                 shutil.rmtree(self.tmp_output_dir)
             raise error
 
-    def _parse_fastani_results(self, fastout_file, dict_results):
-        """ Parse the fastani output file
-
+    def _parse_fastani_results(self, fastout_file, dict_results, leaf_name):
+        """Parse the fastani output file
 
         Parameters
         ----------
-        fastout_file : fastani output file.
-
+        fastout_file : str
+            Path to the FastANI output file.
+        dict_results : dict
+            The dictionary of user genomes vs reference genomes (with ANI/AF).
+        leaf_name : str
+            A string containing the name of the query genome.
 
         Returns
         -------
-        dictionary
+        Dict[str, Dict[str, Dict[str, float]]]
             dict_results[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         """
         with open(fastout_file) as fastfile:
@@ -1329,30 +1333,31 @@ class Classify(object):
                 info = line.strip().split()
                 ref_genome = os.path.basename(info[1]).replace(
                     Config.FASTANI_GENOMES_EXT, "")
-                user_g = remove_extension(os.path.basename(info[0]))
                 ani = float(info[2])
                 af = round(float(info[3]) / float(info[4]), 2)
-                if user_g in dict_results:
-                    dict_results[user_g][ref_genome] = {"ani": ani, 'af': af}
+                if leaf_name in dict_results:
+                    dict_results[leaf_name][ref_genome] = {"ani": ani, 'af': af}
                 else:
-                    dict_results[user_g] = {ref_genome: {"ani": ani, "af": af}}
+                    dict_results[leaf_name] = {ref_genome: {"ani": ani, "af": af}}
 
         return dict_results
 
-    def _parse_fastani_results_reverse(self, fastout_file, dict_parser_distance):
+    def _parse_fastani_results_reverse(self, fastout_file, dict_parser_distance, leaf_name):
         # TODO: Merge _parse_fastani_results and _parse_fastani_results_reverse
-        """ Parse the fastani output file for the reverse comparison and pick the best ANI and AF
-
+        """Parse the fastani output file for the reverse comparison and pick the best ANI and AF
 
         Parameters
         ----------
-        fastout_file : fastani output file.
-        dict_parser_distance: dictionaryof user genomes vs list of refrence genomes with ANI and AF
-
+        fastout_file : str
+            Path to the FastANI output file.
+        dict_parser_distance : Dict[str, Dict[str, Dict[str, float]]]
+            The dictionary of user genomes vs reference genomes (with ANI/AF).
+        leaf_name : str
+            A string containing the name of the query genome.
 
         Returns
         -------
-        dictionary
+        Dict[str, Dict[str, Dict[str, float]]]
             dict_parser_distance[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         """
         with open(fastout_file) as fastfile:
@@ -1360,19 +1365,18 @@ class Classify(object):
                 info = line.strip().split()
                 ref_genome = os.path.basename(info[0]).replace(
                     Config.FASTANI_GENOMES_EXT, "")
-                user_g = remove_extension(os.path.basename(info[1]))
                 ani = float(info[2])
                 af = round(float(info[3]) / float(info[4]), 2)
-                if user_g in dict_parser_distance:
-                    if ref_genome in dict_parser_distance.get(user_g):
-                        if dict_parser_distance.get(user_g).get(ref_genome).get('ani') < ani:
-                            dict_parser_distance[user_g][ref_genome]["ani"] = ani
-                        if dict_parser_distance.get(user_g).get(ref_genome).get('af') < af:
-                            dict_parser_distance[user_g][ref_genome]["af"] = af
+                if leaf_name in dict_parser_distance:
+                    if ref_genome in dict_parser_distance.get(leaf_name):
+                        if dict_parser_distance.get(leaf_name).get(ref_genome).get('ani') < ani:
+                            dict_parser_distance[leaf_name][ref_genome]["ani"] = ani
+                        if dict_parser_distance.get(leaf_name).get(ref_genome).get('af') < af:
+                            dict_parser_distance[leaf_name][ref_genome]["af"] = af
                     else:
-                        dict_parser_distance[user_g][ref_genome] = {"ani": ani, 'af': af}
+                        dict_parser_distance[leaf_name][ref_genome] = {"ani": ani, 'af': af}
                 else:
-                    dict_parser_distance[user_g] = {ref_genome: {"ani": ani, "af": af}}
+                    dict_parser_distance[leaf_name] = {ref_genome: {"ani": ani, "af": af}}
 
         return dict_parser_distance
 
