@@ -42,6 +42,7 @@ class TestBiolibLiteCommon(unittest.TestCase):
 
     def test_check_file_exists(self):
         """ Check if a file exists """
+        tmp_out_dir = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         try:
             tmp_out_dir = tempfile.mkdtemp()
             invalid_path = os.path.join(tmp_out_dir, 'foo.txt')
@@ -54,6 +55,7 @@ class TestBiolibLiteCommon(unittest.TestCase):
 
     def test_check_dir_exists(self):
         """ Check if a directory exists """
+        tmp_out_dir = tempfile.mkdtemp()
         try:
             tmp_out_dir = tempfile.mkdtemp()
             self.assertTrue(check_dir_exists(tmp_out_dir))
@@ -63,9 +65,9 @@ class TestBiolibLiteCommon(unittest.TestCase):
 
     def test_make_sure_path_exists(self):
         """ Tests if a path is always created """
-        #
+        tmp_out_dir = os.path.join(tempfile.gettempdir(), 'tmpgtdb' + next(tempfile._get_candidate_names()))
         try:
-            tmp_out_dir = os.path.join(tempfile.gettempdir(), 'tmpgtdb' + next(tempfile._get_candidate_names()))
+            self.assertTrue(make_sure_path_exists(''))
             self.assertTrue(make_sure_path_exists(tmp_out_dir))  # Create the directory.
             self.assertTrue(make_sure_path_exists(tmp_out_dir))  # Return True as it's already created.
             self.assertRaises(BioLibIOException, make_sure_path_exists, '/dev/null/fail')

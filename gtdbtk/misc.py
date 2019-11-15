@@ -61,12 +61,10 @@ class Misc(object):
         with open(output_file, 'w') as outfwriter:
             dict_genomes = read_fasta(untrimmed_msa, False)
 
-        for k, v in dict_genomes.iteritems():
-            aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
-            fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
-            outfwriter.write(fasta_outstr)
-        outfwriter.close()
-        return True
+            for k, v in dict_genomes.items():
+                aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
+                fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
+                outfwriter.write(fasta_outstr)
 
     def export_msa(self, domain, output_file):
         """Export the MSA to a file, create the path if it doesn't exist.
