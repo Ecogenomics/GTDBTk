@@ -33,6 +33,7 @@ from classify import Classify
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
 from gtdbtk.tools import symlink_f
+from gtdbtk.external.fasttree import FastTree
 from markers import Markers
 from misc import Misc
 from reroot_tree import RerootTree
@@ -267,60 +268,33 @@ class OptionsParser(object):
 
         if options.cpus > 1:
             check_dependencies(['FastTreeMP'])
-            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
         else:
             check_dependencies(['FastTree'])
 
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
-                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix, marker=options.suffix))
+                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
             tree_log = os.path.join(options.out_dir,
-                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix,
+                                                                marker=options.suffix))
             fasttree_log = os.path.join(options.out_dir,
-                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
         else:
-            output_tree = os.path.join(options.out_dir, PATH_UNROOTED_TREE.format(prefix=options.prefix))
-            tree_log = os.path.join(options.out_dir, PATH_TREE_LOG.format(prefix=options.prefix))
-            fasttree_log = os.path.join(options.out_dir, PATH_FASTTREE_LOG.format(prefix=options.prefix))
+            output_tree = os.path.join(options.out_dir,
+                                       PATH_UNROOTED_TREE.format(prefix=options.prefix))
+            tree_log = os.path.join(options.out_dir,
+                                    PATH_TREE_LOG.format(prefix=options.prefix))
+            fasttree_log = os.path.join(options.out_dir,
+                                        PATH_FASTTREE_LOG.format(prefix=options.prefix))
 
-        make_sure_path_exists(os.path.dirname(output_tree))
-        make_sure_path_exists(os.path.dirname(tree_log))
-        make_sure_path_exists(os.path.dirname(fasttree_log))
+        fasttree = FastTree()
+        fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
+                     options.no_support, options.no_gamma, options.msa_file,
+                     options.cpus)
 
-        if options.prot_model == 'JTT':
-            model_str = ''
-        elif options.prot_model == 'WAG':
-            model_str = ' -wag'
-        elif options.prot_model == 'LG':
-            model_str = ' -lg'
-
-        support_str = ''
-        if options.no_support:
-            support_str = ' -nosupport'
-
-        gamma_str = ' -gamma'
-        gamma_str_info = '+GAMMA'
-        if options.no_gamma:
-            gamma_str = ''
-            gamma_str_info = ''
-
-        self.logger.info(
-            'Inferring tree with FastTree using {}.'.format(options.prot_model, gamma_str_info))
-
-        cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
-                                                      model_str,
-                                                      gamma_str,
-                                                      tree_log,
-                                                      options.msa_file,
-                                                      output_tree,
-                                                      fasttree_log)
-        if options.cpus > 1:
-            cmd = 'FastTreeMP ' + cmd
-        else:
-            cmd = 'FastTree ' + cmd
-        os.system(cmd)
-
-        if options.subparser_name == 'infer':
+        if hasattr(options, 'subparser_name') and options.subparser_name == 'infer':
             symlink_f(output_tree[len(options.out_dir) + 1:],
                       os.path.join(options.out_dir,
                                    os.path.basename(output_tree)))
