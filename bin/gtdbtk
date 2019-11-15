@@ -434,10 +434,9 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
     # setup logger
-    if hasattr(args, 'out_dir'):
-        logger_setup(args.out_dir, "gtdbtk.log", "GTDB-Tk", version(), False)
-    else:
-        logger_setup(None, "gtdbtk.log", "GTDB-Tk", version(), False)
+    logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
+                 "gtdbtk.log", "GTDB-Tk", version(), False,
+                 hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
 
     # -------------------------------------------------

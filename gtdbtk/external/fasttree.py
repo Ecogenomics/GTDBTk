@@ -89,7 +89,6 @@ class FastTree(object):
                      ('-' if no_gamma else '+') + 'gamma',
                      ('no' if no_support else '') + 'support']
         self.logger.info('Inferring FastTree ({}) using a maximum of {} CPUs.'.format(', '.join(model_out), cpus))
-        self.logger.info(' '.join(args))
 
         with open(output_tree, 'w') as f_out_tree:
             with open(fasttree_log, 'w') as f_out_err:

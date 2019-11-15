@@ -20,6 +20,7 @@ import os
 import sys
 from collections import defaultdict
 
+from gtdbtk.exceptions import GTDBTkExit
 from .pypfam.Scan.PfamScan import PfamScan
 from ..tools import sha256
 
@@ -143,9 +144,8 @@ class PfamSearch(object):
             statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
                                                                                 numDataItems,
                                                                                 float(processedItems) * 100 / numDataItems)
-            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
-
         sys.stdout.write('\n')
 
     def run(self, gene_files):
@@ -182,12 +182,12 @@ class PfamSearch(object):
 
             for p in workerProc:
                 p.join()
-                if p.exitcode == 1:
-                    raise ValueError("Pfam Error")
+                if p.exitcode != 0:
+                    raise GTDBTkExit('An error was encountered while running hmmsearch.')
 
             writerQueue.put(None)
             writeProc.join()
-        except:
+        except Exception:
             for p in workerProc:
                 p.terminate()
 

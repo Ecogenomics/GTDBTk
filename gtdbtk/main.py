@@ -30,6 +30,7 @@ from biolib_lite.common import (check_dir_exists,
 from biolib_lite.execute import check_dependencies
 from biolib_lite.taxonomy import Taxonomy
 from classify import Classify
+from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
 from gtdbtk.tools import symlink_f
@@ -60,8 +61,10 @@ class OptionsParser(object):
         self.logger.info('Using GTDB-Tk reference data version {}: {}'
                          .format(Config.VERSION_DATA, Config.GENERIC_PATH))
         if pkg_ver < min_ver:
-            self.logger.warning('You are not using the reference data intended '
-                                'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
+            self.logger.warning(colour('You are not using the reference data '
+                                       'intended for this release: {}'
+                                       .format(Config.MIN_REF_DATA_VERSION),
+                                       ['bright'], fg='yellow'))
 
     def _verify_genome_id(self, genome_id):
         """Ensure genome ID will be valid in Newick tree.
@@ -86,7 +89,7 @@ class OptionsParser(object):
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error('Invalid genome ID: %s' % genome_id)
             self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
-            raise GenomeNameInvalid
+            raise GenomeNameInvalid('Invalid genome ID: {}'.format(genome_id))
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -476,7 +479,8 @@ class OptionsParser(object):
         """
         self.logger.info("Running install verification")
         misc = Misc()
-        misc.check_install()
+        if not misc.check_install():
+            raise ReferenceFileMalformed('One or more reference files are malformed.')
         self.logger.info('Done.')
 
     def decorate(self, options):
@@ -525,7 +529,7 @@ class OptionsParser(object):
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
             else:
                 if options.suffix == 'bac120':
                     options.msa_file = os.path.join(options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
@@ -533,7 +537,7 @@ class OptionsParser(object):
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
 
             self.infer(options)
 
@@ -549,7 +553,7 @@ class OptionsParser(object):
                                                    PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
                 self.logger.error('There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
 
             self.root(options)
             self.decorate(options)
@@ -599,6 +603,6 @@ class OptionsParser(object):
         else:
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')
-            sys.exit()
+            sys.exit(1)
 
         return 0

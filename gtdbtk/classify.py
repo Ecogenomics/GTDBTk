@@ -1308,7 +1308,7 @@ class Classify(object):
             phylum = p.replace('p__', '').replace(' ', '_').lower()
             status_msg = '==> Calculating information with rooting on {}.              '.format(
                 phylum.capitalize())
-            sys.stdout.write('{}\r'.format(status_msg))
+            sys.stdout.write('\r{}'.format(status_msg))
             sys.stdout.flush()
 
             cur_tree = self.root_with_outgroup(tree, taxonomy, p)

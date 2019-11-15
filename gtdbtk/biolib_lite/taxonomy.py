@@ -28,7 +28,7 @@ from collections import defaultdict
 
 import dendropy
 
-from common import is_float
+from gtdbtk.biolib_lite.common import is_float
 
 """
 To do:

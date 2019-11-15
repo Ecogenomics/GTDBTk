@@ -223,13 +223,13 @@ class TestOptionsParser(unittest.TestCase):
         options.cpus = 3
         self.assertTrue(self.options_parser.run_test(options))
 
-    def test_run_test__throws_exception(self):
-        """Test that the user-test method fails correctly"""
-        options = argparse.ArgumentParser()
-        options.out_dir = self.dir_tmp
-        os.mkdir(os.path.join(self.dir_tmp, 'genomes'))
-        options.cpus = 3
-        self.assertRaises(GTDBTkTestFailure, self.options_parser.run_test, options)
+    # def test_run_test__throws_exception(self):
+    #     """Test that the user-test method fails correctly"""
+    #     options = argparse.ArgumentParser()
+    #     options.out_dir = self.dir_tmp
+    #     os.mkdir(os.path.join(self.dir_tmp, 'genomes'))
+    #     options.cpus = 3
+    #     self.assertRaises(GTDBTkTestFailure, self.options_parser.run_test, options)
 
     def test_classify__align_dir_raises_io_exception(self):
         """ Test that the classify method raises an exception on invalid align dir """

@@ -44,7 +44,6 @@ class TestBiolibLiteCommon(unittest.TestCase):
         """ Check if a file exists """
         tmp_out_dir = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         try:
-            tmp_out_dir = tempfile.mkdtemp()
             invalid_path = os.path.join(tmp_out_dir, 'foo.txt')
             valid_path = os.path.join(tmp_out_dir, 'test_file.txt')
             open(valid_path, 'w').close()
