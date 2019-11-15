@@ -114,6 +114,27 @@ class TogException(GTDBTkException):
         GTDBTkException.__init__(self, message)
 
 
+class FastANIException(GTDBTkException):
+    """ Thrown when an exception is encountered while running FastANI. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class FastTreeException(GTDBTkException):
+    """ Thrown when an exception is encountered while running FastTree. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class GTDBTkTestFailure(GTDBTkException):
+    """ Thrown when the GTDBTk user test suite fails. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
 class GTDBTkDataPathUndefined(GTDBTkException):
     """ Thrown when the GTDBTK_DATA_PATH environment variable is undefined. """
 
