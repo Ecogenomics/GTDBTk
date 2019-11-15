@@ -39,7 +39,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
     * A bug has been fixed which affected `classify` and `classify_wf` when using the `--batchfile`
       argument with genome IDs that differed from the FASTA filename. This issue resulted in 
       the assigned taxonomy being derived only from tree placement without any ANI 
-      calculations being performed. Consequently, in some cases genomes may have been classified as a new
+      calculations being considered. Consequently, in some cases genomes may have been classified as a new
       species within a genus when they should have been assigned to an existing species.
     * Progress is now displayed for: hmmalign, and pplacer.
     * Fixed an issue where the `root` command could not be run independently.
