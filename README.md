@@ -37,8 +37,10 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 **Note (Nov 15, 2019)**:
 * GTDB-Tk v0.3.3 has been released (**we recommend all users update to this version**)
     * A bug has been fixed which affected `classify` and `classify_wf` when using the `--batchfile`
-      argument, iff the genome name was different from the fasta file name. This resulted in 
-      genome taxonomy being derived from tree topology instead of ANI (i.e. no species was assigned).
+      argument with genome IDs that differed from the FASTA filename. This issue resulted in 
+      the assigned taxonomy being derived only from tree placement without any ANI 
+      calculations being performed. Consequently, in some cases genomes may have been classified as a new
+      species within a genus when they should have been assigned to an existing species.
     * Progress is now displayed for: hmmalign, and pplacer.
     * Fixed an issue where the `root` command could not be run independently.
     * Improved MSA masking performance.
