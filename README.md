@@ -51,30 +51,6 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
     * GTDB-Tk will be ported to Python 3 to accommodate deprecation of Python 2. 
     * The official GTDB-Tk release will be updated to v1.0.0 on Dec 01, 2019.
     * GTDB-Tk v1.0.0 will require Python 3 and there are no plans to support Python 2 moving forward. Apologies for any issues this may cause.
-
-**Note (July 12, 2019)**:
-* GTDB-Tk v0.3.2 has been released
-    * FastANI calculations are more robust.
-    * Optimisation of RED calculations.
-    * Improved output messages when errors are encountered.
-
-**Note (July 08, 2019)**:
-* GTDB-Tk v0.3.1 has been released:
-  * Pplacer taxonomy is now available in the summary file.
-  * FastANI species assignment will be selected over phylogenetic placement (Topology case).
-  
-**Note (June 21, 2019)**:
-* GTDB-Tk v0.3.0 has been released:
-  * Best translation table displayed in summary file.
-  * GTDB-Tk now supports gzipped genomes as inputs (--extension .gz).
-  * By default, GTDB-Tk uses precalculated RED values.
-  * New option to recalculate RED value during classify step (--recalculate_red).
-  * New option to export the untrimmed reference MSA files.
-  * New option to skip_trimming during align step.
-  * New option to use a custom taxonomy file when rooting a tree.
-  * New [FAQ](docs/faq.md) page available.
-  * New output structure.
-  * This version requires a new version of the GTDB-Tk data package (gtdbtk_r89_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/)
   
 [Previous announcements](docs/announcements.md)
 
