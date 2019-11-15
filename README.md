@@ -41,7 +41,8 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
       genome taxonomy being derived from tree topology instead of ANI (i.e. no species was assigned).
     * Progress is now displayed for: hmmalign, and pplacer.
     * Fixed an issue where the `root` command could not be run independently.
-
+    * Improved MSA masking performance.
+   
 **Note (Nov 08, 2019)**:
 * Python 2 is reaching [end of life](https://pythonclock.org/) on January 1, 2020
     * GTDB-Tk will be ported to Python 3 to accommodate deprecation of Python 2. 

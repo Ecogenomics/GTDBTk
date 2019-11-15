@@ -61,7 +61,7 @@ class Markers(object):
         self.tigrfam_suffix = TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = TIGRFAM_TOP_HIT_SUFFIX
 
-    def _report_identified_marker_genes(self, gene_dict, outdir, marker_gene_dir, prefix):
+    def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
         """Report statistics for identified marker genes."""
 
         translation_table_file = open(os.path.join(outdir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix)), "w")
@@ -276,7 +276,7 @@ class Markers(object):
                 continue
 
             genomic_files[gid] = {'aa_gene_path': os.path.join(gid_dir, gid + self.protein_file_suffix),
-                                  'translation_table_path': os.path.join(gid_dir, 'prodigal_translation_table.tsv'),
+                                  'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
                                   'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                   'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                   }
@@ -314,24 +314,27 @@ class Markers(object):
 
     def _apply_mask(self, gtdb_msa, user_msa, msa_mask, min_perc_aa):
         """Apply canonical mask to MSA file."""
-
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-
-        with open(msa_mask, 'r') as f:
-            mask = f.readline().strip()
-        list_mask = np.array([True if c == '1' else False for c in mask], dtype=bool)
-
-        if len(mask) != len(aligned_genomes.values()[0]):
-            self.logger.error('Mask and alignment length do not match.')
-            raise MSAMaskLengthMismatch
+        list_mask = np.fromfile(msa_mask, dtype='S1') == '1'
 
         output_seqs = {}
         pruned_seqs = {}
         for seq_id, seq in aligned_genomes.iteritems():
-            masked_seq = ''.join(np.array(list(seq), dtype=str)[list_mask])
+            list_seq = np.fromstring(seq, dtype='S1')
+            if list_mask.shape[0] != list_seq.shape[0]:
+                raise MSAMaskLengthMismatch('Mask and alignment length do not match.')
 
-            valid_bases = len(masked_seq) - masked_seq.count('.') - masked_seq.count('-')
-            if seq_id in user_msa and valid_bases < len(masked_seq) * min_perc_aa:
+            list_masked_seq = list_seq[list_mask]
+
+            masked_seq_unique = np.unique(list_masked_seq, return_counts=True)
+            masked_seq_counts = defaultdict(lambda: 0)
+            for aa_char, aa_count in zip(masked_seq_unique[0], masked_seq_unique[1]):
+                masked_seq_counts[aa_char] = aa_count
+
+            masked_seq = list_masked_seq.tostring()
+
+            valid_bases = list_masked_seq.shape[0] - masked_seq_counts['.'] - masked_seq_counts['-']
+            if seq_id in user_msa and valid_bases < list_masked_seq.shape[0] * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue
 
@@ -342,15 +345,14 @@ class Markers(object):
     def _write_msa(self, seqs, output_file, gtdb_taxonomy):
         """Write sequences to FASTA file."""
 
-        fout = open(output_file, 'w')
-        for genome_id, alignment in seqs.iteritems():
-            if genome_id in gtdb_taxonomy:
-                fout.write('>%s %s\n' %
-                           (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
-            else:
-                fout.write('>%s\n' % genome_id)
-            fout.write('%s\n' % alignment)
-        fout.close()
+        with open(output_file, 'w') as fout:
+            for genome_id, alignment in seqs.iteritems():
+                if genome_id in gtdb_taxonomy:
+                    fout.write('>%s %s\n' %
+                               (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
+                else:
+                    fout.write('>%s\n' % genome_id)
+                fout.write('%s\n' % alignment)
 
     def genome_domain(self, identity_dir, prefix):
         """Determine domain of User genomes based on identified marker genes."""
