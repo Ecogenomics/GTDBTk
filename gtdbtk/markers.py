@@ -261,8 +261,7 @@ class Markers(object):
                                  self.marker_gene_dir)
         pfam_search.run(gene_files)
 
-        self._report_identified_marker_genes(
-            genome_dictionary, out_dir, self.marker_gene_dir, prefix)
+        self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
 
     def _path_to_identify_data(self, identity_dir):
         """Get path to genome data produced by 'identify' command."""
