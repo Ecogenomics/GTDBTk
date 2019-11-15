@@ -40,6 +40,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
       argument, iff the genome name was different from the fasta file name. This resulted in 
       genome taxonomy being derived from tree topology instead of ANI (i.e. no species was assigned).
     * Progress is now displayed for: hmmalign, and pplacer.
+    * Fixed an issue where the `root` command could not be run independently.
 
 **Note (Nov 08, 2019)**:
 * Python 2 is reaching [end of life](https://pythonclock.org/) on January 1, 2020

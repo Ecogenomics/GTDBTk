@@ -477,18 +477,18 @@ class OptionsParser(object):
                                   options.output_tree,
                                   outgroup)
 
-        # Symlink to the tree summary file
-        if options.suffix == 'bac120':
-            symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
-                      os.path.join(options.out_dir,
-                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
-        elif options.suffix == 'ar122':
-            symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
-                      os.path.join(options.out_dir,
-                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
+        # Symlink to the tree summary file, if not run independently
+        if hasattr(options, 'suffix'):
+            if options.suffix == 'bac120':
+                symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
+                          os.path.join(options.out_dir,
+                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+            elif options.suffix == 'ar122':
+                symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
+                          os.path.join(options.out_dir,
+                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+            else:
+                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
         self.logger.info('Done.')
 
