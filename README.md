@@ -34,6 +34,12 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 
 ## Announcements
 
+**Note (Nov 15, 2019)**:
+* GTDB-Tk v0.3.3 has been released (**we recommend all users update to this version**)
+    * A bug has been fixed which affected `classify` and `classify_wf` when using the `--batchfile`
+      argument, iff the genome name was different from the fasta file name. This resulted in 
+      genome taxonomy being derived from tree topology instead of ANI (i.e. no species was assigned).
+
 **Note (Nov 08, 2019)**:
 * Python 2 is reaching [end of life](https://pythonclock.org/) on January 1, 2020
     * GTDB-Tk will be ported to Python 3 to accommodate deprecation of Python 2. 
@@ -41,7 +47,7 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
     * GTDB-Tk v1.0.0 will require Python 3 and there are no plans to support Python 2 moving forward. Apologies for any issues this may cause.
 
 **Note (July 12, 2019)**:
-* GTDB-Tk v0.3.2 has been released (**we recommend all users update to this version**)
+* GTDB-Tk v0.3.2 has been released
     * FastANI calculations are more robust.
     * Optimisation of RED calculations.
     * Improved output messages when errors are encountered.
