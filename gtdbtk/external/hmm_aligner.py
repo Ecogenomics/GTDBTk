@@ -17,16 +17,17 @@
 
 from __future__ import print_function
 
-import multiprocessing
+import logging
+import multiprocessing as mp
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
-import time
 
-from ..biolib_lite.execute import check_dependencies
-from ..biolib_lite.seq_io import read_fasta
-from ..tools import splitchunks
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.exceptions import GTDBTkException
 
 
 class HmmAligner(object):
@@ -46,6 +47,8 @@ class HmmAligner(object):
 
         check_dependencies(['hmmalign'])
 
+        self.logger = logging.getLogger('timestamp')
+
         self.threads = threads
         self.pfam_top_hit_suffix = pfam_top_hit_suffix
         self.tigrfam_top_hit_suffix = tigrfam_top_hit_suffix
@@ -58,43 +61,106 @@ class HmmAligner(object):
         self.rps23_markers = rps23_markers
 
     def align_marker_set(self, db_genome_ids, marker_set_id):
-        manager = multiprocessing.Manager()
-        out_q = manager.Queue()
-        procs = []
-        nprocs = self.threads
-        for item in splitchunks(db_genome_ids, nprocs):
-            p = multiprocessing.Process(
-                target=self._worker,
-                args=(item, out_q, marker_set_id))
-            procs.append(p)
-            p.start()
+        """Threaded alignment using hmmalign for a given set of genomes.
 
-        # Collect all results into a single result dict. We know how many dicts
-        # with results to expect.
-        while out_q.empty():
-            time.sleep(1)
+        Parameters
+        ----------
+        db_genome_ids : dict
+            A dictionary containing the genome ids and aa paths to process.
+        marker_set_id : str
+            The marker set of these genomes (bac120/ar122).
 
-        # Wait for all worker processes to finish
-        results = {}
-
-        for i in range(len(db_genome_ids)):
-            gid, sequence = out_q.get()
-            results[gid] = sequence
-
-        return results
-
-    def _worker(self, subdict_genomes, out_q, marker_set_id):
+        Returns
+        -------
+        dict
+            A dictionary of genome_ids -> aligned sequence.
         """
-        The worker function, invoked in a process.
-        :param subdict_genomes: sub dictionary of genomes
-        :param out_q: manager.Queue()
+        q_worker = mp.Queue()
+        q_writer = mp.Queue()
+
+        for gid, gid_dict in db_genome_ids.items():
+            q_worker.put((gid, gid_dict.get('aa_gene_path'), marker_set_id))
+        [q_worker.put(None) for _ in range(self.threads)]
+
+        manager = mp.Manager()
+        out_dict = manager.dict()
+
+        p_workers = [mp.Process(target=self._worker,
+                                args=(q_worker, q_writer, out_dict))
+                     for _ in range(self.threads)]
+
+        p_writer = mp.Process(target=self._writer,
+                              args=(q_writer, len(db_genome_ids)))
+
+        try:
+            p_writer.start()
+            for p_worker in p_workers:
+                p_worker.start()
+
+            for p_worker in p_workers:
+                p_worker.join()
+
+                # Gracefully terminate the program.
+                if p_worker.exitcode != 0:
+                    raise GTDBTkException('hmmalign returned a non-zero exit code.')
+
+            q_writer.put(None)
+            p_writer.join()
+
+        except Exception:
+            for p in p_workers:
+                p.terminate()
+
+            p_writer.terminate()
+            raise
+
+        return {k: v for k, v in out_dict.items()}
+
+    def _worker(self, q_worker, q_writer, out_dict):
+        """The worker function, invoked in a process.
+
+        Parameters
+        ----------
+        q_worker : multiprocessing.Queue
+            A queue of tuples containing the genome id, aa path, and marker.
+        q_writer : multiprocessing.Queue
+            A queue consumed by the writer, to track progress.
+        out_dict : dict
+            A thread-safe managed dictionary of results.
         """
-        for db_genome_id, info in subdict_genomes.items():
-            sequence = self._run_multi_align(db_genome_id,
-                                             info.get("aa_gene_path"),
-                                             marker_set_id)
-            out_q.put((db_genome_id, sequence))
+        job = q_worker.get(block=True, timeout=None)
+        while job is not None:
+            db_genome_id, aa_gene_path, marker_set_id = job
+            out_dict[db_genome_id] = self._run_multi_align(db_genome_id,
+                                                           aa_gene_path,
+                                                           marker_set_id)
+            q_writer.put(db_genome_id)
+            job = q_worker.get(block=True, timeout=None)
         return True
+
+    def _writer(self, q_writer, n_genomes):
+        """The writer function, which reports the progress of the workers.
+
+        Parameters
+        ----------
+        q_writer : multiprocessing.Queue
+            A queue of genome ids which have been processed.
+        n_genomes : int
+            The total number of genomes to be processed.
+        """
+        processed_items = 0
+        result = q_writer.get(block=True, timeout=None)
+
+        while result is not None:
+            processed_items += 1
+            statusStr = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
+                                                                              n_genomes,
+                                                                              float(processed_items) * 100 / n_genomes)
+            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.flush()
+            result = q_writer.get(block=True, timeout=None)
+
+        sys.stdout.write('\n')
 
     def _run_multi_align(self, db_genome_id, path, marker_set_id):
         """
@@ -112,21 +178,21 @@ class HmmAligner(object):
         if marker_set_id == "bac120":
             for db_marker in sorted(self.bac120_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
-                    for marker in self.bac120_markers[db_marker]})
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.bac120_markers[db_marker]})
         elif marker_set_id == "ar122":
             for db_marker in sorted(self.ar122_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
-                    for marker in self.ar122_markers[db_marker]})
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.ar122_markers[db_marker]})
         elif marker_set_id == "rps23":
             for db_marker in sorted(self.rps23_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
-                    for marker in self.rps23_markers[db_marker]})
+                                             os.path.join(
+                                                 marker_paths[db_marker], marker)
+                                             for marker in self.rps23_markers[db_marker]})
 
         result_aligns = {db_genome_id: {}}
 
