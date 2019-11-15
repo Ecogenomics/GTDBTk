@@ -2,6 +2,30 @@
 ## Previous announcements
 
 
+**Note (July 12, 2019)**:
+* GTDB-Tk v0.3.2 has been released
+    * FastANI calculations are more robust.
+    * Optimisation of RED calculations.
+    * Improved output messages when errors are encountered.
+
+**Note (July 08, 2019)**:
+* GTDB-Tk v0.3.1 has been released:
+  * Pplacer taxonomy is now available in the summary file.
+  * FastANI species assignment will be selected over phylogenetic placement (Topology case).
+  
+**Note (June 21, 2019)**:
+* GTDB-Tk v0.3.0 has been released:
+  * Best translation table displayed in summary file.
+  * GTDB-Tk now supports gzipped genomes as inputs (--extension .gz).
+  * By default, GTDB-Tk uses precalculated RED values.
+  * New option to recalculate RED value during classify step (--recalculate_red).
+  * New option to export the untrimmed reference MSA files.
+  * New option to skip_trimming during align step.
+  * New option to use a custom taxonomy file when rooting a tree.
+  * New [FAQ](docs/faq.md) page available.
+  * New output structure.
+  * This version requires a new version of the GTDB-Tk data package (gtdbtk_r89_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/)
+  
 **Note (April 12, 2019)**:
 - A GTDB-Tk reference data package (gtdbtk.r86_v3_data.tar.gz) is available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/).
 - This package contains an additional set of genomes based on GTDB R86.
