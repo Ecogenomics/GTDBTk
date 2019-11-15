@@ -22,7 +22,7 @@ from shutil import copyfile
 import config.config as Config
 from biolib_lite.common import make_sure_path_exists
 from biolib_lite.seq_io import read_fasta
-from gtdbtk.exceptions import ReferenceFileMalformed
+from gtdbtk.exceptions import GTDBTkException
 
 
 class Misc(object):
@@ -51,11 +51,15 @@ class Misc(object):
             mask = os.path.join(Config.MASK_DIR, Config.MASK_AR122)
         elif mask_type == 'file':
             mask = maskid
+        else:
+            self.logger.error('Command not understood.')
+            raise GTDBTkException('Command not understood.')
+
         with open(mask, 'r') as f:
             maskstr = f.readline()
 
-        outfwriter = open(output_file, 'w')
-        dict_genomes = read_fasta(untrimmed_msa, False)
+        with open(output_file, 'w') as outfwriter:
+            dict_genomes = read_fasta(untrimmed_msa, False)
 
         for k, v in dict_genomes.iteritems():
             aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
@@ -134,4 +138,4 @@ class Misc(object):
 
         if not ok:
             self.logger.error('One or more reference files are malformed.')
-            raise ReferenceFileMalformed
+        return ok

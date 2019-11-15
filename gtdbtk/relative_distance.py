@@ -74,7 +74,7 @@ class RelativeDistance(object):
                 for c in node.child_node_iter():
                     num_tips = c.num_taxa
                     avg_div += (float(c.num_taxa) / node.num_taxa) * \
-                               (c.mean_dist + c.edge_length)
+                        (c.mean_dist + c.edge_length)
 
             node.mean_dist = avg_div
 
@@ -341,13 +341,12 @@ class RelativeDistance(object):
         median_for_rank = self.rank_median_rd(
             phylum_rel_dists, taxa_for_dist_inference)
 
-        fout_rank = open(rank_file, 'w')
-        median_str = []
-        for rank in sorted(median_for_rank.keys()):
-            median_str.append(
-                '"' + Taxonomy.rank_labels[rank] + '":' + str(median_for_rank[rank]))
-        fout_rank.write('{' + ','.join(median_str) + '}\n')
-        fout_rank.close()
+        with open(rank_file, 'w') as fout_rank:
+            median_str = []
+            for rank in sorted(median_for_rank.keys()):
+                median_str.append(
+                    '"' + Taxonomy.rank_labels[rank] + '":' + str(median_for_rank[rank]))
+            fout_rank.write('{' + ','.join(median_str) + '}\n')
 
         fout = open(outlier_table, 'w')
         if verbose_table:

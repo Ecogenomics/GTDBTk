@@ -146,9 +146,8 @@ class TrimMSA(object):
         mask, output_seqs = self.subsample_msa(msa, markers)
 
         # write mask to file
-        mask_file = open(os.path.join(self.output_dir, "mask.txt"), 'w')
-        mask_file.write(''.join([str(n) for n in mask]))
-        mask_file.close()
+        with open(os.path.join(self.output_dir, "mask.txt"), 'w') as mask_file:
+            mask_file.write(''.join([str(n) for n in mask]))
 
         # write subsampled MSA to file
         nbr_aa_seqs = open(os.path.join(

@@ -348,7 +348,7 @@ if __name__ == "__main__":
     # do what we came here to do
     try:
         parser = OptionsParser()
-        if (False):
+        if False:
             # import pstats
             # p = pstats.Stats('prof')
             # p.sort_stats('cumulative').print_stats(10)
