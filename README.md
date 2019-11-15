@@ -40,7 +40,8 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
       argument with genome IDs that differed from the FASTA filename. This issue resulted in 
       the assigned taxonomy being derived only from tree placement without any ANI 
       calculations being considered. Consequently, in some cases genomes may have been classified as a new
-      species within a genus when they should have been assigned to an existing species.
+      species within a genus when they should have been assigned to an existing species. If you have genomes
+      with species assignments this bug did not impact you.
     * Progress is now displayed for: hmmalign, and pplacer.
     * Fixed an issue where the `root` command could not be run independently.
     * Improved MSA masking performance.
