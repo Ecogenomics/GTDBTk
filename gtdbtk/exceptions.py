@@ -23,6 +23,13 @@ class GTDBTkException(Exception):
         Exception.__init__(self, message)
 
 
+class GTDBTkExit(Exception):
+    """Raised when GTDB-Tk is to quietly exit."""
+
+    def __init__(self, message=''):
+        Exception.__init__(self, message)
+
+
 class GenomeNameInvalid(GTDBTkException):
     """ Thrown when a genome name contains characters which are not supported. """
 
@@ -102,6 +109,27 @@ class PplacerException(GTDBTkException):
 
 class TogException(GTDBTkException):
     """ Thrown whenever an error is encountered while running tog. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class FastANIException(GTDBTkException):
+    """ Thrown when an exception is encountered while running FastANI. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class FastTreeException(GTDBTkException):
+    """ Thrown when an exception is encountered while running FastTree. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
+class GTDBTkTestFailure(GTDBTkException):
+    """ Thrown when the GTDBTk user test suite fails. """
 
     def __init__(self, message=''):
         GTDBTkException.__init__(self, message)

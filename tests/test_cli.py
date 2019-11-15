@@ -14,6 +14,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
+
 import argparse
 import random
 import shutil
@@ -41,6 +42,7 @@ class TestCli(unittest.TestCase):
         self.options.extension = 'fna'
         self.options.debug = False
         self.options.force = False
+        self.options.genes = False
 
         # align option
         self.options.skip_gtdb_refs = False
@@ -194,7 +196,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 18)
+        self.assertEquals(len(infos), 19)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_classify_wf(self):
@@ -223,7 +225,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 18)
+        self.assertEquals(len(infos), 19)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_infer(self):
@@ -271,6 +273,7 @@ class TestCli(unittest.TestCase):
         options.extension = 'gz'
         options.prefix = 'gtdbtk'
         options.force = None
+        options.genes = False
         options.out_dir = self.generic_out_path
         self.optionparser.identify(options)
 
@@ -285,6 +288,16 @@ class TestCli(unittest.TestCase):
         self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
                         os.path.join(self.generic_out_path, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
                         ignore_order=True))
+
+    def test_root(self):
+        """Test that rooting is successful when called through the CLI"""
+        options = argparse.ArgumentParser()
+        options.input_tree = 'tests/data/pplacer_dir_reference/gtdbtk.ar122.classify.tree'
+        options.outgroup_taxon = 'p__Altiarchaeota'
+        options.output_tree = os.path.join(self.generic_out_path, 'test.rooted.tree')
+        options.custom_taxonomy_file = None
+        self.optionparser.root(options)
+        self.assertTrue(os.path.isfile(options.output_tree))
 
     def tearDown(self):
         shutil.rmtree(self.generic_out_path)

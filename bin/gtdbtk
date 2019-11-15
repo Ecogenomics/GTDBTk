@@ -434,10 +434,9 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
     # setup logger
-    if hasattr(args, 'out_dir'):
-        logger_setup(args.out_dir, "gtdbtk.log", "GTDB-Tk", version(), False)
-    else:
-        logger_setup(None, "gtdbtk.log", "GTDB-Tk", version(), False)
+    logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
+                 "gtdbtk.log", "GTDB-Tk", version(), False,
+                 hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
 
     # -------------------------------------------------
@@ -455,6 +454,11 @@ if __name__ == '__main__':
         sys.exit(1)
     except KeyboardInterrupt:
         logger.error('Controlled exit resulting from interrupt signal.')
+        sys.exit(1)
+    except GTDBTkExit as e:
+        if len(str(e)) > 0:
+            logger.error('{}'.format(e))
+        logger.error('Controlled exit resulting from an unrecoverable error or warning.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
