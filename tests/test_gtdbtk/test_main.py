@@ -15,16 +15,17 @@
 #                                                                             #
 ###############################################################################
 import argparse
+import hashlib
 import os
 import re
 import shutil
 import tempfile
-import hashlib
 import unittest
 
+from gtdbtk.biolib_lite.exceptions import *
 from gtdbtk.exceptions import *
 from gtdbtk.main import OptionsParser
-from gtdbtk.biolib_lite.exceptions import *
+
 
 class TestOptionsParser(unittest.TestCase):
 

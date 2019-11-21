@@ -81,9 +81,11 @@ class TestCli(unittest.TestCase):
             self.generic_out_path, tmp_folder, 'identify')
         self.optionparser.identify(identify_options)
 
-        ar122_marker_path = os.path.join(self.options.out_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=self.options.prefix))
+        ar122_marker_path = os.path.join(self.options.out_dir,
+                                         PATH_AR122_MARKER_SUMMARY.format(prefix=self.options.prefix))
 
-        self.assertTrue(os.path.isfile(os.path.join(self.options.out_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=self.options.prefix))))
+        self.assertTrue(os.path.isfile(
+            os.path.join(self.options.out_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=self.options.prefix))))
         self.assertTrue(os.path.isfile(ar122_marker_path))
 
         results = {}
@@ -122,7 +124,8 @@ class TestCli(unittest.TestCase):
             self.generic_out_path, tmp_folder, 'classify')
         classify_options.recalculate_red = False
         self.optionparser.classify(classify_options)
-        summary_out = os.path.join(classify_options.out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
+        summary_out = os.path.join(classify_options.out_dir,
+                                   PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
         self.assertTrue(os.path.isfile(summary_out))
         with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
@@ -190,7 +193,8 @@ class TestCli(unittest.TestCase):
             self.generic_out_path, tmp_folder, 'classify')
         classify_options.recalculate_red = False
         self.optionparser.classify(classify_options)
-        summary_out = os.path.join(classify_options.out_dir,  PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
+        summary_out = os.path.join(classify_options.out_dir,
+                                   PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
         self.assertTrue(summary_out)
         with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
@@ -219,7 +223,8 @@ class TestCli(unittest.TestCase):
         classify_wf_options.recalculate_red = False
         self.optionparser.align(classify_wf_options)
         self.optionparser.classify(classify_wf_options)
-        summary_out = os.path.join(classify_wf_options.out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=classify_wf_options.prefix))
+        summary_out = os.path.join(classify_wf_options.out_dir,
+                                   PATH_AR122_SUMMARY_OUT.format(prefix=classify_wf_options.prefix))
         self.assertTrue(os.path.isfile(summary_out))
         with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
@@ -277,17 +282,20 @@ class TestCli(unittest.TestCase):
         options.out_dir = self.generic_out_path
         self.optionparser.identify(options)
 
-        self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
-                        os.path.join(self.generic_out_path, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
-                        ignore_order=True))
+        self.assertTrue(are_files_equal(
+            os.path.join(self.identify_dir_reference, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
+            os.path.join(self.generic_out_path, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
+            ignore_order=True))
 
-        self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
-                        os.path.join(self.generic_out_path, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
-                        ignore_order=True))
+        self.assertTrue(are_files_equal(
+            os.path.join(self.identify_dir_reference, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
+            os.path.join(self.generic_out_path, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
+            ignore_order=True))
 
-        self.assertTrue(are_files_equal(os.path.join(self.identify_dir_reference, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
-                        os.path.join(self.generic_out_path, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
-                        ignore_order=True))
+        self.assertTrue(
+            are_files_equal(os.path.join(self.identify_dir_reference, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
+                            os.path.join(self.generic_out_path, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
+                            ignore_order=True))
 
     def test_root(self):
         """Test that rooting is successful when called through the CLI"""
@@ -301,6 +309,7 @@ class TestCli(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.generic_out_path)
+
 
 if __name__ == '__main__':
     unittest.main()

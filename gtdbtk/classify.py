@@ -16,7 +16,6 @@
 ###############################################################################
 
 
-
 import logging
 import random
 import shutil
@@ -28,7 +27,7 @@ import dendropy
 from numpy import median as np_median
 
 import config.config as Config
-from biolib_lite.common import remove_extension, make_sure_path_exists
+from biolib_lite.common import make_sure_path_exists
 from biolib_lite.execute import check_dependencies
 from biolib_lite.newick import parse_label
 from biolib_lite.seq_io import read_seq, read_fasta
@@ -39,7 +38,7 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from relative_distance import RelativeDistance
-from tools import add_ncbi_prefix, splitchunks, symlink_f
+from tools import add_ncbi_prefix, symlink_f
 
 sys.setrecursionlimit(15000)
 
@@ -411,7 +410,7 @@ class Classify(object):
                                 # calculating the patristic distance
                                 dict_dist_refgenomes[ref_genome] = (userleaf.distance_from_root(
                                 ) - mrca.distance_from_root()) + (
-                                                                               ref_genome.distance_from_root() - mrca.distance_from_root())
+                                                                           ref_genome.distance_from_root() - mrca.distance_from_root())
                             sorted_l = sorted(
                                 iter(dict_dist_refgenomes.items()), key=itemgetter(1))
                             sorted_l = sorted_l[0:100]
@@ -876,8 +875,8 @@ class Classify(object):
                     # import IPython; IPython.embed()
                     prefilter_reference_dictionary = {k: v for k, v in
                                                       all_fastani_dict.get(userleaf.taxon.label).items() if (
-                                                                  v.get('ani') >= self.species_radius.get(k) and v.get(
-                                                              'af') >= self.af_threshold)}
+                                                              v.get('ani') >= self.species_radius.get(k) and v.get(
+                                                          'af') >= self.af_threshold)}
                     sorted_dict = sorted(iter(all_fastani_dict.get(
                         userleaf.taxon.label).items()), key=lambda _x_y: (_x_y[1]['ani'], _x_y[1]['af']), reverse=True)
                     sorted_prefilter_dict = sorted(iter(prefilter_reference_dictionary.items()),
@@ -978,8 +977,8 @@ class Classify(object):
                 # import IPython; IPython.embed()
                 prefilter_reference_dictionary = {k: v for k, v in
                                                   all_fastani_dict.get(userleaf.taxon.label).items() if (
-                                                              v.get('ani') >= self.species_radius.get(k) and v.get(
-                                                          'af') >= self.af_threshold)}
+                                                          v.get('ani') >= self.species_radius.get(k) and v.get(
+                                                      'af') >= self.af_threshold)}
                 sorted_dict = sorted(iter(all_fastani_dict.get(
                     userleaf.taxon.label).items()), key=lambda _x_y2: (_x_y2[1]['ani'], _x_y2[1]['af']), reverse=True)
                 sorted_prefilter_dict = sorted(iter(prefilter_reference_dictionary.items()),

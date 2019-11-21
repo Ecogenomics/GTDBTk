@@ -18,7 +18,6 @@
 ###############################################################################
 
 
-
 __prog_name__ = 'remove_user_genomes.py'
 __prog_desc__ = 'Remove user genomes from the GTDB Taxonomy file'
 

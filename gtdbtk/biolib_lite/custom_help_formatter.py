@@ -54,7 +54,9 @@ class CustomHelpFormatter(argparse.HelpFormatter):
         """Place default value in help string."""
         h = action.help
         if '%(default)' not in action.help:
-            if action.default != '' and action.default != [] and action.default is not None and type(action.default) != types.BooleanType:
+            if action.default != '' and action.default != [] and \
+                    action.default is not None and \
+                    type(action.default) != types.BooleanType:
                 if action.default is not argparse.SUPPRESS:
                     defaulting_nargs = [
                         argparse.OPTIONAL, argparse.ZERO_OR_MORE]

@@ -18,7 +18,6 @@
 ###############################################################################
 
 
-
 __prog_name__ = 'trim_msa.py'
 __prog_desc__ = 'Randomly select a subset of columns from the MSA of each marker.'
 
@@ -31,20 +30,18 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
 
-import os
-import sys
 import argparse
-import random
 import logging
-
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.logger import logger_setup
-
+import os
+import random
+import sys
 from collections import defaultdict, Counter
 
 from numpy import (mean as np_mean,
                    std as np_std)
 
+from biolib_lite.logger import logger_setup
+from biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import MSAMarkerLengthMismatch
 
 

@@ -105,11 +105,11 @@ class TestClassify(unittest.TestCase):
     def test_formatnote(self):
         first3genomes = list(self.gtdb_taxonomy.keys())[:3]
         sorted_dict = ((first3genomes[0], {'ani': 98.5, 'af': 1.0}), (first3genomes[1], {
-                       'ani': 92.6, 'af': 1.0}), (first3genomes[2], {'ani': 90.3, 'af': 1.3}))
+            'ani': 92.6, 'af': 1.0}), (first3genomes[2], {'ani': 90.3, 'af': 1.3}))
         labels = [first3genomes[0]]
         note_list = self.classify._formatnote(sorted_dict, labels)
-        self.assertTrue(first3genomes[1]in note_list[0])
-        self.assertTrue(first3genomes[2]in note_list[1])
+        self.assertTrue(first3genomes[1] in note_list[0])
+        self.assertTrue(first3genomes[2] in note_list[1])
         self.assertTrue(note_list[0].endswith(', 92.6, 1.0'))
         self.assertTrue(note_list[1].endswith(', 90.3, 1.3'))
 

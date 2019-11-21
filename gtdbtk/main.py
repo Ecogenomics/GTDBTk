@@ -16,7 +16,6 @@
 ###############################################################################
 
 
-
 import logging
 import shutil
 import subprocess
@@ -33,8 +32,8 @@ from classify import Classify
 from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
-from gtdbtk.tools import symlink_f
 from gtdbtk.external.fasttree import FastTree
+from gtdbtk.tools import symlink_f
 from markers import Markers
 from misc import Misc
 from reroot_tree import RerootTree

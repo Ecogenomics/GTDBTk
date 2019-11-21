@@ -18,7 +18,6 @@
 ###############################################################################
 
 
-
 __prog_name__ = 'trim_msa_based_on_mask.py'
 __prog_desc__ = 'Trim an MSA based on a prexisting mask. We assumed the mask has the same length as the MSA'
 
@@ -31,8 +30,9 @@ __maintainer__ = 'Pierre Chaumeil'
 __email__ = 'p.chaumeil@uq.edu.au'
 __status__ = 'Development'
 
-import sys
 import argparse
+import sys
+
 from gtdbtk.biolib_lite.seq_io import read_fasta
 
 
@@ -42,7 +42,6 @@ class MSATrimmer(object):
         pass
 
     def run(self, msa, mask, outf):
-
         with open(outf, 'w') as outfwriter:
             dict_genomes = read_fasta(msa, False)
             with open(mask, 'r') as f:

@@ -211,7 +211,9 @@ class FastANI(object):
                                 finalline = line
                             errstr += finalline
                     raise ValueError(errstr)
-                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse, dict_parser_distance, user_leaf_label)
+                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse,
+                                                                           dict_parser_distance,
+                                                                           user_leaf_label)
 
             shutil.rmtree(self.tmp_output_dir)
             return dict_parser_distance
