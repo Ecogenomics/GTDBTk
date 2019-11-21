@@ -15,24 +15,17 @@
 #                                                                             #
 ###############################################################################
 
-import unittest
-import string
 import random
-import os
 import shutil
+import string
+import unittest
+
 import dendropy
-import hashlib
-
-
-import gtdbtk
-from gtdbtk.classify import Classify
-
-from gtdbtk.biolib_lite.taxonomy import Taxonomy
 
 import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
+from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
-
-from itertools import islice
 
 
 class TestClassify(unittest.TestCase):

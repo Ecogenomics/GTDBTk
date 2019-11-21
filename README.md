@@ -34,29 +34,23 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 
 ## Announcements
 
-**Note (July 12, 2019)**:
-* GTDB-Tk v0.3.2 has been released (**we recommend all users update to this version**)
-    * FastANI calculations are more robust.
-    * Optimisation of RED calculations.
-    * Improved output messages when errors are encountered.
-
-**Note (July 08, 2019)**:
-* GTDB-Tk v0.3.1 has been released:
-  * Pplacer taxonomy is now available in the summary file.
-  * FastANI species assignment will be selected over phylogenetic placement (Topology case).
-  
-**Note (June 21, 2019)**:
-* GTDB-Tk v0.3.0 has been released:
-  * Best translation table displayed in summary file.
-  * GTDB-Tk now supports gzipped genomes as inputs (--extension .gz).
-  * By default, GTDB-Tk uses pre-calculated RED values.
-  * New option to recalculate RED value during classify step (--recalculate_red).
-  * New option to export the untrimmed reference MSA files.
-  * New option to skip_trimming during align step.
-  * New option to use a custom taxonomy file when rooting a tree.
-  * New [FAQ](docs/faq.md) page available.
-  * New output structure.
-  * This version requires a new version of the GTDB-Tk data package (gtdbtk_r89_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/)
+**Note (Nov 15, 2019)**:
+* GTDB-Tk v0.3.3 has been released (**we recommend all users update to this version**)
+    * A bug has been fixed which affected `classify` and `classify_wf` when using the `--batchfile`
+      argument with genome IDs that differed from the FASTA filename. This issue resulted in 
+      the assigned taxonomy being derived only from tree placement without any ANI 
+      calculations being considered. Consequently, in some cases genomes may have been classified as a new
+      species within a genus when they should have been assigned to an existing species. If you have genomes
+      with species assignments this bug did not impact you.
+    * Progress is now displayed for: hmmalign, and pplacer.
+    * Fixed an issue where the `root` command could not be run independently.
+    * Improved MSA masking performance.
+   
+**Note (Nov 08, 2019)**:
+* Python 2 is reaching [end of life](https://pythonclock.org/) on January 1, 2020
+    * GTDB-Tk will be ported to Python 3 to accommodate deprecation of Python 2. 
+    * The official GTDB-Tk release will be updated to v1.0.0 on Dec 01, 2019.
+    * GTDB-Tk v1.0.0 will require Python 3 and there are no plans to support Python 2 moving forward. Apologies for any issues this may cause.
   
 [Previous announcements](docs/announcements.md)
 
@@ -83,7 +77,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [Prodigal](http://compbio.ornl.gov/prodigal/) >= 2.6.2: Hyatt D, et al. 2012. Gene and translation initiation site prediction in metagenomic sequences. <i>Bioinformatics</i>, 28, 2223-2230.
 * [HMMER](http://hmmer.org/) >= 3.1: Eddy SR. 2011. Accelerated profile HMM searches. <i>PLoS Comp. Biol.</i>, 7, e1002195.
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
-* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.0: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
+* [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.2: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
 
 Please cite these tools if you use GTDB-Tk in your work.
@@ -202,7 +196,7 @@ Classify step:
 
 ## Validating species assignments with average nucleotide identity
 
-The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. A query genome is only classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.65. In some circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology. The species-specific ANI circumscription radii are available from the [GTDB](https://gtdb.ecogenomic.org/) website.
+The GTDB-Tk uses [FastANI](https://github.com/ParBLiSS/FastANI) to estimate the ANI between genomes. We  recommend you have FastANI >= 1.2 as this version introduces a fix that makes the results deterministic. A query genome is only classified as belonging to the same species as a reference genome if the ANI between the genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.65. In some circumstances, the phylogenetic placement of a query genome may not support the species assignment. GTDB r89 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology. The species-specific ANI circumscription radii are avaliable from the [GTDB](https://gtdb.ecogenomic.org/) website.
 
 ## Classification summary file 
 
@@ -220,7 +214,7 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * closest_placement_ani: indicates the ANI between the query and above reference genome.
 * closest_placement_af: indicates the AF between the query and above reference genome.
 * pplacer_taxonomy: indicates the pplacer taxonomy of the query genome.
-* classification_method:	indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignment was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
+* classification_method:	indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination is made and indicates if the placement of the genome in the reference tree and closest reference according to ANI/AF are the same (congruent) or different (incongruent). 
 * other_related_references: lists up to the 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.
 * aa_percent: indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid). 
@@ -258,20 +252,21 @@ All steps comprising the classify and <i>de novo</i> workflows can be run indepe
 
 ## References
 
-A manuscript describing the GTDB-Tk is currently being prepared:
+GTDB-Tk is described in:
 
-* Chaumeil PA, Mussig AJ, Hugenholtz P, Parks DH. 2019. GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database. \<in prep\>.
+* Chaumeil PA, et al. 2019. [GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz848/5626182). <i>Bioinformatics</i>, btz848.
 
-In the meantime, if you find the GTDB-Tk useful please cite this GitHub page or the GTDB taxonomy:
+The Genome Taxonomy Database (GTDB) is described in:
 
-* Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nat. Biotechnol.</i>, http://dx.doi.org/10.1038/nbt.4229
+* Parks DH, et al. 2019. [Selection of representative genomes for 24,706 bacterial and archaeal species clusters provide a complete genome-based taxonomy](https://www.biorxiv.org/content/10.1101/771964v2). <i>bioRxiv</i>, https://doi.org/10.1101/771964.
+* Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nat. Biotechnol.</i>, http://dx.doi.org/10.1038/nbt.4229.
  
- We also strongly encourage you to cite the following 3rd party dependencies:
+ We strongly encourage you to cite the following 3rd party dependencies:
 
-* Matsen FA, Kodner RB, Armbrust EV. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
+* Matsen FA, et al. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
 * Jain C, et al. 2019. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.nature.com/articles/s41467-018-07641-9). <i>Nat. Communications</i>, doi: 10.1038/s41467-018-07641-9.
 * Hyatt D, et al. 2010. [Prodigal: prokaryotic gene recognition and translation initiation site identification](https://www.ncbi.nlm.nih.gov/pubmed/20211023). <i>BMC Bioinformatics</i>, 11:119. doi: 10.1186/1471-2105-11-119.
-* Price MN, Dehal PS, Arkin AP. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
+* Price MN, et al. 2010. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
 * Eddy SR. 2011. [Accelerated profile HMM searches](https://www.ncbi.nlm.nih.gov/pubmed/22039361). <i>PLOS Comp. Biol.</i>, 7:e1002195.
 
 ## Copyright

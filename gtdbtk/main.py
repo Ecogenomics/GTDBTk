@@ -22,20 +22,22 @@ import shutil
 import subprocess
 import sys
 
-import gtdbtk.config.config as Config
-from .biolib_lite.common import (check_dir_exists,
+import config.config as Config
+from biolib_lite.common import (check_dir_exists,
                                 check_file_exists,
                                 make_sure_path_exists,
                                 remove_extension)
-from .biolib_lite.execute import check_dependencies
-from .biolib_lite.taxonomy import Taxonomy
-from .classify import Classify
+from biolib_lite.execute import check_dependencies
+from biolib_lite.taxonomy import Taxonomy
+from classify import Classify
+from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
 from gtdbtk.tools import symlink_f
-from .markers import Markers
-from .misc import Misc
-from .reroot_tree import RerootTree
+from gtdbtk.external.fasttree import FastTree
+from markers import Markers
+from misc import Misc
+from reroot_tree import RerootTree
 
 
 class OptionsParser(object):
@@ -59,8 +61,10 @@ class OptionsParser(object):
         self.logger.info('Using GTDB-Tk reference data version {}: {}'
                          .format(Config.VERSION_DATA, Config.GENERIC_PATH))
         if pkg_ver < min_ver:
-            self.logger.warning('You are not using the reference data intended '
-                                'for this release: {}'.format(Config.MIN_REF_DATA_VERSION))
+            self.logger.warning(colour('You are not using the reference data '
+                                       'intended for this release: {}'
+                                       .format(Config.MIN_REF_DATA_VERSION),
+                                       ['bright'], fg='yellow'))
 
     def _verify_genome_id(self, genome_id):
         """Ensure genome ID will be valid in Newick tree.
@@ -85,7 +89,7 @@ class OptionsParser(object):
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error('Invalid genome ID: %s' % genome_id)
             self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
-            raise GenomeNameInvalid
+            raise GenomeNameInvalid('Invalid genome ID: {}'.format(genome_id))
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -267,60 +271,33 @@ class OptionsParser(object):
 
         if options.cpus > 1:
             check_dependencies(['FastTreeMP'])
-            os.environ['OMP_NUM_THREADS'] = '%d' % options.cpus
         else:
             check_dependencies(['FastTree'])
 
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
-                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix, marker=options.suffix))
+                                       PATH_MARKER_UNROOTED_TREE.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
             tree_log = os.path.join(options.out_dir,
-                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                    PATH_MARKER_TREE_LOG.format(prefix=options.prefix,
+                                                                marker=options.suffix))
             fasttree_log = os.path.join(options.out_dir,
-                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix, marker=options.suffix))
+                                        PATH_MARKER_FASTTREE_LOG.format(prefix=options.prefix,
+                                                                        marker=options.suffix))
         else:
-            output_tree = os.path.join(options.out_dir, PATH_UNROOTED_TREE.format(prefix=options.prefix))
-            tree_log = os.path.join(options.out_dir, PATH_TREE_LOG.format(prefix=options.prefix))
-            fasttree_log = os.path.join(options.out_dir, PATH_FASTTREE_LOG.format(prefix=options.prefix))
+            output_tree = os.path.join(options.out_dir,
+                                       PATH_UNROOTED_TREE.format(prefix=options.prefix))
+            tree_log = os.path.join(options.out_dir,
+                                    PATH_TREE_LOG.format(prefix=options.prefix))
+            fasttree_log = os.path.join(options.out_dir,
+                                        PATH_FASTTREE_LOG.format(prefix=options.prefix))
 
-        make_sure_path_exists(os.path.dirname(output_tree))
-        make_sure_path_exists(os.path.dirname(tree_log))
-        make_sure_path_exists(os.path.dirname(fasttree_log))
+        fasttree = FastTree()
+        fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
+                     options.no_support, options.no_gamma, options.msa_file,
+                     options.cpus)
 
-        if options.prot_model == 'JTT':
-            model_str = ''
-        elif options.prot_model == 'WAG':
-            model_str = ' -wag'
-        elif options.prot_model == 'LG':
-            model_str = ' -lg'
-
-        support_str = ''
-        if options.no_support:
-            support_str = ' -nosupport'
-
-        gamma_str = ' -gamma'
-        gamma_str_info = '+GAMMA'
-        if options.no_gamma:
-            gamma_str = ''
-            gamma_str_info = ''
-
-        self.logger.info(
-            'Inferring tree with FastTree using {}.'.format(options.prot_model, gamma_str_info))
-
-        cmd = '-quiet%s%s%s -log %s %s > %s 2> %s' % (support_str,
-                                                      model_str,
-                                                      gamma_str,
-                                                      tree_log,
-                                                      options.msa_file,
-                                                      output_tree,
-                                                      fasttree_log)
-        if options.cpus > 1:
-            cmd = 'FastTreeMP ' + cmd
-        else:
-            cmd = 'FastTree ' + cmd
-        os.system(cmd)
-
-        if options.subparser_name == 'infer':
+        if hasattr(options, 'subparser_name') and options.subparser_name == 'infer':
             symlink_f(output_tree[len(options.out_dir) + 1:],
                       os.path.join(options.out_dir,
                                    os.path.basename(output_tree)))
@@ -477,18 +454,18 @@ class OptionsParser(object):
                                   options.output_tree,
                                   outgroup)
 
-        # Symlink to the tree summary file
-        if options.suffix == 'bac120':
-            symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
-                      os.path.join(options.out_dir,
-                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
-        elif options.suffix == 'ar122':
-            symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
-                      os.path.join(options.out_dir,
-                                   os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
+        # Symlink to the tree summary file, if not run independently
+        if hasattr(options, 'suffix'):
+            if options.suffix == 'bac120':
+                symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
+                          os.path.join(options.out_dir,
+                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+            elif options.suffix == 'ar122':
+                symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
+                          os.path.join(options.out_dir,
+                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+            else:
+                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
         self.logger.info('Done.')
 
@@ -502,7 +479,8 @@ class OptionsParser(object):
         """
         self.logger.info("Running install verification")
         misc = Misc()
-        misc.check_install()
+        if not misc.check_install():
+            raise ReferenceFileMalformed('One or more reference files are malformed.')
         self.logger.info('Done.')
 
     def decorate(self, options):
@@ -551,7 +529,7 @@ class OptionsParser(object):
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
             else:
                 if options.suffix == 'bac120':
                     options.msa_file = os.path.join(options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
@@ -559,7 +537,7 @@ class OptionsParser(object):
                     options.msa_file = os.path.join(options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown
+                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
 
             self.infer(options)
 
@@ -575,7 +553,7 @@ class OptionsParser(object):
                                                    PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
                 self.logger.error('There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
 
             self.root(options)
             self.decorate(options)
@@ -625,6 +603,6 @@ class OptionsParser(object):
         else:
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')
-            sys.exit()
+            sys.exit(1)
 
         return 0

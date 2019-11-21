@@ -19,6 +19,7 @@ import multiprocessing as mp
 import os
 import sys
 
+from gtdbtk.exceptions import GTDBTkExit
 from ..tools import sha256
 
 
@@ -150,7 +151,6 @@ class TigrfamSearch(object):
         gene_files : iterable
             Gene files in FASTA format to process.
         """
-
         self.cpus_per_genome = max(1, self.threads / len(gene_files))
 
         # populate worker queue with data to process
@@ -179,7 +179,12 @@ class TigrfamSearch(object):
 
             writerQueue.put(None)
             writeProc.join()
-        except:
+
+            for proc in workerProc:
+                if proc.exitcode != 0:
+                    raise GTDBTkExit('An error was encountered while running hmmsearch.')
+
+        except Exception:
             for p in workerProc:
                 p.terminate()
 

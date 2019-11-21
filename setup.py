@@ -16,7 +16,7 @@ setup(
     version=version(),
     author='Pierre-Alain Chaumeil and Donovan Parks',
     author_email='p.chaumeil@uq.edu.au',
-    maintainer='Pierre-Alain Chaumeil and Donovan Parks',
+    maintainer='Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks',
     maintainer_email='donovan.parks@gmail.com',
     packages=['gtdbtk', 'gtdbtk.biolib_lite', 'gtdbtk.config', 'gtdbtk.external', 'gtdbtk.tests',
               'gtdbtk.external.pypfam', 'gtdbtk.external.pypfam.HMM', 'gtdbtk.external.pypfam.Scan'],

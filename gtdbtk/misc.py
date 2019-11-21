@@ -20,9 +20,10 @@ import os
 from shutil import copyfile
 
 import gtdbtk.config.config as Config
-from .biolib_lite.common import make_sure_path_exists
-from .biolib_lite.seq_io import read_fasta
-from gtdbtk.exceptions import ReferenceFileMalformed
+from gtdbtk.biolib_lite.common import make_sure_path_exists
+from gtdbtk.biolib_lite.logger import colour
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.exceptions import GTDBTkException
 
 
 class Misc(object):
@@ -51,18 +52,20 @@ class Misc(object):
             mask = os.path.join(Config.MASK_DIR, Config.MASK_AR122)
         elif mask_type == 'file':
             mask = maskid
+        else:
+            self.logger.error('Command not understood.')
+            raise GTDBTkException('Command not understood.')
+
         with open(mask, 'r') as f:
             maskstr = f.readline()
 
-        outfwriter = open(output_file, 'w')
-        dict_genomes = read_fasta(untrimmed_msa, False)
+        with open(output_file, 'w') as outfwriter:
+            dict_genomes = read_fasta(untrimmed_msa, False)
 
-        for k, v in dict_genomes.items():
-            aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
-            fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
-            outfwriter.write(fasta_outstr)
-        outfwriter.close()
-        return True
+            for k, v in dict_genomes.items():
+                aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
+                fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
+                outfwriter.write(fasta_outstr)
 
     def export_msa(self, domain, output_file):
         """Export the MSA to a file, create the path if it doesn't exist.
@@ -90,10 +93,12 @@ class Misc(object):
             True if the folder exists, False otherwise.
         """
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-            self.logger.info("Check file {} ({}): OK".format(file_name, file_path))
+            self.logger.info("Check file {} ({}): {}".format(
+                file_name, file_path, colour('OK', ['bright'], fg='green')))
             return True
         else:
-            self.logger.warning("Check file {} ({}): missing".format(file_name, file_path))
+            self.logger.warning("Check file {} ({}): {}".format(
+                file_name, file_path, colour('MISSING', ['bright'], fg='red')))
             return False
 
     def checkfolder(self, folder_path, folder_name):
@@ -105,10 +110,12 @@ class Misc(object):
             True if the folder exists, False otherwise.
         """
         if os.path.isdir(folder_path) and len(os.listdir(folder_path)) > 0:
-            self.logger.info("Check folder {} ({}): OK".format(folder_name, folder_path))
+            self.logger.info("Check folder {} ({}): {}".format(
+                folder_name, folder_path, colour('OK', ['bright'], fg='green')))
             return True
         else:
-            self.logger.warning("Check folder {} ({}): missing".format(folder_name, folder_path))
+            self.logger.warning("Check folder {} ({}): {}".format(
+                folder_name, folder_path, colour('MISSING', ['bright'], fg='red')))
             return False
 
     def check_install(self):
@@ -134,4 +141,4 @@ class Misc(object):
 
         if not ok:
             self.logger.error('One or more reference files are malformed.')
-            raise ReferenceFileMalformed
+        return ok

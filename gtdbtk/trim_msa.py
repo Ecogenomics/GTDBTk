@@ -37,8 +37,8 @@ import argparse
 import random
 import logging
 
-from .biolib_lite.seq_io import read_fasta
-from .biolib_lite.logger import logger_setup
+from biolib_lite.seq_io import read_fasta
+from biolib_lite.logger import logger_setup
 
 from collections import defaultdict, Counter
 
@@ -146,9 +146,8 @@ class TrimMSA(object):
         mask, output_seqs = self.subsample_msa(msa, markers)
 
         # write mask to file
-        mask_file = open(os.path.join(self.output_dir, "mask.txt"), 'w')
-        mask_file.write(''.join([str(n) for n in mask]))
-        mask_file.close()
+        with open(os.path.join(self.output_dir, "mask.txt"), 'w') as mask_file:
+            mask_file.write(''.join([str(n) for n in mask]))
 
         # write subsampled MSA to file
         nbr_aa_seqs = open(os.path.join(

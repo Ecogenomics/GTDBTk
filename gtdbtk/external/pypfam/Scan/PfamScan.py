@@ -410,8 +410,8 @@ class PfamScan(object):
         be an open filehandle or a filename. A fatal error is generated if a file of the
         given name already exists.
         """
-        if os.path.isfile(out):
-            sys.exit('FATAL: output file "%s" already exists' % out)
+        # if os.path.isfile(out):
+        #     sys.exit('FATAL: output file "%s" already exists' % out)
 
         try:
             with open(out, 'w') as fh:

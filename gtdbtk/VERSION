@@ -1,5 +1,10 @@
 1.0.0
 - Migrated to Python3.
+0.3.3
+- Bugfix for --batchfile users of classify and classify_wf.
+- Display hmmalign, and pplacer progress.
+- Fixed an issue where the root command could not be run independently.
+- Improved MSA masking performance.
 0.3.2
 - Classify step is now taking the alignment fraction into account.
 - Assigning pre-calculated RED value to the tree now takes seconds.

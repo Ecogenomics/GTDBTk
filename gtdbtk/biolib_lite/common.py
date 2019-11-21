@@ -70,8 +70,8 @@ def check_file_exists(input_file):
     """
     if not os.path.exists(input_file) or not os.path.isfile(input_file):
         logger = logging.getLogger('timestamp')
-        logger.error('Input file does not exist: ' + input_file + '\n')
-        raise BioLibFileNotFound('Input file does not exist: ' + input_file + '\n')
+        logger.error('Input file does not exist: ' + input_file)
+        raise BioLibFileNotFound('Input file does not exist: ' + input_file)
     return True
 
 
@@ -95,8 +95,8 @@ def check_dir_exists(input_dir):
     """
     if not os.path.exists(input_dir) or not os.path.isdir(input_dir):
         logger = logging.getLogger('timestamp')
-        logger.error('Input directory does not exist: ' + input_dir + '\n')
-        raise BioLibDirNotFound('Input directory does not exist: ' + input_dir + '\n')
+        logger.error('Input directory does not exist: ' + input_dir)
+        raise BioLibDirNotFound('Input directory does not exist: ' + input_dir)
     return True
 
 
@@ -130,8 +130,8 @@ def make_sure_path_exists(path):
         return True
     except OSError:
         logger = logging.getLogger('timestamp')
-        logger.error('Specified path could not be created: ' + path + '\n')
-        raise BioLibIOException('Specified path could not be created: ' + path + '\n')
+        logger.error('Specified path could not be created: ' + path)
+        raise BioLibIOException('Specified path could not be created: ' + path)
 
 
 def remove_extension(filename, extension=None):

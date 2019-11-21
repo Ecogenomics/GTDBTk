@@ -26,15 +26,15 @@ __email__ = "uqpchaum@uq.edu.au"
 __status__ = "Development"
 
 import argparse
-import logging
-import os
 import sys
-import traceback
+import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from gtdbtk import version
 from gtdbtk.main import OptionsParser
+import traceback
+import logging
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.exceptions import *
@@ -432,10 +432,9 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
     # setup logger
-    if hasattr(args, 'out_dir'):
-        logger_setup(args.out_dir, "gtdbtk.log", "GTDB-Tk", version(), False)
-    else:
-        logger_setup(None, "gtdbtk.log", "GTDB-Tk", version(), False)
+    logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
+                 "gtdbtk.log", "GTDB-Tk", version(), False,
+                 hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
 
     # -------------------------------------------------
@@ -453,6 +452,11 @@ if __name__ == '__main__':
         sys.exit(1)
     except KeyboardInterrupt:
         logger.error('Controlled exit resulting from interrupt signal.')
+        sys.exit(1)
+    except GTDBTkExit as e:
+        if len(str(e)) > 0:
+            logger.error('{}'.format(e))
+        logger.error('Controlled exit resulting from an unrecoverable error or warning.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
