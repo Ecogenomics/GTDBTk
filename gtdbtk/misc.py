@@ -126,6 +126,8 @@ class Misc(object):
         bool
             True if the installation is complete, False otherwise.
         """
+
+
         ok = True
         ok = ok and self.checkfile(Config.TAXONOMY_FILE, 'Taxonomy')
         ok = ok and self.checkfile(Config.CONCAT_BAC120, 'concat_bac120')

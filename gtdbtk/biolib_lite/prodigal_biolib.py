@@ -322,38 +322,39 @@ class ProdigalGeneFeatureParser():
             GFF file to parse.
         """
         bGetTranslationTable = True
-        for line in open(filename):
-            if bGetTranslationTable and line.startswith('# Model Data'):
-                data_model_info = line.split(':')[1].strip().split(';')
-                dict_data_model = {}
-                for item in data_model_info:
-                    k = item.split('=')[0]
-                    v = item.split('=')[1]
-                    dict_data_model[k] = v
+        with open(filename, 'r') as fh:
+            for line in fh:
+                if bGetTranslationTable and line.startswith('# Model Data'):
+                    data_model_info = line.split(':')[1].strip().split(';')
+                    dict_data_model = {}
+                    for item in data_model_info:
+                        k = item.split('=')[0]
+                        v = item.split('=')[1]
+                        dict_data_model[k] = v
 
-                self.translationTable = int(
-                    dict_data_model.get('transl_table'))
-                bGetTranslationTable = False
+                    self.translationTable = int(
+                        dict_data_model.get('transl_table'))
+                    bGetTranslationTable = False
 
-            if line[0] == '#':
-                continue
+                if line[0] == '#':
+                    continue
 
-            line_split = line.split('\t')
-            seq_id = line_split[0]
-            if seq_id not in self.genes:
-                geneCounter = 0
-                self.genes[seq_id] = {}
-                self.last_coding_base[seq_id] = 0
+                line_split = line.split('\t')
+                seq_id = line_split[0]
+                if seq_id not in self.genes:
+                    geneCounter = 0
+                    self.genes[seq_id] = {}
+                    self.last_coding_base[seq_id] = 0
 
-            geneId = seq_id + '_' + str(geneCounter)
-            geneCounter += 1
+                geneId = seq_id + '_' + str(geneCounter)
+                geneCounter += 1
 
-            start = int(line_split[3])
-            end = int(line_split[4])
+                start = int(line_split[3])
+                end = int(line_split[4])
 
-            self.genes[seq_id][geneId] = [start, end]
-            self.last_coding_base[seq_id] = max(
-                self.last_coding_base[seq_id], end)
+                self.genes[seq_id][geneId] = [start, end]
+                self.last_coding_base[seq_id] = max(
+                    self.last_coding_base[seq_id], end)
 
     def __build_coding_base_mask(self, seq_id):
         """Build mask indicating which bases in a sequences are coding.

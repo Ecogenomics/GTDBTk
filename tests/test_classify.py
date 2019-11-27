@@ -42,8 +42,8 @@ class TestClassify(unittest.TestCase):
             os.makedirs(self.generic_out_path)
         self.prefix = 'gtdbtk'
         self.pplacer_dir_reference = 'tests/data/pplacer_dir_reference'
-        self.user_msa_file = os.path.join(
-            self.pplacer_dir_reference, 'gtdbtk.ar122.user_msa.fasta')
+        self.aln_dir_ref = 'tests/data/align_dir_reference/align'
+        self.user_msa_file = os.path.join(self.aln_dir_ref, 'gtdbtk.ar122.user_msa.fasta')
         self.taxonomy_file = Config.TAXONOMY_FILE
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
@@ -90,7 +90,7 @@ class TestClassify(unittest.TestCase):
         self.assertTrue('genome_2' in results)
         self.assertTrue('genome_3' in results)
         self.assertEqual(results.get(
-            'genome_1'), 'd__Archaea;p__Thermoplasmatota;c__MGII;o__MGIII;f__CG-Epi1;g__UBA8886;s__')
+            'genome_1'), 'd__Archaea;p__Euryarchaeota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__')
 
     def test_place_genomes(self):
         if not os.path.exists(self.out_dir):

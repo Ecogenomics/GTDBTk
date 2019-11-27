@@ -312,10 +312,10 @@ class TestOptionsParser(unittest.TestCase):
         self.options_parser.trim_msa(options)
 
         results = dict()
-        with open(path_output, 'rb') as f:
+        with open(path_output, 'r') as f:
             re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
             for gid, seq in re_hits:
-                results[gid] = hashlib.sha256(seq).hexdigest()
+                results[gid] = hashlib.sha256(seq.encode('utf-8')).hexdigest()
 
         expected = {'genome_1': '4975c04d640415de4c715552f6f6b460a8996226239440faa6539ac777622515',
                     'genome_2': '7b53881aecb13bbe54612962e22736db7ab83271ffe4685d63c16e962e3561d9'}
@@ -349,10 +349,10 @@ class TestOptionsParser(unittest.TestCase):
         self.options_parser.trim_msa(options)
 
         results = dict()
-        with open(path_output, 'rb') as f:
+        with open(path_output, 'r') as f:
             re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
             for gid, seq in re_hits:
-                results[gid] = hashlib.sha256(seq).hexdigest()
+                results[gid] = hashlib.sha256(seq.encode('utf-8')).hexdigest()
 
         expected = {'genome_1': '32798bdc3245b2ac5ecd8a15ea2cfb21011b22b6021baa51066864b1c02d72b4',
                     'genome_2': '0b63d416c72e9641011f80fcf64fa41eb3f0e8e85dbaa4bd8feba12cf3b64c62'}

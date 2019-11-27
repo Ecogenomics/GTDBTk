@@ -52,12 +52,14 @@ def read_fasta(fasta_file, keep_annotation=False):
         return {}
 
     try:
-        open_file = open
+
         if fasta_file.endswith('.gz'):
-            open_file = gzip.open
+            file_f, file_mode = gzip.open, 'rt'
+        else:
+            file_f, file_mode = open, 'r'
 
         seqs = {}
-        with open_file(fasta_file, 'r') as f:
+        with file_f(fasta_file, file_mode) as f:
 
             for line in f.readlines():
                 # skip blank lines

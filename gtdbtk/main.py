@@ -118,31 +118,32 @@ class OptionsParser(object):
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
 
         elif batchfile:
-            for line_no, line in enumerate(open(batchfile, "r")):
-                line_split = line.strip().split("\t")
-                if line_split[0] == '':
-                    continue  # blank line
+            with open(batchfile, "r") as fh:
+                for line_no, line in enumerate(fh):
+                    line_split = line.strip().split("\t")
+                    if line_split[0] == '':
+                        continue  # blank line
 
-                if len(line_split) != 2:
-                    self.logger.error('Batch file must contain exactly 2 columns.')
-                    raise GenomeBatchfileMalformed
+                    if len(line_split) != 2:
+                        self.logger.error('Batch file must contain exactly 2 columns.')
+                        raise GenomeBatchfileMalformed
 
-                genome_file, genome_id = line_split
-                self._verify_genome_id(genome_id)
+                    genome_file, genome_id = line_split
+                    self._verify_genome_id(genome_id)
 
-                if genome_file is None or genome_file == '':
-                    self.logger.error('Missing genome file on line %d.' % (line_no + 1))
-                    raise GenomeBatchfileMalformed
-                elif genome_id is None or genome_id == '':
-                    self.logger.error('Missing genome ID on line %d.' % (line_no + 1))
-                    raise GenomeBatchfileMalformed
-                elif genome_id in genomic_files:
-                    self.logger.error('Genome ID %s appear multiple times.' % genome_id)
-                    raise GenomeBatchfileMalformed
-                if genome_file in genomic_files.values():
-                    self.logger.warning('Genome file appears multiple times: %s' % genome_file)
+                    if genome_file is None or genome_file == '':
+                        self.logger.error('Missing genome file on line %d.' % (line_no + 1))
+                        raise GenomeBatchfileMalformed
+                    elif genome_id is None or genome_id == '':
+                        self.logger.error('Missing genome ID on line %d.' % (line_no + 1))
+                        raise GenomeBatchfileMalformed
+                    elif genome_id in genomic_files:
+                        self.logger.error('Genome ID %s appears multiple times.' % genome_id)
+                        raise GenomeBatchfileMalformed
+                    if genome_file in genomic_files.values():
+                        self.logger.warning('Genome file appears multiple times: %s' % genome_file)
 
-                genomic_files[genome_id] = genome_file
+                    genomic_files[genome_id] = genome_file
 
         for genome_key in genomic_files.keys():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") \
@@ -506,6 +507,10 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
+
+        # Stop processing if python 2 is being used.
+        if sys.version_info.major < 3:
+            raise GTDBTkExit('Python 2 is no longer supported.')
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
