@@ -40,8 +40,8 @@ from collections import defaultdict, Counter
 from numpy import (mean as np_mean,
                    std as np_std)
 
-from biolib_lite.logger import logger_setup
-from biolib_lite.seq_io import read_fasta
+from gtdbtk.biolib_lite.logger import logger_setup
+from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import MSAMarkerLengthMismatch
 
 

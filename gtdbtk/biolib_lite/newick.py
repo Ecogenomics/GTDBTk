@@ -16,7 +16,7 @@
 ###############################################################################
 
 
-from gtdbtk.biolib_lite.common import is_float
+from .common import is_float
 
 '''Helper functions for parsing Newick information.'''
 

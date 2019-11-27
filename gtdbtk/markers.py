@@ -16,23 +16,24 @@
 ###############################################################################
 
 import logging
+import os
 from collections import defaultdict
 from shutil import copy
 
 import numpy as np
 
-import config.config as Config
-from biolib_lite.execute import check_dependencies
-from biolib_lite.seq_io import read_fasta
-from biolib_lite.taxonomy import Taxonomy
-from external.hmm_aligner import HmmAligner
-from external.pfam_search import PfamSearch
-from external.prodigal import Prodigal
-from external.tigrfam_search import TigrfamSearch
+import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
-from tools import merge_two_dicts, symlink_f
-from trim_msa import TrimMSA
+from gtdbtk.external.hmm_aligner import HmmAligner
+from gtdbtk.external.pfam_search import PfamSearch
+from gtdbtk.external.prodigal import Prodigal
+from gtdbtk.external.tigrfam_search import TigrfamSearch
+from gtdbtk.tools import merge_two_dicts, symlink_f
+from gtdbtk.trim_msa import TrimMSA
 
 
 class Markers(object):

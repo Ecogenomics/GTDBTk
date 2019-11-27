@@ -47,3 +47,10 @@ class BioLibIOException(BioLibError):
 
     def __init__(self, message=''):
         super(BioLibIOException, self).__init__(message)
+
+
+class InputFileError(BioLibError):
+    """Raised when an input file error is encountered."""
+
+    def __init__(self, message=''):
+        super(InputFileError, self).__init__(message)

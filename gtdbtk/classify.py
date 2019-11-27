@@ -17,6 +17,7 @@
 
 
 import logging
+import os
 import random
 import shutil
 import sys
@@ -26,19 +27,19 @@ from operator import itemgetter
 import dendropy
 from numpy import median as np_median
 
-import config.config as Config
-from biolib_lite.common import make_sure_path_exists
-from biolib_lite.execute import check_dependencies
-from biolib_lite.newick import parse_label
-from biolib_lite.seq_io import read_seq, read_fasta
-from biolib_lite.taxonomy import Taxonomy
+import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.common import make_sure_path_exists
+from gtdbtk.biolib_lite.execute import check_dependencies
+from gtdbtk.biolib_lite.newick import parse_label
+from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
-from relative_distance import RelativeDistance
-from tools import add_ncbi_prefix, symlink_f
+from gtdbtk.relative_distance import RelativeDistance
+from gtdbtk.tools import add_ncbi_prefix, symlink_f
 
 sys.setrecursionlimit(15000)
 

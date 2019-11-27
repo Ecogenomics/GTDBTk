@@ -25,8 +25,8 @@ from numpy import (median as np_median,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
 
-from biolib_lite.newick import parse_label
-from biolib_lite.taxonomy import Taxonomy
+from gtdbtk.biolib_lite.newick import parse_label
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
 
 
 class RelativeDistance(object):

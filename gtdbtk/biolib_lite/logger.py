@@ -21,7 +21,7 @@ import os
 import re
 import sys
 
-from gtdbtk.biolib_lite.common import make_sure_path_exists
+from .common import make_sure_path_exists
 
 
 def colour(to_fmt, attr=None, fg=None, bg=None):

@@ -20,7 +20,7 @@ import os
 import sys
 
 from gtdbtk.exceptions import GTDBTkExit
-from ..tools import sha256
+from gtdbtk.tools import sha256
 
 
 class TigrfamSearch(object):

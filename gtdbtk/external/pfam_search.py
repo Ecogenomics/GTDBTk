@@ -21,8 +21,8 @@ import sys
 from collections import defaultdict
 
 from gtdbtk.exceptions import GTDBTkExit
-from .pypfam.Scan.PfamScan import PfamScan
-from ..tools import sha256
+from gtdbtk.external.pypfam.Scan.PfamScan import PfamScan
+from gtdbtk.tools import sha256
 
 
 class PfamSearch(object):

@@ -27,7 +27,7 @@ import multiprocessing as mp
 import sys
 import traceback
 
-import gtdbtk.biolib_lite.seq_io as seq_io
+from .seq_io import read_seq
 
 
 class Parallel(object):
@@ -228,7 +228,7 @@ class Parallel(object):
         """
 
         # populate producer queue with data to process
-        seq_iter = seq_io.read_seq(seq_file)
+        seq_iter = read_seq(seq_file)
         producer_queue = mp.Queue()
         read_all_seqs = False
         for _ in range(self.cpus):
@@ -241,7 +241,7 @@ class Parallel(object):
                     producer_queue.put(None)  # signal processes to terminate
                 break
 
-        data_items = sum(1 for _ in seq_io.read_seq(seq_file))
+        data_items = sum(1 for _ in read_seq(seq_file))
         try:
             consumer_queue = mp.Queue()
             manager_proc = mp.Process(target=self.__process_manager, args=(

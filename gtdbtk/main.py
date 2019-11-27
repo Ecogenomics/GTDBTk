@@ -17,26 +17,27 @@
 
 
 import logging
+import os
 import shutil
 import subprocess
 import sys
 
-import config.config as Config
-from biolib_lite.common import (check_dir_exists,
-                                check_file_exists,
-                                make_sure_path_exists,
-                                remove_extension)
-from biolib_lite.execute import check_dependencies
-from biolib_lite.taxonomy import Taxonomy
-from classify import Classify
+import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.common import (check_dir_exists,
+                                       check_file_exists,
+                                       make_sure_path_exists,
+                                       remove_extension)
+from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
+from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
+from gtdbtk.markers import Markers
+from gtdbtk.misc import Misc
+from gtdbtk.reroot_tree import RerootTree
 from gtdbtk.tools import symlink_f
-from markers import Markers
-from misc import Misc
-from reroot_tree import RerootTree
 
 
 class OptionsParser(object):

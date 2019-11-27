@@ -21,8 +21,8 @@ import os
 import shutil
 import sys
 
+from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.exceptions import ProdigalException
-from ..biolib_lite.prodigal_biolib import (Prodigal as BioLibProdigal)
 
 
 class Prodigal(object):

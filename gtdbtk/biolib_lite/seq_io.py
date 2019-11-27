@@ -21,12 +21,7 @@ import os
 import sys
 import traceback
 
-from .exceptions import BioLibError
-
-
-class InputFileError(BioLibError):
-    pass
-
+from .exceptions import InputFileError
 
 protein_bases = {'a', 'r', 'n', 'd', 'c', 'q', 'e', 'g', 'h',
                  'i', 'l', 'k', 'm', 'f', 'p', 's', 't', 'w', 'y', 'v'}

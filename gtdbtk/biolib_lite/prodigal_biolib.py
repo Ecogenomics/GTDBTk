@@ -31,10 +31,10 @@ from collections import defaultdict, namedtuple
 
 import numpy as np
 
-from common import remove_extension, make_sure_path_exists, check_file_exists
-from execute import check_on_path
-from parallel import Parallel
-from seq_io import read_fasta, write_fasta
+from .common import remove_extension, make_sure_path_exists, check_file_exists
+from .execute import check_on_path
+from .parallel import Parallel
+from .seq_io import read_fasta, write_fasta
 
 
 class Prodigal(object):
@@ -159,7 +159,8 @@ class Prodigal(object):
 
             # clean up temporary files
             shutil.rmtree(tmp_dir)
-        return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4], table_coding_density[11])
+        return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4],
+                table_coding_density[11])
 
     def _consumer(self, produced_data, consumer_data):
         """Consume results from producer processes.
@@ -183,7 +184,8 @@ class Prodigal(object):
         """
 
         ConsumerData = namedtuple(
-            'ConsumerData', 'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11')
+            'ConsumerData',
+            'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11')
         if consumer_data == None:
             consumer_data = defaultdict(ConsumerData)
 
