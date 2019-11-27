@@ -1,5 +1,3 @@
-
-
 import json
 import os
 import sys
@@ -149,3 +147,14 @@ MRCA_RED_BAC120 = os.path.join(
     RED_DIR, "gtdbtk_{}_bac120.tsv".format(VERSION_DATA))
 MRCA_RED_AR122 = os.path.join(
     RED_DIR, "gtdbtk_{}_ar122.tsv".format(VERSION_DATA))
+
+# Hashing information for validating the reference package.
+REF_HASHES = {'pplacer': 'cc53e494048fb50b2789bcdec2868eac2d3cb2b3',
+              'masks': 'a6c8143c0bb393898e01aae90799e640f7c2057b',
+              'markers': 'a325720422d8348d7a934143cc86112b6c92ac98',
+              'radii': '4b0f6ce959a67afa6277d8810d4a1a2bd11f212f',
+              'msa': 'a318b890b35af70c91b6c8d0cd25671d9aff21ed',
+              'metadata': '309c5f643d55f2740837dfa0423af7ce873107d5',
+              'taxonomy': '2037fd5fb43d886821ef21e7d2e899465b37589d',
+              'fastani': '5a5021fb098c4abda08928b7991f4bc00a77e851',
+              'mrca_red': '1dd0316cf4bd9f1afc490bb121b16b956759ee75'}

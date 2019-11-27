@@ -2,6 +2,7 @@ import hashlib
 import math
 import os
 import random
+import sys
 import time
 from itertools import islice
 
@@ -50,6 +51,60 @@ def merge_two_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
+
+def sha1_dir(path, progress):
+    """Recursively add files found within the path and output a SHA1 hash.
+
+    Parameters
+    ----------
+    path : str
+        The path to traverse.
+    progress : bool
+        True if progress should be displayed to stdout, False otherwise.
+
+    Returns
+    -------
+    str
+        The SHA1 hash representing this directory.
+    """
+    if progress:
+        sys.stdout.write('\r[{}]'.format(path))
+        sys.stdout.flush()
+
+    # Generate a queue of files to process
+    queue = list()
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            path_file = os.path.join(root, file)
+            queue.append(path_file)
+    queue = sorted(queue)
+
+    # Setup the hasher
+    block_size = 65536
+    hasher = hashlib.sha1()
+
+    # Process the queue and obtain a single hash
+    for idx, cur_path in enumerate(queue):
+
+        if progress:
+            sys.stdout.write('\r[{}] - {}/{} files ({}%)'.format(path,
+                                                                 idx,
+                                                                 len(queue),
+                                                                 round(100 * (idx / len(queue)), 2)))
+            sys.stdout.flush()
+
+        # Add the hash of the file
+        with open(cur_path, 'rb') as fh:
+            buf = fh.read(block_size)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = fh.read(block_size)
+
+    sys.stdout.write('\r')
+    sys.stdout.flush()
+
+    return hasher.hexdigest()
 
 
 def sha256(input_file):

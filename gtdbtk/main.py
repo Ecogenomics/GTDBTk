@@ -480,8 +480,7 @@ class OptionsParser(object):
         """
         self.logger.info("Running install verification")
         misc = Misc()
-        if not misc.check_install():
-            raise ReferenceFileMalformed('One or more reference files are malformed.')
+        misc.check_install()
         self.logger.info('Done.')
 
     def decorate(self, options):
