@@ -140,7 +140,7 @@ class Misc(object):
 
             if user_hash != expected_hash:
                 self.logger.info("         |-- {:16} {}".format(
-                    base_name, colour('HASH MISMATCH', ['bright'], fg='red')))
+                    base_name, colour('HASH MISMATCH', ['bright'], fg='yellow')))
                 ok = False
             else:
                 self.logger.info("         |-- {:16} {}".format(
