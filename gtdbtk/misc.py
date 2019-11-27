@@ -133,19 +133,18 @@ class Misc(object):
 
         # Compute the hash for each directory
         self.logger.info('Checking {}'.format(Config.GENERIC_PATH))
-        for obj in sorted(os.listdir(Config.GENERIC_PATH), reverse=True):
-            obj_path = os.path.join(Config.GENERIC_PATH, obj)
-            if os.path.isdir(obj_path):
-                user_hash = sha1_dir(obj_path, progress=True)
+        for obj_path, expected_hash in Config.REF_HASHES.items():
+            base_name = obj_path[:-1] if obj_path.endswith('/') else obj_path
+            base_name = base_name.split('/')[-1]
+            user_hash = sha1_dir(obj_path, progress=True)
 
-                if user_hash != Config.REF_HASHES[obj]:
-
-                    self.logger.info("         |-- {:16} {}".format(
-                        obj, colour('HASH MISMATCH', ['bright'], fg='red')))
-                    ok = False
-                else:
-                    self.logger.info("         |-- {:16} {}".format(
-                        obj, colour('OK', ['bright'], fg='green')))
+            if user_hash != expected_hash:
+                self.logger.info("         |-- {:16} {}".format(
+                    base_name, colour('HASH MISMATCH', ['bright'], fg='red')))
+                ok = False
+            else:
+                self.logger.info("         |-- {:16} {}".format(
+                    base_name, colour('OK', ['bright'], fg='green')))
 
         if not ok:
             raise GTDBTkExit('Unexpected files were seen, or the reference package is corrupt.')

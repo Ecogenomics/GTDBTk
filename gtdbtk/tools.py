@@ -69,8 +69,7 @@ def sha1_dir(path, progress):
         The SHA1 hash representing this directory.
     """
     if progress:
-        sys.stdout.write('\r[{}]'.format(path))
-        sys.stdout.flush()
+        print('\r[{}]'.format(path), end='\r', flush=True)
 
     # Generate a queue of files to process
     queue = list()
@@ -88,11 +87,11 @@ def sha1_dir(path, progress):
     for idx, cur_path in enumerate(queue):
 
         if progress:
-            sys.stdout.write('\r[{}] - {}/{} files ({}%)'.format(path,
-                                                                 idx,
-                                                                 len(queue),
-                                                                 round(100 * (idx / len(queue)), 2)))
-            sys.stdout.flush()
+            print('\r[{}] - {}/{} files ({}%)'.format(path,
+                                                      idx,
+                                                      len(queue),
+                                                      round(100 * (idx / len(queue)), 2)),
+                  end='\r', flush=True)
 
         # Add the hash of the file
         with open(cur_path, 'rb') as fh:
@@ -101,8 +100,7 @@ def sha1_dir(path, progress):
                 hasher.update(buf)
                 buf = fh.read(block_size)
 
-    sys.stdout.write('\r')
-    sys.stdout.flush()
+    print(' ' * 80, end='\r', flush=True)
 
     return hasher.hexdigest()
 

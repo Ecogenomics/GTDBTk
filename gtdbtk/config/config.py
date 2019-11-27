@@ -22,8 +22,6 @@ except KeyError:
 
 MIN_REF_DATA_VERSION = 'r89'
 
-TIGRFAM_HMMS = os.path.join(GENERIC_PATH, 'markers/tigrfam/tigrfam.hmm')
-PFAM_HMM_DIR = os.path.join(GENERIC_PATH, 'markers/pfam/')
 MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
 MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
 PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
@@ -32,6 +30,9 @@ TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
 METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
 RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
+MARKER_DIR = os.path.join(GENERIC_PATH, 'markers/')
+TIGRFAM_HMMS = os.path.join(GENERIC_PATH, MARKER_DIR, 'tigrfam/tigrfam.hmm')
+PFAM_HMM_DIR = os.path.join(GENERIC_PATH, MARKER_DIR, 'pfam/')
 
 RED_DIST_BAC_DICT = ''
 RED_DIST_ARC_DICT = ''
@@ -149,12 +150,12 @@ MRCA_RED_AR122 = os.path.join(
     RED_DIR, "gtdbtk_{}_ar122.tsv".format(VERSION_DATA))
 
 # Hashing information for validating the reference package.
-REF_HASHES = {'pplacer': 'cc53e494048fb50b2789bcdec2868eac2d3cb2b3',
-              'masks': 'a6c8143c0bb393898e01aae90799e640f7c2057b',
-              'markers': 'a325720422d8348d7a934143cc86112b6c92ac98',
-              'radii': '4b0f6ce959a67afa6277d8810d4a1a2bd11f212f',
-              'msa': 'a318b890b35af70c91b6c8d0cd25671d9aff21ed',
-              'metadata': '309c5f643d55f2740837dfa0423af7ce873107d5',
-              'taxonomy': '2037fd5fb43d886821ef21e7d2e899465b37589d',
-              'fastani': '5a5021fb098c4abda08928b7991f4bc00a77e851',
-              'mrca_red': '1dd0316cf4bd9f1afc490bb121b16b956759ee75'}
+REF_HASHES = {PPLACER_DIR: 'cc53e494048fb50b2789bcdec2868eac2d3cb2b3',
+              MASK_DIR: 'a6c8143c0bb393898e01aae90799e640f7c2057b',
+              MARKER_DIR: 'a325720422d8348d7a934143cc86112b6c92ac98',
+              RADII_DIR: '4b0f6ce959a67afa6277d8810d4a1a2bd11f212f',
+              MSA_FOLDER: 'a318b890b35af70c91b6c8d0cd25671d9aff21ed',
+              METADATA_DIR: '309c5f643d55f2740837dfa0423af7ce873107d5',
+              TAX_FOLDER: '2037fd5fb43d886821ef21e7d2e899465b37589d',
+              FASTANI_DIR: '5a5021fb098c4abda08928b7991f4bc00a77e851',
+              RED_DIR: '1dd0316cf4bd9f1afc490bb121b16b956759ee75'}
