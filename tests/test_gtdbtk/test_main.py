@@ -312,7 +312,7 @@ class TestOptionsParser(unittest.TestCase):
         self.options_parser.trim_msa(options)
 
         results = dict()
-        with open(path_output, 'r') as f:
+        with open(path_output, 'rb') as f:
             re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
             for gid, seq in re_hits:
                 results[gid] = hashlib.sha256(seq).hexdigest()
@@ -349,7 +349,7 @@ class TestOptionsParser(unittest.TestCase):
         self.options_parser.trim_msa(options)
 
         results = dict()
-        with open(path_output, 'r') as f:
+        with open(path_output, 'rb') as f:
             re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
             for gid, seq in re_hits:
                 results[gid] = hashlib.sha256(seq).hexdigest()
@@ -369,7 +369,7 @@ class TestOptionsParser(unittest.TestCase):
 
         self.options_parser.export_msa(options)
 
-        with open(path_out, 'r') as f:
+        with open(path_out, 'rb') as f:
             out_hash = hashlib.sha256(f.read()).hexdigest()
         self.assertEqual(out_hash, 'e84edf65511002b73f110ff44c9acee3ae44220448dfc971a2778d43c966bbba')
 
@@ -383,6 +383,6 @@ class TestOptionsParser(unittest.TestCase):
 
         self.options_parser.export_msa(options)
 
-        with open(path_out, 'r') as f:
+        with open(path_out, 'rb') as f:
             out_hash = hashlib.sha256(f.read()).hexdigest()
         self.assertEqual(out_hash, '5e37bc123819061490681068b49450fc43587d09b87df90ef62452bd73f961cc')

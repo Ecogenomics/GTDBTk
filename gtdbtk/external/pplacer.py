@@ -130,7 +130,7 @@ class Pplacer(object):
             args.append('--mmap-file')
             args.append(mmap_file)
 
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf-8')
         with open(pplacer_out, 'w') as fh:
             pplacer_logger = PplacerLogger(fh)
             while True:
