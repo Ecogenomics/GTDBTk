@@ -100,8 +100,9 @@ def sha1_dir(path, progress):
                 hasher.update(buf)
                 buf = fh.read(block_size)
 
-    print('\r' + ' ' * 100, end='', flush=True)
-    print('\r', end='', flush=True)
+    if progress:
+        print('\r' + ' ' * 100, end='', flush=True)
+        print('\r', end='', flush=True)
 
     return hasher.hexdigest()
 
