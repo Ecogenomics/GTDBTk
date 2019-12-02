@@ -127,6 +127,9 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
     no_timestamp_logger = logging.getLogger('no_timestamp')
     no_timestamp_logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
+    warning_logger = logging.getLogger('warnings')
+    warning_logger.setLevel(logging.DEBUG if debug else logging.INFO)
+
     # setup logging to console
     timestamp_stream_logger = logging.StreamHandler(sys.stdout)
     timestamp_stream_logger.setFormatter(SpecialFormatter())
@@ -154,6 +157,11 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
                                                                     log_file), 'a')
         no_timestamp_file_logger.setFormatter(None)
         no_timestamp_logger.addHandler(no_timestamp_file_logger)
+
+        warning_fh = logging.FileHandler(os.path.join(log_dir,
+                                                      log_file.replace('.log', '.warnings.log')), 'a')
+        warning_fh.setFormatter(ColourlessFormatter())
+        warning_logger.addHandler(warning_fh)
 
     timestamp_logger.info('%s v%s' % (program_name, version))
     timestamp_logger.info(ntpath.basename(

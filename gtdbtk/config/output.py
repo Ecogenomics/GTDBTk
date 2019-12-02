@@ -65,3 +65,6 @@ PATH_BAC120_ROOTED_TREE = join(DIR_INFER, '{prefix}.bac120.rooted.tree')
 PATH_AR122_ROOTED_TREE = join(DIR_INFER, '{prefix}.ar122.rooted.tree')
 PATH_BAC120_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.unrooted.tree')
 PATH_AR122_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.unrooted.tree')
+
+# General files
+PATH_WARNINGS = '{prefix}.warnings.log'

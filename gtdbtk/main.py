@@ -51,6 +51,7 @@ class OptionsParser(object):
             The current version number (e.g. 0.2.2).
         """
         self.logger = logging.getLogger('timestamp')
+        self.warnings = logging.getLogger('warnings')
         self.version = version
         self._check_package_compatibility()
 
@@ -145,7 +146,9 @@ class OptionsParser(object):
 
                     genomic_files[genome_id] = genome_file
 
-        for genome_key in genomic_files.keys():
+        # Check that the prefix is valid and the path exists
+        invalid_paths = list()
+        for genome_key, genome_path in genomic_files.items():
             if genome_key.startswith("RS_") or genome_key.startswith("GB_") \
                     or genome_key.startswith("UBA"):
                 self.logger.error("Submitted genomes start with the same prefix"
@@ -153,6 +156,19 @@ class OptionsParser(object):
                                   " GTDB-Tk. This will cause issues for"
                                   " downstream analysis.")
                 raise GenomeNameInvalid
+
+            if not os.path.isfile(genome_path):
+                invalid_paths.append((genome_key, genome_path))
+
+        # Report on any invalid paths
+        if len(invalid_paths) > 0:
+            self.warnings.info(f'Reading from batchfile: {batchfile}')
+            self.warnings.error(f'The following {len(invalid_paths)} genomes '
+                                f'have invalid paths specified in the batchfile:')
+            for g_path, g_gid in invalid_paths:
+                self.warnings.info(f'{g_gid}\t{g_path}')
+            raise GTDBTkExit(f'There are {len(invalid_paths)} paths in the '
+                             f'batchfile which do not exist, see gtdb.warnings.log')
 
         if len(genomic_files) == 0:
             if genome_dir:
