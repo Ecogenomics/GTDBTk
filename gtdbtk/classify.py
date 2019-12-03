@@ -429,7 +429,6 @@ class Classify(object):
                 fastani = FastANI(cpus=self.cpus)
                 d_ani_compare, d_paths = self._get_fastani_genome_path(fastani_verification, genomes)
                 all_fastani_dict = fastani.run(d_ani_compare, d_paths)
-                print(all_fastani_dict)
 
             classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
                 fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
