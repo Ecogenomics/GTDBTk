@@ -93,12 +93,10 @@ class TrimMSA(object):
             self.min_perc_aa))
 
         # write out trimmed sequences
-        filter_file = open(os.path.join(
-            self.output_dir, "filtered_msa.faa"), 'w')
-        for gid, seq in filtered_seqs.items():
-            fasta_outstr = ">%s\n%s\n" % (gid, seq)
-            filter_file.write(fasta_outstr)
-        filter_file.close()
+        with open(os.path.join(self.output_dir, "filtered_msa.faa"), 'w') as filter_file:
+            for gid, seq in filtered_seqs.items():
+                fasta_outstr = ">%s\n%s\n" % (gid, seq)
+                filter_file.write(fasta_outstr)
 
         self.logger.info('Done.')
 

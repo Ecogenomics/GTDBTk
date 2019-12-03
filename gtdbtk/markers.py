@@ -43,6 +43,7 @@ class Markers(object):
         """Initialize."""
 
         self.logger = logging.getLogger('timestamp')
+        self.warnings = logging.getLogger('warnings')
 
         self.cpus = cpus
 
@@ -264,22 +265,39 @@ class Markers(object):
 
         self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
 
-    def _path_to_identify_data(self, identity_dir):
+    def _path_to_identify_data(self, identity_dir, warn=True):
         """Get path to genome data produced by 'identify' command."""
 
         marker_gene_dir = os.path.join(identity_dir, DIR_MARKER_GENE)
 
         genomic_files = {}
+        lq_gids = list()
         for gid in os.listdir(marker_gene_dir):
             gid_dir = os.path.join(marker_gene_dir, gid)
             if not os.path.isdir(gid_dir):
                 continue
 
-            genomic_files[gid] = {'aa_gene_path': os.path.join(gid_dir, gid + self.protein_file_suffix),
-                                  'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
-                                  'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
-                                  'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
-                                  }
+            aa_gene_path = os.path.join(gid_dir, gid + self.protein_file_suffix)
+
+            # Check if any genes were called
+            if os.path.getsize(aa_gene_path) < 1:
+                lq_gids.append(gid)
+            else:
+                genomic_files[gid] = {'aa_gene_path': aa_gene_path,
+                                      'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
+                                      'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
+                                      'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
+                                      }
+
+        if len(lq_gids) > 0 and warn:
+            self.logger.warning(f'Excluding {len(lq_gids)} genomes '
+                                f'in the identify directory which have no genes '
+                                f'called (see gtdb.warnings.log)')
+            self.warnings.warning(f'Excluding the following {len(lq_gids)} genomes '
+                                  f'which were found in the identify directory '
+                                  f'with no genes called.')
+            for lq_gid in lq_gids:
+                self.warnings.info(lq_gid)
         return genomic_files
 
     def _msa_filter_by_taxa(self, concatenated_file, gtdb_taxonomy, taxa_filter, outgroup_taxon):
@@ -395,27 +413,25 @@ class Markers(object):
         marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
                         "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmms), 'individual_hmms')}
 
-        fout = open(marker_file, 'w')
-        fout.write('Marker ID\tName\tDescription\tLength (bp)\n')
-        for db_marker in sorted(marker_db):
-            for marker in marker_db[db_marker]:
-                marker_id = marker[0:marker.rfind('.')]
-                marker_path = os.path.join(marker_paths[db_marker], marker)
+        with open(marker_file, 'w') as fh:
+            fh.write('Marker ID\tName\tDescription\tLength (bp)\n')
+            for db_marker in sorted(marker_db):
+                for marker in marker_db[db_marker]:
+                    marker_id = marker[0:marker.rfind('.')]
+                    marker_path = os.path.join(marker_paths[db_marker], marker)
 
-                # get marker name, description, and size
-                with open(marker_path) as fp:
-                    for line in fp:
-                        if line.startswith("NAME  "):
-                            marker_name = line.split("  ")[1].strip()
-                        elif line.startswith("DESC  "):
-                            marker_desc = line.split("  ")[1].strip()
-                        elif line.startswith("LENG  "):
-                            marker_size = line.split("  ")[1].strip()
-                            break
-
-                fout.write('%s\t%s\t%s\t%s\n' %
-                           (marker_id, marker_name, marker_desc, marker_size))
-        fout.close()
+                    # get marker name, description, and size
+                    with open(marker_path) as fp:
+                        for line in fp:
+                            if line.startswith("NAME  "):
+                                marker_name = line.split("  ")[1].strip()
+                            elif line.startswith("DESC  "):
+                                marker_desc = line.split("  ")[1].strip()
+                            elif line.startswith("LENG  "):
+                                marker_size = line.split("  ")[1].strip()
+                                break
+                    fh.write('%s\t%s\t%s\t%s\n' %
+                               (marker_id, marker_name, marker_desc, marker_size))
 
     def align(self,
               identify_dir,
@@ -455,7 +471,7 @@ class Markers(object):
         ar122_marker_info_file = os.path.join(out_dir, PATH_AR122_MARKER_INFO.format(prefix=prefix))
         self._write_marker_info(Config.AR122_MARKERS, ar122_marker_info_file)
 
-        genomic_files = self._path_to_identify_data(identify_dir)
+        genomic_files = self._path_to_identify_data(identify_dir, identify_dir != out_dir)
         self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
                                                                               self.cpus))
 

@@ -286,10 +286,9 @@ class HmmAligner(object):
             hmmalign_gene_input = os.path.join(
                 hmmalign_dir, "input_gene{0}.fa".format(input_count))
             input_count += 1
-            out_fh = open(hmmalign_gene_input, 'w')
-            out_fh.write(">{0}\n".format(marker_info.get("gene")))
-            out_fh.write("{0}".format(marker_info.get("gene_seq")))
-            out_fh.close()
+            with open(hmmalign_gene_input, 'w') as out_fh:
+                out_fh.write(">{0}\n".format(marker_info.get("gene")))
+                out_fh.write("{0}".format(marker_info.get("gene_seq")))
             proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
                 "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, encoding='utf-8')

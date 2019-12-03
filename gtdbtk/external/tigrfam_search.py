@@ -15,6 +15,7 @@
 #                                                                             #
 ###############################################################################
 
+import logging
 import multiprocessing as mp
 import os
 import sys
@@ -35,7 +36,7 @@ class TigrfamSearch(object):
                  checksum_suffix,
                  output_dir):
         """Initialization."""
-
+        self.logger = logging.getLogger('timestamp')
         self.threads = threads
         self.tigrfam_hmms = tigrfam_hmms
         self.protein_file_suffix = protein_file_suffix
@@ -114,10 +115,10 @@ class TigrfamSearch(object):
             os.system(cmd)
 
             # calculate checksum
-            checksum = sha256(output_hit_file)
-            fout = open(output_hit_file + self.checksum_suffix, 'w')
-            fout.write(checksum)
-            fout.close()
+            for out_file in [output_hit_file, hmmsearch_out]:
+                checksum = sha256(out_file)
+                with open(out_file + self.checksum_suffix, 'w') as fh:
+                    fh.write(checksum)
 
             # identify top hit for each gene
             self._topHit(output_hit_file)
@@ -151,6 +152,8 @@ class TigrfamSearch(object):
         gene_files : iterable
             Gene files in FASTA format to process.
         """
+        if len(gene_files) == 0:
+            raise GTDBTkExit('There are no genomes to process.')
         self.cpus_per_genome = max(1, self.threads / len(gene_files))
 
         # populate worker queue with data to process

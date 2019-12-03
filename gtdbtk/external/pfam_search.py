@@ -87,20 +87,18 @@ class PfamSearch(object):
                 else:
                     tophits[gene_id][hmm_id] = (evalue, bitscore)
 
-        fout = open(output_tophit_file, 'w')
-        fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
-        for gene_id, hits in tophits.items():
-            hit_str = []
-            for hmm_id, stats in hits.items():
-                hit_str.append(hmm_id + ',' + ','.join(map(str, stats)))
-            fout.write('%s\t%s\n' % (gene_id, ';'.join(hit_str)))
-        fout.close()
+        with open(output_tophit_file, 'w') as fout:
+            fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
+            for gene_id, hits in tophits.items():
+                hit_str = []
+                for hmm_id, stats in hits.items():
+                    hit_str.append(hmm_id + ',' + ','.join(map(str, stats)))
+                fout.write('%s\t%s\n' % (gene_id, ';'.join(hit_str)))
 
         # calculate checksum
         checksum = sha256(output_tophit_file)
-        fout = open(output_tophit_file + self.checksum_suffix, 'w')
-        fout.write(checksum)
-        fout.close()
+        with open(output_tophit_file + self.checksum_suffix, 'w') as fout:
+            fout.write(checksum)
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
@@ -120,10 +118,8 @@ class PfamSearch(object):
                 pfam_scan.write_results(output_hit_file, None, None, None, None)
 
                 # calculate checksum
-                checksum = sha256(output_hit_file)
-                fout = open(output_hit_file + self.checksum_suffix, 'w')
-                fout.write(checksum)
-                fout.close()
+                with open(output_hit_file + self.checksum_suffix, 'w') as fh:
+                    fh.write(sha256(output_hit_file))
 
                 # identify top hit for each gene
                 self._topHit(output_hit_file)
