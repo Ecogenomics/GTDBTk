@@ -2,7 +2,6 @@ import hashlib
 import math
 import os
 import random
-import sys
 import time
 from itertools import islice
 

@@ -133,14 +133,11 @@ class OptionsParser(object):
                     self._verify_genome_id(genome_id)
 
                     if genome_file is None or genome_file == '':
-                        self.logger.error('Missing genome file on line %d.' % (line_no + 1))
-                        raise GenomeBatchfileMalformed
+                        raise GTDBTkExit('Missing genome file on line %d.' % (line_no + 1))
                     elif genome_id is None or genome_id == '':
-                        self.logger.error('Missing genome ID on line %d.' % (line_no + 1))
-                        raise GenomeBatchfileMalformed
+                        raise GTDBTkExit('Missing genome ID on line %d.' % (line_no + 1))
                     elif genome_id in genomic_files:
-                        self.logger.error('Genome ID %s appears multiple times.' % genome_id)
-                        raise GenomeBatchfileMalformed
+                        raise GTDBTkExit('Genome ID %s appears multiple times.' % genome_id)
                     if genome_file in genomic_files.values():
                         self.logger.warning('Genome file appears multiple times: %s' % genome_file)
 
@@ -155,7 +152,7 @@ class OptionsParser(object):
                                   " (RS_,GB_,UBA) as reference genomes in"
                                   " GTDB-Tk. This will cause issues for"
                                   " downstream analysis.")
-                raise GenomeNameInvalid
+                raise GTDBTkExit
 
             if not os.path.isfile(genome_path):
                 invalid_paths.append((genome_key, genome_path))
@@ -178,7 +175,7 @@ class OptionsParser(object):
             else:
                 self.logger.error('No genomes found in batch file: %s. Please '
                                   'check the format of this file.' % batchfile)
-            raise NoGenomesFound
+            raise GTDBTkExit
 
         return genomic_files
 
@@ -526,6 +523,11 @@ class OptionsParser(object):
         # Stop processing if python 2 is being used.
         if sys.version_info.major < 3:
             raise GTDBTkExit('Python 2 is no longer supported.')
+
+        # Assert that the number of CPUs is a positive integer.
+        if hasattr(options, 'cpus') and options.cpus < 1:
+            self.logger.warning('You cannot use less than 1 CPU, defaulting to 1.')
+            options.cpus = 1
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])

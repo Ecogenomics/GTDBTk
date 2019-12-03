@@ -15,15 +15,16 @@
 #                                                                             #
 ###############################################################################
 
+import logging
 import multiprocessing as mp
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
+from collections import defaultdict
 
-import gtdbtk.config.config as Config
-from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.exceptions import FastANIException, GTDBTkException
+from gtdbtk.exceptions import GTDBTkExit
 
 
 class FastANI(object):
@@ -38,77 +39,123 @@ class FastANI(object):
             The number of CPUs to use.
 
         """
-        self.cpus = cpus
+        self.cpus = max(cpus, 1)
+        self.logger = logging.getLogger('timestamp')
 
-    def run(self, fastani_verification, genomes):
-        """Using the instance defined number of CPUs, run FastANI."""
+    def run(self, dict_compare, dict_paths):
+        """Runs FastANI in batch mode.
 
+        Parameters
+        ----------
+        dict_compare : Dict[str, Dict[str, str]]
+            All query to reference comparisons to be made.
+        dict_paths : Dict[str, str]
+            The path for each genome id being compared.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Dict[str, float]]]
+            A dictionary containing the ANI and AF for each comparison."""
+
+        # Create the multiprocessing items.
         q_worker = mp.Queue()
         q_writer = mp.Queue()
+        q_results = mp.Queue()
 
-        for userleaf, potential_nodes in fastani_verification.items():
-            q_worker.put((userleaf, potential_nodes))
+        # Populate the queue of comparisons in forwards and reverse direction.
+        for qry_gid, ref_set in dict_compare.items():
+            fwd_dict = {'ql': dict(), 'rl': dict(), 'qry': qry_gid}
+            rev_dict = {'ql': dict(), 'rl': dict(), 'qry': qry_gid}
+
+            qry_path = dict_paths[qry_gid]
+            fwd_dict['ql'][qry_gid] = qry_path
+            rev_dict['rl'][qry_gid] = qry_path
+
+            for ref_gid in ref_set:
+                ref_path = dict_paths[ref_gid]
+                fwd_dict['rl'][ref_gid] = ref_path
+                rev_dict['ql'][ref_gid] = ref_path
+
+            q_worker.put(fwd_dict)
+            q_worker.put(rev_dict)
+
+        # Set the terminate condition for each worker thread.
         [q_worker.put(None) for _ in range(self.cpus)]
 
-        manager = mp.Manager()
-        dict_out = manager.dict()
-
+        # Create each of the processes
         p_workers = [mp.Process(target=self._worker,
-                                args=(q_worker, q_writer, genomes, dict_out))
+                                args=(q_worker, q_writer, q_results))
                      for _ in range(self.cpus)]
 
         p_writer = mp.Process(target=self._writer,
-                              args=(q_writer, len(fastani_verification)))
+                              args=(q_writer, len(dict_compare)))
 
+        # Start each of the threads.
         try:
+            # Start the writer and each processing thread.
             p_writer.start()
             for p_worker in p_workers:
                 p_worker.start()
 
+            # Wait until each worker has finished.
             for p_worker in p_workers:
                 p_worker.join()
 
                 # Gracefully terminate the program.
                 if p_worker.exitcode != 0:
-                    raise GTDBTkException('FastANI returned a non-zero exit code.')
+                    raise GTDBTkExit('FastANI returned a non-zero exit code.')
 
+            # Stop the writer thread.
             q_writer.put(None)
             p_writer.join()
 
         except Exception:
             for p in p_workers:
                 p.terminate()
-
             p_writer.terminate()
             raise
 
-        return {k: v for k, v in dict_out.items()}
+        # Process and return each of the results obtained
+        path_to_gid = {v: k for k, v in dict_paths.items()}
+        return self._parse_result_queue(q_results, path_to_gid)
 
-    def _worker(self, q_worker, q_writer, genomes, dict_out):
-        """The worker function, invoked in a process.
+    def _worker(self, q_worker, q_writer, q_results):
+        """Operates FastANI in list mode.
 
         Parameters
         ----------
-        q_worker : multiprocessing.Queue
-            A queue of tuples containing the genome id, aa path, and marker.
-        q_writer : multiprocessing.Queue
-            A queue consumed by the writer, to track progress.
-        genomes : dict
-            The list of user genomes.
-        dict_out : dict
-            A thread-safe managed dictionary of results.
+        q_worker : Queue
+            A multiprocessing queue containing the available jobs.
+        q_writer : Queue
+            A multiprocessing queue to track progress.
+        q_results : Queue
+            A multiprocessing queue containing raw results.
         """
         job = q_worker.get(block=True, timeout=None)
         while job is not None:
-            userleaf, potential_nodes = job
-            dict_parser_distance = self._calculate_fastani_distance(
-                userleaf, potential_nodes, genomes)
-            for k, v in dict_parser_distance.items():
-                if k in dict_out:
-                    raise Exception("{} not in output.".format(k))
-                dict_out[k] = v
+
+            # Create a temporary directory to write the lists to.
+            dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_fastani_tmp_')
+            path_qry = os.path.join(dir_tmp, 'qry_list.txt')
+            path_ref = os.path.join(dir_tmp, 'ref_list.txt')
+            path_out = os.path.join(dir_tmp, 'output.txt')
+
+            try:
+                # Write to the query and reference lists
+                self._write_list(job['ql'], path_qry)
+                self._write_list(job['rl'], path_ref)
+
+                # Run FastANI
+                result = self.run_proc(path_qry, path_ref, path_out)
+                q_results.put((job, result))
+
+            except Exception:
+                shutil.rmtree(dir_tmp)
+                raise
+
             q_writer.put(True)
             job = q_worker.get(block=True, timeout=None)
+
         return True
 
     def _writer(self, q_writer, n_total):
@@ -126,170 +173,119 @@ class FastANI(object):
 
         while result is not None:
             processed_items += 1
-            statusStr = '==> Processing %d of %d (%.1f%%) genomes.' % (processed_items,
+            statusStr = '==> Processing %d of %d (%.1f%%) genomes.' % (processed_items // 2,
                                                                        n_total,
-                                                                       float(processed_items) * 100 / n_total)
-            sys.stdout.write('%s\r' % statusStr)
+                                                                       float(processed_items // 2) * 100 / n_total)
+            sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
             result = q_writer.get(block=True, timeout=None)
         sys.stdout.write('\n')
 
-    def _calculate_fastani_distance(self, user_leaf, list_leaf, genomes):
-        """ Calculate the FastANI distance between all user genomes and the reference to classfy them at the species level
+    def run_proc(self, path_qry, path_ref, path_out):
+        """Runs the FastANI process.
 
         Parameters
         ----------
-        user_leaf : User genome node
-        list_leaf : Dictionary of nodes including one or many user genomes and one reference genome.
-        genomes : Dictionary of user genomes d[genome_id] -> FASTA file
+        path_qry : str
+            The path to the query list file.
+        path_ref : str
+            The path to the reference list file.
+        path_out : str
+            The path to the output file.
 
         Returns
         -------
-        dictionary
-            dict_results[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
+        Dict[str, Dict[str, float]]
+            The ANI/AF of the query genomes to the reference genomes.
         """
-        try:
-            self.tmp_output_dir = tempfile.mkdtemp()
-            make_sure_path_exists(self.tmp_output_dir)
-            dict_parser_distance = {}
-            user_leaf_label = user_leaf.taxon.label
+        args = ['fastANI', '--ql', path_qry, '--rl', path_ref, '-o', path_out]
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, encoding='utf-8')
+        stdout, stderr = proc.communicate()
 
-            # we first calculate the user genome vs the reference
-            # we write the two input files for fastani, the query file and
-            # reference file
-            path_user_list = os.path.join(self.tmp_output_dir, 'query_list.txt')
-            with open(path_user_list, 'w') as f:
-                f.write('{0}\n'.format(genomes.get(user_leaf_label)))
+        if proc.returncode != 0:
+            self.logger.error('STDOUT:\n' + stdout)
+            self.logger.error('STDERR:\n' + stderr)
+            raise GTDBTkExit('FastANI returned a non-zero exit code.')
 
-            leafnodes = list_leaf.get("potential_g")
-            for node in leafnodes:
-                leafnode = node[0]
-                shortleaf = leafnode.taxon.label
-                path_ref_list = os.path.join(self.tmp_output_dir, 'ref_{}.txt'.format(shortleaf))
-                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
-                    shortleaf = leafnode.taxon.label[3:]
-                with open(path_ref_list, 'w') as f:
-                    f.write('{}\n'.format(os.path.join(
-                        Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)))
-                # run fastANI
-                if not os.path.isfile(path_user_list) or not os.path.isfile(path_ref_list):
-                    raise FastANIException
+        # Parse the output
+        return self._parse_output_file(path_out)
 
-                path_results = os.path.join(self.tmp_output_dir, 'results_{}_UvsRef.tab'.format(shortleaf))
-                path_error = os.path.join(self.tmp_output_dir, 'error_{}.log'.format(shortleaf))
-
-                cmd = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_user_list,
-                                                                                  path_ref_list,
-                                                                                  path_results,
-                                                                                  path_error)
-
-                os.system(cmd)
-
-                if not os.path.isfile(path_results):
-                    errstr = 'FastANI has stopped:\n'
-                    if os.path.isfile(path_error):
-                        with open(path_error) as debug:
-                            for line in debug:
-                                finalline = line
-                            errstr += finalline
-                    raise ValueError(errstr)
-
-                dict_parser_distance = self._parse_fastani_results(path_results, dict_parser_distance, user_leaf_label)
-
-                # We then calculate the reference vs user genome
-                path_results_reverse = os.path.join(self.tmp_output_dir, 'results_{}_RefvsU.tab'.format(shortleaf))
-                cmd_reverse = 'fastANI --ql {0} --rl {1} -o {2} > /dev/null 2>{3}'.format(path_ref_list,
-                                                                                          path_user_list,
-                                                                                          path_results_reverse,
-                                                                                          path_error)
-                os.system(cmd_reverse)
-                if not os.path.isfile(path_results_reverse):
-                    errstr = 'FastANI has stopped:\n'
-                    if os.path.isfile(path_error):
-                        with open(path_error) as debug:
-                            for line in debug:
-                                finalline = line
-                            errstr += finalline
-                    raise ValueError(errstr)
-                dict_parser_distance = self._parse_fastani_results_reverse(path_results_reverse,
-                                                                           dict_parser_distance,
-                                                                           user_leaf_label)
-
-            shutil.rmtree(self.tmp_output_dir)
-            return dict_parser_distance
-
-        except ValueError as error:
-            if os.path.exists(self.tmp_output_dir):
-                shutil.rmtree(self.tmp_output_dir)
-            raise error
-        except Exception as error:
-            if os.path.exists(self.tmp_output_dir):
-                shutil.rmtree(self.tmp_output_dir)
-            raise error
-
-    def _parse_fastani_results(self, fastout_file, dict_results, leaf_name):
-        """Parse the fastani output file
+    def _parse_output_file(self, path_out):
+        """Parses the resulting output file from FastANI.
 
         Parameters
         ----------
-        fastout_file : str
-            Path to the FastANI output file.
-        dict_results : dict
-            The dictionary of user genomes vs reference genomes (with ANI/AF).
-        leaf_name : str
-            A string containing the name of the query genome.
+        path_out : str
+            The path where the output file resides.
+
+        Returns
+        -------
+        Dict[str, Dict[str, float]]
+            The ANI/AF of the query genomes to the reference genomes.
+        """
+        out = defaultdict(dict)
+        with open(path_out, 'r') as fh:
+            for line in fh.readlines():
+                path_qry, path_ref, ani, frac1, frac2 = line.strip().split('\t')
+                af = round(float(frac1) / float(frac2), 2)
+                out[path_qry][path_ref] = (float(ani), af)
+        return out
+
+    def _write_list(self, d_genomes, path):
+        """Writes a query/reference list to disk.
+
+        Parameters
+        ----------
+        d_genomes : Dict[str, str]
+            A dictionary containing the key as the accession and value as path.
+        path : str
+            The path to write the file to.
+        """
+        with open(path, 'w') as fh:
+            for gid, gid_path in d_genomes.items():
+                fh.write(f'{gid_path}\n')
+
+    def _parse_result_queue(self, q_results, path_to_gid):
+        """Creates the output dictionary given the results from FastANI
+
+        Parameters
+        ----------
+        q_results : Queue
+            A multiprocessing queue containing raw results.
+        path_to_gid : Dict[str ,str]
+            A dictionary containing the file path to genome id.
 
         Returns
         -------
         Dict[str, Dict[str, Dict[str, float]]]
-            dict_results[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
+            The ANI/AF of the query genome to all reference genomes.
         """
-        with open(fastout_file, 'r') as fastfile:
-            for line in fastfile:
-                info = line.strip().split()
-                ref_genome = os.path.basename(info[1]).replace(
-                    Config.FASTANI_GENOMES_EXT, "")
-                ani = float(info[2])
-                af = round(float(info[3]) / float(info[4]), 2)
-                if leaf_name in dict_results:
-                    dict_results[leaf_name][ref_genome] = {"ani": ani, 'af': af}
-                else:
-                    dict_results[leaf_name] = {ref_genome: {"ani": ani, "af": af}}
-        return dict_results
+        out = defaultdict(lambda: defaultdict(lambda: {'ani': 0.0, 'af': 0.0}))
 
-    def _parse_fastani_results_reverse(self, fastout_file, dict_parser_distance, leaf_name):
-        # TODO: Merge _parse_fastani_results and _parse_fastani_results_reverse
-        """Parse the fastani output file for the reverse comparison and pick the best ANI and AF
+        q_results.put(None)
+        q_item = q_results.get(block=True)
+        while q_item is not None:
+            job, result = q_item
+            qry_gid = job['qry']
 
-        Parameters
-        ----------
-        fastout_file : str
-            Path to the FastANI output file.
-        dict_parser_distance : Dict[str, Dict[str, Dict[str, float]]]
-            The dictionary of user genomes vs reference genomes (with ANI/AF).
-        leaf_name : str
-            A string containing the name of the query genome.
+            for path_a, dict_b in result.items():
+                for path_b, (ani, af) in dict_b.items():
+                    gid_a, gid_b = path_to_gid[path_a], path_to_gid[path_b]
 
-        Returns
-        -------
-        Dict[str, Dict[str, Dict[str, float]]]
-            dict_parser_distance[user_g]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
-        """
-        with open(fastout_file) as fastfile:
-            for line in fastfile:
-                info = line.strip().split()
-                ref_genome = os.path.basename(info[0]).replace(
-                    Config.FASTANI_GENOMES_EXT, "")
-                ani = float(info[2])
-                af = round(float(info[3]) / float(info[4]), 2)
-                if leaf_name in dict_parser_distance:
-                    if ref_genome in dict_parser_distance.get(leaf_name):
-                        if dict_parser_distance.get(leaf_name).get(ref_genome).get('ani') < ani:
-                            dict_parser_distance[leaf_name][ref_genome]["ani"] = ani
-                        if dict_parser_distance.get(leaf_name).get(ref_genome).get('af') < af:
-                            dict_parser_distance[leaf_name][ref_genome]["af"] = af
+                    # This was done in the forward direction.
+                    if gid_a == qry_gid:
+                        ref_gid = gid_b
+                    # This was done in the reverse direction.
+                    elif gid_b == qry_gid:
+                        ref_gid = gid_a
                     else:
-                        dict_parser_distance[leaf_name][ref_genome] = {"ani": ani, 'af': af}
-                else:
-                    dict_parser_distance[leaf_name] = {ref_genome: {"ani": ani, "af": af}}
-        return dict_parser_distance
+                        raise GTDBTkExit('FastANI results are malformed.')
+
+                    # Take the largest ANI / AF from either pass.
+                    out[qry_gid][ref_gid]['ani'] = max(out[qry_gid][ref_gid]['ani'], ani)
+                    out[qry_gid][ref_gid]['af'] = max(out[qry_gid][ref_gid]['af'], af)
+
+            q_item = q_results.get(block=True)
+        return out
+

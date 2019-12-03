@@ -135,7 +135,7 @@ class TestOptionsParser(unittest.TestCase):
             f.write('\n')
             f.write('%s\tgenome_1\n' % path_genome_2)
 
-        self.assertRaises(GenomeBatchfileMalformed, self.options_parser._genomes_to_process, '', path_batchfile,
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile,
                           'fna')
 
     def test__genomes_to_process__batchfile__invalid_genome_id(self):
@@ -164,16 +164,16 @@ class TestOptionsParser(unittest.TestCase):
             f.write('\n')
             f.write('%s\tUBAgenome_2\n' % path_genome_2)
 
-        self.assertRaises(GenomeNameInvalid, self.options_parser._genomes_to_process, '', path_batchfile_1, 'fna')
-        self.assertRaises(GenomeNameInvalid, self.options_parser._genomes_to_process, '', path_batchfile_2, 'fna')
-        self.assertRaises(GenomeNameInvalid, self.options_parser._genomes_to_process, '', path_batchfile_3, 'fna')
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_1, 'fna')
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_2, 'fna')
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_3, 'fna')
 
     def test__genomes_to_process__no_files(self):
         """ Test that an exception is thrown if no files are found to process """
         # Branch 1 : genome_dir is specified
         tmp_genome_dir = tempfile.mkdtemp()
         try:
-            self.assertRaises(NoGenomesFound, self.options_parser._genomes_to_process, tmp_genome_dir, '', 'fna')
+            self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, tmp_genome_dir, '', 'fna')
         finally:
             shutil.rmtree(tmp_genome_dir)
 
@@ -182,7 +182,7 @@ class TestOptionsParser(unittest.TestCase):
         try:
             path_batchfile = os.path.join(tmp_genome_dir, 'batchfile.txt')
             open(path_batchfile, 'a').close()
-            self.assertRaises(NoGenomesFound, self.options_parser._genomes_to_process, '', path_batchfile, 'fna')
+            self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile, 'fna')
         finally:
             shutil.rmtree(tmp_genome_dir)
 

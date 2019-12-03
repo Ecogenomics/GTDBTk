@@ -34,7 +34,7 @@ from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
-from gtdbtk.exceptions import GenomeMarkerSetUnknown
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
@@ -427,7 +427,9 @@ class Classify(object):
             # selected genomes in the same genus
             if len(fastani_verification) > 0:
                 fastani = FastANI(cpus=self.cpus)
-                all_fastani_dict = fastani.run(fastani_verification, genomes)
+                d_ani_compare, d_paths = self._get_fastani_genome_path(fastani_verification, genomes)
+                all_fastani_dict = fastani.run(d_ani_compare, d_paths)
+                print(all_fastani_dict)
 
             classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
                 fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
@@ -1452,3 +1454,27 @@ class Classify(object):
                                     length2=0.5 * mrca.edge_length)
 
         return new_tree
+
+    def _get_fastani_genome_path(self, fastani_verification, genomes):
+        """Generates a queue of comparisons to be made and the paths to
+        the corresponding genome id."""
+        dict_compare, dict_paths = dict(), dict()
+
+        for qry_node, qry_dict in fastani_verification.items():
+            user_label = qry_node.taxon.label
+            dict_paths[user_label] = genomes[user_label]
+            dict_compare[user_label] = set()
+            for node in qry_dict.get('potential_g'):
+                leafnode = node[0]
+                shortleaf = leafnode.taxon.label
+                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
+                    shortleaf = leafnode.taxon.label[3:]
+                ref_path = os.path.join(Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)
+                if not os.path.isfile(ref_path):
+                    raise GTDBTkExit(f'Reference genome missing from FastANI database: {ref_path}')
+
+                dict_compare[user_label].add(shortleaf)
+                dict_paths[shortleaf] = ref_path
+
+        return dict_compare, dict_paths
+
