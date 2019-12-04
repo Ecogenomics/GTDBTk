@@ -39,7 +39,7 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
-from gtdbtk.tools import add_ncbi_prefix, symlink_f
+from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb
 
 sys.setrecursionlimit(15000)
 
@@ -81,6 +81,22 @@ class Classify(object):
                       prefix,
                       scratch_dir=None):
         """Place genomes into reference tree using pplacer."""
+
+        # Warn if the memory is insufficient
+        mem_gb = get_memory_gb()
+        if mem_gb is not None:
+            mem_total = mem_gb['MemTotal']
+            if marker_set_id == 'bac120' and mem_total < 114:
+                self.logger.warning(f'pplacer requires ~113 GB of RAM to fully '
+                                    f'load the bacterial tree into memory. '
+                                    f'However, {mem_total}GB was detected. '
+                                    f'This may affect pplacer performance.')
+            elif marker_set_id == 'ar122' and mem_total < 7:
+                self.logger.warning(f'pplacer requires ~6.2 GB of RAM to fully '
+                                    f'load the archaeal tree into memory. '
+                                    f'However, {mem_total}GB was detected. '
+                                    f'This may affect pplacer performance.')
+
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
             if marker_set_id == 'bac120':

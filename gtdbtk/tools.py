@@ -1,9 +1,11 @@
 import hashlib
-import math
 import os
 import random
+import re
 import time
 from itertools import islice
+
+import math
 
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 
@@ -168,3 +170,12 @@ def symlink_f(src, dst, force=True):
     if force and os.path.isfile(dst):
         os.remove(dst)
     os.symlink(src, dst)
+
+
+def get_memory_gb():
+    try:
+        with open('/proc/meminfo', 'r') as mem:
+            hits = re.findall(r'([\w()]+):\s+(\d+) kB', mem.read())
+        return {k: round(int(v) / 1e6, 2) for k, v in hits}
+    except Exception:
+        return None
