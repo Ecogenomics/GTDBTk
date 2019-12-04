@@ -4,7 +4,6 @@ import sys
 
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
-
 except KeyError:
     print('\n' + '=' * 80)
     print(' ERROR '.center(80))
@@ -159,3 +158,5 @@ REF_HASHES = {PPLACER_DIR: 'cc53e494048fb50b2789bcdec2868eac2d3cb2b3',
               TAX_FOLDER: '2037fd5fb43d886821ef21e7d2e899465b37589d',
               FASTANI_DIR: '5a5021fb098c4abda08928b7991f4bc00a77e851',
               RED_DIR: '1dd0316cf4bd9f1afc490bb121b16b956759ee75'}
+
+MP_TIMEOUT = 120

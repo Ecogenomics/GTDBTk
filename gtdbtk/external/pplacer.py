@@ -36,7 +36,6 @@ class PplacerLogger(object):
             The file to write to .
         """
         self.fh = fh
-        self.init_dots = 0
 
     def _disp_progress(self, line):
         """Calculates the progress and writes it to stdout.
@@ -47,10 +46,8 @@ class PplacerLogger(object):
             The line passed from pplacer stdout.
         """
         if not line.startswith('working on '):
-            sys.stdout.write('\rInitialising pplacer{}'.format('.' *
-                                                               self.init_dots))
+            sys.stdout.write(f'\rInitialising pplacer [{line[0:50].center(50)}]')
             sys.stdout.flush()
-            self.init_dots = (self.init_dots + 1) % 4
         else:
             re_hits = re.search(r'\((\d+)\/(\d+)\)', line)
             current = int(re_hits.group(1))

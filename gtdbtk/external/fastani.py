@@ -24,22 +24,25 @@ import sys
 import tempfile
 from collections import defaultdict
 
+from gtdbtk.config.config import MP_TIMEOUT
 from gtdbtk.exceptions import GTDBTkExit
 
 
 class FastANI(object):
     """Python wrapper for FastANI (https://github.com/ParBLiSS/FastANI)"""
 
-    def __init__(self, cpus):
+    def __init__(self, cpus, force_single):
         """Instantiate the class.
 
         Parameters
         ----------
         cpus : int
             The number of CPUs to use.
-
+        force_single : bool
+            True if the ql and rl calls should be done individually.
         """
         self.cpus = max(cpus, 1)
+        self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
 
     def run(self, dict_compare, dict_paths):
@@ -58,37 +61,59 @@ class FastANI(object):
             A dictionary containing the ANI and AF for each comparison."""
 
         # Create the multiprocessing items.
-        q_worker = mp.Queue()
-        q_writer = mp.Queue()
-        q_results = mp.Queue()
+        manager = mp.Manager()
+        q_worker = manager.Queue()
+        q_writer = manager.Queue()
+        q_results = manager.Queue()
 
         # Populate the queue of comparisons in forwards and reverse direction.
-        for qry_gid, ref_set in dict_compare.items():
-            fwd_dict = {'ql': dict(), 'rl': dict(), 'qry': qry_gid}
-            rev_dict = {'ql': dict(), 'rl': dict(), 'qry': qry_gid}
+        n_total = 0
+        if self.force_single:
+            for qry_gid, ref_set in dict_compare.items():
+                qry_path = dict_paths[qry_gid]
 
-            qry_path = dict_paths[qry_gid]
-            fwd_dict['ql'][qry_gid] = qry_path
-            rev_dict['rl'][qry_gid] = qry_path
+                for ref_gid in ref_set:
+                    ref_path = dict_paths[ref_gid]
 
-            for ref_gid in ref_set:
-                ref_path = dict_paths[ref_gid]
-                fwd_dict['rl'][ref_gid] = ref_path
-                rev_dict['ql'][ref_gid] = ref_path
+                    fwd_dict = {'q': dict(), 'r': dict(), 'qry': qry_gid}
+                    rev_dict = {'q': dict(), 'r': dict(), 'qry': qry_gid}
 
-            q_worker.put(fwd_dict)
-            q_worker.put(rev_dict)
+                    fwd_dict['q'][qry_gid] = qry_path
+                    fwd_dict['r'][ref_gid] = ref_path
+
+                    rev_dict['q'][ref_gid] = ref_path
+                    rev_dict['r'][qry_gid] = qry_path
+
+                    q_worker.put(fwd_dict, timeout=MP_TIMEOUT)
+                    q_worker.put(rev_dict, timeout=MP_TIMEOUT)
+                    n_total += 2
+        else:
+            for qry_gid, ref_set in dict_compare.items():
+                fwd_dict = {'ql': dict(), 'rl': dict(), 'qry': qry_gid}
+                rev_dict = {'ql': dict(), 'rl': dict(), 'qry': qry_gid}
+
+                qry_path = dict_paths[qry_gid]
+                fwd_dict['ql'][qry_gid] = qry_path
+                rev_dict['rl'][qry_gid] = qry_path
+
+                for ref_gid in ref_set:
+                    ref_path = dict_paths[ref_gid]
+                    fwd_dict['rl'][ref_gid] = ref_path
+                    rev_dict['ql'][ref_gid] = ref_path
+
+                q_worker.put(fwd_dict, timeout=MP_TIMEOUT)
+                q_worker.put(rev_dict, timeout=MP_TIMEOUT)
+                n_total += 2
 
         # Set the terminate condition for each worker thread.
-        [q_worker.put(None) for _ in range(self.cpus)]
+        [q_worker.put(None, timeout=MP_TIMEOUT) for _ in range(self.cpus)]
 
         # Create each of the processes
         p_workers = [mp.Process(target=self._worker,
                                 args=(q_worker, q_writer, q_results))
                      for _ in range(self.cpus)]
 
-        p_writer = mp.Process(target=self._writer,
-                              args=(q_writer, len(dict_compare)))
+        p_writer = mp.Process(target=self._writer, args=(q_writer, n_total))
 
         # Start each of the threads.
         try:
@@ -99,15 +124,15 @@ class FastANI(object):
 
             # Wait until each worker has finished.
             for p_worker in p_workers:
-                p_worker.join()
+                p_worker.join(timeout=MP_TIMEOUT)
 
                 # Gracefully terminate the program.
                 if p_worker.exitcode != 0:
                     raise GTDBTkExit('FastANI returned a non-zero exit code.')
 
             # Stop the writer thread.
-            q_writer.put(None)
-            p_writer.join()
+            q_writer.put(None, timeout=MP_TIMEOUT)
+            p_writer.join(timeout=MP_TIMEOUT)
 
         except Exception:
             for p in p_workers:
@@ -117,6 +142,7 @@ class FastANI(object):
 
         # Process and return each of the results obtained
         path_to_gid = {v: k for k, v in dict_paths.items()}
+        q_results.put(None, timeout=MP_TIMEOUT)
         return self._parse_result_queue(q_results, path_to_gid)
 
     def _worker(self, q_worker, q_writer, q_results):
@@ -131,31 +157,35 @@ class FastANI(object):
         q_results : Queue
             A multiprocessing queue containing raw results.
         """
-        job = q_worker.get(block=True, timeout=None)
-        while job is not None:
+        while True:
+            # Retrieve the next item, stop if the sentinel is found.
+            job = q_worker.get(block=True, timeout=MP_TIMEOUT)
+            if job is None:
+                break
+
+            # Extract the values
+            q = list(job.get('q').values())[0] if job.get('q') is not None else None
+            r = list(job.get('r').values())[0] if job.get('r') is not None else None
+            ql = job.get('ql')
+            rl = job.get('rl')
 
             # Create a temporary directory to write the lists to.
             dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_fastani_tmp_')
-            path_qry = os.path.join(dir_tmp, 'qry_list.txt')
-            path_ref = os.path.join(dir_tmp, 'ref_list.txt')
+            path_qry = os.path.join(dir_tmp, 'ql.txt') if ql is not None else None
+            path_ref = os.path.join(dir_tmp, 'rl.txt') if rl is not None else None
             path_out = os.path.join(dir_tmp, 'output.txt')
 
             try:
                 # Write to the query and reference lists
-                self._write_list(job['ql'], path_qry)
-                self._write_list(job['rl'], path_ref)
+                self._maybe_write_list(ql, path_qry)
+                self._maybe_write_list(rl, path_ref)
 
                 # Run FastANI
-                result = self.run_proc(path_qry, path_ref, path_out)
-                q_results.put((job, result))
-
-            except Exception:
+                result = self.run_proc(q, r, path_qry, path_ref, path_out)
+                q_results.put((job, result), timeout=MP_TIMEOUT)
+                q_writer.put(True, timeout=MP_TIMEOUT)
+            finally:
                 shutil.rmtree(dir_tmp)
-                raise
-
-            q_writer.put(True)
-            job = q_worker.get(block=True, timeout=None)
-
         return True
 
     def _writer(self, q_writer, n_total):
@@ -169,28 +199,32 @@ class FastANI(object):
             The total number of items to be processed.
         """
         processed_items = 0
-        result = q_writer.get(block=True, timeout=None)
-
-        while result is not None:
+        while True:
+            result = q_writer.get(block=True, timeout=MP_TIMEOUT)
+            if result is None:
+                break
             processed_items += 1
-            statusStr = '==> Processing %d of %d (%.1f%%) genomes.' % (processed_items // 2,
-                                                                       n_total,
-                                                                       float(processed_items // 2) * 100 / n_total)
-            sys.stdout.write('\r%s' % statusStr)
+            status = f'==> Processing {processed_items} of {n_total} ' \
+                     f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
+            sys.stdout.write('\r%s' % status)
             sys.stdout.flush()
-            result = q_writer.get(block=True, timeout=None)
         sys.stdout.write('\n')
+        return True
 
-    def run_proc(self, path_qry, path_ref, path_out):
+    def run_proc(self, q, r, ql, rl, output):
         """Runs the FastANI process.
 
         Parameters
         ----------
-        path_qry : str
+        q : str
+            The path to the query genome.
+        r : str
+            The path to the reference genome.
+        ql : str
             The path to the query list file.
-        path_ref : str
+        rl : str
             The path to the reference list file.
-        path_out : str
+        output : str
             The path to the output file.
 
         Returns
@@ -198,7 +232,17 @@ class FastANI(object):
         Dict[str, Dict[str, float]]
             The ANI/AF of the query genomes to the reference genomes.
         """
-        args = ['fastANI', '--ql', path_qry, '--rl', path_ref, '-o', path_out]
+        args = ['fastANI']
+        if q is not None:
+            args.extend(['-q', q])
+        if r is not None:
+            args.extend(['-r', r])
+        if ql is not None:
+            args.extend(['--ql', ql])
+        if rl is not None:
+            args.extend(['--rl', rl])
+        args.extend(['-o', output])
+
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, encoding='utf-8')
         stdout, stderr = proc.communicate()
@@ -209,7 +253,7 @@ class FastANI(object):
             raise GTDBTkExit('FastANI returned a non-zero exit code.')
 
         # Parse the output
-        return self._parse_output_file(path_out)
+        return self._parse_output_file(output)
 
     def _parse_output_file(self, path_out):
         """Parses the resulting output file from FastANI.
@@ -221,7 +265,7 @@ class FastANI(object):
 
         Returns
         -------
-        Dict[str, Dict[str, float]]
+        Dict[str, Dict[str, Tuple[float, float]]]
             The ANI/AF of the query genomes to the reference genomes.
         """
         out = defaultdict(dict)
@@ -232,7 +276,7 @@ class FastANI(object):
                 out[path_qry][path_ref] = (float(ani), af)
         return out
 
-    def _write_list(self, d_genomes, path):
+    def _maybe_write_list(self, d_genomes, path):
         """Writes a query/reference list to disk.
 
         Parameters
@@ -242,6 +286,8 @@ class FastANI(object):
         path : str
             The path to write the file to.
         """
+        if d_genomes is None or path is None:
+            return
         with open(path, 'w') as fh:
             for gid, gid_path in d_genomes.items():
                 fh.write(f'{gid_path}\n')
@@ -261,10 +307,8 @@ class FastANI(object):
         Dict[str, Dict[str, Dict[str, float]]]
             The ANI/AF of the query genome to all reference genomes.
         """
-        out = defaultdict(lambda: defaultdict(lambda: {'ani': 0.0, 'af': 0.0}))
-
-        q_results.put(None)
-        q_item = q_results.get(block=True)
+        out = dict()
+        q_item = q_results.get(block=True, timeout=MP_TIMEOUT)
         while q_item is not None:
             job, result = q_item
             qry_gid = job['qry']
@@ -283,9 +327,13 @@ class FastANI(object):
                         raise GTDBTkExit('FastANI results are malformed.')
 
                     # Take the largest ANI / AF from either pass.
-                    out[qry_gid][ref_gid]['ani'] = max(out[qry_gid][ref_gid]['ani'], ani)
-                    out[qry_gid][ref_gid]['af'] = max(out[qry_gid][ref_gid]['af'], af)
+                    if qry_gid not in out:
+                        out[qry_gid] = {ref_gid: {'ani': ani, 'af': af}}
+                    elif ref_gid not in out[qry_gid]:
+                        out[qry_gid][ref_gid] = {'ani': ani, 'af': af}
+                    else:
+                        out[qry_gid][ref_gid]['ani'] = max(out[qry_gid][ref_gid]['ani'], ani)
+                        out[qry_gid][ref_gid]['af'] = max(out[qry_gid][ref_gid]['af'], af)
 
-            q_item = q_results.get(block=True)
+            q_item = q_results.get(block=True, timeout=MP_TIMEOUT)
         return out
-
