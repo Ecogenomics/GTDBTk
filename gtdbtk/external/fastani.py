@@ -22,7 +22,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from collections import defaultdict
 
 from gtdbtk.config.config import MP_TIMEOUT
 from gtdbtk.exceptions import GTDBTkExit
@@ -268,12 +267,16 @@ class FastANI(object):
         Dict[str, Dict[str, Tuple[float, float]]]
             The ANI/AF of the query genomes to the reference genomes.
         """
-        out = defaultdict(dict)
-        with open(path_out, 'r') as fh:
-            for line in fh.readlines():
-                path_qry, path_ref, ani, frac1, frac2 = line.strip().split('\t')
-                af = round(float(frac1) / float(frac2), 2)
-                out[path_qry][path_ref] = (float(ani), af)
+        out = dict()
+        if os.path.isfile(path_out):
+            with open(path_out, 'r') as fh:
+                for line in fh.readlines():
+                    path_qry, path_ref, ani, frac1, frac2 = line.strip().split('\t')
+                    af = round(float(frac1) / float(frac2), 2)
+                    if path_qry not in out:
+                        out[path_qry] = {path_ref: (float(ani), af)}
+                    elif path_ref not in out[path_qry]:
+                        out[path_qry][path_ref] = (float(ani), af)
         return out
 
     def _maybe_write_list(self, d_genomes, path):
@@ -308,8 +311,11 @@ class FastANI(object):
             The ANI/AF of the query genome to all reference genomes.
         """
         out = dict()
-        q_item = q_results.get(block=True, timeout=MP_TIMEOUT)
-        while q_item is not None:
+        while True:
+            q_item = q_results.get(block=True, timeout=MP_TIMEOUT)
+            if q_item is None:
+                break
+
             job, result = q_item
             qry_gid = job['qry']
 
@@ -335,5 +341,4 @@ class FastANI(object):
                         out[qry_gid][ref_gid]['ani'] = max(out[qry_gid][ref_gid]['ani'], ani)
                         out[qry_gid][ref_gid]['af'] = max(out[qry_gid][ref_gid]['af'], af)
 
-            q_item = q_results.get(block=True, timeout=MP_TIMEOUT)
         return out
