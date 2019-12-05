@@ -34,8 +34,16 @@ Please visit the GTDB-Tk [github page](https://github.com/Ecogenomics/GTDBTk) fo
 
 ## Announcements
 
+**Note (Dec 5, 2019)**:
+* GTDB-Tk v1.0.0 has been released (**we recommend all users update to this version**)
+    * Migrated to **Python 3**, you must be running at least **Python 3.6** or later to use this version.
+    * `check_install` now does an exhaustive check of the reference data.
+    * Resolved an issue where gene calling would fail for low quality genomes (#192).
+    * Improved FastANI multiprocessing performance.
+    * Third party software versions are reported where possible.
+
 **Note (Nov 15, 2019)**:
-* GTDB-Tk v0.3.3 has been released (**we recommend all users update to this version**)
+* GTDB-Tk v0.3.3 has been released
     * A bug has been fixed which affected `classify` and `classify_wf` when using the `--batchfile`
       argument with genome IDs that differed from the FASTA filename. This issue resulted in 
       the assigned taxonomy being derived only from tree placement without any ANI 
@@ -116,9 +124,13 @@ echo 'alias gtdbtk="python ~/.local/bin/gtdbtk"' >> ~/.bashrc
 
 ### Bioconda installation
 
-A Bioconda recipe is available as an alternative installation source (thanks to [Natasha](https://github.com/npavlovikj) for starting it). You can find the recipe here: https://anaconda.org/bioconda/gtdbtk
-
-The GTDB-Tk reference data is not available as a part of the recipe, but it can be automatically downloaded to the conda package by executing the command: `download-db.sh`
+1. Create a new conda environment: `conda create -n gtdbtk`
+2. Activate the environment: `conda activate gtdbtk`
+3. Install GTDB-Tk: `conda install -c bioconda gtdbtk`
+4. Download the reference package either [manually](https://github.com/Ecogenomics/GTDBTk#gtdb-tk-reference-data) 
+or by running `download-db.sh`.
+5. Set the `GTDBTK_DATA_PATH` environment variable in 
+`{gtdbtk environment path}/etc/conda/activate.d/gtdbtk.sh` to the reference package location.
 
 
 ### KBase web-based platform

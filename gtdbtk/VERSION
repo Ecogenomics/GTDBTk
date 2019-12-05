@@ -1,5 +1,9 @@
 1.0.0
 - Migrated to Python3.
+- check_install now does an exhaustive check of the reference data.
+- Resolved an issue where gene calling would fail for low quality genomes (#192).
+- Improved FastANI multiprocessing performance.
+- Third party software versions are reported where possible.
 0.3.3
 - Bugfix for --batchfile users of classify and classify_wf.
 - Display hmmalign, and pplacer progress.
