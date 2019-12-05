@@ -13,6 +13,7 @@ def version():
 
 setup(
     name='gtdbtk',
+    python_requires='>=3.6',
     version=version(),
     author='Pierre-Alain Chaumeil and Donovan Parks',
     author_email='p.chaumeil@uq.edu.au',
