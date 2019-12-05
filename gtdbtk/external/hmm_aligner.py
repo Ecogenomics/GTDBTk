@@ -63,15 +63,20 @@ class HmmAligner(object):
 
     def get_version(self):
         """ get HMMER version."""
-        env = os.environ.copy()
-        proc = subprocess.Popen(['hmmalign', '-h'], stdout=subprocess.PIPE,
+        try:
+            env = os.environ.copy()
+            proc = subprocess.Popen(['hmmalign', '-h'], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
-        output, error = proc.communicate()
-        for line in output.split('\n'):
-            if line.startswith('# HMMER'):
-                version = line.split(';')[0].replace('# HMMER', '').strip()
-                return version
+            output, error = proc.communicate()
+            for line in output.split('\n'):
+                if line.startswith('# HMMER'):
+                    version = line.split(';')[0].replace('# HMMER', '').strip()
+                    return version
+            return "(version unavailable)"
+        except:
+            return "(version unavailable)"
+
 
     def align_marker_set(self, db_genome_ids, marker_set_id):
         """Threaded alignment using hmmalign for a given set of genomes.

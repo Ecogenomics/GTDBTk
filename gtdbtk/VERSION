@@ -1,3 +1,5 @@
+1.0.1
+- Bugfix for 3rd party software versions. 
 1.0.0
 - Migrated to Python3.
 - check_install now does an exhaustive check of the reference data.

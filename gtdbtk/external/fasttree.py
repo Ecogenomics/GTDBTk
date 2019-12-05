@@ -34,12 +34,15 @@ class FastTree(object):
 
     def get_version(self):
         """ Get FastTree version. """
-        env = os.environ.copy()
-        args = ['FastTree']
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+        try:
+            env = os.environ.copy()
+            args = ['FastTree']
+            proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env, encoding='utf-8')
-        output, error = proc.communicate()
-        return error.split('\n')[0].split(' ')[4]
+            output, error = proc.communicate()
+            return error.split('\n')[0].split(' ')[4]
+        except:
+            return "(version unavailable)"
 
     def run(self, output_tree, tree_log, fasttree_log, prot_model, no_support, no_gamma, msa_file, cpus=1):
         """Run FastTree.

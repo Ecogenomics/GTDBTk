@@ -103,12 +103,15 @@ class Pplacer(object):
         self.version = self._get_version()
 
     def _get_version(self):
-        env = os.environ.copy()
-        proc = subprocess.Popen(['pplacer', '--version'], stdout=subprocess.PIPE,
+        try:
+            env = os.environ.copy()
+            proc = subprocess.Popen(['pplacer', '--version'], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
-        output, error = proc.communicate()
-        return output.strip()
+            output, error = proc.communicate()
+            return output.strip()
+        except:
+            return "(version unavailable)"
 
     def run(self, cpus, model, ref_pkg, json_out, msa_file, pplacer_out,
             mmap_file=None):

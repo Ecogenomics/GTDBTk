@@ -56,13 +56,16 @@ class Prodigal(object):
         self.version = self._get_version()
 
     def _get_version(self):
-        env = os.environ.copy()
-        proc = subprocess.Popen(['prodigal', '-v'], stdout=subprocess.PIPE,
+        try:
+            env = os.environ.copy()
+            proc = subprocess.Popen(['prtrrodigal', '-v'], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
-        output, error = proc.communicate()
+            output, error = proc.communicate()
 
-        return error.split('\n')[1].split()[1].replace(':', '')
+            return error.split('\n')[1].split()[1].replace(':', '')
+        except:
+            return "(version unavailable)"
 
     def _run_prodigal(self, genome_id, fasta_path):
         """Run Prodigal.

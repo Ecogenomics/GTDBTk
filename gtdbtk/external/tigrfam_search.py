@@ -49,15 +49,19 @@ class TigrfamSearch(object):
 
     def _get_version(self):
         """ get HMMER version."""
-        env = os.environ.copy()
-        proc = subprocess.Popen(['hmmsearch', '-h'], stdout=subprocess.PIPE,
+        try:
+            env = os.environ.copy()
+            proc = subprocess.Popen(['hmmsearch', '-h'], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
-        output, error = proc.communicate()
-        for line in output.split('\n'):
-            if line.startswith('# HMMER'):
-                version = line.split(';')[0].replace('# HMMER', '').strip()
-                return version
+            output, error = proc.communicate()
+            for line in output.split('\n'):
+                if line.startswith('# HMMER'):
+                    version = line.split(';')[0].replace('# HMMER', '').strip()
+                    return version
+            return "(version unavailable)"
+        except:
+            return "(version unavailable)"
 
     def _topHit(self, tigrfam_file):
         """Determine top hits to TIGRFAMs.
