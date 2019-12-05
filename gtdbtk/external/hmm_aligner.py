@@ -59,6 +59,20 @@ class HmmAligner(object):
         self.ar122_markers = ar122_markers
         self.rps23_markers = rps23_markers
 
+        self.version = self.get_version()
+
+    def get_version(self):
+        """ get HMMER version."""
+        env = os.environ.copy()
+        proc = subprocess.Popen(['hmmalign', '-h'], stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+
+        output, error = proc.communicate()
+        for line in output.split('\n'):
+            if line.startswith('# HMMER'):
+                version = line.split(';')[0].replace('# HMMER', '').strip()
+                return version
+
     def align_marker_set(self, db_genome_ids, marker_set_id):
         """Threaded alignment using hmmalign for a given set of genomes.
 
@@ -101,7 +115,8 @@ class HmmAligner(object):
 
                 # Gracefully terminate the program.
                 if p_worker.exitcode != 0:
-                    raise GTDBTkException('hmmalign returned a non-zero exit code.')
+                    raise GTDBTkException(
+                        'hmmalign returned a non-zero exit code.')
 
             q_writer.put(None)
             p_writer.join()
@@ -177,20 +192,20 @@ class HmmAligner(object):
         if marker_set_id == "bac120":
             for db_marker in sorted(self.bac120_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
+                                             os.path.join(
+                    marker_paths[db_marker], marker)
                     for marker in self.bac120_markers[db_marker]})
         elif marker_set_id == "ar122":
             for db_marker in sorted(self.ar122_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
+                                             os.path.join(
+                    marker_paths[db_marker], marker)
                     for marker in self.ar122_markers[db_marker]})
         elif marker_set_id == "rps23":
             for db_marker in sorted(self.rps23_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
-                    os.path.join(
-                        marker_paths[db_marker], marker)
+                                             os.path.join(
+                    marker_paths[db_marker], marker)
                     for marker in self.rps23_markers[db_marker]})
 
         result_aligns = {db_genome_id: {}}
@@ -291,7 +306,7 @@ class HmmAligner(object):
                 out_fh.write("{0}".format(marker_info.get("gene_seq")))
             proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
                 "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, encoding='utf-8')
+                stderr=subprocess.PIPE, encoding='utf-8')
             stdout, stderr = proc.communicate()
 
             for line in stderr.splitlines():

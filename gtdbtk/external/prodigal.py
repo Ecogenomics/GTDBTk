@@ -20,11 +20,13 @@ import multiprocessing as mp
 import os
 import shutil
 import sys
+import subprocess
 
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.exceptions import ProdigalException
 from gtdbtk.tools import sha256
 from gtdbtk.config.output import CHECKSUM_SUFFIX
+
 
 class Prodigal(object):
     """Perform ab initio gene prediction using Prodigal."""
@@ -51,6 +53,16 @@ class Prodigal(object):
         self.nt_gene_file_suffix = nt_gene_file_suffix
         self.gff_file_suffix = gff_file_suffix
         self.force = force
+        self.version = self._get_version()
+
+    def _get_version(self):
+        env = os.environ.copy()
+        proc = subprocess.Popen(['prodigal', '-v'], stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+
+        output, error = proc.communicate()
+
+        return error.split('\n')[1].split()[1].replace(':', '')
 
     def _run_prodigal(self, genome_id, fasta_path):
         """Run Prodigal.
@@ -184,7 +196,8 @@ class Prodigal(object):
             worker_proc = [mp.Process(target=self._worker, args=(out_dict,
                                                                  worker_queue,
                                                                  writer_queue)) for _ in range(self.threads)]
-            writer_proc = mp.Process(target=self._writer, args=(len(genomic_files), writer_queue))
+            writer_proc = mp.Process(target=self._writer, args=(
+                len(genomic_files), writer_queue))
 
             writer_proc.start()
             for p in worker_proc:
@@ -195,7 +208,8 @@ class Prodigal(object):
 
                 # Gracefully terminate the program.
                 if p.exitcode != 0:
-                    raise ProdigalException('Prodigal returned a non-zero exit code.')
+                    raise ProdigalException(
+                        'Prodigal returned a non-zero exit code.')
 
             writer_queue.put(None)
             writer_proc.join()
@@ -204,7 +218,8 @@ class Prodigal(object):
                 p.terminate()
 
             writer_proc.terminate()
-            raise ProdigalException('An exception was caught while running Prodigal.')
+            raise ProdigalException(
+                'An exception was caught while running Prodigal.')
 
         # Report on any genomes which failed to have any genes called
         result_dict = dict()

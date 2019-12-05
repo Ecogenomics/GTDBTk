@@ -19,6 +19,7 @@ import logging
 import multiprocessing as mp
 import os
 import sys
+import subprocess
 
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import sha256
@@ -44,6 +45,19 @@ class TigrfamSearch(object):
         self.tigrfam_top_hit_suffix = tigrfam_top_hit_suffix
         self.checksum_suffix = checksum_suffix
         self.output_dir = output_dir
+        self.version = self._get_version()
+
+    def _get_version(self):
+        """ get HMMER version."""
+        env = os.environ.copy()
+        proc = subprocess.Popen(['hmmsearch', '-h'], stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+
+        output, error = proc.communicate()
+        for line in output.split('\n'):
+            if line.startswith('# HMMER'):
+                version = line.split(';')[0].replace('# HMMER', '').strip()
+                return version
 
     def _topHit(self, tigrfam_file):
         """Determine top hits to TIGRFAMs.
@@ -185,7 +199,8 @@ class TigrfamSearch(object):
 
             for proc in workerProc:
                 if proc.exitcode != 0:
-                    raise GTDBTkExit('An error was encountered while running hmmsearch.')
+                    raise GTDBTkExit(
+                        'An error was encountered while running hmmsearch.')
 
         except Exception:
             for p in workerProc:

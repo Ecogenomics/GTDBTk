@@ -89,7 +89,8 @@ class OptionsParser(object):
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error('Invalid genome ID: %s' % genome_id)
-            self.logger.error('The following characters are invalid: %s' % ' '.join(invalid_chars))
+            self.logger.error(
+                'The following characters are invalid: %s' % ' '.join(invalid_chars))
             raise GenomeNameInvalid('Invalid genome ID: {}'.format(genome_id))
         return True
 
@@ -126,20 +127,25 @@ class OptionsParser(object):
                         continue  # blank line
 
                     if len(line_split) != 2:
-                        self.logger.error('Batch file must contain exactly 2 columns.')
+                        self.logger.error(
+                            'Batch file must contain exactly 2 columns.')
                         raise GenomeBatchfileMalformed
 
                     genome_file, genome_id = line_split
                     self._verify_genome_id(genome_id)
 
                     if genome_file is None or genome_file == '':
-                        raise GTDBTkExit('Missing genome file on line %d.' % (line_no + 1))
+                        raise GTDBTkExit(
+                            'Missing genome file on line %d.' % (line_no + 1))
                     elif genome_id is None or genome_id == '':
-                        raise GTDBTkExit('Missing genome ID on line %d.' % (line_no + 1))
+                        raise GTDBTkExit(
+                            'Missing genome ID on line %d.' % (line_no + 1))
                     elif genome_id in genomic_files:
-                        raise GTDBTkExit('Genome ID %s appears multiple times.' % genome_id)
+                        raise GTDBTkExit(
+                            'Genome ID %s appears multiple times.' % genome_id)
                     if genome_file in genomic_files.values():
-                        self.logger.warning('Genome file appears multiple times: %s' % genome_file)
+                        self.logger.warning(
+                            'Genome file appears multiple times: %s' % genome_file)
 
                     genomic_files[genome_id] = genome_file
 
@@ -310,6 +316,7 @@ class OptionsParser(object):
         fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
                      options.no_support, options.no_gamma, options.msa_file,
                      options.cpus)
+        self.logger.info('FastTree version: {}'.fasttree.version)
 
         if hasattr(options, 'subparser_name') and options.subparser_name == 'infer':
             symlink_f(output_tree[len(options.out_dir) + 1:],
@@ -342,7 +349,8 @@ class OptionsParser(object):
         output_dir = os.path.join(options.out_dir, 'output')
         genome_test_dir = os.path.join(options.out_dir, 'genomes')
         if os.path.exists(genome_test_dir):
-            self.logger.error('Test directory {} already exists'.format(genome_test_dir))
+            self.logger.error(
+                'Test directory {} already exists'.format(genome_test_dir))
             self.logger.error('Test must be run in a new directory.')
             sys.exit(1)
 
@@ -361,7 +369,8 @@ class OptionsParser(object):
                                     stderr=subprocess.PIPE)
             proc.communicate()
 
-        summary_file = os.path.join(output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
+        summary_file = os.path.join(
+            output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
 
         if proc.returncode != 0:
             self.logger.error('The test returned a non-zero exit code.')
@@ -479,7 +488,8 @@ class OptionsParser(object):
                           os.path.join(options.out_dir,
                                        os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
             else:
-                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
+                raise GenomeMarkerSetUnknown(
+                    'There was an error determining the marker set.')
 
         self.logger.info('Done.')
 
@@ -526,12 +536,14 @@ class OptionsParser(object):
 
         # Assert that the number of CPUs is a positive integer.
         if hasattr(options, 'cpus') and options.cpus < 1:
-            self.logger.warning('You cannot use less than 1 CPU, defaulting to 1.')
+            self.logger.warning(
+                'You cannot use less than 1 CPU, defaulting to 1.')
             options.cpus = 1
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
-            check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
+            check_dependencies(
+                ['FastTree' + ('MP' if options.cpus > 1 else '')])
 
             self.identify(options)
 
@@ -546,20 +558,28 @@ class OptionsParser(object):
 
             if options.skip_gtdb_refs:
                 if options.suffix == 'bac120':
-                    options.msa_file = os.path.join(options.out_dir, PATH_BAC120_USER_MSA.format(prefix=options.prefix))
+                    options.msa_file = os.path.join(
+                        options.out_dir, PATH_BAC120_USER_MSA.format(prefix=options.prefix))
                 elif options.suffix == 'ar122':
-                    options.msa_file = os.path.join(options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
+                    options.msa_file = os.path.join(
+                        options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
                 else:
-                    self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
+                    self.logger.error(
+                        'There was an error determining the marker set.')
+                    raise GenomeMarkerSetUnknown(
+                        'Unknown marker set: {}'.format(options.suffix))
             else:
                 if options.suffix == 'bac120':
-                    options.msa_file = os.path.join(options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
+                    options.msa_file = os.path.join(
+                        options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
                 elif options.suffix == 'ar122':
-                    options.msa_file = os.path.join(options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
+                    options.msa_file = os.path.join(
+                        options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
                 else:
-                    self.logger.error('There was an error determining the marker set.')
-                    raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
+                    self.logger.error(
+                        'There was an error determining the marker set.')
+                    raise GenomeMarkerSetUnknown(
+                        'Unknown marker set: {}'.format(options.suffix))
 
             self.infer(options)
 
@@ -574,8 +594,10 @@ class OptionsParser(object):
                 options.output_tree = os.path.join(options.out_dir,
                                                    PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
             else:
-                self.logger.error('There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(options.suffix))
+                self.logger.error(
+                    'There was an error determining the marker set.')
+                raise GenomeMarkerSetUnknown(
+                    'Unknown marker set: {}'.format(options.suffix))
 
             self.root(options)
             self.decorate(options)
@@ -589,7 +611,8 @@ class OptionsParser(object):
             options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
-            options.skip_trimming = False  # Added here due to the other mutex argument being include above.
+            # Added here due to the other mutex argument being include above.
+            options.skip_trimming = False
             options.min_consensus = None
             options.min_perc_taxa = None
             options.skip_gtdb_refs = False

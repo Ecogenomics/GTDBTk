@@ -104,7 +104,8 @@ class Classify(object):
             elif marker_set_id == 'ar122':
                 t = PATH_AR122_USER_MSA.format(prefix=prefix)
             else:
-                self.logger.error('There was an error determining the marker set.')
+                self.logger.error(
+                    'There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
             shutil.copyfile(user_msa_file, t)
@@ -139,7 +140,8 @@ class Classify(object):
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
         else:
             self.logger.error('Unknown marker set: {}'.format(marker_set_id))
-            raise GenomeMarkerSetUnknown('Unknown marker set: {}'.format(marker_set_id))
+            raise GenomeMarkerSetUnknown(
+                'Unknown marker set: {}'.format(marker_set_id))
 
         # create pplacer output directory
         pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
@@ -158,13 +160,17 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer = Pplacer()
-        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out, user_msa_file, pplacer_out, pplacer_mmap_file)
+        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out,
+                    user_msa_file, pplacer_out, pplacer_mmap_file)
+        self.logger.info('pplacer version: {}'.format(pplacer.version))
 
         # extract tree
         if marker_set_id == 'bac120':
-            tree_file = os.path.join(out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
+            tree_file = os.path.join(
+                out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
         elif marker_set_id == 'ar122':
-            tree_file = os.path.join(out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
+            tree_file = os.path.join(
+                out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -228,10 +234,12 @@ class Classify(object):
         marker_dict = {}
         if marker_set_id == 'bac120':
             marker_dict = Config.RED_DIST_BAC_DICT
-            out_path = os.path.join(out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
+            out_path = os.path.join(
+                out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
         elif marker_set_id == 'ar122':
             marker_dict = Config.RED_DIST_ARC_DICT
-            out_path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
+            out_path = os.path.join(
+                out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -274,10 +282,10 @@ class Classify(object):
                 infos = line.strip().split('\t')
                 if marker_set_id == "bac120":
                     multi_hits_percent = (100 * float(infos[2])) / \
-                                         Config.BAC_MARKER_COUNT
+                        Config.BAC_MARKER_COUNT
                 elif marker_set_id == "ar122":
                     multi_hits_percent = (100 * float(infos[2])) / \
-                                         Config.AR_MARKER_COUNT
+                        Config.AR_MARKER_COUNT
                 # print (marker_set_id, float(infos[3]), multi_hits_percent)
                 if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
                     results[infos[0]] = round(multi_hits_percent, 1)
@@ -306,13 +314,18 @@ class Classify(object):
         for marker_set_id in ('ar122', 'bac120'):
 
             if marker_set_id == 'ar122':
-                marker_summary_file = os.path.join(align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
-                user_msa_file = os.path.join(align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
+                marker_summary_file = os.path.join(
+                    align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
+                user_msa_file = os.path.join(
+                    align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
             elif marker_set_id == 'bac120':
-                marker_summary_file = os.path.join(align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
-                user_msa_file = os.path.join(align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
+                marker_summary_file = os.path.join(
+                    align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
+                user_msa_file = os.path.join(
+                    align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
             else:
-                self.logger.error('There was an error determining the marker set.')
+                self.logger.error(
+                    'There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
             if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
@@ -323,7 +336,8 @@ class Classify(object):
             percent_multihit_dict = self.parser_marker_summary_file(
                 marker_summary_file, marker_set_id)
 
-            trans_table_file = os.path.join(align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
+            trans_table_file = os.path.join(
+                align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
             trans_table_dict = self.parse_trans_table_file(trans_table_file)
 
             msa_dict = read_fasta(user_msa_file)
@@ -341,14 +355,18 @@ class Classify(object):
                                                preserve_underscores=True)
 
             if marker_set_id == 'bac120':
-                path_summary = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
+                path_summary = os.path.join(
+                    out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
             elif marker_set_id == 'ar122':
-                path_summary = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
+                path_summary = os.path.join(
+                    out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
             else:
-                self.logger.error('There was an error determining the marker set.')
+                self.logger.error(
+                    'There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
-            pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir, prefix, marker_set_id, user_msa_file, tree)
+            pplacer_taxonomy_dict = self._get_pplacer_taxonomy(
+                out_dir, prefix, marker_set_id, user_msa_file, tree)
 
             summaryfout = open(path_summary, 'w')
             if debugopt:
@@ -427,7 +445,7 @@ class Classify(object):
                                 # calculating the patristic distance
                                 dict_dist_refgenomes[ref_genome] = (userleaf.distance_from_root(
                                 ) - mrca.distance_from_root()) + (
-                                                                           ref_genome.distance_from_root() - mrca.distance_from_root())
+                                    ref_genome.distance_from_root() - mrca.distance_from_root())
                             sorted_l = sorted(
                                 iter(dict_dist_refgenomes.items()), key=itemgetter(1))
                             sorted_l = sorted_l[0:100]
@@ -443,7 +461,8 @@ class Classify(object):
             # selected genomes in the same genus
             if len(fastani_verification) > 0:
                 fastani = FastANI(cpus=self.cpus, force_single=True)
-                d_ani_compare, d_paths = self._get_fastani_genome_path(fastani_verification, genomes)
+                d_ani_compare, d_paths = self._get_fastani_genome_path(
+                    fastani_verification, genomes)
                 all_fastani_dict = fastani.run(d_ani_compare, d_paths)
 
             classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
@@ -635,7 +654,8 @@ class Classify(object):
                     summary_list[0] = leaf.taxon.label
                     summary_list[1] = self.standardise_taxonomy(
                         red_taxonomy)
-                    summary_list[11] = pplacer_taxonomy_dict.get(leaf.taxon.label)
+                    summary_list[11] = pplacer_taxonomy_dict.get(
+                        leaf.taxon.label)
                     summary_list[12] = 'Placement'
                     summary_list[13] = detection
                     summary_list[15] = self.aa_percent_msa(
@@ -673,7 +693,8 @@ class Classify(object):
                 symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
                           os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
             else:
-                self.logger.error('There was an error determining the marker set.')
+                self.logger.error(
+                    'There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
 
             if debugopt:
@@ -794,9 +815,11 @@ class Classify(object):
         result = {}
 
         if marker_set_id == 'bac120':
-            out_pplacer = os.path.join(out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
+            out_pplacer = os.path.join(
+                out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
         elif marker_set_id == 'ar122':
-            out_pplacer = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
+            out_pplacer = os.path.join(
+                out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -809,7 +832,8 @@ class Classify(object):
                     taxa = []
                     cur_node = leaf
                     while cur_node.parent_node:
-                        _support, taxon, _aux_info = parse_label(cur_node.label)
+                        _support, taxon, _aux_info = parse_label(
+                            cur_node.label)
                         if taxon:
                             for t in taxon.split(';')[::-1]:
                                 taxa.append(t.strip())
@@ -817,7 +841,8 @@ class Classify(object):
                     taxa_str = ';'.join(taxa[::-1])
                     pplaceout.write('{}\t{}\n'.format(
                         leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
-                    result[leaf.taxon.label] = self.standardise_taxonomy(taxa_str, marker_set_id)
+                    result[leaf.taxon.label] = self.standardise_taxonomy(
+                        taxa_str, marker_set_id)
         return result
 
     def _formatnote(self, sorted_dict, labels):
@@ -839,9 +864,12 @@ class Classify(object):
         for element in sorted_dict:
             if element[0] not in labels:
                 note_str = "{}, {}, {}, {}, {}".format(element[0],
-                                                       self.gtdb_taxonomy.get(add_ncbi_prefix(element[0]))[6],
-                                                       self.species_radius.get(element[0]),
-                                                       round(element[1].get('ani'), 2),
+                                                       self.gtdb_taxonomy.get(
+                                                           add_ncbi_prefix(element[0]))[6],
+                                                       self.species_radius.get(
+                                                           element[0]),
+                                                       round(
+                                                           element[1].get('ani'), 2),
                                                        element[1].get('af'))
                 note_list.append(note_str)
         return note_list
@@ -893,8 +921,8 @@ class Classify(object):
                     # import IPython; IPython.embed()
                     prefilter_reference_dictionary = {k: v for k, v in
                                                       all_fastani_dict.get(userleaf.taxon.label).items() if (
-                                                              v.get('ani') >= self.species_radius.get(k) and v.get(
-                                                          'af') >= self.af_threshold)}
+                                                          v.get('ani') >= self.species_radius.get(k) and v.get(
+                                                              'af') >= self.af_threshold)}
                     sorted_dict = sorted(iter(all_fastani_dict.get(
                         userleaf.taxon.label).items()), key=lambda _x_y: (_x_y[1]['ani'], _x_y[1]['af']), reverse=True)
                     sorted_prefilter_dict = sorted(iter(prefilter_reference_dictionary.items()),
@@ -913,7 +941,8 @@ class Classify(object):
 
                     summary_list[0] = userleaf.taxon.label
 
-                    summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
+                    summary_list[11] = pplacer_taxonomy_dict.get(
+                        userleaf.taxon.label)
                     summary_list[12] = 'ANI/Placement'
                     summary_list[15] = self.aa_percent_msa(
                         msa_dict.get(summary_list[0]))
@@ -995,15 +1024,16 @@ class Classify(object):
                 # import IPython; IPython.embed()
                 prefilter_reference_dictionary = {k: v for k, v in
                                                   all_fastani_dict.get(userleaf.taxon.label).items() if (
-                                                          v.get('ani') >= self.species_radius.get(k) and v.get(
-                                                      'af') >= self.af_threshold)}
+                                                      v.get('ani') >= self.species_radius.get(k) and v.get(
+                                                          'af') >= self.af_threshold)}
                 sorted_dict = sorted(iter(all_fastani_dict.get(
                     userleaf.taxon.label).items()), key=lambda _x_y2: (_x_y2[1]['ani'], _x_y2[1]['af']), reverse=True)
                 sorted_prefilter_dict = sorted(iter(prefilter_reference_dictionary.items()),
                                                key=lambda _x_y3: (_x_y3[1]['ani'], _x_y3[1]['af']), reverse=True)
 
                 summary_list[0] = userleaf.taxon.label
-                summary_list[11] = pplacer_taxonomy_dict.get(userleaf.taxon.label)
+                summary_list[11] = pplacer_taxonomy_dict.get(
+                    userleaf.taxon.label)
                 summary_list[12] = 'ANI/Placement'
                 summary_list[15] = self.aa_percent_msa(
                     msa_dict.get(summary_list[0]))
@@ -1237,7 +1267,8 @@ class Classify(object):
                     valid, error_msg = Taxonomy().validate_species_name(
                         species_name, require_full=True, require_prefix=True)
                 if not valid:
-                    print('[Warning] Species name {} for {} is invalid: {}'.format(species_name, taxon_id, error_msg))
+                    print('[Warning] Species name {} for {} is invalid: {}'.format(
+                        species_name, taxon_id, error_msg))
                     continue
 
                 species.add(species_name)
@@ -1276,7 +1307,8 @@ class Classify(object):
                 elif not support and min_support > 0:
                     # no support value, so inform user if they were trying to
                     # filter on this property
-                    print('[Error] Tree does not contain support values. As such, --min_support should be set to 0.')
+                    print(
+                        '[Error] Tree does not contain support values. As such, --min_support should be set to 0.')
                     continue
 
         # restrict taxa used for inferring distribution to the trusted set
@@ -1484,7 +1516,8 @@ class Classify(object):
                 shortleaf = leafnode.taxon.label
                 if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
                     shortleaf = leafnode.taxon.label[3:]
-                ref_path = os.path.join(Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)
+                ref_path = os.path.join(
+                    Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)
                 if not os.path.isfile(ref_path):
                     raise GTDBTkExit(f'Reference genome missing from FastANI database: {ref_path}')
 
@@ -1492,4 +1525,3 @@ class Classify(object):
                 dict_paths[shortleaf] = ref_path
 
         return dict_compare, dict_paths
-

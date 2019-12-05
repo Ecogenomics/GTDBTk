@@ -30,6 +30,16 @@ class FastTree(object):
     def __init__(self):
         """Instantiate the class."""
         self.logger = logging.getLogger('timestamp')
+        self.version = self.get_version()
+
+    def get_version(self):
+        """ Get FastTree version. """
+        env = os.environ.copy()
+        args = ['FastTree']
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+        output, error = proc.communicate()
+        return error.split('\n')[0].split(' ')[4]
 
     def run(self, output_tree, tree_log, fasttree_log, prot_model, no_support, no_gamma, msa_file, cpus=1):
         """Run FastTree.
@@ -88,20 +98,28 @@ class FastTree(object):
         model_out = [prot_model,
                      ('-' if no_gamma else '+') + 'gamma',
                      ('no' if no_support else '') + 'support']
-        self.logger.info('Inferring FastTree ({}) using a maximum of {} CPUs.'.format(', '.join(model_out), cpus))
+        self.logger.info('Inferring FastTree ({}) using a maximum of {} CPUs.'.format(
+            ', '.join(model_out), cpus))
+        self.logger.info('FastTree version: {}'.format(self.version))
 
         with open(output_tree, 'w') as f_out_tree:
             with open(fasttree_log, 'w') as f_out_err:
-                proc = subprocess.Popen(args, stdout=f_out_tree, stderr=f_out_err, env=env)
+                proc = subprocess.Popen(
+                    args, stdout=f_out_tree, stderr=f_out_err, env=env)
                 proc.communicate()
 
         # Validate results
         if proc.returncode != 0:
-            self.logger.error('An error was encountered while running FastTree.')
+            self.logger.error(
+                'An error was encountered while running FastTree.')
             raise FastTreeException('FastTree returned a non-zero exit code.')
         if not os.path.isfile(output_tree):
-            self.logger.error('An error was encountered while running FastTree.')
-            raise FastTreeException('Tree output file is missing: {}'.format(output_tree))
+            self.logger.error(
+                'An error was encountered while running FastTree.')
+            raise FastTreeException(
+                'Tree output file is missing: {}'.format(output_tree))
         elif os.path.getsize(output_tree) < 1:
-            self.logger.error('An error was encountered while running FastTree.')
-            raise FastTreeException('Tree output file is empty: {}'.format(output_tree))
+            self.logger.error(
+                'An error was encountered while running FastTree.')
+            raise FastTreeException(
+                'Tree output file is empty: {}'.format(output_tree))
