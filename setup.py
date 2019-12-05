@@ -27,10 +27,10 @@ setup(
     license='GPL3',
     description='A toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes.',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
     install_requires=["dendropy>=4.1.0", 'numpy'],
