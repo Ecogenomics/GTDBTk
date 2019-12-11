@@ -18,6 +18,7 @@
 import logging
 import multiprocessing as mp
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -43,6 +44,29 @@ class FastANI(object):
         self.cpus = max(cpus, 1)
         self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
+        self.version = self._get_version()
+
+        if self.version is None:
+            self.logger.info('fastANI version: unknown')
+        else:
+            self.logger.info(f'FastANI version: {self.version[0]}.{self.version[1]}')
+
+    def _get_version(self):
+        """Returns the version of FastANI on the system path.
+
+        Returns
+        -------
+        Tuple[int, int]
+            The major release number, the minor release number.
+        """
+        try:
+            proc = subprocess.Popen(['fastANI', '-v'], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='utf-8')
+            stdout, stderr = proc.communicate()
+            version = re.search(r'version (\d+)\.(\d+)', stderr)
+            return int(version.group(1)), int(version.group(2))
+        except Exception:
+            return None
 
     def run(self, dict_compare, dict_paths):
         """Runs FastANI in batch mode.
