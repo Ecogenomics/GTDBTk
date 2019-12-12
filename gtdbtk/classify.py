@@ -461,6 +461,8 @@ class Classify(object):
             # selected genomes in the same genus
             if len(fastani_verification) > 0:
                 fastani = FastANI(cpus=self.cpus, force_single=True)
+                self.logger.info(f'fastANI version: {fastani.version}')
+
                 d_ani_compare, d_paths = self._get_fastani_genome_path(
                     fastani_verification, genomes)
                 all_fastani_dict = fastani.run(d_ani_compare, d_paths)
