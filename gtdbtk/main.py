@@ -316,7 +316,7 @@ class OptionsParser(object):
         fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
                      options.no_support, options.no_gamma, options.msa_file,
                      options.cpus)
-        self.logger.info('FastTree version: {}'.fasttree.version)
+        self.logger.info(f'FastTree version: {fasttree.version}')
 
         if hasattr(options, 'subparser_name') and options.subparser_name == 'infer':
             symlink_f(output_tree[len(options.out_dir) + 1:],
