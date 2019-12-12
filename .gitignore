@@ -49,3 +49,5 @@ coverage.xml
 
 # IDE files
 .idea
+/.pydevproject
+/.project
