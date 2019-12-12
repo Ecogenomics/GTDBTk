@@ -18,12 +18,12 @@
 import logging
 import multiprocessing as mp
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 
-from gtdbtk.config.config import MP_TIMEOUT
 from gtdbtk.exceptions import GTDBTkExit
 
 
@@ -43,6 +43,26 @@ class FastANI(object):
         self.cpus = max(cpus, 1)
         self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
+        self.version = self._get_version()
+
+    def _get_version(self):
+        """Returns the version of FastANI on the system path.
+
+        Returns
+        -------
+        str
+            The string containing the fastANI version.
+        """
+        try:
+            proc = subprocess.Popen(['fastANI', '-v'], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='utf-8')
+            stdout, stderr = proc.communicate()
+            if stderr.startswith('Unknown option:'):
+                return 'unknown (<1.3)'
+            version = re.search(r'version (.+)', stderr)
+            return version.group(1)
+        except Exception:
+            return 'unknown'
 
     def run(self, dict_compare, dict_paths):
         """Runs FastANI in batch mode.
@@ -83,8 +103,8 @@ class FastANI(object):
                     rev_dict['q'][ref_gid] = ref_path
                     rev_dict['r'][qry_gid] = qry_path
 
-                    q_worker.put(fwd_dict, timeout=MP_TIMEOUT)
-                    q_worker.put(rev_dict, timeout=MP_TIMEOUT)
+                    q_worker.put(fwd_dict)
+                    q_worker.put(rev_dict)
                     n_total += 2
         else:
             for qry_gid, ref_set in dict_compare.items():
@@ -100,12 +120,12 @@ class FastANI(object):
                     fwd_dict['rl'][ref_gid] = ref_path
                     rev_dict['ql'][ref_gid] = ref_path
 
-                q_worker.put(fwd_dict, timeout=MP_TIMEOUT)
-                q_worker.put(rev_dict, timeout=MP_TIMEOUT)
+                q_worker.put(fwd_dict)
+                q_worker.put(rev_dict)
                 n_total += 2
 
         # Set the terminate condition for each worker thread.
-        [q_worker.put(None, timeout=MP_TIMEOUT) for _ in range(self.cpus)]
+        [q_worker.put(None) for _ in range(self.cpus)]
 
         # Create each of the processes
         p_workers = [mp.Process(target=self._worker,
@@ -123,15 +143,15 @@ class FastANI(object):
 
             # Wait until each worker has finished.
             for p_worker in p_workers:
-                p_worker.join(timeout=MP_TIMEOUT)
+                p_worker.join()
 
                 # Gracefully terminate the program.
                 if p_worker.exitcode != 0:
                     raise GTDBTkExit('FastANI returned a non-zero exit code.')
 
             # Stop the writer thread.
-            q_writer.put(None, timeout=MP_TIMEOUT)
-            p_writer.join(timeout=MP_TIMEOUT)
+            q_writer.put(None)
+            p_writer.join()
 
         except Exception:
             for p in p_workers:
@@ -141,7 +161,7 @@ class FastANI(object):
 
         # Process and return each of the results obtained
         path_to_gid = {v: k for k, v in dict_paths.items()}
-        q_results.put(None, timeout=MP_TIMEOUT)
+        q_results.put(None)
         return self._parse_result_queue(q_results, path_to_gid)
 
     def _worker(self, q_worker, q_writer, q_results):
@@ -158,7 +178,7 @@ class FastANI(object):
         """
         while True:
             # Retrieve the next item, stop if the sentinel is found.
-            job = q_worker.get(block=True, timeout=MP_TIMEOUT)
+            job = q_worker.get(block=True)
             if job is None:
                 break
 
@@ -181,8 +201,8 @@ class FastANI(object):
 
                 # Run FastANI
                 result = self.run_proc(q, r, path_qry, path_ref, path_out)
-                q_results.put((job, result), timeout=MP_TIMEOUT)
-                q_writer.put(True, timeout=MP_TIMEOUT)
+                q_results.put((job, result))
+                q_writer.put(True)
             finally:
                 shutil.rmtree(dir_tmp)
         return True
@@ -199,7 +219,7 @@ class FastANI(object):
         """
         processed_items = 0
         while True:
-            result = q_writer.get(block=True, timeout=MP_TIMEOUT)
+            result = q_writer.get(block=True)
             if result is None:
                 break
             processed_items += 1
@@ -312,7 +332,7 @@ class FastANI(object):
         """
         out = dict()
         while True:
-            q_item = q_results.get(block=True, timeout=MP_TIMEOUT)
+            q_item = q_results.get(block=True)
             if q_item is None:
                 break
 

@@ -58,7 +58,7 @@ class Prodigal(object):
     def _get_version(self):
         try:
             env = os.environ.copy()
-            proc = subprocess.Popen(['prtrrodigal', '-v'], stdout=subprocess.PIPE,
+            proc = subprocess.Popen(['prodigal', '-v'], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()

@@ -33,8 +33,13 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 
 ## Announcements
 
+**Note (Dec 12, 2019)**:
+* GTDB-Tk v1.0.2 has been released (**we recommend all users update to this version**)
+    * Fixed an issue where FastANI threads would timeout with `FastANI returned a non-zero exit code.`
+        * Versions affected: 1.0.0, and 1.0.1.
+    
 **Note (Dec 5, 2019)**:
-* GTDB-Tk v1.0.0 has been released (**we recommend all users update to this version**)
+* GTDB-Tk v1.0.0 has been released
     * Migrated to **Python 3**, you must be running at least **Python 3.6** or later to use this version.
     * `check_install` now does an exhaustive check of the reference data.
     * Resolved an issue where gene calling would fail for low quality genomes (#192).
@@ -53,12 +58,6 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
     * Fixed an issue where the `root` command could not be run independently.
     * Improved MSA masking performance.
    
-**Note (Nov 08, 2019)**:
-* Python 2 is reaching [end of life](https://pythonclock.org/) on January 1, 2020
-    * GTDB-Tk will be ported to Python 3 to accommodate deprecation of Python 2. 
-    * The official GTDB-Tk release will be updated to v1.0.0 on Dec 01, 2019.
-    * GTDB-Tk v1.0.0 will require Python 3 and there are no plans to support Python 2 moving forward. Apologies for any issues this may cause.
-  
 [Previous announcements](docs/announcements.md)
 
 

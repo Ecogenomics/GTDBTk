@@ -1,3 +1,5 @@
+1.0.2
+- Fixed an issue where FastANI would timeout.
 1.0.1
 - Bugfix for 3rd party software versions. 
 1.0.0
