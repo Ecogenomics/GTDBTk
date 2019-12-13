@@ -70,12 +70,11 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 
 ### Python libraries
 
-GTDB-Tk is designed for Python 2.7 and requires the following Python libraries:
+GTDB-Tk is designed for Python 3 and requires the following Python libraries:
 * [dendropy](http://dendropy.org/)  >=4.1.0: Python library for phylogenetics.
-* [future](https://python-future.org/index.html) >= 0.15.2: Clean single-source support for Python 3 and 2
 * [SciPy Stack](https://www.scipy.org/install.html): at least the Matplotlib, NumPy, and SciPy libraries.
 
-Dendropy and future will be installed as part of GTDB-Tk when installing via pip (see below). The **SciPy Stack** must be installed separately.
+Dendropy will be installed as part of GTDB-Tk when installing via pip (see below). The **SciPy Stack** must be installed separately.
 
 ### Third-party software
 
