@@ -146,12 +146,11 @@ class Prodigal(object):
             # Only proceed if an error didn't occur in BioLib Prodigal
             if rtn_files:
                 aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table = rtn_files
-                prodigal_infos = {}
-                prodigal_infos["aa_gene_path"] = aa_gene_file
-                prodigal_infos["nt_gene_path"] = nt_gene_file
-                prodigal_infos["gff_path"] = gff_file
-                prodigal_infos["translation_table_path"] = translation_table_file
-                prodigal_infos["best_translation_table"] = best_translation_table
+                prodigal_infos = {"aa_gene_path": aa_gene_file,
+                                  "nt_gene_path": nt_gene_file,
+                                  "gff_path": gff_file,
+                                  "translation_table_path": translation_table_file,
+                                  "best_translation_table": best_translation_table}
 
                 out_dict[genome_id] = prodigal_infos
             writer_queue.put(genome_id)

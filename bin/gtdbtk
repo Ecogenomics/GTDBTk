@@ -41,7 +41,7 @@ from gtdbtk.exceptions import *
 from gtdbtk.biolib_lite.exceptions import BioLibError
 
 
-def printHelp():
+def print_help():
     print('''\
     
               ...::: GTDB-Tk v%s :::...
@@ -239,7 +239,7 @@ if __name__ == '__main__':
                                    help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                          + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
     mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
-                                   help=('skip trimming step and return the full MSAs'))
+                                   help='skip trimming step and return the full MSAs')
 
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
                                 help='maximum number of columns to retain per gene')
@@ -412,7 +412,7 @@ if __name__ == '__main__':
     # get and check options
     args = None
     if len(sys.argv) == 1:
-        printHelp()
+        print_help()
         sys.exit(0)
     elif (sys.argv[1] == '-v' or
           sys.argv[1] == '--v' or
@@ -426,7 +426,7 @@ if __name__ == '__main__':
           sys.argv[1] == '--h' or
           sys.argv[1] == '-help' or
           sys.argv[1] == '--help'):
-        printHelp()
+        print_help()
         sys.exit(0)
     else:
         args = parser.parse_args()

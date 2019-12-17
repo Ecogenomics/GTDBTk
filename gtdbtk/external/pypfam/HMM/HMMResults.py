@@ -76,9 +76,9 @@ class HMMResults(object):
             if hmmUnit.name in self.seqs:
                 self.seqs[hmmUnit.name].addHMMUnit(hmmUnit)
             else:
-                sys.stderr('Could not add hmmUnit as the sequence has not been added\n')
+                sys.stderr.write('Could not add hmmUnit as the sequence has not been added\n')
 
-        # More conveinence we store the point to the hmmunit in an array
+        # More convenience we store the point to the hmmunit in an array
         self.units.append(hmmUnit)
 
     def remove_overlaps_by_clan(self, clanmap, nested):

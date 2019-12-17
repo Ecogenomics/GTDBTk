@@ -31,6 +31,7 @@ __email__ = 'p.chaumeil@qfab.org'
 __status__ = 'Development'
 
 import argparse
+import sys
 
 
 class removeUserGenomes(object):

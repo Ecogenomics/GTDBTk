@@ -46,4 +46,4 @@ class HMMSequence(HMMMatch):
         if isinstance(hmmUnit, HMMUnit):
             self.hmmUnits.append(hmmUnit)
         else:
-            sys.stderr('%s is not a HMMUnit, not added\n.' % hmmUnit)
+            sys.stderr.write('%s is not a HMMUnit, not added\n.' % hmmUnit)

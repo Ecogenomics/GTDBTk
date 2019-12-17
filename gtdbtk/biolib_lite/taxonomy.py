@@ -138,7 +138,7 @@ class Taxonomy(object):
 
         Parameters
         ----------
-        list : [d__<taxon>, ..., s__<taxon>]
+        taxa : [d__<taxon>, ..., s__<taxon>]
             List of taxa.
 
         Returns
@@ -168,7 +168,7 @@ class Taxonomy(object):
 
         Parameters
         ----------
-        list : [d__<taxon>, ..., s__<taxon>]
+        taxa : [d__<taxon>, ..., s__<taxon>]
             List of taxa.
 
         Returns
@@ -844,7 +844,7 @@ class Taxonomy(object):
 
         Parameters
         ----------
-        taxa_list : iterable
+        taxa : iterable
             Taxa with rank prefixes.
 
         Returns

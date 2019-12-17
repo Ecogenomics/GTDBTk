@@ -231,7 +231,6 @@ class Classify(object):
 
         """
 
-        marker_dict = {}
         if marker_set_id == 'bac120':
             marker_dict = Config.RED_DIST_BAC_DICT
             out_path = os.path.join(
@@ -582,7 +581,7 @@ class Classify(object):
                         for leaf_taxon in reversed(list_leaf_ranks):
                             if leaf_taxon == list_leaf_ranks[0]:
                                 if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
-                                        (current_rel_list) - marker_dict.get(parent_rank)):
+                                        current_rel_list - marker_dict.get(parent_rank)):
                                     closest_rank = leaf_taxon[:3]
                                     debug_info[3] = leaf_taxon
                                     debug_info[5] = 'case 1b - III'
@@ -751,7 +750,6 @@ class Classify(object):
         # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
         # The new red value for the pplacer node =
         # RED_parent + (RED_child -RED_parent) * ( (pplacer_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
-        reference_pplacer_node = {}
         for nd in tree.leaf_nodes():
             if nd not in reference_nodes:
                 nd.rel_dist = 1.0
@@ -802,7 +800,7 @@ class Classify(object):
         ----------
         out_dir : output directory
         prefix : desired prefix for output files
-        marker_set_id : bacterial or archeal id (bac120 or ar122)
+        marker_set_id : bacterial or archaeal id (bac120 or ar122)
         user_msa_file : msa file listing all user genomes for a certain domain
         tree : pplacer tree including the user genomes
 
@@ -852,7 +850,7 @@ class Classify(object):
 
         Parameters
         ----------
-        sorted_dict : sorted dictionary listing reference genomes, ani and alignement fraction for a specific user genome
+        sorted_dict : sorted dictionary listing reference genomes, ani and alignment fraction for a specific user genome
                     (genomeid, {ani: value, af: value})
         labels : array of label that are removed from the note field
 
@@ -1040,13 +1038,9 @@ class Classify(object):
                 summary_list[15] = self.aa_percent_msa(
                     msa_dict.get(summary_list[0]))
                 summary_list[16] = trans_table_dict.get(summary_list[0])
-                fastani_matching_reference = None
+
                 if len(sorted_prefilter_dict) > 0:
                     fastani_matching_reference = sorted_prefilter_dict[0][0]
-                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('ani')
-                    current_af = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('af')
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(fastani_matching_reference))[:-1])
@@ -1163,7 +1157,7 @@ class Classify(object):
 
         Returns
         -------
-        string
+        dendropy.Tree
             Taxonomy string.
         """
 
@@ -1191,7 +1185,7 @@ class Classify(object):
 
         # set edge lengths to median value over all rootings
         tree.seed_node.rel_dist = 0.0
-        for n in tree.preorder_node_iter(lambda n: n != tree.seed_node):
+        for n in tree.preorder_node_iter(lambda x: x != tree.seed_node):
             n.rel_dist = np_median(rel_node_dists[n.id])
             rd_to_parent = n.rel_dist - n.parent_node.rel_dist
             if rd_to_parent < 0:
@@ -1437,7 +1431,7 @@ class Classify(object):
           Tree to rerooted.
         taxonomy : dict
             Taxonomy for taxa.
-        outgroup : iterable
+        outgroup_taxa : iterable
           Labels of taxa in outgroup.
 
         Returns
@@ -1467,11 +1461,11 @@ class Classify(object):
             sys.exit(0)
 
         # There is a complication here. We wish to find the MRCA of the outgroup
-        # taxa. Finding the MRCA requires a rooted tree and we have no gaurantee
+        # taxa. Finding the MRCA requires a rooted tree and we have no guarantee
         # that the tree isn't currently rooted within the outgroup clade. There is
-        # also no way to identify a node that is gauranteed to be outside the outgroup
+        # also no way to identify a node that is guaranteed to be outside the outgroup
         # clade. As such, the tree is randomly rooted on a leaf node not in the outgroup.
-        # This random rerooting is performed until the MRCA does not spans all taxa in
+        # This random re-rooting is performed until the MRCA does not spans all taxa in
         # the tree.
 
         leaves_in_tree = sum([1 for _ in new_tree.leaf_node_iter()])

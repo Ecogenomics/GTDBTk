@@ -172,10 +172,10 @@ class HmmAligner(object):
 
         while result is not None:
             processed_items += 1
-            statusStr = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
-                                                                              n_genomes,
-                                                                              float(processed_items) * 100 / n_genomes)
-            sys.stdout.write('%s\r' % statusStr)
+            status_str = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
+                                                                               n_genomes,
+                                                                               float(processed_items) * 100 / n_genomes)
+            sys.stdout.write('%s\r' % status_str)
             sys.stdout.flush()
             result = q_writer.get(block=True, timeout=None)
 

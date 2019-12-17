@@ -19,7 +19,7 @@
 
 
 __prog_name__ = 'gtdb_to_ncbi_majority_vote.py'
-__prog_desc__ = ('Translate GTDB to NCBI classification via majority vote.')
+__prog_desc__ = 'Translate GTDB to NCBI classification via majority vote.'
 
 __author__ = 'Donovan Parks'
 __copyright__ = 'Copyright 2019'

@@ -27,7 +27,7 @@
   * New option to export the untrimmed reference MSA files.
   * New option to skip_trimming during align step.
   * New option to use a custom taxonomy file when rooting a tree.
-  * New [FAQ](docs/faq.md) page available.
+  * New [FAQ](faq.md) page available.
   * New output structure.
   * This version requires a new version of the GTDB-Tk data package (gtdbtk_r89_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdb/data/releases/release89/89.0/)
   
@@ -43,7 +43,7 @@
   * By default, the "align" function now performs the same MSA trimming used by the GTDB
   * New pplacer support for writing to a scratch file (--mmap-file option)
   * Random seed option for MSA trimming has been added to allow for reproducible results 
-  * Configuration of the data directory is now set using the environmental variable GTDBTK_DATA_PATH (see [pip installation](#pip-installation))
+  * Configuration of the data directory is now set using the environmental variable GTDBTK_DATA_PATH (see [pip installation](README.md#pip-installation))
   * Perl dependencies has been removed
   * Python libraries biolib, mpld3 and jinja have been removed
   * This version requires a new version of the GTDB-Tk data package (gtdbtk.r86_v2_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdbtk/release_86/)  

@@ -186,7 +186,7 @@ class Prodigal(object):
         ConsumerData = namedtuple(
             'ConsumerData',
             'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11')
-        if consumer_data == None:
+        if consumer_data is None:
             consumer_data = defaultdict(ConsumerData)
 
         genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, coding_density_4, coding_density_11 = produced_data
@@ -290,7 +290,7 @@ class Prodigal(object):
         return summary_stats
 
 
-class ProdigalGeneFeatureParser():
+class ProdigalGeneFeatureParser(object):
     """Parses prodigal gene feature files (GFF) output."""
 
     def __init__(self, filename):
@@ -394,7 +394,7 @@ class ProdigalGeneFeatureParser():
             return 0
 
         # set end to last coding base if not specified
-        if end == None:
+        if end is None:
             end = self.last_coding_base[seq_id]
 
         return np.sum(self.coding_base_masks[seq_id][start:end])
