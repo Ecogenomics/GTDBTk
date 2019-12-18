@@ -33,8 +33,12 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 
 ## Announcements
 
+**Note (INSERT_DATE**):
+* GTDB-Tk v**INSERT_VERSION** has been released (**we recommend all users update to this version**)
+    * Updated the `gtdb_to_ncbi_majority_vote.py` script for translating taxonomy.
+
 **Note (Dec 12, 2019)**:
-* GTDB-Tk v1.0.2 has been released (**we recommend all users update to this version**)
+* GTDB-Tk v1.0.2 has been released
     * Fixed an issue where FastANI threads would timeout with `FastANI returned a non-zero exit code.`
         * Versions affected: 1.0.0, and 1.0.1.
     
