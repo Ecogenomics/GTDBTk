@@ -162,13 +162,17 @@ class Translate(object):
         # convert GTDB classifications to NCBI classification
         with open(output_file, 'w') as fout:
             fout.write('user_genome\tGTDB classification\tNCBI classification\n')
-            for summary_file, tree_file in [(ar_summary, ar_tree), (bac_summary, bac_tree)]:
+            for domain, summary_file, tree_file in [('Archaea', ar_summary, ar_tree),
+                                                    ('Bacteria', bac_summary, bac_tree)]:
                 if summary_file is None or tree_file is None:
+                    self._logger.warning(f'{domain} have been skipped as no metadata file was provided.')
                     continue
                 if not os.path.exists(summary_file):
-                    raise GTDBTkExit(f'Summary file does not exist: {summary_file}')
+                    self._logger.warning(f'{domain} have been skipped as the summary file does not exist: {summary_file}')
+                    continue
                 if not os.path.exists(tree_file):
-                    raise GTDBTkExit(f'Tree file does not exist: {tree_file}')
+                    self._logger.warning(f'{domain} have been skipped as the tree file does not exist: {summary_file}')
+                    continue
 
                 self._logger.info(f'Parsing {tree_file}')
                 tree = dendropy.Tree.get_from_path(tree_file,
