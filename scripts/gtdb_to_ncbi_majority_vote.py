@@ -133,8 +133,8 @@ class Translate(object):
                     rep_id = line_split[gtdb_genome_rep_index]
                     gtdb_sp_clusters[rep_id].add(gid)
 
-        self._logger.info(f'Read NCBI taxonomy for {len(ncbi_taxa)} genomes.')
-        self._logger.info(f'Identified {len(gtdb_sp_clusters)} GTDB species clusters.')
+        self._logger.info(f'Read NCBI taxonomy for {len(ncbi_taxa):,} genomes.')
+        self._logger.info(f'Identified {len(gtdb_sp_clusters):,} GTDB species clusters.')
 
         # get majority vote NCBI classification for each GTDB species cluster
         ncbi_sp_classification = defaultdict(list)
@@ -156,7 +156,7 @@ class Translate(object):
             if rep_id in ncbi_sp_classification and ncbi_sp_classification[rep_id][0] == 'd__':
                 raise GTDBTkExit(f'Majority vote domain is undefined for {rep_id}')
 
-        self._logger.info(f'Identified {len(ncbi_sp_classification)} GTDB '
+        self._logger.info(f'Identified {len(ncbi_sp_classification):,} GTDB '
                           f'species clusters with an NCBI classification.')
 
         # convert GTDB classifications to NCBI classification
