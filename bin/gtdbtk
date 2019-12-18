@@ -414,18 +414,12 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         print_help()
         sys.exit(0)
-    elif (sys.argv[1] == '-v' or
-          sys.argv[1] == '--v' or
-          sys.argv[1] == '-version' or
-          sys.argv[1] == '--version'):
+    elif sys.argv[1] in {'-v', '--v', '-version', '--version'}:
         print("gtdbtk: version %s %s %s" % (version(),
                                             __copyright__,
                                             __author__))
         sys.exit(0)
-    elif (sys.argv[1] == '-h' or
-          sys.argv[1] == '--h' or
-          sys.argv[1] == '-help' or
-          sys.argv[1] == '--help'):
+    elif sys.argv[1] in {'-h', '--h', '-help', '--help'}:
         print_help()
         sys.exit(0)
     else:
