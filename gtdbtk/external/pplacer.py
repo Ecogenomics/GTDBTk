@@ -134,10 +134,10 @@ class Pplacer(object):
 
         args = ['pplacer', '-m', model, '-j', str(cpus), '-c', ref_pkg, '-o',
                 json_out, msa_file]
-
         if mmap_file:
             args.append('--mmap-file')
             args.append(mmap_file)
+        self.logger.debug(' '.join(args))
 
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf-8')
         with open(pplacer_out, 'w') as fh:

@@ -47,7 +47,7 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1):
+    def __init__(self, cpus=1, pplacer_cpus=None):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
@@ -60,6 +60,7 @@ class Classify(object):
 
         self.logger = logging.getLogger('timestamp')
         self.cpus = cpus
+        self.pplacer_cpus = pplacer_cpus if pplacer_cpus else cpus
 
         self.species_radius = self.parse_radius_file()
 
@@ -90,12 +91,14 @@ class Classify(object):
                 self.logger.warning(f'pplacer requires ~113 GB of RAM to fully '
                                     f'load the bacterial tree into memory. '
                                     f'However, {mem_total}GB was detected. '
-                                    f'This may affect pplacer performance.')
+                                    f'This may affect pplacer performance, '
+                                    f'or fail if there is insufficient scratch space.')
             elif marker_set_id == 'ar122' and mem_total < 7:
                 self.logger.warning(f'pplacer requires ~6.2 GB of RAM to fully '
                                     f'load the archaeal tree into memory. '
                                     f'However, {mem_total}GB was detected. '
-                                    f'This may affect pplacer performance.')
+                                    f'This may affect pplacer performance, '
+                                    f'or fail if there is insufficient scratch space.')
 
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
@@ -125,17 +128,17 @@ class Classify(object):
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
             self.logger.info(
-                'Placing {} bacterial genomes into reference tree with pplacer (be patient).'.format(num_genomes))
+                f'Placing {num_genomes} bacterial genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_BAC120_REF_PKG)
         elif marker_set_id == 'ar122':
             self.logger.info(
-                'Placing {} archaeal genomes into reference tree with pplacer (be patient).'.format(num_genomes))
+                f'Placing {num_genomes} archaeal genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG)
         elif marker_set_id == 'rps23':
             self.logger.info(
-                'Placing {} genomes into reference tree with pplacer (be patient).'.format(num_genomes))
+                f'Placing {num_genomes} genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
         else:
@@ -160,7 +163,7 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer = Pplacer()
-        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out,
+        pplacer.run(self.pplacer_cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out,
                     user_msa_file, pplacer_out, pplacer_mmap_file)
         self.logger.info('pplacer version: {}'.format(pplacer.version))
 
