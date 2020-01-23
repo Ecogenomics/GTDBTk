@@ -207,6 +207,8 @@ class Classify(object):
         """
         # return taxstring
         taxlist = taxstring.split(";")
+        while '' in taxlist:
+            taxlist.remove('')
         if marker_set == 'bac120':
             taxlist.insert(0, 'd__Bacteria')
         if marker_set == 'ar122':
