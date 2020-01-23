@@ -174,7 +174,7 @@ if __name__ == '__main__':
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                       help='number of CPUs to use')
     optional_classify_wf.add_argument('--pplacer_cpus', type=int, default=None,
-                                      help='use PPLACER_CPUS during placement (default CPUS)')
+                                      help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
                                       help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
@@ -312,7 +312,7 @@ if __name__ == '__main__':
     optional_classify.add_argument('--cpus', default=1, type=int,
                                    help='number of CPUs to use')
     optional_classify.add_argument('--pplacer_cpus', type=int, default=None,
-                                   help='use PPLACER_CPUS during placement (default CPUS)')
+                                   help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
     optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
                                    help='recalculate RED values based on the reference tree and all added user genomes')
