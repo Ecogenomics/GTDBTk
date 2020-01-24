@@ -259,7 +259,7 @@ class OptionsParser(object):
         if not hasattr(options, 'outgroup_taxon'):
             options.outgroup_taxon = None
 
-        markers = Markers(options.cpus)
+        markers = Markers(options.cpus, options.debug)
         markers.align(options.identify_dir,
                       options.skip_gtdb_refs,
                       options.taxa_filter,

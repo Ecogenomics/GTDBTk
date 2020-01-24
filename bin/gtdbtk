@@ -144,7 +144,9 @@ if __name__ == '__main__':
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
     optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
-                                    help='continue processing if an error occurrs on a single genome')
+                                    help='continue processing if an error occurs on a single genome')
+    optional_denovo_wf.add_argument('--debug', action="store_true",
+                                    help='create intermediate files for debugging purposes')
     optional_denovo_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
@@ -253,11 +255,12 @@ if __name__ == '__main__':
                                 help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_align.add_argument('--rnd_seed', type=int, default=None,
                                 help='random seed to use for selecting columns')
-
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                 help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
                                 help='number of CPUs to use')
+    optional_align.add_argument('--debug', action="store_true",
+                                help='create intermediate files for debugging purposes')
     optional_align.add_argument('-h', '--help', action="help",
                                 help="show help message")
 
@@ -317,7 +320,7 @@ if __name__ == '__main__':
     optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
                                    help='recalculate RED values based on the reference tree and all added user genomes')
 
-    optional_classify.add_argument('-d', '--debug', action="store_true",
+    optional_classify.add_argument('--debug', action="store_true",
                                    help='create intermediate files for debugging purposes')
     optional_classify.add_argument('-h', '--help', action="help",
                                    help="show help message")

@@ -283,11 +283,10 @@ class HmmAligner(object):
 
         # we concatenate the aligned markers together and associate them with
         # the genome.
+        seq = ""
         for gid, markids in result_aligns.items():
-            seq = ""
             for markid in sorted(markids.keys()):
                 seq = seq + markids.get(markid)
-
         return seq
 
     def _run_align(self, marker_dict, genome):

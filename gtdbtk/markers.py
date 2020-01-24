@@ -23,6 +23,7 @@ from shutil import copy
 import numpy as np
 
 import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
@@ -39,13 +40,14 @@ from gtdbtk.trim_msa import TrimMSA
 class Markers(object):
     """Identify and align marker genes."""
 
-    def __init__(self, cpus=1):
+    def __init__(self, cpus=1, debug=False):
         """Initialize."""
 
         self.logger = logging.getLogger('timestamp')
         self.warnings = logging.getLogger('warnings')
 
         self.cpus = cpus
+        self.debug = debug
 
         self.genome_file_suffix = GENOME_FILE_SUFFIX
         self.protein_file_suffix = PROTEIN_FILE_SUFFIX
@@ -548,6 +550,10 @@ class Markers(object):
             user_msa = hmm_aligner.align_marker_set(cur_genome_files,
                                                     marker_set_id)
 
+            # Write the individual marker alignments to disk
+            if self.debug:
+                self._write_individual_markers(user_msa, marker_set_id, marker_info_file, out_dir, prefix)
+
             # filter columns without sufficient representation across taxa
             if skip_trimming:
                 self.logger.info(
@@ -656,3 +662,39 @@ class Markers(object):
                 self.logger.error(
                     'There was an error determining the marker set.')
                 raise GenomeMarkerSetUnknown
+
+    def _write_individual_markers(self, user_msa, marker_set_id, marker_list, out_dir, prefix):
+        marker_dir = join(out_dir, DIR_ALIGN_MARKERS)
+        make_sure_path_exists(marker_dir)
+
+        markers, total_msa_len = self._parse_marker_info_file(marker_list)
+        marker_to_msa = dict()
+        offset = 0
+        for marker_id, marker_desc, marker_len in sorted(markers, key=lambda x: x[0]):
+            path_msa = os.path.join(marker_dir, f'{prefix}.{marker_set_id}.{marker_id}.faa')
+            marker_to_msa[path_msa] = defaultdict(str)
+            for gid, msa in user_msa.items():
+                marker_to_msa[path_msa][gid] += msa[offset: marker_len + offset]
+            offset += marker_len
+
+        if total_msa_len != offset:
+            self.logger.warning('Internal error: the total MSA length is not equal to the offset.')
+        for path_marker, gid_dict in marker_to_msa.items():
+            with open(path_marker, 'w') as fh:
+                for genome_id, genome_msa in gid_dict.items():
+                    fh.write(f'>{genome_id}\n{genome_msa}\n')
+        self.logger.debug(f'Successfully written all markers to: {marker_dir}')
+
+    def _parse_marker_info_file(self, path):
+        total_msa_len = 0
+        markers = list()
+        with open(path, 'r') as fh:
+            fh.readline()
+            for line in fh.readlines():
+                list_info = line.split("\t")
+                marker_id = list_info[0]
+                marker_name = '%s: %s' % (list_info[1], list_info[2])
+                marker_len = int(list_info[3])
+                markers.append((marker_id, marker_name, marker_len))
+                total_msa_len += marker_len
+        return markers, total_msa_len
