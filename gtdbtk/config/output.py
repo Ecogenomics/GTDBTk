@@ -31,6 +31,7 @@ PATH_BAC120_USER_MSA = join(DIR_ALIGN, '{prefix}.bac120.user_msa.fasta')
 PATH_AR122_USER_MSA = join(DIR_ALIGN, '{prefix}.ar122.user_msa.fasta')
 PATH_BAC120_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.bac120.marker_info.tsv')
 PATH_AR122_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.ar122.marker_info.tsv')
+DIR_ALIGN_MARKERS = join(DIR_ALIGN_INTERMEDIATE, 'markers')
 
 # Command: classify
 DIR_CLASSIFY = 'classify'
