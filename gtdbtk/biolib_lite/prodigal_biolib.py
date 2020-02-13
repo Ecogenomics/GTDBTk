@@ -76,12 +76,14 @@ class Prodigal(object):
         best_translation_table = -1
         table_coding_density = {4: -1, 11: -1}
         if self.called_genes:
-            os.system('cp %s %s' % (os.path.abspath(genome_file), aa_gene_file))
+            os.system('cp %s %s' %
+                      (os.path.abspath(genome_file), aa_gene_file))
         else:
             seqs = read_fasta(genome_file)
 
             if len(seqs) == 0:
-                self.logger.warning('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                self.logger.warning(
+                    'Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
                 return None
 
             tmp_dir = tempfile.mkdtemp()
@@ -113,11 +115,21 @@ class Prodigal(object):
                 else:
                     proc_str = 'single'  # estimate parameters from data
 
-                # If this is a gzipped genome, re-write the uncompressed genome file to disk
+                # If this is a gzipped genome, re-write the uncompressed genome
+                # file to disk
                 prodigal_input = genome_file
                 if genome_file.endswith('.gz'):
-                    prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
+                    prodigal_input = os.path.join(
+                        tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
                     write_fasta(seqs, prodigal_input)
+
+                # there may be ^M character in the input file,
+                # the following code is similar to dos2unix command to remove
+                # those special characters.
+                text = open(prodigal_input, 'r').read().replace('\r\n', '\n')
+                processed_prodigal_input = os.path.join(
+                    tmp_dir, os.path.basename(prodigal_input))
+                open(processed_prodigal_input, 'w').write(text)
 
                 args = '-m'
                 if self.closed_ends:
@@ -128,7 +140,7 @@ class Prodigal(object):
                                                                                                  translation_table,
                                                                                                  aa_gene_file_tmp,
                                                                                                  nt_gene_file_tmp,
-                                                                                                 prodigal_input,
+                                                                                                 processed_prodigal_input,
                                                                                                  gff_file_tmp)
                 os.system(cmd)
 
@@ -348,7 +360,6 @@ class ProdigalGeneFeatureParser(object):
 
                 geneId = seq_id + '_' + str(geneCounter)
                 geneCounter += 1
-
                 start = int(line_split[3])
                 end = int(line_split[4])
 
