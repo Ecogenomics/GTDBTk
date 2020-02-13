@@ -255,8 +255,8 @@ class HmmAligner(object):
                         markerid = sublist[0]
                         if markerid not in marker_dict_original.keys():
                             continue
-                        evalue = sublist[1]
-                        bitscore = sublist[2].strip()
+                        evalue = float(sublist[1])
+                        bitscore = float(sublist[2].strip())
 
                         if markerid in gene_dict:
                             oldbitscore = gene_dict.get(
