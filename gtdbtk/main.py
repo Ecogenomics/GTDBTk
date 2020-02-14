@@ -482,7 +482,7 @@ class OptionsParser(object):
             if options.suffix == 'bac120':
                 symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                                       os.path.basename(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))))
             elif options.suffix == 'ar122':
                 symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,

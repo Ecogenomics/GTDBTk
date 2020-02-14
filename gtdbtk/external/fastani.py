@@ -183,15 +183,19 @@ class FastANI(object):
                 break
 
             # Extract the values
-            q = list(job.get('q').values())[0] if job.get('q') is not None else None
-            r = list(job.get('r').values())[0] if job.get('r') is not None else None
+            q = list(job.get('q').values())[0] if job.get(
+                'q') is not None else None
+            r = list(job.get('r').values())[0] if job.get(
+                'r') is not None else None
             ql = job.get('ql')
             rl = job.get('rl')
 
             # Create a temporary directory to write the lists to.
             dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_fastani_tmp_')
-            path_qry = os.path.join(dir_tmp, 'ql.txt') if ql is not None else None
-            path_ref = os.path.join(dir_tmp, 'rl.txt') if rl is not None else None
+            path_qry = os.path.join(
+                dir_tmp, 'ql.txt') if ql is not None else None
+            path_ref = os.path.join(
+                dir_tmp, 'rl.txt') if rl is not None else None
             path_out = os.path.join(dir_tmp, 'output.txt')
 
             try:
@@ -224,7 +228,7 @@ class FastANI(object):
                 break
             processed_items += 1
             status = f'==> Processing {processed_items} of {n_total} ' \
-                     f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
+                f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
             sys.stdout.write('\r%s' % status)
             sys.stdout.flush()
         sys.stdout.write('\n')
@@ -358,7 +362,9 @@ class FastANI(object):
                     elif ref_gid not in out[qry_gid]:
                         out[qry_gid][ref_gid] = {'ani': ani, 'af': af}
                     else:
-                        out[qry_gid][ref_gid]['ani'] = max(out[qry_gid][ref_gid]['ani'], ani)
-                        out[qry_gid][ref_gid]['af'] = max(out[qry_gid][ref_gid]['af'], af)
+                        out[qry_gid][ref_gid]['ani'] = max(
+                            out[qry_gid][ref_gid]['ani'], ani)
+                        out[qry_gid][ref_gid]['af'] = max(
+                            out[qry_gid][ref_gid]['af'], af)
 
         return out
