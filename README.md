@@ -34,7 +34,7 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 ## Announcements
 
 **Note (INSERT_DATE**):
-* GTDB-Tk v**INSERT_VERSION** has been released (**we recommend all users update to this version**)
+* GTDB-Tk v1.0.3 has been released (**we recommend all users update to this version**)
     * Updated the `gtdb_to_ncbi_majority_vote.py` script for translating taxonomy.
     * Added the `--pplacer_cpus` argument to specify the number of pplacer threads when running `classify` and `classify_wf` (#195).
     * The `--debug` flag in `align` outputs aligned markers to disk before trimming.
