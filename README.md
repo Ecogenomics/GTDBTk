@@ -38,6 +38,8 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
     * Updated the `gtdb_to_ncbi_majority_vote.py` script for translating taxonomy.
     * Added the `--pplacer_cpus` argument to specify the number of pplacer threads when running `classify` and `classify_wf` (#195).
     * The `--debug` flag in `align` outputs aligned markers to disk before trimming.
+    * An optional third column in the `--batchfile` will specify an override to which translation
+    table should be used. Leave blank to automatically determine the translation table (default).
 
 **Note (Dec 12, 2019)**:
 * GTDB-Tk v1.0.2 has been released

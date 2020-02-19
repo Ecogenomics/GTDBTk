@@ -51,7 +51,7 @@ class TestOptionsParser(unittest.TestCase):
         open(os.path.join(self.dir_tmp, 'genome_1.fna'), 'a').close()
         open(os.path.join(self.dir_tmp, 'genome_2.fna'), 'a').close()
         open(os.path.join(self.dir_tmp, 'other_file.txt'), 'a').close()
-        results = self.options_parser._genomes_to_process(self.dir_tmp, '', 'fna')
+        results, tln_table = self.options_parser._genomes_to_process(self.dir_tmp, '', 'fna')
         expected = {'genome_1': os.path.join(self.dir_tmp, 'genome_1.fna'),
                     'genome_2': os.path.join(self.dir_tmp, 'genome_2.fna')}
         self.assertDictEqual(results, expected)
@@ -65,13 +65,15 @@ class TestOptionsParser(unittest.TestCase):
         open(path_genome_2, 'a').close()
 
         with open(path_batchfile, 'a') as f:
-            f.write('%s\tgenome_1\n' % path_genome_1)
+            f.write(f'{path_genome_1}\tgenome_1\n')
             f.write('\n')
-            f.write('%s\tgenome_2\n' % path_genome_2)
+            f.write(f'{path_genome_2}\tgenome_2\t4\n')
 
-        results = self.options_parser._genomes_to_process('', path_batchfile, 'fna')
+        results, tln_table = self.options_parser._genomes_to_process('', path_batchfile, 'fna')
         expected = {'genome_1': path_genome_1, 'genome_2': path_genome_2}
+        expected_tln = {'genome_2': 4}
         self.assertDictEqual(results, expected)
+        self.assertDictEqual(tln_table, expected_tln)
 
     def test__genomes_to_process__batchfile__invalid_columns(self):
         """ Test that a batchfile containing columns not equal to 2 throws an exception. """
@@ -86,7 +88,7 @@ class TestOptionsParser(unittest.TestCase):
             f.write('\n')
             f.write('%s\tgenome_2\tfoo\n' % path_genome_2)
 
-        self.assertRaises(GenomeBatchfileMalformed, self.options_parser._genomes_to_process, '', path_batchfile,
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile,
                           'fna')
 
     def test__genomes_to_process__batchfile__blank_genome_path(self):
@@ -102,7 +104,7 @@ class TestOptionsParser(unittest.TestCase):
             f.write('\n')
             f.write('%s\tgenome_2\n' % '')
 
-        self.assertRaises(GenomeBatchfileMalformed, self.options_parser._genomes_to_process, '', path_batchfile,
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile,
                           'fna')
 
     def test__genomes_to_process__batchfile__blank_genome_id(self):
@@ -118,7 +120,7 @@ class TestOptionsParser(unittest.TestCase):
             f.write('\n')
             f.write('%s\t\n' % path_genome_2)
 
-        self.assertRaises(GenomeBatchfileMalformed, self.options_parser._genomes_to_process, '', path_batchfile,
+        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile,
                           'fna')
 
     def test__genomes_to_process__batchfile__duplicate_genome_id(self):

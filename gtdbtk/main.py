@@ -112,7 +112,7 @@ class OptionsParser(object):
             Map of genomes to their genomic FASTA files.
         """
 
-        genomic_files = {}
+        genomic_files, tln_tables = dict(), dict()
         if genome_dir:
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
@@ -126,12 +126,20 @@ class OptionsParser(object):
                     if line_split[0] == '':
                         continue  # blank line
 
-                    if len(line_split) != 2:
-                        self.logger.error(
-                            'Batch file must contain exactly 2 columns.')
-                        raise GenomeBatchfileMalformed
+                    if len(line_split) not in {2, 3}:
+                        raise GTDBTkExit('Batch file must contain either 2 '
+                                         'columns (detect translation table), '
+                                         'or 3 (specify translation table).')
 
-                    genome_file, genome_id = line_split
+                    if len(line_split) == 2:
+                        genome_file, genome_id = line_split
+                    elif len(line_split) == 3:
+                        genome_file, genome_id, tln_table = line_split
+                        if tln_table not in {'4', '11'}:
+                            raise GTDBTkExit('Specified translation table must '
+                                             'be either 4, or 11.')
+                        tln_tables[genome_id] = int(tln_table)
+
                     self._verify_genome_id(genome_id)
 
                     if genome_file is None or genome_file == '':
@@ -183,7 +191,7 @@ class OptionsParser(object):
                                   'check the format of this file.' % batchfile)
             raise GTDBTkExit
 
-        return genomic_files
+        return genomic_files, tln_tables
 
     def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
         """Get unique identifier for marker set.
@@ -233,11 +241,12 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes = self._genomes_to_process(
+        genomes, tln_tables = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
 
         markers = Markers(options.cpus)
         markers.identify(genomes,
+                         tln_tables,
                          options.out_dir,
                          options.prefix,
                          options.force)
@@ -402,7 +411,7 @@ class OptionsParser(object):
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
 
-        genomes = self._genomes_to_process(
+        genomes, _ = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
 
         classify = Classify(options.cpus, options.pplacer_cpus)

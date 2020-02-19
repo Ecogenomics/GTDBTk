@@ -210,13 +210,15 @@ class Markers(object):
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                   os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
-    def identify(self, genomes, out_dir, prefix, force):
+    def identify(self, genomes, tln_tables, out_dir, prefix, force):
         """Identify marker genes in genomes.
 
         Parameters
         ----------
         genomes : dict
             Genome IDs as the key, path to genome file as value.
+        tln_tables: Dict[str, int]
+            Genome ID -> translation table mapping for those user-specified.
         out_dir : str
             Path to the output directory.
         prefix : str
@@ -245,7 +247,7 @@ class Markers(object):
                             force)
         self.logger.info(
             "Running Prodigal {} to identify genes.".format(prodigal.version))
-        genome_dictionary = prodigal.run(genomes)
+        genome_dictionary = prodigal.run(genomes, tln_tables)
 
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.info("Identifying TIGRFAM protein families.")
