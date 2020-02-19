@@ -160,7 +160,7 @@ if __name__ == '__main__':
     mutex_group.add_argument('--genome_dir',
                              help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+                             help="file describing genomes - tab separated in 3 columns (FASTA file, genome ID, translation table [optional])")
 
     required_classify_wf = classify_wf_parser.add_argument_group('required named arguments')
     required_classify_wf.add_argument('--out_dir', required=True,
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     mutex_group.add_argument('--genome_dir',
                              help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+                             help="file describing genomes - tab separated in 3 columns (FASTA file, genome ID, translation table [optional])")
 
     required_identify = identify_parser.add_argument_group('required named arguments')
     required_identify.add_argument('--out_dir', required=True,
