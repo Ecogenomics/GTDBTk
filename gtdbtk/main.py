@@ -543,6 +543,10 @@ class OptionsParser(object):
         if sys.version_info.major < 3:
             raise GTDBTkExit('Python 2 is no longer supported.')
 
+        # Correct user paths
+        if hasattr(options, 'out_dir'):
+            options.out_dir = os.path.expanduser(options.out_dir)
+
         # Assert that the number of CPUs is a positive integer.
         if hasattr(options, 'cpus') and options.cpus < 1:
             self.logger.warning(

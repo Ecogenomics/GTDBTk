@@ -170,7 +170,7 @@ class Prodigal(object):
             statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processed_items,
                                                                                 num_items,
                                                                                 float(processed_items) * 100 / num_items)
-            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
 
         sys.stdout.write('\n')
