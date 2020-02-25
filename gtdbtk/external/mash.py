@@ -114,11 +114,9 @@ class DistanceFile(object):
 
     def _calculate(self):
         self.logger.info('Calculating Mash distances.')
-
         args = ['mash', 'dist', '-p', self.cpus, '-d', self.max_d, '-v',
                 self.mash_v, self.ref_sketch.path, self.qry_sketch.path]
         args = list(map(str, args))
-        self.logger.info(' '.join(args))
         with open(self.path, 'w') as f_out:
             proc = subprocess.Popen(args, stdout=f_out,
                                     stderr=subprocess.PIPE, encoding='utf-8')
@@ -127,7 +125,12 @@ class DistanceFile(object):
             raise GTDBTkExit(f'Error running Mash dist: {proc.stderr.read()}')
 
     def read(self):
-        """Reads the results of the distance file."""
+        """Reads the results of the distance file.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Tuple[float, float, int, int]]
+        """
         out = defaultdict(dict)
         with open(self.path, 'r') as fh:
             hits = re.findall(r'(.+)\t(.+)\t(.+)\t(.+)\t(\d+)\/(\d+)\n', fh.read())
@@ -193,7 +196,6 @@ class SketchFile(object):
             args = ['mash', 'sketch', '-l', '-p', self.cpus, path_genomes, '-o',
                     self.path, '-k', self.k, '-s', self.s]
             args = list(map(str, args))
-            self.logger.info(' '.join(args))
             proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, encoding='utf-8')
             n_processed = 0

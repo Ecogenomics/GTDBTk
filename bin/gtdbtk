@@ -486,24 +486,24 @@ if __name__ == '__main__':
         else:
             gt_parser.parse_options(args)
     except SystemExit:
-        sys.stdout.write('\r')
+        sys.stdout.write('\n')
         sys.stdout.flush()
         logger.error('Controlled exit resulting from early termination.')
         sys.exit(1)
     except KeyboardInterrupt:
-        sys.stdout.write('\r')
+        sys.stdout.write('\n')
         sys.stdout.flush()
         logger.error('Controlled exit resulting from interrupt signal.')
         sys.exit(1)
     except GTDBTkExit as e:
-        sys.stdout.write('\r')
+        sys.stdout.write('\n')
         sys.stdout.flush()
         if len(str(e)) > 0:
             logger.error('{}'.format(e))
         logger.error('Controlled exit resulting from an unrecoverable error or warning.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
-        sys.stdout.write('\r')
+        sys.stdout.write('\n')
         sys.stdout.flush()
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
         msg += '=' * 80 + '\n'
@@ -515,7 +515,7 @@ if __name__ == '__main__':
         logger.error(msg)
         sys.exit(1)
     except Exception as e:
-        sys.stdout.write('\r')
+        sys.stdout.write('\n')
         sys.stdout.flush()
         msg = 'Uncontrolled exit resulting from an unexpected error.\n\n'
         msg += '=' * 80 + '\n'

@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 
 from gtdbtk.biolib_lite.execute import check_dependencies
-from gtdbtk.config.config import FASTANI_GENOMES, FASTANI_GENOMES_EXT
+from gtdbtk.config.config import FASTANI_GENOMES, FASTANI_GENOMES_EXT, AF_THRESHOLD
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.mash import Mash
@@ -34,16 +34,6 @@ class ANIRep(object):
                 ref_genomes[accession] = os.path.join(FASTANI_GENOMES, f_name)
         return ref_genomes
 
-    def _write_results(self, results, out_dir):
-        """Writes the FastANI results to disk."""
-        out_path = os.path.join(out_dir, 'fastani_results.tsv')
-        with open(out_path, 'w') as fh:
-            fh.write('query\treference\tani\taf\n')
-            for qry_gid, ref_hits in sorted(results.items()):
-                for ref_gid, ref_hit in sorted(ref_hits.items(), key=lambda x: (-x[1]['af'], -x[1]['ani'], x[0])):
-                    fh.write(f'{qry_gid}\t{ref_gid}\t{ref_hit["ani"]}\t{ref_hit["af"]}\n')
-        self.logger.info(f'Results saved to: {out_path}')
-
     def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s):
         """Runs the pipeline."""
         self.check_dependencies(no_mash)
@@ -70,4 +60,50 @@ class ANIRep(object):
         fastani = FastANI(self.cpus, force_single=True)
         fastani_results = fastani.run(d_compare, d_paths)
 
-        self._write_results(fastani_results, out_dir)
+        ANISummaryFile(out_dir, prefix, fastani_results)
+        ANIClosestFile(out_dir, prefix, fastani_results, genomes)
+
+
+class ANISummaryFile(object):
+    name = 'ani_summary.tsv'
+
+    def __init__(self, root, prefix, results):
+        self.path = os.path.join(root, f'{prefix}.{self.name}')
+        self.results = results
+        self.logger = logging.getLogger('timestamp')
+        self._write()
+
+    def _write(self):
+        with open(self.path, 'w') as fh:
+            fh.write('query\treference\tani\taf\n')
+            for qry_gid, ref_hits in sorted(self.results.items()):
+                for ref_gid, ref_hit in sorted(ref_hits.items(), key=lambda x: (-x[1]['af'], -x[1]['ani'], x[0])):
+                    fh.write(f'{qry_gid}\t{ref_gid}\t{ref_hit["ani"]}\t{ref_hit["af"]}\n')
+        self.logger.info(f'Summary of results saved to: {self.path}')
+
+
+class ANIClosestFile(object):
+    name = 'ani_closest.tsv'
+
+    def __init__(self, root, prefix, results, genomes):
+        self.logger = logging.getLogger('timestamp')
+        self.path = os.path.join(root, f'{prefix}.{self.name}')
+        self.results = results
+        self.genomes = genomes
+        self._write()
+
+    def _write(self):
+        with open(self.path, 'w') as fh:
+            fh.write('query\treference\tani\taf\n')
+            for gid in sorted(self.genomes):
+                if gid in self.results:
+                    thresh_results = [(ref_gid, hit) for (ref_gid, hit) in
+                                      self.results[gid].items() if hit['af'] >= AF_THRESHOLD]
+                    closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
+                    if len(closest) > 0:
+                        fh.write(f'{gid}\t{closest[0][0]}\t{closest[0][1]["ani"]}\t{closest[0][1]["af"]}\n')
+                    else:
+                        fh.write(f'{gid}\tno result\tno result\tno result\n')
+                else:
+                    fh.write(f'{gid}\tno result\tno result\tno result\n')
+        self.logger.info(f'Closest representative hits saved to: {self.path}')
