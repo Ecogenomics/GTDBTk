@@ -9,10 +9,26 @@ import math
 
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 
+import gtdbtk.config.config as Config
+
 
 ##################################################
 ############MISC UTILITIES########################
 ##################################################
+
+
+def get_reference_ids():
+    results = []
+    with open(Config.TAXONOMY_FILE) as tf:
+        for line in tf:
+            raw_id = line.split('\t')[0]
+            results.append(raw_id)
+            if raw_id[0:4] in ['GCF_', 'GCA_']:
+                results.append(add_ncbi_prefix(raw_id))
+            elif raw_id[0:3] in ['RS_', 'GB_']:
+                results.append(raw_id[3:])
+
+    return results
 
 
 def add_ncbi_prefix(refname):

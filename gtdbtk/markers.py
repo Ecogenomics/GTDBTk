@@ -28,7 +28,7 @@ from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
-from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch, InconsistentGenomeBatch
 from gtdbtk.external.hmm_aligner import HmmAligner
 from gtdbtk.external.pfam_search import PfamSearch
 from gtdbtk.external.prodigal import Prodigal
@@ -463,7 +463,8 @@ class Markers(object):
               min_per_taxa,
               out_dir,
               prefix,
-              outgroup_taxon):
+              outgroup_taxon,
+              genomes_to_process=None):
         """Align marker genes in genomes."""
 
         if identify_dir != out_dir:
@@ -492,6 +493,12 @@ class Markers(object):
 
         genomic_files = self._path_to_identify_data(
             identify_dir, identify_dir != out_dir)
+        if genomes_to_process is not None and len(genomic_files) != len(genomes_to_process):
+            self.logger.error('{} are not present in the input list of genome to process.'.format(
+                list(set(genomic_files.keys()) - set(genomes_to_process.keys()))))
+            raise InconsistentGenomeBatch(
+                'Number of processed genomes in the identify directory is unequal to the list of input genomes.')
+
         self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
                                                                               self.cpus))
 
@@ -554,7 +561,8 @@ class Markers(object):
 
             # Write the individual marker alignments to disk
             if self.debug:
-                self._write_individual_markers(user_msa, marker_set_id, marker_info_file, out_dir, prefix)
+                self._write_individual_markers(
+                    user_msa, marker_set_id, marker_info_file, out_dir, prefix)
 
             # filter columns without sufficient representation across taxa
             if skip_trimming:
@@ -680,7 +688,8 @@ class Markers(object):
             offset += marker_len
 
         if total_msa_len != offset:
-            self.logger.warning('Internal error: the total MSA length is not equal to the offset.')
+            self.logger.warning(
+                'Internal error: the total MSA length is not equal to the offset.')
         for path_marker, gid_dict in marker_to_msa.items():
             with open(path_marker, 'w') as fh:
                 for genome_id, genome_msa in gid_dict.items():

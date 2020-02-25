@@ -37,7 +37,7 @@ from gtdbtk.external.fasttree import FastTree
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.reroot_tree import RerootTree
-from gtdbtk.tools import symlink_f
+from gtdbtk.tools import symlink_f, get_reference_ids
 
 
 class OptionsParser(object):
@@ -54,6 +54,8 @@ class OptionsParser(object):
         self.warnings = logging.getLogger('warnings')
         self.version = version
         self._check_package_compatibility()
+
+        self.genomes_to_process = None
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
@@ -160,13 +162,6 @@ class OptionsParser(object):
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
         for genome_key, genome_path in genomic_files.items():
-            if genome_key.startswith("RS_") or genome_key.startswith("GB_") \
-                    or genome_key.startswith("UBA"):
-                self.logger.error("Submitted genomes start with the same prefix"
-                                  " (RS_,GB_,UBA) as reference genomes in"
-                                  " GTDB-Tk. This will cause issues for"
-                                  " downstream analysis.")
-                raise GTDBTkExit
 
             if not os.path.isfile(genome_path):
                 invalid_paths.append((genome_key, genome_path))
@@ -189,6 +184,12 @@ class OptionsParser(object):
             else:
                 self.logger.error('No genomes found in batch file: %s. Please '
                                   'check the format of this file.' % batchfile)
+            raise GTDBTkExit
+
+        if set(genomic_files.keys()) & set(get_reference_ids()):
+            self.logger.error(
+                'The following ids are reserved for GTDB-Tk reference genomes: {}'.format(set(genomic_files.keys()) & set(get_reference_ids())))
+            self.logger.error('Please rename those genomes.')
             raise GTDBTkExit
 
         return genomic_files, tln_tables
@@ -243,6 +244,7 @@ class OptionsParser(object):
 
         genomes, tln_tables = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
+        self.genomes_to_process = genomes
 
         markers = Markers(options.cpus)
         markers.identify(genomes,
@@ -282,7 +284,8 @@ class OptionsParser(object):
                       options.min_perc_taxa,
                       options.out_dir,
                       options.prefix,
-                      options.outgroup_taxon)
+                      options.outgroup_taxon,
+                      self.genomes_to_process)
 
         self.logger.info('Done.')
 
@@ -633,6 +636,7 @@ class OptionsParser(object):
             options.max_consensus = None
             options.rnd_seed = None
             options.skip_trimming = False
+
             self.align(options)
 
             self.classify(options)

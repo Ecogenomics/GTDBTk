@@ -39,7 +39,7 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
-from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb
+from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids
 
 sys.setrecursionlimit(15000)
 
@@ -63,6 +63,8 @@ class Classify(object):
         self.pplacer_cpus = pplacer_cpus if pplacer_cpus else cpus
 
         self.species_radius = self.parse_radius_file()
+
+        self.reference_ids = get_reference_ids()
 
     def parse_radius_file(self):
         results = {}
@@ -402,12 +404,12 @@ class Classify(object):
                 # if, while going up the tree, we find a node with only one
                 # reference genome, we select this reference genome as
                 # leaf_reference.
-                if userleaf.taxon.label[0:3] not in ['RS_', 'GB_', 'UBA']:
+                if userleaf.taxon.label not in self.reference_ids:
 
                     par_node = userleaf.parent_node
                     leaf_ref_genome = None
                     leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                    ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                    ) if subnd.taxon.label.replace("'", '') in self.reference_ids]
                     if len(leaf_ref_genomes) == 1:
                         leaf_ref_genome = leaf_ref_genomes[0]
 
@@ -419,7 +421,7 @@ class Classify(object):
                         par_node = par_node.parent_node
                         if leaf_ref_genome is None:
                             leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                            ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                            ) if subnd.taxon.label.replace("'", '') in self.reference_ids]
                             if len(leaf_ref_genomes) == 1:
                                 leaf_ref_genome = leaf_ref_genomes[0]
                         _support, parent_taxon, _aux_info = parse_label(
@@ -430,15 +432,14 @@ class Classify(object):
                     if parent_rank.startswith('g__'):
                         # we get all the reference genomes under this genus
                         list_subnode_initials = [subnd.taxon.label.replace(
-                            "'", '')[0:3] for subnd in par_node.leaf_iter()]
-                        if (list_subnode_initials.count('RS_') + list_subnode_initials.count(
-                                'GB_') + list_subnode_initials.count('UBA')) < 1:
+                            "'", '') for subnd in par_node.leaf_iter()]
+                        if len(set(list_subnode_initials) & set(self.reference_ids)) < 1:
                             raise Exception(
                                 "There is no reference genomes under '{}'".format('parent_rank'))
                         else:
                             dict_dist_refgenomes = {}
                             list_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                            ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                            ) if subnd.taxon.label.replace("'", '') in self.reference_ids]
                             # we pick the first 100 genomes closest (patristic distance) to the
                             # user genome under the same genus
                             for ref_genome in list_ref_genomes:
@@ -498,12 +499,12 @@ class Classify(object):
                     # on the same parent node so we need to go up the tree
                     # to find a node with a reference genome as leaf.
                     cur_node = leaf.parent_node
-                    list_subnode_initials = [subnd.taxon.label.replace(
-                        "'", '')[0:3] for subnd in cur_node.leaf_iter()]
-                    while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials and 'UBA' not in list_subnode_initials:
+                    list_subnode = [subnd.taxon.label.replace(
+                        "'", '') for subnd in cur_node.leaf_iter()]
+                    while len(set(list_subnode) & set(self.reference_ids)) < 1:
                         cur_node = cur_node.parent_node
                         list_subnode_initials = [subnd.taxon.label.replace(
-                            "'", '')[0:3] for subnd in cur_node.leaf_iter()]
+                            "'", '') for subnd in cur_node.leaf_iter()]
 
                     current_rel_list = cur_node.rel_dist
 
@@ -537,7 +538,7 @@ class Classify(object):
 
                         # get all reference genomes under the current node
                         list_subnode = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
-                        ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                        ) if childnd.taxon.label in self.reference_ids]
 
                         # get all names for the child rank
                         list_ranks = [self.gtdb_taxonomy.get(
@@ -567,7 +568,7 @@ class Classify(object):
                     # case 1b
                     if len(child_taxons) == 0 and closest_rank is None:
                         list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
-                        ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                        ) if childnd.taxon.label in self.reference_ids]
                         if len(list_leaves) != 1:
                             list_subrank = []
                             for leaf_subrank in list_leaves:
@@ -1131,7 +1132,7 @@ class Classify(object):
         initial_loop = True
         for item in list_subnode:
             # We get the taxonomy of all reference genomes
-            if item.startswith('RS_') or item.startswith('GB_') or item.startswith('UBA'):
+            if item in self.reference_ids:
                 taxonomy_from_file = self.gtdb_taxonomy.get(item)
                 # we store the selected rank (i.e. order) for each reference
                 # genome
