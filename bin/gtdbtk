@@ -59,6 +59,7 @@ def print_help():
     classify      -> Determine taxonomic classification of genomes
     root          -> Root tree using an outgroup
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
+    ani_rep       -> Calculates ANI to GTDB representative genomes
     
   Tools:
     trim_msa      -> Trim an untrimmed MSA file based on a mask
@@ -358,6 +359,43 @@ if __name__ == '__main__':
     optional_decorate = decorate_parser.add_argument_group('optional arguments')
     optional_decorate.add_argument('-h', '--help', action="help",
                                    help="show help message")
+
+    # ani_rep
+    ani_rep_parser = subparsers.add_parser('ani_rep', conflict_handler='resolve',
+                                            formatter_class=CustomHelpFormatter,
+                                            help='Calculates ANI to GTDB representative genomes.', )
+
+    # ani_rep mutex required input genomes
+    ani_rep_mutex_genome = ani_rep_parser.add_argument_group('mutually exclusive required arguments')
+    ani_rep_mutex_in = ani_rep_mutex_genome.add_mutually_exclusive_group(required=True)
+    ani_rep_mutex_in.add_argument('--genome_dir',
+                             help="directory containing genome files in FASTA format")
+    ani_rep_mutex_in.add_argument('--batchfile',
+                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+
+    # ani_rep required arguments
+    ani_rep_req = ani_rep_parser.add_argument_group('required named arguments')
+    ani_rep_req.add_argument('--out_dir', required=True,
+                             help="directory to output files")
+
+    # ani_rep mash arguments
+    ani_rep_mash = ani_rep_parser.add_argument_group('optional Mash arguments')
+    ani_rep_mash.add_argument('--no_mash', action='store_const', const=True, default=False,
+                             help='skip pre-filtering using MASH')
+    ani_rep_mash.add_argument('--mash_k', default=21, type=int, help='k-mer size [1-32]')
+    ani_rep_mash.add_argument('--mash_s', default=1000, type=int, help='maximum number of non-redundant hashes')
+    ani_rep_mash.add_argument('--mash_d', default=0.3, type=float, help='maximum distance to keep [0-1]')
+    ani_rep_mash.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1])')
+
+    # ani_rep optional arguments
+    ani_rep_opt = ani_rep_parser.add_argument_group('optional arguments')
+
+    ani_rep_opt.add_argument('-x', '--extension', default='fna',
+                                   help='extension of files to process, gz = gzipped')
+    ani_rep_opt.add_argument('--prefix', default='gtdbtk',
+                                    help='desired prefix for output files')
+    ani_rep_opt.add_argument('--cpus', default=1, type=int, help='number of CPUs to use')
+    ani_rep_opt.add_argument('-h', '--help', action="help", help="show help message")
 
     # test
     test_parser = subparsers.add_parser('test', conflict_handler='resolve',
