@@ -67,5 +67,9 @@ PATH_AR122_ROOTED_TREE = join(DIR_INFER, '{prefix}.ar122.rooted.tree')
 PATH_BAC120_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.unrooted.tree')
 PATH_AR122_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.unrooted.tree')
 
+# Command: ani_rep
+DIR_ANI_REP_INT = join('intermediate_results')
+DIR_ANI_REP_INT_MASH = join(DIR_ANI_REP_INT, 'mash')
+
 # General files
 PATH_WARNINGS = '{prefix}.warnings.log'

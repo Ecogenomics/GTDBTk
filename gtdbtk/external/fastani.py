@@ -69,7 +69,7 @@ class FastANI(object):
 
         Parameters
         ----------
-        dict_compare : Dict[str, Dict[str, str]]
+        dict_compare : Dict[str, Set[str]]
             All query to reference comparisons to be made.
         dict_paths : Dict[str, str]
             The path for each genome id being compared.

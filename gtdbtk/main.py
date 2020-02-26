@@ -23,6 +23,7 @@ import subprocess
 import sys
 
 import gtdbtk.config.config as Config
+from gtdbtk.ani_rep import ANIRep
 from gtdbtk.biolib_lite.common import (check_dir_exists,
                                        check_file_exists,
                                        make_sure_path_exists,
@@ -533,6 +534,25 @@ class OptionsParser(object):
         self.logger.warning('DECORATE NOT YET IMPLEMENTED!')
         self.logger.info('Done.')
 
+    def ani_rep(self, options):
+        """Calculates ANI to GTDB representative genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        make_sure_path_exists(options.out_dir)
+
+        genomes, _ = self._genomes_to_process(
+            options.genome_dir, options.batchfile, options.extension)
+
+        ani_rep = ANIRep(options.cpus)
+        ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
+                    options.mash_k, options.mash_v, options.mash_s, options.min_af)
+
+        self.logger.info('Done.')
+
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)
 
@@ -652,6 +672,8 @@ class OptionsParser(object):
             self.root(options)
         elif options.subparser_name == 'decorate':
             self.decorate(options)
+        elif options.subparser_name == 'ani_rep':
+            self.ani_rep(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':
