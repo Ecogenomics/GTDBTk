@@ -51,23 +51,12 @@ class Mash(object):
         mash_s: int
             Maximum number of non-redundant hashes.
         """
-
-        # Generate sketch files for the query and reference genomes.
-        qry_sketch = SketchFile(qry,
-                                os.path.join(self.out_dir, f'{self.prefix}.qry.msh'),
-                                self.cpus, mash_k, mash_s)
-        ref_sketch = SketchFile(ref,
-                                os.path.join(self.out_dir, f'{self.prefix}.ref.msh'),
-                                self.cpus,
-                                mash_k, mash_s)
+        qry_sketch = QrySketchFile(qry, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
+        ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
 
         # Generate an output file comparing the distances between these genomes.
-        mash_dists = DistanceFile(qry_sketch,
-                                  ref_sketch,
-                                  os.path.join(self.out_dir, f'{self.prefix}.distances.tsv'),
-                                  self.cpus,
-                                  max_d=mash_d,
-                                  mash_v=mash_v)
+        mash_dists = DistanceFile(qry_sketch, ref_sketch, self.out_dir, self.prefix,
+                                  self.cpus, max_d=mash_d, mash_v=mash_v)
         results = mash_dists.read()
 
         # Convert the results back to the accession
@@ -100,12 +89,13 @@ class Mash(object):
 
 class DistanceFile(object):
     """The resulting distance file from the mash dist command."""
+    name = 'mash_distances.tsv'
 
-    def __init__(self, qry_sketch, ref_sketch, path, cpus, max_d, mash_v):
+    def __init__(self, qry_sketch, ref_sketch, root, prefix, cpus, max_d, mash_v):
         self.logger = logging.getLogger('timestamp')
         self.qry_sketch = qry_sketch
         self.ref_sketch = ref_sketch
-        self.path = path
+        self.path = os.path.join(root, f'{prefix}.{self.name}')
         self.cpus = cpus
         self.max_d = max_d
         self.mash_v = mash_v
@@ -215,3 +205,19 @@ class SketchFile(object):
 
             if proc.returncode != 0 or not os.path.isfile(self.path):
                 raise GTDBTkExit(f'Error generating Mash sketch: {proc.stderr.read()}')
+
+
+class QrySketchFile(SketchFile):
+    name = 'user_query_sketch.msh'
+
+    def __init__(self, genomes, root, prefix, cpus, k, s):
+        path = os.path.join(root, f'{prefix}.{self.name}')
+        super().__init__(genomes, path, cpus, k, s)
+
+
+class RefSketchFile(SketchFile):
+    name = 'gtdb_ref_sketch.msh'
+
+    def __init__(self, genomes, root, prefix, cpus, k, s):
+        path = os.path.join(root, f'{prefix}.{self.name}')
+        super().__init__(genomes, path, cpus, k, s)

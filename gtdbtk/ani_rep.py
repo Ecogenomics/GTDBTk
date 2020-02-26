@@ -34,7 +34,7 @@ class ANIRep(object):
                 ref_genomes[accession] = os.path.join(FASTANI_GENOMES, f_name)
         return ref_genomes
 
-    def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s):
+    def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af):
         """Runs the pipeline."""
         self.check_dependencies(no_mash)
 
@@ -61,7 +61,7 @@ class ANIRep(object):
         fastani_results = fastani.run(d_compare, d_paths)
 
         ANISummaryFile(out_dir, prefix, fastani_results)
-        ANIClosestFile(out_dir, prefix, fastani_results, genomes)
+        ANIClosestFile(out_dir, prefix, fastani_results, genomes, min_af)
 
 
 class ANISummaryFile(object):
@@ -85,11 +85,12 @@ class ANISummaryFile(object):
 class ANIClosestFile(object):
     name = 'ani_closest.tsv'
 
-    def __init__(self, root, prefix, results, genomes):
+    def __init__(self, root, prefix, results, genomes, min_af):
         self.logger = logging.getLogger('timestamp')
         self.path = os.path.join(root, f'{prefix}.{self.name}')
         self.results = results
         self.genomes = genomes
+        self.min_af = min_af
         self._write()
 
     def _write(self):
@@ -98,7 +99,7 @@ class ANIClosestFile(object):
             for gid in sorted(self.genomes):
                 if gid in self.results:
                     thresh_results = [(ref_gid, hit) for (ref_gid, hit) in
-                                      self.results[gid].items() if hit['af'] >= AF_THRESHOLD]
+                                      self.results[gid].items() if hit['af'] >= self.min_af]
                     closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
                     if len(closest) > 0:
                         fh.write(f'{gid}\t{closest[0][0]}\t{closest[0][1]["ani"]}\t{closest[0][1]["af"]}\n')

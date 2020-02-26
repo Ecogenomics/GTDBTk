@@ -39,6 +39,7 @@ from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.exceptions import *
 from gtdbtk.biolib_lite.exceptions import BioLibError
+from gtdbtk.config.config import AF_THRESHOLD
 
 
 def print_help():
@@ -386,6 +387,10 @@ if __name__ == '__main__':
     ani_rep_mash.add_argument('--mash_s', default=1000, type=int, help='maximum number of non-redundant hashes')
     ani_rep_mash.add_argument('--mash_d', default=0.3, type=float, help='maximum distance to keep [0-1]')
     ani_rep_mash.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1])')
+
+    ani_rep_fastani_opt = ani_rep_parser.add_argument_group('optional fastANI arguments')
+    ani_rep_fastani_opt.add_argument('--min_af', default=AF_THRESHOLD, type=float,
+                             help='alignment fraction to consider closest genome')
 
     # ani_rep optional arguments
     ani_rep_opt = ani_rep_parser.add_argument_group('optional arguments')

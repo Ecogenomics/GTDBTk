@@ -40,6 +40,10 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
     * The `--debug` flag in `align` outputs aligned markers to disk before trimming.
     * An optional third column in the `--batchfile` will specify an override to which translation
     table should be used. Leave blank to automatically determine the translation table (default).
+    * Added a new command `ani_rep` which calculates the ANI of input genomes to all GTDB 
+    representative genomes. 
+        * This command uses [Mash](https://github.com/marbl/Mash) in a pre-filtering step. If pre-filtering is enabled (default)
+        then `mash` will need to be on the system path. To disable pre-filtering use the `--no_mash` flag.
 
 **Note (Dec 12, 2019)**:
 * GTDB-Tk v1.0.2 has been released

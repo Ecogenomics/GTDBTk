@@ -546,7 +546,7 @@ class OptionsParser(object):
 
         ani_rep = ANIRep(options.cpus)
         ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
-                    options.mash_k, options.mash_v, options.mash_s)
+                    options.mash_k, options.mash_v, options.mash_s, options.min_af)
 
         self.logger.info('Done.')
 
