@@ -72,28 +72,31 @@ class Markers(object):
         path_arc = os.path.join(outdir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
         with open(path_tln, 'w') as fh_tln, open(path_bac, 'w') as fh_bac, open(path_arc, 'w') as fh_arc:
 
-            header = "Name\tnumber_unique_genes\tnumber_multiple_genes\tnumber_missing_genes\tlist_unique_genes\tlist_multiple_genes\tlist_missing_genes\n"
-            fh_bac.write(header)
-            fh_arc.write(header)
+            header = ['name', 'number_unique_genes', 'number_multiple_genes',
+                      'number_multiple_unique_genes', 'number_missing_genes',
+                      'list_unique_genes', 'list_multiple_genes',
+                      'list_multiple_unique_genes', 'list_missing_genes']
+            fh_bac.write('\t'.join(header) + '\n')
+            fh_arc.write('\t'.join(header) + '\n')
 
             # Create a set of markers for each domain
-            remove_suffix = lambda x: x.replace('.HMM', '').replace('.hmm', '')
+            def _remove_suffix(in_str):
+                return in_str.replace('.HMM', '').replace('.hmm', '')
 
-            marker_bac_list_original = set()
+            bac120_markers = set()
             for m_list in Config.BAC120_MARKERS.values():
                 for m_name in m_list:
-                    marker_bac_list_original.add(remove_suffix(m_name))
+                    bac120_markers.add(_remove_suffix(m_name))
 
-            marker_arc_list_original = set()
+            arc122_markers = set()
             for m_list in Config.AR122_MARKERS.values():
                 for m_name in m_list:
-                    marker_arc_list_original.add(remove_suffix(m_name))
+                    arc122_markers.add(_remove_suffix(m_name))
 
-            # Determine which markers were unique, multi-hits or missing.
+            # Which markers were unq, multi-hits, multi-unq or missing?
             for db_genome_id, info in sorted(gene_dict.items()):
 
-                # Load the genes and remove trailing asterisk from Prodigal
-                # called genes.
+                # Remove trailing asterisk from Prodigal called genes.
                 path_faa = info.get("aa_gene_path")
                 d_genes = read_fasta(path_faa, False)
                 for seq_id, seq in d_genes.items():
@@ -102,10 +105,10 @@ class Markers(object):
 
                 # Read both the PFAM and TIGRFAM top hit files.
                 d_fam_hits = defaultdict(list)
-                hits_unq_bac, hits_mul_bac, hits_mis_bac = set(), set(), set()
-                hits_unq_arc, hits_mul_arc, hits_mis_arc = set(), set(), set()
-                bac_pkg = (marker_bac_list_original, hits_unq_bac, hits_mul_bac, hits_mis_bac)
-                arc_pkg = (marker_arc_list_original, hits_unq_arc, hits_mul_arc, hits_mis_arc)
+                hits_unq_bac, hits_mul_bac, hits_muq_bac, hits_mis_bac = set(), set(), set(), set()
+                hits_unq_arc, hits_mul_arc, hits_muq_arc, hits_mis_arc = set(), set(), set(), set()
+                bac_pkg = (bac120_markers, hits_unq_bac, hits_mul_bac, hits_muq_bac, hits_mis_bac)
+                arc_pkg = (arc122_markers, hits_unq_arc, hits_mul_arc, hits_muq_arc, hits_mis_arc)
                 for marker_db, marker_suffix in (('PFAM', PFAM_TOP_HIT_SUFFIX),
                                                  ('TIGR', TIGRFAM_TOP_HIT_SUFFIX)):
 
@@ -113,13 +116,13 @@ class Markers(object):
                     with open(path_faa.replace(PROTEIN_FILE_SUFFIX, marker_suffix)) as fh_th:
                         fh_th.readline()
                         for line in fh_th:
-                            fam_id, fam_hits = line.strip().split('\t')
-                            fam_hits = fam_hits.split(';')
-                            for gene_id, e_val, bit_score in [x.split(',') for x in fam_hits]:
+                            gene_id, gene_hits = line.strip().split('\t')
+                            gene_hits = gene_hits.split(';')
+                            for fam_id, e_val, bit_score in [x.split(',') for x in gene_hits]:
                                 d_fam_hits[fam_id].append((gene_id, float(e_val), float(bit_score)))
 
                 # Determine which hits were unique, multi, or missing.
-                for cur_markers, hits_unq_cur, hits_mul_cur, hits_mis_cur in (bac_pkg, arc_pkg):
+                for cur_markers, hits_unq_cur, hits_mul_cur, hits_muq_cur, hits_mis_cur in (bac_pkg, arc_pkg):
                     for m_id in cur_markers:
 
                         # Marker is missing.
@@ -130,7 +133,7 @@ class Markers(object):
                         elif len(d_fam_hits[m_id]) > 1:
                             unq_genes = {d_genes[x[0]] for x in d_fam_hits[m_id]}
                             if len(unq_genes) == 1:
-                                hits_unq_cur.add(m_id)
+                                hits_muq_cur.add(m_id)
                             else:
                                 hits_mul_cur.add(m_id)
 
@@ -142,17 +145,21 @@ class Markers(object):
                 fh_bac.write(f'{db_genome_id}\t'
                              f'{len(hits_unq_bac)}\t'
                              f'{len(hits_mul_bac)}\t'
+                             f'{len(hits_muq_bac)}\t'
                              f'{len(hits_mis_bac)}\t'
                              f'{",".join(sorted(hits_unq_bac))}\t'
                              f'{",".join(sorted(hits_mul_bac))}\t'
+                             f'{",".join(sorted(hits_muq_bac))}\t'
                              f'{",".join(sorted(hits_mis_bac))}\n')
 
                 fh_arc.write(f'{db_genome_id}\t'
                              f'{len(hits_unq_arc)}\t'
                              f'{len(hits_mul_arc)}\t'
+                             f'{len(hits_muq_arc)}\t'
                              f'{len(hits_mis_arc)}\t'
                              f'{",".join(sorted(hits_unq_arc))}\t'
                              f'{",".join(sorted(hits_mul_arc))}\t'
+                             f'{",".join(sorted(hits_muq_arc))}\t'
                              f'{",".join(sorted(hits_mis_arc))}\n')
 
                 fh_tln.write(f'{db_genome_id}\t{info.get("best_translation_table")}\n')
@@ -253,7 +260,8 @@ class Markers(object):
                 lq_gids.append(gid)
             else:
                 genomic_files[gid] = {'aa_gene_path': aa_gene_path,
-                                      'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
+                                      'translation_table_path': os.path.join(gid_dir,
+                                                                             'prodigal' + TRANSLATION_TABLE_SUFFIX),
                                       'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                       'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                       }
@@ -322,7 +330,7 @@ class Markers(object):
             masked_seq = list_masked_seq.tostring().decode('utf-8')
 
             valid_bases = list_masked_seq.shape[0] - \
-                masked_seq_counts['.'] - masked_seq_counts['-']
+                          masked_seq_counts['.'] - masked_seq_counts['-']
             if seq_id in user_msa and valid_bases < list_masked_seq.shape[0] * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue
@@ -349,8 +357,9 @@ class Markers(object):
         bac_count = defaultdict(int)
         ar_count = defaultdict(int)
 
-        for d, marker_file in ((bac_count, os.path.join(identity_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))),
-                               (ar_count, os.path.join(identity_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix)))):
+        for d, marker_file in (
+        (bac_count, os.path.join(identity_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))),
+        (ar_count, os.path.join(identity_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix)))):
             with open(marker_file) as f:
                 f.readline()
 
