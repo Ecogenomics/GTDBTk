@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ###############################################################################
 #                                                                             #
@@ -94,7 +94,7 @@ class Translate(object):
 
         # Create the output file directory.
         output_dir = os.path.dirname(output_file)
-        if not os.path.isdir(output_dir):
+        if output_dir and not os.path.isdir(output_dir):
             os.makedirs(output_dir)
 
         # get NCBI taxonomy string for GTDB genomes and GTDB species clusters
@@ -106,6 +106,7 @@ class Translate(object):
             # Only process those domains which have been provided as an input.
             if metadata_file is None:
                 continue
+                
             self._logger.info(f'Processing {domain} metadata file.')
             if not os.path.exists(metadata_file):
                 raise GTDBTkExit(f'File does not exist {metadata_file}')
@@ -191,7 +192,6 @@ class Translate(object):
                     header = f.readline().strip().split('\t')
 
                     gtdb_classification_index = header.index('classification')
-                    fastani_ref_id_index = header.index('fastani_reference')
 
                     for line in f:
                         line_split = line.strip().split('\t')
