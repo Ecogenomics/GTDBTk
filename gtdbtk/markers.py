@@ -33,6 +33,9 @@ from gtdbtk.external.hmm_aligner import HmmAligner
 from gtdbtk.external.pfam_search import PfamSearch
 from gtdbtk.external.prodigal import Prodigal
 from gtdbtk.external.tigrfam_search import TigrfamSearch
+from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
+from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.tools import merge_two_dicts, symlink_f
 from gtdbtk.trim_msa import TrimMSA
 
@@ -67,102 +70,33 @@ class Markers(object):
 
     def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
         """Report statistics for identified marker genes."""
-        path_tln = os.path.join(outdir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
-        path_bac = os.path.join(outdir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
-        path_arc = os.path.join(outdir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
-        with open(path_tln, 'w') as fh_tln, open(path_bac, 'w') as fh_bac, open(path_arc, 'w') as fh_arc:
 
-            header = ['name', 'number_unique_genes', 'number_multiple_genes',
-                      'number_multiple_unique_genes', 'number_missing_genes',
-                      'list_unique_genes', 'list_multiple_genes',
-                      'list_multiple_unique_genes', 'list_missing_genes']
-            fh_bac.write('\t'.join(header) + '\n')
-            fh_arc.write('\t'.join(header) + '\n')
+        # Summarise the copy number of each AR122 and BAC120 markers.
+        tln_summary_file = TlnTableSummaryFile(outdir, prefix)
+        ar122_copy_number_file = CopyNumberFileAR122(outdir, prefix)
+        bac120_copy_number_file = CopyNumberFileBAC120(outdir, prefix)
 
-            # Create a set of markers for each domain
-            def _remove_suffix(in_str):
-                return in_str.replace('.HMM', '').replace('.hmm', '')
+        # Process each genome.
+        for db_genome_id, info in sorted(gene_dict.items()):
+            cur_marker_dir = os.path.join(outdir, DIR_MARKER_GENE)
+            pfam_tophit_file = TopHitPfamFile(cur_marker_dir, db_genome_id)
+            tigr_tophit_file = TopHitTigrFile(cur_marker_dir, db_genome_id)
+            pfam_tophit_file.read()
+            tigr_tophit_file.read()
 
-            bac120_markers = set()
-            for m_list in Config.BAC120_MARKERS.values():
-                for m_name in m_list:
-                    bac120_markers.add(_remove_suffix(m_name))
+            # Summarise each of the markers for this genome.
+            ar122_copy_number_file.add_genome(db_genome_id, info.get("aa_gene_path"),
+                                              pfam_tophit_file, tigr_tophit_file)
+            bac120_copy_number_file.add_genome(db_genome_id, info.get("aa_gene_path"),
+                                               pfam_tophit_file, tigr_tophit_file)
 
-            arc122_markers = set()
-            for m_list in Config.AR122_MARKERS.values():
-                for m_name in m_list:
-                    arc122_markers.add(_remove_suffix(m_name))
+            # Write the best translation table to disk for this genome.
+            tln_summary_file.add_genome(db_genome_id, info.get("best_translation_table"))
 
-            # Which markers were unq, multi-hits, multi-unq or missing?
-            for db_genome_id, info in sorted(gene_dict.items()):
-
-                # Remove trailing asterisk from Prodigal called genes.
-                path_faa = info.get("aa_gene_path")
-                d_genes = read_fasta(path_faa, False)
-                for seq_id, seq in d_genes.items():
-                    if seq.endswith('*'):
-                        d_genes[seq_id] = seq[:-1]
-
-                # Read both the PFAM and TIGRFAM top hit files.
-                d_fam_hits = defaultdict(list)
-                hits_unq_bac, hits_mul_bac, hits_muq_bac, hits_mis_bac = set(), set(), set(), set()
-                hits_unq_arc, hits_mul_arc, hits_muq_arc, hits_mis_arc = set(), set(), set(), set()
-                bac_pkg = (bac120_markers, hits_unq_bac, hits_mul_bac, hits_muq_bac, hits_mis_bac)
-                arc_pkg = (arc122_markers, hits_unq_arc, hits_mul_arc, hits_muq_arc, hits_mis_arc)
-                for marker_db, marker_suffix in (('PFAM', PFAM_TOP_HIT_SUFFIX),
-                                                 ('TIGR', TIGRFAM_TOP_HIT_SUFFIX)):
-
-                    # Parse the current top hit file
-                    with open(path_faa.replace(PROTEIN_FILE_SUFFIX, marker_suffix)) as fh_th:
-                        fh_th.readline()
-                        for line in fh_th:
-                            gene_id, gene_hits = line.strip().split('\t')
-                            gene_hits = gene_hits.split(';')
-                            for fam_id, e_val, bit_score in [x.split(',') for x in gene_hits]:
-                                d_fam_hits[fam_id].append((gene_id, float(e_val), float(bit_score)))
-
-                # Determine which hits were unique, multi, or missing.
-                for cur_markers, hits_unq_cur, hits_mul_cur, hits_muq_cur, hits_mis_cur in (bac_pkg, arc_pkg):
-                    for m_id in cur_markers:
-
-                        # Marker is missing.
-                        if m_id not in d_fam_hits:
-                            hits_mis_cur.add(m_id)
-
-                        # Possible contamination if sequences differ
-                        elif len(d_fam_hits[m_id]) > 1:
-                            unq_genes = {d_genes[x[0]] for x in d_fam_hits[m_id]}
-                            if len(unq_genes) == 1:
-                                hits_muq_cur.add(m_id)
-                            else:
-                                hits_mul_cur.add(m_id)
-
-                        # This was a unique hit.
-                        else:
-                            hits_unq_cur.add(m_id)
-
-                # Write the results for the current genome to the summary file.
-                fh_bac.write(f'{db_genome_id}\t'
-                             f'{len(hits_unq_bac)}\t'
-                             f'{len(hits_mul_bac)}\t'
-                             f'{len(hits_muq_bac)}\t'
-                             f'{len(hits_mis_bac)}\t'
-                             f'{",".join(sorted(hits_unq_bac))}\t'
-                             f'{",".join(sorted(hits_mul_bac))}\t'
-                             f'{",".join(sorted(hits_muq_bac))}\t'
-                             f'{",".join(sorted(hits_mis_bac))}\n')
-
-                fh_arc.write(f'{db_genome_id}\t'
-                             f'{len(hits_unq_arc)}\t'
-                             f'{len(hits_mul_arc)}\t'
-                             f'{len(hits_muq_arc)}\t'
-                             f'{len(hits_mis_arc)}\t'
-                             f'{",".join(sorted(hits_unq_arc))}\t'
-                             f'{",".join(sorted(hits_mul_arc))}\t'
-                             f'{",".join(sorted(hits_muq_arc))}\t'
-                             f'{",".join(sorted(hits_mis_arc))}\n')
-
-                fh_tln.write(f'{db_genome_id}\t{info.get("best_translation_table")}\n')
+        # Write each of the summary files to disk.
+        ar122_copy_number_file.write()
+        bac120_copy_number_file.write()
+        tln_summary_file.write()
 
         # Create a symlink to store the summary files in the root.
         symlink_f(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
@@ -237,8 +171,7 @@ class Markers(object):
         self.logger.info(
             "Annotations done using HMMER {}".format(tigr_search.version))
 
-        self._report_identified_marker_genes(
-            genome_dictionary, out_dir, prefix)
+        self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
 
     def _path_to_identify_data(self, identity_dir, warn=True):
         """Get path to genome data produced by 'identify' command."""
@@ -260,8 +193,7 @@ class Markers(object):
                 lq_gids.append(gid)
             else:
                 genomic_files[gid] = {'aa_gene_path': aa_gene_path,
-                                      'translation_table_path': os.path.join(gid_dir,
-                                                                             'prodigal' + TRANSLATION_TABLE_SUFFIX),
+                                      'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
                                       'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                       'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                       }
@@ -329,8 +261,7 @@ class Markers(object):
 
             masked_seq = list_masked_seq.tostring().decode('utf-8')
 
-            valid_bases = list_masked_seq.shape[0] - \
-                          masked_seq_counts['.'] - masked_seq_counts['-']
+            valid_bases = list_masked_seq.shape[0] - masked_seq_counts['.'] - masked_seq_counts['-']
             if seq_id in user_msa and valid_bases < list_masked_seq.shape[0] * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue
@@ -343,7 +274,7 @@ class Markers(object):
         """Write sequences to FASTA file."""
 
         with open(output_file, 'w') as fout:
-            for genome_id, alignment in seqs.items():
+            for genome_id, alignment in sorted(seqs.items()):
                 if genome_id in gtdb_taxonomy:
                     fout.write('>%s %s\n' %
                                (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
@@ -353,23 +284,20 @@ class Markers(object):
 
     def genome_domain(self, identity_dir, prefix):
         """Determine domain of User genomes based on identified marker genes."""
-
         bac_count = defaultdict(int)
         ar_count = defaultdict(int)
 
-        for d, marker_file in (
-        (bac_count, os.path.join(identity_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))),
-        (ar_count, os.path.join(identity_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix)))):
-            with open(marker_file) as f:
-                f.readline()
+        # Load the marker files for each domain
+        ar122_marker_file = CopyNumberFileAR122(identity_dir, prefix)
+        ar122_marker_file.read()
+        bac120_marker_file = CopyNumberFileBAC120(identity_dir, prefix)
+        bac120_marker_file.read()
 
-                for line in f:
-                    line_split = line.strip().split('\t')
-
-                    gid = line_split[0]
-                    num_markers = int(line_split[1])
-
-                    d[gid] = num_markers
+        # Get the number of single copy markers for each domain
+        for out_d, marker_summary in ((ar_count, ar122_marker_file),
+                                      (bac_count, bac120_marker_file)):
+            for genome_id in marker_summary.genomes:
+                out_d[genome_id] = len(marker_summary.get_single_copy_hits(genome_id))
 
         bac_gids = set()
         ar_gids = set()
