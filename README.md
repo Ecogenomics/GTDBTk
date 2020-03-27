@@ -44,6 +44,7 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
     representative genomes. 
         * This command uses [Mash](https://github.com/marbl/Mash) in a pre-filtering step. If pre-filtering is enabled (default)
         then `mash` will need to be on the system path. To disable pre-filtering use the `--no_mash` flag.
+    * Improved how markers are used in determining the correct domain, and gene selection for the alignment.
 
 **Note (Dec 12, 2019)**:
 * GTDB-Tk v1.0.2 has been released
