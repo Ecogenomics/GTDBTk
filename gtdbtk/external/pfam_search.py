@@ -18,10 +18,10 @@
 import multiprocessing as mp
 import os
 import sys
-from collections import defaultdict
 
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.pypfam.Scan.PfamScan import PfamScan
+from gtdbtk.io.marker.tophit import TopHitPfamFile
 from gtdbtk.tools import sha256
 
 
@@ -64,10 +64,8 @@ class PfamSearch(object):
 
         assembly_dir, filename = os.path.split(pfam_file)
         genome_id = filename.replace(self.pfam_suffix, '')
-        output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.pfam_suffix,
-                                                                                       self.pfam_top_hit_suffix))
+        tophit_file = TopHitPfamFile(self.output_dir, genome_id)
 
-        tophits = defaultdict(dict)
         with open(pfam_file, 'r') as fh_pfam:
             for line in fh_pfam:
                 if line[0] == '#' or not line.strip():
@@ -78,27 +76,9 @@ class PfamSearch(object):
                 hmm_id = line_split[5]
                 evalue = float(line_split[12])
                 bitscore = float(line_split[11])
-                if gene_id in tophits:
-                    if hmm_id in tophits[gene_id]:
-                        if bitscore > tophits[gene_id][hmm_id][1]:
-                            tophits[gene_id][hmm_id] = (evalue, bitscore)
-                    else:
-                        tophits[gene_id][hmm_id] = (evalue, bitscore)
-                else:
-                    tophits[gene_id][hmm_id] = (evalue, bitscore)
+                tophit_file.add_hit(gene_id, hmm_id, evalue, bitscore)
 
-        with open(output_tophit_file, 'w') as fout:
-            fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
-            for gene_id, hits in tophits.items():
-                hit_str = []
-                for hmm_id, stats in hits.items():
-                    hit_str.append(hmm_id + ',' + ','.join(map(str, stats)))
-                fout.write('%s\t%s\n' % (gene_id, ';'.join(hit_str)))
-
-        # calculate checksum
-        checksum = sha256(output_tophit_file)
-        with open(output_tophit_file + self.checksum_suffix, 'w') as fout:
-            fout.write(checksum)
+        tophit_file.write()
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
