@@ -1,9 +1,12 @@
 # GTDB-Tk
 
-[![version status](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
-[![Bioconda](https://img.shields.io/conda/vn/bioconda/gtdbtk.svg?color=green)](https://anaconda.org/bioconda/gtdbtk)
-[![Downloads](https://pepy.tech/badge/gtdbtk)](https://pepy.tech/project/gtdbtk)
-[![BioConda Install](https://img.shields.io/conda/dn/bioconda/gtdbtk.svg?style=flag&label=BioConda%20install)](https://anaconda.org/bioconda/gtdbtk)
+[![PyPI](https://img.shields.io/pypi/v/gtdbtk.svg)](https://pypi.python.org/pypi/gtdbtk)
+[![PyPI Downloads](https://pepy.tech/badge/gtdbtk)](https://pepy.tech/project/gtdbtk)
+[![Bioconda](https://img.shields.io/conda/vn/bioconda/gtdbtk.svg?color=43b02a)](https://anaconda.org/bioconda/gtdbtk)
+[![BioConda Downloads](https://img.shields.io/conda/dn/bioconda/gtdbtk.svg?style=flag&label=downloads&color=43b02a)](https://anaconda.org/bioconda/gtdbtk)
+[![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/ecogenomic/gtdbtk/latest?color=299bec&label=docker)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
+[![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
+
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes based on the Genome Database Taxonomy [GTDB](https://gtdb.ecogenomic.org/). It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
@@ -20,7 +23,8 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 * [Installation](#installation)
   * [pip installation](#pip-installation)
   * [Bioconda installation](#bioconda-installation)
-  * [KBase web-based platform](#kBase-web-based-platform)
+  * [KBase web-based platform](#kbase-web-based-platform)
+  * [Docker installation](#docker-installation)
   * [Testing installation](#testing-installation)
 * [FAQ](docs/faq.md)
 * [Quick start](#quick-start)
@@ -134,6 +138,10 @@ or by running `download-db.sh`.
 
 The GTDB-Tk classify workflow can be run through [KBase](https://kbase.us/):
 https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk
+
+### Docker installation
+
+See the instructions available at [docker hub](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk).
 
 ### Testing installation
 
