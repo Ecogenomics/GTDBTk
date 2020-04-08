@@ -55,6 +55,37 @@ class TestClassify(unittest.TestCase):
         self.assertEqual(
             new_taxstring, 'd__Bacteria;p__phylum1;c_class1;o__;f__;g__;s__')
 
+        # Test that the correct domain is returned.
+        self.assertEqual(self.classify.standardise_taxonomy('p__P;c__C;o__O;f__F;g__G;s__S', 'bac120'),
+                         'd__Bacteria;p__P;c__C;o__O;f__F;g__G;s__S')
+        self.assertEqual(self.classify.standardise_taxonomy('p__P;c__C;o__O;f__F;g__G;s__S', 'ar122'),
+                         'd__Archaea;p__P;c__C;o__O;f__F;g__G;s__S')
+
+        # Remove ranks and check
+        rank_order = {'p': 0, 'c': 1, 'o': 2, 'f': 3, 'g': 4, 's': 5}
+        rank_lst = ['p__P', 'c__C', 'o__O', 'f__F', 'g__G', 's__S']
+        ranks = {'p': 'P', 'c': 'C', 'o': 'O', 'f': 'F', 'g': 'G', 's': 'S'}
+        dom_info = {'d__Bacteria': 'bac120', 'd__Archaea': 'ar122'}
+
+        for k in range(1, len(ranks) - 1):
+            for cur_domain in ('d__Bacteria', 'd__Archaea'):
+                ranks_selected = rank_lst[0:-k]
+                expected = list()
+                test_lst = list()
+                for cur_rank, _ in sorted(rank_order.items(), key=lambda x: [1]):
+                    if cur_rank in ranks_selected:
+                        test_lst.append(f'{cur_rank}__{ranks[cur_rank]}')
+                        expected.append(f'{cur_rank}__{ranks[cur_rank]}')
+                    else:
+                        expected.append(f'{cur_rank}__')
+
+                expected_str = f'{cur_domain};{";".join(expected)}'
+                test_str = ";".join(test_lst)
+
+                cur_dom = dom_info[cur_domain]
+                test_value = self.classify.standardise_taxonomy(test_str, cur_dom)
+                self.assertEqual(expected_str, test_value)
+
     def test_write_red_dict(self):
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)

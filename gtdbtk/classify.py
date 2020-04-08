@@ -59,8 +59,8 @@ class Classify(object):
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
 
         self.logger = logging.getLogger('timestamp')
-        self.cpus = cpus
-        self.pplacer_cpus = pplacer_cpus if pplacer_cpus else cpus
+        self.cpus = max(cpus, 1)
+        self.pplacer_cpus = max(pplacer_cpus if pplacer_cpus else cpus, 1)
 
         self.species_radius = self.parse_radius_file()
 

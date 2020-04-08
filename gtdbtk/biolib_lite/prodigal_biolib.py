@@ -126,10 +126,12 @@ class Prodigal(object):
                 # there may be ^M character in the input file,
                 # the following code is similar to dos2unix command to remove
                 # those special characters.
-                text = open(prodigal_input, 'r').read().replace('\r\n', '\n')
+                with open(prodigal_input, 'r') as fh:
+                    text = fh.read().replace('\r\n', '\n')
                 processed_prodigal_input = os.path.join(
                     tmp_dir, os.path.basename(prodigal_input))
-                open(processed_prodigal_input, 'w').write(text)
+                with open(processed_prodigal_input, 'w') as fh:
+                    fh.write(text)
 
                 args = '-m'
                 if self.closed_ends:

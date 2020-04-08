@@ -33,18 +33,26 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 
 ## Announcements
 
-**Note (INSERT_DATE**):
-* GTDB-Tk v1.0.3 has been released (**we recommend all users update to this version**)
-    * Updated the `gtdb_to_ncbi_majority_vote.py` script for translating taxonomy.
-    * Added the `--pplacer_cpus` argument to specify the number of pplacer threads when running `classify` and `classify_wf` (#195).
-    * The `--debug` flag in `align` outputs aligned markers to disk before trimming.
-    * An optional third column in the `--batchfile` will specify an override to which translation
-    table should be used. Leave blank to automatically determine the translation table (default).
-    * Added a new command `ani_rep` which calculates the ANI of input genomes to all GTDB 
-    representative genomes. 
-        * This command uses [Mash](https://github.com/marbl/Mash) in a pre-filtering step. If pre-filtering is enabled (default)
-        then `mash` will need to be on the system path. To disable pre-filtering use the `--no_mash` flag.
-    * Improved how markers are used in determining the correct domain, and gene selection for the alignment.
+**Note (Apr 9, 2020)**:
+* GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)
+    * *Bug fixes:*
+        * In rare cases pplacer would assign an empty taxonomy string which would raise an error.
+        * (#229) Genomes using windows line carriage (\r\n) would raise an error.
+        * (#227) CentOS machines would fail when using `~` in paths.
+        * The bac120 symlink was pointing to the archaeal tree when using the `root` command.
+    * *Features:*
+        * Updated the `gtdb_to_ncbi_majority_vote.py` script for translating taxonomy.
+        * (#195) Added the `--pplacer_cpus` argument to specify the number of pplacer threads when running `classify` and `classify_wf` (#195).
+        * (#198) The `--debug` flag of `align` outputs aligned markers to disk before trimming.
+        * (#225) An optional third column in the `--batchfile` will specify an override to which translation table should be used. 
+          Leave blank to automatically determine the translation table (default).
+        * (#131) Users can now specify genomes which have NCBI accessions, as long as they are not GTDB-Tk 
+          representatives (a warning will be raised).
+        * (#191) Added a new command `ani_rep` which calculates the ANI of input genomes to all GTDB 
+          representative genomes. 
+            * This command uses [Mash](https://github.com/marbl/Mash) in a pre-filtering step. If pre-filtering is enabled (default)
+            then `mash` will need to be on the system path. To disable pre-filtering use the `--no_mash` flag.
+        * (#230) Improved how markers are used in determining the correct domain, and gene selection for the alignment.
 
 **Note (Dec 12, 2019)**:
 * GTDB-Tk v1.0.2 has been released
@@ -97,6 +105,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes these are 
 * [pplacer](http://matsen.fhcrc.org/pplacer/) >= 1.1: Matsen F, et al. 2010. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. <i>BMC Bioinformatics</i>, 11, 538.
 * [FastANI](https://github.com/ParBLiSS/FastANI) >= 1.2: Jain C, et al. 2018. High-throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. <i>Nature Communication</i>, 5114.
 * [FastTree](http://www.microbesonline.org/fasttree/) >= 2.1.9: Price MN, et al. 2010 FastTree 2 -- Approximately Maximum-Likelihood Trees for Large Alignments. <i>PLoS ONE</i>, 5, e9490.
+* [MASH](https://github.com/marbl/Mash) >= 2.2: Mash: fast genome and metagenome distance estimation using MinHash. Ondov BD, Treangen TJ, Melsted P, Mallonee AB, Bergman NH, Koren S, Phillippy AM. Genome Biol. 2016 Jun 20;17(1):132. doi: 10.1186/s13059-016-0997-x.
 
 Please cite these tools if you use GTDB-Tk in your work.
 

@@ -187,11 +187,15 @@ class OptionsParser(object):
                                   'check the format of this file.' % batchfile)
             raise GTDBTkExit
 
-        if set(genomic_files.keys()) & set(get_reference_ids()):
-            self.logger.error(
-                'The following ids are reserved for GTDB-Tk reference genomes: {}'.format(set(genomic_files.keys()) & set(get_reference_ids())))
-            self.logger.error('Please rename those genomes.')
-            raise GTDBTkExit
+        invalid_genomes = set(genomic_files.keys()) & set(get_reference_ids())
+        if len(invalid_genomes) > 0:
+            self.warnings.info(f'The following {len(invalid_genomes)} have the '
+                               f'same ID as GTDB-Tk reference genomes:')
+            for invalid_genome in sorted(invalid_genomes):
+                self.warnings.info(invalid_genome)
+            raise GTDBTkExit(f'You have {len(invalid_genomes)} genomes with the '
+                             f'same id as GTDB-Tk reference genomes, please '
+                             f'rename them. See gtdb.warnings.log.')
 
         return genomic_files, tln_tables
 
