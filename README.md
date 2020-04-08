@@ -37,22 +37,22 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 * GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)
     * *Bug fixes:*
         * In rare cases pplacer would assign an empty taxonomy string which would raise an error.
-        * (#229) Genomes using windows line carriage (\r\n) would raise an error.
-        * (#227) CentOS machines would fail when using `~` in paths.
+        * ([#229](https://github.com/Ecogenomics/GTDBTk/issues/229)) Genomes using windows line carriage (\r\n) would raise an error.
+        * ([#227](https://github.com/Ecogenomics/GTDBTk/issues/227)) CentOS machines would fail when using `~` in paths.
         * The bac120 symlink was pointing to the archaeal tree when using the `root` command.
     * *Features:*
         * Updated the `gtdb_to_ncbi_majority_vote.py` script for translating taxonomy.
-        * (#195) Added the `--pplacer_cpus` argument to specify the number of pplacer threads when running `classify` and `classify_wf` (#195).
-        * (#198) The `--debug` flag of `align` outputs aligned markers to disk before trimming.
-        * (#225) An optional third column in the `--batchfile` will specify an override to which translation table should be used. 
+        * ([#195](https://github.com/Ecogenomics/GTDBTk/issues/195)) Added the `--pplacer_cpus` argument to specify the number of pplacer threads when running `classify` and `classify_wf` (#195).
+        * ([#198](https://github.com/Ecogenomics/GTDBTk/issues/198)) The `--debug` flag of `align` outputs aligned markers to disk before trimming.
+        * ([#225](https://github.com/Ecogenomics/GTDBTk/issues/225)) An optional third column in the `--batchfile` will specify an override to which translation table should be used. 
           Leave blank to automatically determine the translation table (default).
-        * (#131) Users can now specify genomes which have NCBI accessions, as long as they are not GTDB-Tk 
+        * ([#131](https://github.com/Ecogenomics/GTDBTk/issues/131)) Users can now specify genomes which have NCBI accessions, as long as they are not GTDB-Tk 
           representatives (a warning will be raised).
-        * (#191) Added a new command `ani_rep` which calculates the ANI of input genomes to all GTDB 
+        * ([#191](https://github.com/Ecogenomics/GTDBTk/issues/191) Added a new command `ani_rep` which calculates the ANI of input genomes to all GTDB 
           representative genomes. 
             * This command uses [Mash](https://github.com/marbl/Mash) in a pre-filtering step. If pre-filtering is enabled (default)
             then `mash` will need to be on the system path. To disable pre-filtering use the `--no_mash` flag.
-        * (#230) Improved how markers are used in determining the correct domain, and gene selection for the alignment.
+        * ([#230](https://github.com/Ecogenomics/GTDBTk/issues/235))) Improved how markers are used in determining the correct domain, and gene selection for the alignment.
 
 **Note (Dec 12, 2019)**:
 * GTDB-Tk v1.0.2 has been released
