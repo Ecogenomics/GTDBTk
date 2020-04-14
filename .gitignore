@@ -48,6 +48,6 @@ coverage.xml
 *.log
 
 # IDE files
-.idea
+.idea/
 /.pydevproject
 /.project
