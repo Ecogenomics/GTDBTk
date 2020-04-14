@@ -32,6 +32,7 @@ RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
 MARKER_DIR = os.path.join(GENERIC_PATH, 'markers/')
 TIGRFAM_HMMS = os.path.join(GENERIC_PATH, MARKER_DIR, 'tigrfam/tigrfam.hmm')
 PFAM_HMM_DIR = os.path.join(GENERIC_PATH, MARKER_DIR, 'pfam/')
+SPLIT_DIR = os.path.join(GENERIC_PATH,'split')
 
 RED_DIST_BAC_DICT = ''
 RED_DIST_ARC_DICT = ''
