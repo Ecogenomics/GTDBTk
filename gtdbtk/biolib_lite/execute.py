@@ -27,7 +27,7 @@ def run(cmd):
 
     Parameters
     ----------
-    command : str
+    cmd : str
         Command to run.
 
     Returns

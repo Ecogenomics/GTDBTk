@@ -25,8 +25,9 @@ import sys
 import tempfile
 
 from gtdbtk.biolib_lite.execute import check_dependencies
-from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import GTDBTkException
+from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
+from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
 
 
 class HmmAligner(object):
@@ -172,10 +173,10 @@ class HmmAligner(object):
 
         while result is not None:
             processed_items += 1
-            statusStr = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
-                                                                              n_genomes,
-                                                                              float(processed_items) * 100 / n_genomes)
-            sys.stdout.write('%s\r' % statusStr)
+            status_str = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
+                                                                               n_genomes,
+                                                                               float(processed_items) * 100 / n_genomes)
+            sys.stdout.write('\r%s' % status_str)
             sys.stdout.flush()
             result = q_writer.get(block=True, timeout=None)
 
@@ -188,6 +189,22 @@ class HmmAligner(object):
         :param path: Path to the genomic fasta file for the genome
         :param marker_set_id: Unique ID of marker set to use for alignment
         """
+
+        cur_marker_dir = os.path.dirname(os.path.dirname(path))
+        pfam_tophit_file = TopHitPfamFile(cur_marker_dir, db_genome_id)
+        tigr_tophit_file = TopHitTigrFile(cur_marker_dir, db_genome_id)
+        pfam_tophit_file.read()
+        tigr_tophit_file.read()
+
+        if marker_set_id == 'bac120':
+            copy_number_file = CopyNumberFileBAC120('/dev/null', None)
+        elif marker_set_id == 'ar122':
+            copy_number_file = CopyNumberFileAR122('/dev/null', None)
+        else:
+            raise GTDBTkException('Unknown marker set.')
+
+        copy_number_file.add_genome(db_genome_id, path, pfam_tophit_file, tigr_tophit_file)
+        single_copy_hits = copy_number_file.get_single_copy_hits(db_genome_id)
 
         # gather information for all marker genes
         marker_paths = {"PFAM": os.path.join(self.pfam_hmm_dir, 'individual_hmms'),
@@ -213,82 +230,27 @@ class HmmAligner(object):
                     marker_paths[db_marker], marker)
                     for marker in self.rps23_markers[db_marker]})
 
-        result_aligns = {db_genome_id: {}}
+        # Iterate over each of the expected markers and store the gene sequence.
+        gene_dict = dict()
+        result_align = dict()
+        for marker_id, marker_path in marker_dict_original.items():
+            hit = single_copy_hits.get(marker_id)
+            if hit:
+                # print(marker_id)
+                gene_dict[marker_id] = {"marker_path": marker_path,
+                                       "gene": hit['hit'].gene_id,
+                                       "gene_seq": hit['seq'],
+                                       "bitscore": hit['hit'].bit_score}
+            else:
+                hmm_len = self._get_hmm_size(marker_path)
+                result_align[marker_id] = '-' * hmm_len
 
-        marker_dbs = {"PFAM": self.pfam_top_hit_suffix,
-                      "TIGRFAM": self.tigrfam_top_hit_suffix}
-        for marker_db, marker_suffix in marker_dbs.items():
-            # get all gene sequences
-            genome_path = str(path)
-            tophit_path = genome_path.replace(
-                self.protein_file_suffix, marker_suffix)
-
-            # we load the list of all the genes detected in the genome
-            protein_file = tophit_path.replace(
-                marker_suffix, self.protein_file_suffix)
-            all_genes_dict = read_fasta(protein_file, False)
-
-            # Prodigal adds an asterisks at the end of each called genes,
-            # These asterisks sometimes appear in the MSA, which can be an
-            # issue for some softwares downstream
-            for seq_id, seq in all_genes_dict.items():
-                if seq[-1] == '*':
-                    all_genes_dict[seq_id] = seq[:-1]
-
-            # we store the tophit file line by line and store the
-            # information in a dictionary
-            with open(tophit_path) as tp:
-                # first line is header line
-                tp.readline()
-                gene_dict = {}
-                for line_tp in tp:
-                    linelist = line_tp.split("\t")
-                    genename = linelist[0]
-                    sublist = linelist[1]
-                    if ";" in sublist:
-                        diff_markers = sublist.split(";")
-                    else:
-                        diff_markers = [sublist]
-
-                    for each_gene in diff_markers:
-                        sublist = each_gene.split(",")
-                        markerid = sublist[0]
-                        if markerid not in marker_dict_original.keys():
-                            continue
-                        evalue = sublist[1]
-                        bitscore = sublist[2].strip()
-
-                        if markerid in gene_dict:
-                            oldbitscore = gene_dict.get(
-                                markerid).get("bitscore")
-                            if oldbitscore < bitscore:
-                                gene_dict[markerid] = {"marker_path": marker_dict_original.get(markerid),
-                                                       "gene": genename,
-                                                       "gene_seq": all_genes_dict.get(genename),
-                                                       "bitscore": bitscore}
-                        else:
-                            gene_dict[markerid] = {"marker_path": marker_dict_original.get(markerid),
-                                                   "gene": genename,
-                                                   "gene_seq": all_genes_dict.get(genename),
-                                                   "bitscore": bitscore}
-
-            for mid, mpath in marker_dict_original.items():
-                if mid not in gene_dict and mid not in result_aligns.get(db_genome_id):
-                    size = self._get_hmm_size(mpath)
-                    result_aligns.get(db_genome_id).update({mid: "-" * size})
-                    # final_genome.append((db_genome_id, mid, "-" * size))
-
-            result_aligns.get(db_genome_id).update(
-                self._run_align(gene_dict, db_genome_id))
+        # Align the markers.
+        result_align.update(self._run_align(gene_dict, db_genome_id))
 
         # we concatenate the aligned markers together and associate them with
         # the genome.
-        for gid, markids in result_aligns.items():
-            seq = ""
-            for markid in sorted(markids.keys()):
-                seq = seq + markids.get(markid)
-
-        return seq
+        return ''.join([x[1] for x in sorted(result_align.items())])
 
     def _run_align(self, marker_dict, genome):
         """

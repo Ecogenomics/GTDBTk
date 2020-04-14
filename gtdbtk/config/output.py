@@ -31,6 +31,7 @@ PATH_BAC120_USER_MSA = join(DIR_ALIGN, '{prefix}.bac120.user_msa.fasta')
 PATH_AR122_USER_MSA = join(DIR_ALIGN, '{prefix}.ar122.user_msa.fasta')
 PATH_BAC120_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.bac120.marker_info.tsv')
 PATH_AR122_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.ar122.marker_info.tsv')
+DIR_ALIGN_MARKERS = join(DIR_ALIGN_INTERMEDIATE, 'markers')
 
 # Command: classify
 DIR_CLASSIFY = 'classify'
@@ -65,6 +66,10 @@ PATH_BAC120_ROOTED_TREE = join(DIR_INFER, '{prefix}.bac120.rooted.tree')
 PATH_AR122_ROOTED_TREE = join(DIR_INFER, '{prefix}.ar122.rooted.tree')
 PATH_BAC120_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.unrooted.tree')
 PATH_AR122_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.unrooted.tree')
+
+# Command: ani_rep
+DIR_ANI_REP_INT = join('intermediate_results')
+DIR_ANI_REP_INT_MASH = join(DIR_ANI_REP_INT, 'mash')
 
 # General files
 PATH_WARNINGS = '{prefix}.warnings.log'

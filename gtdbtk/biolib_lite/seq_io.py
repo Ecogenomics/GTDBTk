@@ -198,8 +198,9 @@ def read_seq(seq_file, keep_annotation=False):
     """
 
     if seq_file.endswith(('.fq.gz', '.fastq.gz', '.fq', '.fq.gz')):
-        for rtn in read_fastq_seq(seq_file):
-            yield rtn
+        raise Exception("Cannot read FASTQ files.")
+        # for rtn in read_fastq_seq(seq_file):
+        #     yield rtn
     else:
         for rtn in read_fasta_seq(seq_file, keep_annotation):
             yield rtn

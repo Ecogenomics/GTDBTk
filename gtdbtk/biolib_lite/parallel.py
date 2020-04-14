@@ -94,9 +94,9 @@ class Parallel(object):
         ----------
         producer_callback : function
             Function to process data items.
-        producer_queue : queue
+        producer_queue : mp.Queue
             Data items to process.
-        consumer_queue : queue
+        consumer_queue : mp.Queue
             Queue for holding processed data items to be consumed.
         """
         while True:

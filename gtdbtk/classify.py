@@ -39,7 +39,7 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
-from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb
+from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids
 
 sys.setrecursionlimit(15000)
 
@@ -47,7 +47,7 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1):
+    def __init__(self, cpus=1, pplacer_cpus=None):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
@@ -59,9 +59,12 @@ class Classify(object):
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
 
         self.logger = logging.getLogger('timestamp')
-        self.cpus = cpus
+        self.cpus = max(cpus, 1)
+        self.pplacer_cpus = max(pplacer_cpus if pplacer_cpus else cpus, 1)
 
         self.species_radius = self.parse_radius_file()
+
+        self.reference_ids = get_reference_ids()
 
     def parse_radius_file(self):
         results = {}
@@ -90,12 +93,14 @@ class Classify(object):
                 self.logger.warning(f'pplacer requires ~113 GB of RAM to fully '
                                     f'load the bacterial tree into memory. '
                                     f'However, {mem_total}GB was detected. '
-                                    f'This may affect pplacer performance.')
+                                    f'This may affect pplacer performance, '
+                                    f'or fail if there is insufficient scratch space.')
             elif marker_set_id == 'ar122' and mem_total < 7:
                 self.logger.warning(f'pplacer requires ~6.2 GB of RAM to fully '
                                     f'load the archaeal tree into memory. '
                                     f'However, {mem_total}GB was detected. '
-                                    f'This may affect pplacer performance.')
+                                    f'This may affect pplacer performance, '
+                                    f'or fail if there is insufficient scratch space.')
 
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
@@ -125,17 +130,17 @@ class Classify(object):
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
             self.logger.info(
-                'Placing {} bacterial genomes into reference tree with pplacer (be patient).'.format(num_genomes))
+                f'Placing {num_genomes} bacterial genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_BAC120_REF_PKG)
         elif marker_set_id == 'ar122':
             self.logger.info(
-                'Placing {} archaeal genomes into reference tree with pplacer (be patient).'.format(num_genomes))
+                f'Placing {num_genomes} archaeal genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG)
         elif marker_set_id == 'rps23':
             self.logger.info(
-                'Placing {} genomes into reference tree with pplacer (be patient).'.format(num_genomes))
+                f'Placing {num_genomes} genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
             pplacer_ref_pkg = os.path.join(
                 Config.PPLACER_DIR, Config.PPLACER_RPS23_REF_PKG)
         else:
@@ -160,7 +165,7 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer = Pplacer()
-        pplacer.run(self.cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out,
+        pplacer.run(self.pplacer_cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out,
                     user_msa_file, pplacer_out, pplacer_mmap_file)
         self.logger.info('pplacer version: {}'.format(pplacer.version))
 
@@ -207,6 +212,8 @@ class Classify(object):
         """
         # return taxstring
         taxlist = taxstring.split(";")
+        while '' in taxlist:
+            taxlist.remove('')
         if marker_set == 'bac120':
             taxlist.insert(0, 'd__Bacteria')
         if marker_set == 'ar122':
@@ -231,7 +238,6 @@ class Classify(object):
 
         """
 
-        marker_dict = {}
         if marker_set_id == 'bac120':
             marker_dict = Config.RED_DIST_BAC_DICT
             out_path = os.path.join(
@@ -398,12 +404,12 @@ class Classify(object):
                 # if, while going up the tree, we find a node with only one
                 # reference genome, we select this reference genome as
                 # leaf_reference.
-                if userleaf.taxon.label[0:3] not in ['RS_', 'GB_', 'UBA']:
+                if userleaf.taxon.label not in self.reference_ids:
 
                     par_node = userleaf.parent_node
                     leaf_ref_genome = None
                     leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                    ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                    ) if subnd.taxon.label.replace("'", '') in self.reference_ids]
                     if len(leaf_ref_genomes) == 1:
                         leaf_ref_genome = leaf_ref_genomes[0]
 
@@ -415,7 +421,7 @@ class Classify(object):
                         par_node = par_node.parent_node
                         if leaf_ref_genome is None:
                             leaf_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                            ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                            ) if subnd.taxon.label.replace("'", '') in self.reference_ids]
                             if len(leaf_ref_genomes) == 1:
                                 leaf_ref_genome = leaf_ref_genomes[0]
                         _support, parent_taxon, _aux_info = parse_label(
@@ -426,15 +432,14 @@ class Classify(object):
                     if parent_rank.startswith('g__'):
                         # we get all the reference genomes under this genus
                         list_subnode_initials = [subnd.taxon.label.replace(
-                            "'", '')[0:3] for subnd in par_node.leaf_iter()]
-                        if (list_subnode_initials.count('RS_') + list_subnode_initials.count(
-                                'GB_') + list_subnode_initials.count('UBA')) < 1:
+                            "'", '') for subnd in par_node.leaf_iter()]
+                        if len(set(list_subnode_initials) & set(self.reference_ids)) < 1:
                             raise Exception(
                                 "There is no reference genomes under '{}'".format('parent_rank'))
                         else:
                             dict_dist_refgenomes = {}
                             list_ref_genomes = [subnd for subnd in par_node.leaf_iter(
-                            ) if subnd.taxon.label.replace("'", '')[0:3] in ['RS_', 'GB_', 'UBA']]
+                            ) if subnd.taxon.label.replace("'", '') in self.reference_ids]
                             # we pick the first 100 genomes closest (patristic distance) to the
                             # user genome under the same genus
                             for ref_genome in list_ref_genomes:
@@ -494,12 +499,12 @@ class Classify(object):
                     # on the same parent node so we need to go up the tree
                     # to find a node with a reference genome as leaf.
                     cur_node = leaf.parent_node
-                    list_subnode_initials = [subnd.taxon.label.replace(
-                        "'", '')[0:3] for subnd in cur_node.leaf_iter()]
-                    while 'RS_' not in list_subnode_initials and 'GB_' not in list_subnode_initials and 'UBA' not in list_subnode_initials:
+                    list_subnode = [subnd.taxon.label.replace(
+                        "'", '') for subnd in cur_node.leaf_iter()]
+                    while len(set(list_subnode) & set(self.reference_ids)) < 1:
                         cur_node = cur_node.parent_node
                         list_subnode_initials = [subnd.taxon.label.replace(
-                            "'", '')[0:3] for subnd in cur_node.leaf_iter()]
+                            "'", '') for subnd in cur_node.leaf_iter()]
 
                     current_rel_list = cur_node.rel_dist
 
@@ -533,7 +538,7 @@ class Classify(object):
 
                         # get all reference genomes under the current node
                         list_subnode = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
-                        ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                        ) if childnd.taxon.label in self.reference_ids]
 
                         # get all names for the child rank
                         list_ranks = [self.gtdb_taxonomy.get(
@@ -563,7 +568,7 @@ class Classify(object):
                     # case 1b
                     if len(child_taxons) == 0 and closest_rank is None:
                         list_leaves = [childnd.taxon.label.replace("'", '') for childnd in cur_node.leaf_iter(
-                        ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                        ) if childnd.taxon.label in self.reference_ids]
                         if len(list_leaves) != 1:
                             list_subrank = []
                             for leaf_subrank in list_leaves:
@@ -582,7 +587,7 @@ class Classify(object):
                         for leaf_taxon in reversed(list_leaf_ranks):
                             if leaf_taxon == list_leaf_ranks[0]:
                                 if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
-                                        (current_rel_list) - marker_dict.get(parent_rank)):
+                                        current_rel_list - marker_dict.get(parent_rank)):
                                     closest_rank = leaf_taxon[:3]
                                     debug_info[3] = leaf_taxon
                                     debug_info[5] = 'case 1b - III'
@@ -751,7 +756,6 @@ class Classify(object):
         # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
         # The new red value for the pplacer node =
         # RED_parent + (RED_child -RED_parent) * ( (pplacer_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
-        reference_pplacer_node = {}
         for nd in tree.leaf_nodes():
             if nd not in reference_nodes:
                 nd.rel_dist = 1.0
@@ -802,7 +806,7 @@ class Classify(object):
         ----------
         out_dir : output directory
         prefix : desired prefix for output files
-        marker_set_id : bacterial or archeal id (bac120 or ar122)
+        marker_set_id : bacterial or archaeal id (bac120 or ar122)
         user_msa_file : msa file listing all user genomes for a certain domain
         tree : pplacer tree including the user genomes
 
@@ -852,7 +856,7 @@ class Classify(object):
 
         Parameters
         ----------
-        sorted_dict : sorted dictionary listing reference genomes, ani and alignement fraction for a specific user genome
+        sorted_dict : sorted dictionary listing reference genomes, ani and alignment fraction for a specific user genome
                     (genomeid, {ani: value, af: value})
         labels : array of label that are removed from the note field
 
@@ -1040,13 +1044,9 @@ class Classify(object):
                 summary_list[15] = self.aa_percent_msa(
                     msa_dict.get(summary_list[0]))
                 summary_list[16] = trans_table_dict.get(summary_list[0])
-                fastani_matching_reference = None
+
                 if len(sorted_prefilter_dict) > 0:
                     fastani_matching_reference = sorted_prefilter_dict[0][0]
-                    current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('ani')
-                    current_af = all_fastani_dict.get(userleaf.taxon.label).get(
-                        fastani_matching_reference).get('af')
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(fastani_matching_reference))[:-1])
@@ -1132,7 +1132,7 @@ class Classify(object):
         initial_loop = True
         for item in list_subnode:
             # We get the taxonomy of all reference genomes
-            if item.startswith('RS_') or item.startswith('GB_') or item.startswith('UBA'):
+            if item in self.reference_ids:
                 taxonomy_from_file = self.gtdb_taxonomy.get(item)
                 # we store the selected rank (i.e. order) for each reference
                 # genome
@@ -1163,7 +1163,7 @@ class Classify(object):
 
         Returns
         -------
-        string
+        dendropy.Tree
             Taxonomy string.
         """
 
@@ -1191,7 +1191,7 @@ class Classify(object):
 
         # set edge lengths to median value over all rootings
         tree.seed_node.rel_dist = 0.0
-        for n in tree.preorder_node_iter(lambda n: n != tree.seed_node):
+        for n in tree.preorder_node_iter(lambda x: x != tree.seed_node):
             n.rel_dist = np_median(rel_node_dists[n.id])
             rd_to_parent = n.rel_dist - n.parent_node.rel_dist
             if rd_to_parent < 0:
@@ -1437,7 +1437,7 @@ class Classify(object):
           Tree to rerooted.
         taxonomy : dict
             Taxonomy for taxa.
-        outgroup : iterable
+        outgroup_taxa : iterable
           Labels of taxa in outgroup.
 
         Returns
@@ -1467,11 +1467,11 @@ class Classify(object):
             sys.exit(0)
 
         # There is a complication here. We wish to find the MRCA of the outgroup
-        # taxa. Finding the MRCA requires a rooted tree and we have no gaurantee
+        # taxa. Finding the MRCA requires a rooted tree and we have no guarantee
         # that the tree isn't currently rooted within the outgroup clade. There is
-        # also no way to identify a node that is gauranteed to be outside the outgroup
+        # also no way to identify a node that is guaranteed to be outside the outgroup
         # clade. As such, the tree is randomly rooted on a leaf node not in the outgroup.
-        # This random rerooting is performed until the MRCA does not spans all taxa in
+        # This random re-rooting is performed until the MRCA does not spans all taxa in
         # the tree.
 
         leaves_in_tree = sum([1 for _ in new_tree.leaf_node_iter()])

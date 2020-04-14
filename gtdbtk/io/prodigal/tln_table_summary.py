@@ -15,35 +15,30 @@
 #                                                                             #
 ###############################################################################
 
-import sys
+import os
 
-from .HMMMatch import HMMMatch
-from .HMMUnit import HMMUnit
+from gtdbtk.biolib_lite.common import make_sure_path_exists
+from gtdbtk.config.output import PATH_TLN_TABLE_SUMMARY
+from gtdbtk.exceptions import GTDBTkExit
 
 
-class HMMSequence(HMMMatch):
-    """
-    This class has been adapted from the Perl module written by Genome Research Ltd.
-    Perl authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-    Perl version: ?
-    Python authors: Aaron Mussig (a.mussig@uq.edu.au)
-    """
+class TlnTableSummaryFile(object):
+    """Records the translation table for one or more genomes."""
 
-    def __init__(self):
-        HMMMatch.__init__(self)
-        self.sumEvalue = None
-        self.H2mode = None
-        self.sumScore = None
-        self.desc = None
-        self.numberHits = None
-        self.exp = None
-        self.hmmUnits = list()  # An array of HMMUnit
+    def __init__(self, out_dir: str, prefix: str):
+        """Configure paths and initialise storage dictionary."""
+        self.path = os.path.join(out_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
+        self.genomes = dict()
 
-    def addHMMUnit(self, hmmUnit):
-        """
-        Adds a hmmUnit to a sequence. It checks that the variable passed in is a HMMUnit object
-        """
-        if isinstance(hmmUnit, HMMUnit):
-            self.hmmUnits.append(hmmUnit)
-        else:
-            sys.stderr.write('%s is not a HMMUnit, not added\n.' % hmmUnit)
+    def add_genome(self, genome_id: str, tln_table: int):
+        """Record a translation table for a genome."""
+        if genome_id in self.genomes:
+            raise GTDBTkExit(f'Genome already exists in summary file: {genome_id}')
+        self.genomes[genome_id] = tln_table
+
+    def write(self):
+        """Write the translation table summary file to disk."""
+        make_sure_path_exists(os.path.dirname(self.path))
+        with open(self.path, 'w') as fh:
+            for genome_id, tln_table in sorted(self.genomes.items()):
+                fh.write(f'{genome_id}\t{tln_table}\n')

@@ -61,6 +61,7 @@ class TestCli(unittest.TestCase):
         # classify options
         self.options.scratch_dir = None
         self.options.keep_ref_red = None
+        self.options.pplacer_cpus = None
 
         # infer options
         self.options.prot_model = 'WAG'

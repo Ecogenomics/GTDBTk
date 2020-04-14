@@ -473,7 +473,7 @@ class HMMResultsIO(object):
             if self.re_footer_1.search(hs):
                 break
 
-    def write_ascii_out(self, HMMResults, fh, scanData, e_seq, e_dom, b_seq, b_dom):
+    def write_ascii_out(self, HMMResults_in, fh, scanData, e_seq, e_dom, b_seq, b_dom):
 
         if not scanData._max_seqname or scanData._max_seqname < 1:
             scanData._max_seqname = 20
@@ -486,7 +486,7 @@ class HMMResultsIO(object):
         else:
             ga = True
 
-        for unit in sorted(HMMResults.units, key=lambda x: x.seqFrom, reverse=False):
+        for unit in sorted(HMMResults_in.units, key=lambda x: x.seqFrom, reverse=False):
 
             # Pfam\-B
             if self.re_footer_1.search(unit.name):
@@ -505,7 +505,7 @@ class HMMResultsIO(object):
 
                 clan = "No_clan" if unit.name not in scanData._clanmap else scanData._clanmap[unit.name]
 
-                seq_name_padded = HMMResults.seqName + ' ' * (scanData._max_seqname - len(HMMResults.seqName))
+                seq_name_padded = HMMResults_in.seqName + ' ' * (scanData._max_seqname - len(HMMResults_in.seqName))
                 fh.write('%s %6d %6d %6d %6d %-11s %-16s %7s %5d %5d %5d %8s %9s %3d %-8s ' %
                          (seq_name_padded,
                           unit.seqFrom,

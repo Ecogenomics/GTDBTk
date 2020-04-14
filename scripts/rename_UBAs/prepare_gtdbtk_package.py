@@ -18,7 +18,7 @@
 ###############################################################################
 
 __prog_name__ = 'prepare_gtdbtk_package.py'
-__prog_desc__ = ('Rename user genomes to their GCAs or UBAs ids.')
+__prog_desc__ = 'Rename user genomes to their GCAs or UBAs ids.'
 
 __author__ = 'Pierre Chaumeil'
 __copyright__ = 'Copyright 2018'
@@ -37,12 +37,12 @@ import sys
 from shutil import copyfile
 
 import dendropy
-from biolib.logger import logger_setup
-from biolib.misc.custom_help_formatter import CustomHelpFormatter
-from biolib.seq_io import read_fasta
+from gtdbtk.biolib_lite.logger import logger_setup
+from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
+from gtdbtk.biolib_lite.seq_io import read_fasta
 
 
-class OptionsParser():
+class OptionsParser(object):
 
     def __init__(self):
         """Initialization"""
@@ -190,10 +190,10 @@ class OptionsParser():
                 dirin, dom, 'gtdb_concatenated.faa'))
             seqout = open(os.path.join(msadir, 'gtdb_r' +
                                        release + '_' + dom + '.faa'), 'w')
-            for id, seq in msa_dict.items():
-                if id in genomes_to_retain:
-                    if id.startswith("U_"):
-                        subdict = uba_acc.get(id)
+            for gid, seq in msa_dict.items():
+                if gid in genomes_to_retain:
+                    if gid.startswith("U_"):
+                        subdict = uba_acc.get(gid)
                         if "gca" in subdict.keys():
                             seqout.write(">{0}\n{1}\n".format(
                                 subdict.get("gca"), seq))
@@ -201,7 +201,7 @@ class OptionsParser():
                             seqout.write(">{0}\n{1}\n".format(
                                 subdict.get("uba"), seq))
                     else:
-                        seqout.write(">{0}\n{1}\n".format(id, seq))
+                        seqout.write(">{0}\n{1}\n".format(gid, seq))
             seqout.close()
 
             # PPLACER renaming
@@ -248,10 +248,10 @@ class OptionsParser():
             trimmed_seqout = open(os.path.join(
                 dirout, dom, 'pplacer', 'trimmed_msa_' + dom + '.faa'), 'w')
             trimmed_fasta = read_fasta(seqfile)
-            for id, seq in trimmed_fasta.items():
-                if id in genomes_to_retain:
-                    if id.startswith("U_"):
-                        subdict = uba_acc.get(id)
+            for gid, seq in trimmed_fasta.items():
+                if gid in genomes_to_retain:
+                    if gid.startswith("U_"):
+                        subdict = uba_acc.get(gid)
                         if "gca" in subdict.keys():
                             trimmed_seqout.write(
                                 ">{0}\n{1}\n".format(subdict.get("gca"), seq))
@@ -259,7 +259,7 @@ class OptionsParser():
                             trimmed_seqout.write(
                                 ">{0}\n{1}\n".format(subdict.get("uba"), seq))
                     else:
-                        trimmed_seqout.write(">{0}\n{1}\n".format(id, seq))
+                        trimmed_seqout.write(">{0}\n{1}\n".format(gid, seq))
             trimmed_seqout.close()
 
             logoutf = open(os.path.join(dirout, dom, 'pplacer',
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 
     # get and check options
     args = None
-    if (len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help'):
+    if len(sys.argv) == 1 or sys.argv[1] == '-h' or sys.argv == '--help':
         print_help()
         sys.exit(0)
     else:

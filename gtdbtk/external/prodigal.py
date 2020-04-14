@@ -67,13 +67,15 @@ class Prodigal(object):
         except:
             return "(version unavailable)"
 
-    def _run_prodigal(self, genome_id, fasta_path):
+    def _run_prodigal(self, genome_id, fasta_path, usr_tln_table):
         """Run Prodigal.
 
         Parameters
         ----------
         fasta_path : str
             Path to FASTA file to process.
+        usr_tln_table : int
+            User-specified translation table, None if automatic.
         :return
             False if an error occurred.
         """
@@ -82,7 +84,8 @@ class Prodigal(object):
 
         prodigal = BioLibProdigal(1, False)
         summary_stats = prodigal.run(
-            [fasta_path], output_dir, called_genes=self.proteins)
+            [fasta_path], output_dir, called_genes=self.proteins,
+            translation_table=usr_tln_table)
 
         # An error occurred in BioLib Prodigal.
         if not summary_stats:
@@ -139,19 +142,18 @@ class Prodigal(object):
             if data is None:
                 break
 
-            genome_id, file_path = data
+            genome_id, file_path, usr_tln_table = data
 
-            rtn_files = self._run_prodigal(genome_id, file_path)
+            rtn_files = self._run_prodigal(genome_id, file_path, usr_tln_table)
 
             # Only proceed if an error didn't occur in BioLib Prodigal
             if rtn_files:
                 aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table = rtn_files
-                prodigal_infos = {}
-                prodigal_infos["aa_gene_path"] = aa_gene_file
-                prodigal_infos["nt_gene_path"] = nt_gene_file
-                prodigal_infos["gff_path"] = gff_file
-                prodigal_infos["translation_table_path"] = translation_table_file
-                prodigal_infos["best_translation_table"] = best_translation_table
+                prodigal_infos = {"aa_gene_path": aa_gene_file,
+                                  "nt_gene_path": nt_gene_file,
+                                  "gff_path": gff_file,
+                                  "translation_table_path": translation_table_file,
+                                  "best_translation_table": best_translation_table}
 
                 out_dict[genome_id] = prodigal_infos
             writer_queue.put(genome_id)
@@ -168,18 +170,20 @@ class Prodigal(object):
             statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processed_items,
                                                                                 num_items,
                                                                                 float(processed_items) * 100 / num_items)
-            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
 
         sys.stdout.write('\n')
 
-    def run(self, genomic_files):
+    def run(self, genomic_files, tln_tables):
         """Run Prodigal across a set of genomes.
 
         Parameters
         ----------
         genomic_files : dict
             Dictionary indicating the genomic and gene file for each genome.
+        tln_tables : Dict[str, int]
+            Mapping of genome id to user-specified translation table.
         """
 
         # populate worker queue with data to process
@@ -187,7 +191,7 @@ class Prodigal(object):
         writer_queue = mp.Queue()
 
         for genome_id, file_path in genomic_files.items():
-            worker_queue.put([genome_id, file_path])
+            worker_queue.put((genome_id, file_path, tln_tables.get(genome_id)))
 
         for _ in range(self.threads):
             worker_queue.put(None)

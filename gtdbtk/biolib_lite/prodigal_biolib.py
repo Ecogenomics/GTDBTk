@@ -76,12 +76,14 @@ class Prodigal(object):
         best_translation_table = -1
         table_coding_density = {4: -1, 11: -1}
         if self.called_genes:
-            os.system('cp %s %s' % (os.path.abspath(genome_file), aa_gene_file))
+            os.system('cp %s %s' %
+                      (os.path.abspath(genome_file), aa_gene_file))
         else:
             seqs = read_fasta(genome_file)
 
             if len(seqs) == 0:
-                self.logger.warning('Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                self.logger.warning(
+                    'Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
                 return None
 
             tmp_dir = tempfile.mkdtemp()
@@ -113,11 +115,23 @@ class Prodigal(object):
                 else:
                     proc_str = 'single'  # estimate parameters from data
 
-                # If this is a gzipped genome, re-write the uncompressed genome file to disk
+                # If this is a gzipped genome, re-write the uncompressed genome
+                # file to disk
                 prodigal_input = genome_file
                 if genome_file.endswith('.gz'):
-                    prodigal_input = os.path.join(tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
+                    prodigal_input = os.path.join(
+                        tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
                     write_fasta(seqs, prodigal_input)
+
+                # there may be ^M character in the input file,
+                # the following code is similar to dos2unix command to remove
+                # those special characters.
+                with open(prodigal_input, 'r') as fh:
+                    text = fh.read().replace('\r\n', '\n')
+                processed_prodigal_input = os.path.join(
+                    tmp_dir, os.path.basename(prodigal_input))
+                with open(processed_prodigal_input, 'w') as fh:
+                    fh.write(text)
 
                 args = '-m'
                 if self.closed_ends:
@@ -128,7 +142,7 @@ class Prodigal(object):
                                                                                                  translation_table,
                                                                                                  aa_gene_file_tmp,
                                                                                                  nt_gene_file_tmp,
-                                                                                                 prodigal_input,
+                                                                                                 processed_prodigal_input,
                                                                                                  gff_file_tmp)
                 os.system(cmd)
 
@@ -186,7 +200,7 @@ class Prodigal(object):
         ConsumerData = namedtuple(
             'ConsumerData',
             'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11')
-        if consumer_data == None:
+        if consumer_data is None:
             consumer_data = defaultdict(ConsumerData)
 
         genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, coding_density_4, coding_density_11 = produced_data
@@ -290,7 +304,7 @@ class Prodigal(object):
         return summary_stats
 
 
-class ProdigalGeneFeatureParser():
+class ProdigalGeneFeatureParser(object):
     """Parses prodigal gene feature files (GFF) output."""
 
     def __init__(self, filename):
@@ -348,7 +362,6 @@ class ProdigalGeneFeatureParser():
 
                 geneId = seq_id + '_' + str(geneCounter)
                 geneCounter += 1
-
                 start = int(line_split[3])
                 end = int(line_split[4])
 
@@ -394,7 +407,7 @@ class ProdigalGeneFeatureParser():
             return 0
 
         # set end to last coding base if not specified
-        if end == None:
+        if end is None:
             end = self.last_coding_base[seq_id]
 
         return np.sum(self.coding_base_masks[seq_id][start:end])

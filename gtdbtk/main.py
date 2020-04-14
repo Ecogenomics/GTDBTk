@@ -23,6 +23,7 @@ import subprocess
 import sys
 
 import gtdbtk.config.config as Config
+from gtdbtk.ani_rep import ANIRep
 from gtdbtk.biolib_lite.common import (check_dir_exists,
                                        check_file_exists,
                                        make_sure_path_exists,
@@ -37,7 +38,7 @@ from gtdbtk.external.fasttree import FastTree
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.reroot_tree import RerootTree
-from gtdbtk.tools import symlink_f
+from gtdbtk.tools import symlink_f, get_reference_ids
 
 
 class OptionsParser(object):
@@ -54,6 +55,8 @@ class OptionsParser(object):
         self.warnings = logging.getLogger('warnings')
         self.version = version
         self._check_package_compatibility()
+
+        self.genomes_to_process = None
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
@@ -112,7 +115,7 @@ class OptionsParser(object):
             Map of genomes to their genomic FASTA files.
         """
 
-        genomic_files = {}
+        genomic_files, tln_tables = dict(), dict()
         if genome_dir:
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
@@ -126,12 +129,20 @@ class OptionsParser(object):
                     if line_split[0] == '':
                         continue  # blank line
 
-                    if len(line_split) != 2:
-                        self.logger.error(
-                            'Batch file must contain exactly 2 columns.')
-                        raise GenomeBatchfileMalformed
+                    if len(line_split) not in {2, 3}:
+                        raise GTDBTkExit('Batch file must contain either 2 '
+                                         'columns (detect translation table), '
+                                         'or 3 (specify translation table).')
 
-                    genome_file, genome_id = line_split
+                    if len(line_split) == 2:
+                        genome_file, genome_id = line_split
+                    elif len(line_split) == 3:
+                        genome_file, genome_id, tln_table = line_split
+                        if tln_table not in {'4', '11'}:
+                            raise GTDBTkExit('Specified translation table must '
+                                             'be either 4, or 11.')
+                        tln_tables[genome_id] = int(tln_table)
+
                     self._verify_genome_id(genome_id)
 
                     if genome_file is None or genome_file == '':
@@ -152,13 +163,6 @@ class OptionsParser(object):
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
         for genome_key, genome_path in genomic_files.items():
-            if genome_key.startswith("RS_") or genome_key.startswith("GB_") \
-                    or genome_key.startswith("UBA"):
-                self.logger.error("Submitted genomes start with the same prefix"
-                                  " (RS_,GB_,UBA) as reference genomes in"
-                                  " GTDB-Tk. This will cause issues for"
-                                  " downstream analysis.")
-                raise GTDBTkExit
 
             if not os.path.isfile(genome_path):
                 invalid_paths.append((genome_key, genome_path))
@@ -183,7 +187,17 @@ class OptionsParser(object):
                                   'check the format of this file.' % batchfile)
             raise GTDBTkExit
 
-        return genomic_files
+        invalid_genomes = set(genomic_files.keys()) & set(get_reference_ids())
+        if len(invalid_genomes) > 0:
+            self.warnings.info(f'The following {len(invalid_genomes)} have the '
+                               f'same ID as GTDB-Tk reference genomes:')
+            for invalid_genome in sorted(invalid_genomes):
+                self.warnings.info(invalid_genome)
+            raise GTDBTkExit(f'You have {len(invalid_genomes)} genomes with the '
+                             f'same id as GTDB-Tk reference genomes, please '
+                             f'rename them. See gtdb.warnings.log.')
+
+        return genomic_files, tln_tables
 
     def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
         """Get unique identifier for marker set.
@@ -233,11 +247,13 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes = self._genomes_to_process(
+        genomes, tln_tables = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
+        self.genomes_to_process = genomes
 
         markers = Markers(options.cpus)
         markers.identify(genomes,
+                         tln_tables,
                          options.out_dir,
                          options.prefix,
                          options.force)
@@ -259,7 +275,7 @@ class OptionsParser(object):
         if not hasattr(options, 'outgroup_taxon'):
             options.outgroup_taxon = None
 
-        markers = Markers(options.cpus)
+        markers = Markers(options.cpus, options.debug)
         markers.align(options.identify_dir,
                       options.skip_gtdb_refs,
                       options.taxa_filter,
@@ -273,7 +289,8 @@ class OptionsParser(object):
                       options.min_perc_taxa,
                       options.out_dir,
                       options.prefix,
-                      options.outgroup_taxon)
+                      options.outgroup_taxon,
+                      self.genomes_to_process)
 
         self.logger.info('Done.')
 
@@ -402,10 +419,10 @@ class OptionsParser(object):
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
 
-        genomes = self._genomes_to_process(
+        genomes, _ = self._genomes_to_process(
             options.genome_dir, options.batchfile, options.extension)
 
-        classify = Classify(options.cpus)
+        classify = Classify(options.cpus, options.pplacer_cpus)
         classify.run(genomes,
                      options.align_dir,
                      options.out_dir,
@@ -482,7 +499,7 @@ class OptionsParser(object):
             if options.suffix == 'bac120':
                 symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                                       os.path.basename(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))))
             elif options.suffix == 'ar122':
                 symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
@@ -521,6 +538,25 @@ class OptionsParser(object):
         self.logger.warning('DECORATE NOT YET IMPLEMENTED!')
         self.logger.info('Done.')
 
+    def ani_rep(self, options):
+        """Calculates ANI to GTDB representative genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        make_sure_path_exists(options.out_dir)
+
+        genomes, _ = self._genomes_to_process(
+            options.genome_dir, options.batchfile, options.extension)
+
+        ani_rep = ANIRep(options.cpus)
+        ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
+                    options.mash_k, options.mash_v, options.mash_s, options.min_af)
+
+        self.logger.info('Done.')
+
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)
 
@@ -533,6 +569,10 @@ class OptionsParser(object):
         # Stop processing if python 2 is being used.
         if sys.version_info.major < 3:
             raise GTDBTkExit('Python 2 is no longer supported.')
+
+        # Correct user paths
+        if hasattr(options, 'out_dir'):
+            options.out_dir = os.path.expanduser(options.out_dir)
 
         # Assert that the number of CPUs is a positive integer.
         if hasattr(options, 'cpus') and options.cpus < 1:
@@ -620,6 +660,7 @@ class OptionsParser(object):
             options.max_consensus = None
             options.rnd_seed = None
             options.skip_trimming = False
+
             self.align(options)
 
             self.classify(options)
@@ -635,6 +676,8 @@ class OptionsParser(object):
             self.root(options)
         elif options.subparser_name == 'decorate':
             self.decorate(options)
+        elif options.subparser_name == 'ani_rep':
+            self.ani_rep(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':

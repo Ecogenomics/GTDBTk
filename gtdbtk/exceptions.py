@@ -65,6 +65,13 @@ class GenomeMarkerSetUnknown(GTDBTkException):
         GTDBTkException.__init__(self, message)
 
 
+class InconsistentGenomeBatch(GTDBTkException):
+    """ Thrown when number of genomes in the identify directory is different than the number of genomes to process. """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)
+
+
 class FileNotFound(GTDBTkException):
     """ Thrown when a file is not found. """
 

@@ -39,9 +39,10 @@ from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.exceptions import *
 from gtdbtk.biolib_lite.exceptions import BioLibError
+from gtdbtk.config.config import AF_THRESHOLD
 
 
-def printHelp():
+def print_help():
     print('''\
     
               ...::: GTDB-Tk v%s :::...
@@ -59,6 +60,7 @@ def printHelp():
     classify      -> Determine taxonomic classification of genomes
     root          -> Root tree using an outgroup
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
+    ani_rep       -> Calculates ANI to GTDB representative genomes
     
   Tools:
     trim_msa      -> Trim an untrimmed MSA file based on a mask
@@ -144,7 +146,9 @@ if __name__ == '__main__':
     optional_denovo_wf.add_argument('--cpus', default=1, type=int,
                                     help='number of CPUs to use')
     optional_denovo_wf.add_argument('--force', action='store_const', const=True, default=False,
-                                    help='continue processing if an error occurrs on a single genome')
+                                    help='continue processing if an error occurs on a single genome')
+    optional_denovo_wf.add_argument('--debug', action="store_true",
+                                    help='create intermediate files for debugging purposes')
     optional_denovo_wf.add_argument('-h', '--help', action="help",
                                     help="show help message")
 
@@ -158,7 +162,7 @@ if __name__ == '__main__':
     mutex_group.add_argument('--genome_dir',
                              help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+                             help="file describing genomes - tab separated in 3 columns (FASTA file, genome ID, translation table [optional])")
 
     required_classify_wf = classify_wf_parser.add_argument_group('required named arguments')
     required_classify_wf.add_argument('--out_dir', required=True,
@@ -173,6 +177,8 @@ if __name__ == '__main__':
                                       help='desired prefix for output files')
     optional_classify_wf.add_argument('--cpus', default=1, type=int,
                                       help='number of CPUs to use')
+    optional_classify_wf.add_argument('--pplacer_cpus', type=int, default=None,
+                                      help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
                                       help='continue processing if an error occurrs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
@@ -193,7 +199,7 @@ if __name__ == '__main__':
     mutex_group.add_argument('--genome_dir',
                              help="directory containing genome files in FASTA format")
     mutex_group.add_argument('--batchfile',
-                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+                             help="file describing genomes - tab separated in 3 columns (FASTA file, genome ID, translation table [optional])")
 
     required_identify = identify_parser.add_argument_group('required named arguments')
     required_identify.add_argument('--out_dir', required=True,
@@ -239,7 +245,7 @@ if __name__ == '__main__':
                                    help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
                                          + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
     mutex_align_group.add_argument('--skip_trimming', action="store_true", default=False,
-                                   help=('skip trimming step and return the full MSAs'))
+                                   help='skip trimming step and return the full MSAs')
 
     optional_align.add_argument('--cols_per_gene', type=int, default=42,
                                 help='maximum number of columns to retain per gene')
@@ -251,11 +257,12 @@ if __name__ == '__main__':
                                 help='minimum percentage of taxa required to retain column (inclusive bound)')
     optional_align.add_argument('--rnd_seed', type=int, default=None,
                                 help='random seed to use for selecting columns')
-
     optional_align.add_argument('--prefix', required=False, default='gtdbtk',
                                 help='desired prefix for output files')
     optional_align.add_argument('--cpus', default=1, type=int,
                                 help='number of CPUs to use')
+    optional_align.add_argument('--debug', action="store_true",
+                                help='create intermediate files for debugging purposes')
     optional_align.add_argument('-h', '--help', action="help",
                                 help="show help message")
 
@@ -309,11 +316,13 @@ if __name__ == '__main__':
                                    help='desired prefix for output files')
     optional_classify.add_argument('--cpus', default=1, type=int,
                                    help='number of CPUs to use')
+    optional_classify.add_argument('--pplacer_cpus', type=int, default=None,
+                                   help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
     optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
                                    help='recalculate RED values based on the reference tree and all added user genomes')
 
-    optional_classify.add_argument('-d', '--debug', action="store_true",
+    optional_classify.add_argument('--debug', action="store_true",
                                    help='create intermediate files for debugging purposes')
     optional_classify.add_argument('-h', '--help', action="help",
                                    help="show help message")
@@ -351,6 +360,47 @@ if __name__ == '__main__':
     optional_decorate = decorate_parser.add_argument_group('optional arguments')
     optional_decorate.add_argument('-h', '--help', action="help",
                                    help="show help message")
+
+    # ani_rep
+    ani_rep_parser = subparsers.add_parser('ani_rep', conflict_handler='resolve',
+                                            formatter_class=CustomHelpFormatter,
+                                            help='Calculates ANI to GTDB representative genomes.', )
+
+    # ani_rep mutex required input genomes
+    ani_rep_mutex_genome = ani_rep_parser.add_argument_group('mutually exclusive required arguments')
+    ani_rep_mutex_in = ani_rep_mutex_genome.add_mutually_exclusive_group(required=True)
+    ani_rep_mutex_in.add_argument('--genome_dir',
+                             help="directory containing genome files in FASTA format")
+    ani_rep_mutex_in.add_argument('--batchfile',
+                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+
+    # ani_rep required arguments
+    ani_rep_req = ani_rep_parser.add_argument_group('required named arguments')
+    ani_rep_req.add_argument('--out_dir', required=True,
+                             help="directory to output files")
+
+    # ani_rep mash arguments
+    ani_rep_mash = ani_rep_parser.add_argument_group('optional Mash arguments')
+    ani_rep_mash.add_argument('--no_mash', action='store_const', const=True, default=False,
+                             help='skip pre-filtering using MASH')
+    ani_rep_mash.add_argument('--mash_k', default=21, type=int, help='k-mer size [1-32]')
+    ani_rep_mash.add_argument('--mash_s', default=1000, type=int, help='maximum number of non-redundant hashes')
+    ani_rep_mash.add_argument('--mash_d', default=0.3, type=float, help='maximum distance to keep [0-1]')
+    ani_rep_mash.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1])')
+
+    ani_rep_fastani_opt = ani_rep_parser.add_argument_group('optional fastANI arguments')
+    ani_rep_fastani_opt.add_argument('--min_af', default=AF_THRESHOLD, type=float,
+                             help='alignment fraction to consider closest genome')
+
+    # ani_rep optional arguments
+    ani_rep_opt = ani_rep_parser.add_argument_group('optional arguments')
+
+    ani_rep_opt.add_argument('-x', '--extension', default='fna',
+                                   help='extension of files to process, gz = gzipped')
+    ani_rep_opt.add_argument('--prefix', default='gtdbtk',
+                                    help='desired prefix for output files')
+    ani_rep_opt.add_argument('--cpus', default=1, type=int, help='number of CPUs to use')
+    ani_rep_opt.add_argument('-h', '--help', action="help", help="show help message")
 
     # test
     test_parser = subparsers.add_parser('test', conflict_handler='resolve',
@@ -412,21 +462,15 @@ if __name__ == '__main__':
     # get and check options
     args = None
     if len(sys.argv) == 1:
-        printHelp()
+        print_help()
         sys.exit(0)
-    elif (sys.argv[1] == '-v' or
-          sys.argv[1] == '--v' or
-          sys.argv[1] == '-version' or
-          sys.argv[1] == '--version'):
+    elif sys.argv[1] in {'-v', '--v', '-version', '--version'}:
         print("gtdbtk: version %s %s %s" % (version(),
                                             __copyright__,
                                             __author__))
         sys.exit(0)
-    elif (sys.argv[1] == '-h' or
-          sys.argv[1] == '--h' or
-          sys.argv[1] == '-help' or
-          sys.argv[1] == '--help'):
-        printHelp()
+    elif sys.argv[1] in {'-h', '--h', '-help', '--help'}:
+        print_help()
         sys.exit(0)
     else:
         args = parser.parse_args()
@@ -443,22 +487,29 @@ if __name__ == '__main__':
         gt_parser = OptionsParser(version())
         if False:
             import cProfile
-
             cProfile.run('gt_parser.parseOptions(args)', 'prof')
         else:
             gt_parser.parse_options(args)
     except SystemExit:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
         logger.error('Controlled exit resulting from early termination.')
         sys.exit(1)
     except KeyboardInterrupt:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
         logger.error('Controlled exit resulting from interrupt signal.')
         sys.exit(1)
     except GTDBTkExit as e:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
         if len(str(e)) > 0:
             logger.error('{}'.format(e))
         logger.error('Controlled exit resulting from an unrecoverable error or warning.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
         msg += '=' * 80 + '\n'
         msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
@@ -469,6 +520,8 @@ if __name__ == '__main__':
         logger.error(msg)
         sys.exit(1)
     except Exception as e:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
         msg = 'Uncontrolled exit resulting from an unexpected error.\n\n'
         msg += '=' * 80 + '\n'
         msg += 'EXCEPTION: {}\n'.format(type(e).__name__)

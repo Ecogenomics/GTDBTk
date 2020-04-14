@@ -18,10 +18,11 @@
 import logging
 import multiprocessing as mp
 import os
-import sys
 import subprocess
+import sys
 
 from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.io.marker.tophit import TopHitTigrFile
 from gtdbtk.tools import sha256
 
 
@@ -78,10 +79,9 @@ class TigrfamSearch(object):
         """
         assembly_dir, filename = os.path.split(tigrfam_file)
         genome_id = filename.replace(self.tigrfam_suffix, '')
-        output_tophit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.tigrfam_suffix,
-                                                                                       self.tigrfam_top_hit_suffix))
+        tophit_file = TopHitTigrFile(self.output_dir, genome_id)
 
-        tophits = {}
+        # Populate the top-hit file.
         with open(tigrfam_file, 'r') as fh_tigrfam:
             for line in fh_tigrfam:
                 if line[0] == '#':
@@ -92,24 +92,10 @@ class TigrfamSearch(object):
                 hmm_id = line_split[3]
                 evalue = float(line_split[4])
                 bitscore = float(line_split[5])
-                if gene_id in tophits:
-                    if bitscore > tophits[gene_id][2]:
-                        tophits[gene_id] = (hmm_id, evalue, bitscore)
-                else:
-                    tophits[gene_id] = (hmm_id, evalue, bitscore)
+                tophit_file.add_hit(gene_id, hmm_id, evalue, bitscore)
 
-        fout = open(output_tophit_file, 'w')
-        fout.write('Gene Id\tTop hits (Family id,e-value,bitscore)\n')
-        for gene_id, stats in tophits.items():
-            hit_str = ','.join(map(str, stats))
-            fout.write('%s\t%s\n' % (gene_id, hit_str))
-        fout.close()
-
-        # calculate checksum
-        checksum = sha256(output_tophit_file)
-        fout = open(output_tophit_file + self.checksum_suffix, 'w')
-        fout.write(checksum)
-        fout.close()
+        # Write the top-hit file to disk and calculate checksum.
+        tophit_file.write()
 
     def _workerThread(self, queueIn, queueOut):
         """Process each data item in parallel."""
@@ -157,7 +143,7 @@ class TigrfamSearch(object):
                                                                                 numDataItems,
                                                                                 float(
                                                                                     processedItems) * 100 / numDataItems)
-            sys.stdout.write('%s\r' % statusStr)
+            sys.stdout.write('\r%s' % statusStr)
             sys.stdout.flush()
 
         sys.stdout.write('\n')
