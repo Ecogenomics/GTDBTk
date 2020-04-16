@@ -44,7 +44,7 @@ from gtdbtk.config.config import AF_THRESHOLD
 
 def print_help():
     print('''\
-    
+
               ...::: GTDB-Tk v%s :::...
 
   Workflows:
@@ -61,15 +61,15 @@ def print_help():
     root          -> Root tree using an outgroup
     decorate      -> Decorate tree with GTDB taxonomy [In Development]
     ani_rep       -> Calculates ANI to GTDB representative genomes
-    
+
   Tools:
     trim_msa      -> Trim an untrimmed MSA file based on a mask
     export_msa    -> Export the untrimmed archaeal or bacterial MSA file
-    
+
   Testing:
-    test          -> Test the classify_wf pipeline with 3 archaeal genomes 
+    test          -> Test the classify_wf pipeline with 3 archaeal genomes
     check_install -> Verify if all GTDB-Tk data files are present
-      
+
   Use: gtdbtk <command> -h for command specific help
     ''' % version())
 
@@ -319,6 +319,7 @@ if __name__ == '__main__':
     optional_classify.add_argument('--pplacer_cpus', type=int, default=None,
                                    help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
+    optional_classify.add_argument('-s','--split_tree',action='store_true', help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
     optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
                                    help='recalculate RED values based on the reference tree and all added user genomes')
 

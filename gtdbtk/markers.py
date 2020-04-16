@@ -446,8 +446,7 @@ class Markers(object):
                                      self.pfam_hmm_dir,
                                      self.tigrfam_hmms,
                                      Config.BAC120_MARKERS,
-                                     Config.AR122_MARKERS,
-                                     Config.RPS23_MARKERS)
+                                     Config.AR122_MARKERS)
             user_msa = hmm_aligner.align_marker_set(cur_genome_files,
                                                     marker_set_id)
 

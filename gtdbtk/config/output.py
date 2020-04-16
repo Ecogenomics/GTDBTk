@@ -39,11 +39,15 @@ PATH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree')
 PATH_AR122_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.ar122.classify.tree')
 PATH_BAC120_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.bac120.summary.tsv')
 PATH_AR122_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar122.summary.tsv')
+PATH_HIGH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.high.bac120.classify.tree')
+
 
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
 PATH_AR122_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.red_dictionary.tsv')
 PATH_BAC120_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.classification_pplacer.tsv')
+PATH_BAC120_HIGH_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.high.classification_pplacer.tsv')
+
 PATH_AR122_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.classification_pplacer.tsv')
 
 DIR_PPLACER = join(DIR_CLASSIFY_INTERMEDIATE, 'pplacer')
@@ -51,6 +55,10 @@ PATH_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.bac120.out')
 PATH_AR122_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.ar122.out')
 PATH_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.bac120.json')
 PATH_AR122_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.ar122.json')
+
+#SPLIT TREE
+PATH_HIGH_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.high.bac120.out')
+PATH_HIGH_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.high.bac120.json')
 
 # Command: infer
 DIR_INFER = 'infer'

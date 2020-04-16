@@ -32,7 +32,20 @@ RED_DIR = os.path.join(GENERIC_PATH, "mrca_red/")
 MARKER_DIR = os.path.join(GENERIC_PATH, 'markers/')
 TIGRFAM_HMMS = os.path.join(GENERIC_PATH, MARKER_DIR, 'tigrfam/tigrfam.hmm')
 PFAM_HMM_DIR = os.path.join(GENERIC_PATH, MARKER_DIR, 'pfam/')
+
 SPLIT_DIR = os.path.join(GENERIC_PATH,'split')
+HIGH_SPLIT_DIR = os.path.join(SPLIT_DIR,'high')
+LOW_SPLIT_DIR = os.path.join(SPLIT_DIR,'low')
+HIGH_PPLACER_DIR = os.path.join(HIGH_SPLIT_DIR,'pplacer')
+LOW_PPLACER_DIR = os.path.join(LOW_SPLIT_DIR,'pplacer')
+HIGH_RED_DIR = os.path.join(HIGH_SPLIT_DIR,'red')
+LOW_RED_DIR = os.path.join(LOW_SPLIT_DIR,'red')
+
+HIGH_PPLACER_REF_PKG = 'gtdbtk_package_high_level'
+HIGH_RED_FILE = os.path.join(HIGH_RED_DIR,'high_red_value.tsv')
+LOW_PPLACER_REF_PKG = os.path.join(LOW_PPLACER_DIR,'gtdbtk.package.{iter}.refpkg')
+LOW_RED_FILE = os.path.join(LOW_RED_DIR,'red_value_{iter}.tsv')
+
 
 RED_DIST_BAC_DICT = ''
 RED_DIST_ARC_DICT = ''
@@ -97,14 +110,6 @@ AR122_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm", 
                              "TIGR01046.HMM", "TIGR01018.HMM", "TIGR00936.HMM", "TIGR00463.HMM", "TIGR01309.HMM", "TIGR03653.HMM", "TIGR00042.HMM", "TIGR02389.HMM", "TIGR00307.HMM", "TIGR03673.HMM",
                              "TIGR00373.HMM", "TIGR01008.HMM", "TIGR00283.HMM", "TIGR00425.HMM", "TIGR00405.HMM", "TIGR03665.HMM", "TIGR00448.HMM"]}
 
-RPS23_MARKERS = {"PFAM": ["PF00687.16.hmm", "PF00466.15.hmm", "PF00298.14.hmm", "PF03946.9.hmm", "PF00238.14.hmm",
-                          "PF00252.13.hmm", "PF00861.17.hmm", "PF00181.18.hmm", "PF00237.14.hmm",
-                          "PF03947.13.hmm", "PF00297.17.hmm", "PF00573.17.hmm", "PF00281.14.hmm",
-                          "PF00673.16.hmm", "PF00338.17.hmm", "PF00411.14.hmm", "PF00416.17.hmm",
-                          "PF00312.17.hmm", "PF00366.15.hmm", "PF00203.16.hmm", "PF00189.15.hmm",
-                          "PF00333.15.hmm", "PF03719.10.hmm", "PF00177.16.hmm", "PF00410.14.hmm",
-                          "PF00380.14.hmm", "PF00164.20.hmm"],
-                 "TIGRFAM": []}
 
 # Information for Multiple hits markers:
 DEFAULT_MULTIHIT_THRESHOLD = 10.0

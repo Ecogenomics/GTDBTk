@@ -429,7 +429,8 @@ class OptionsParser(object):
                      options.prefix,
                      options.scratch_dir,
                      options.recalculate_red,
-                     options.debug)
+                     options.debug,
+                     options.split_tree)
 
         self.logger.info('Done.')
 
