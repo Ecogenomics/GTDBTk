@@ -58,3 +58,36 @@ def parse_label(label):
                 taxon = label
 
     return support, taxon, auxiliary_info
+
+
+def create_label(support, taxon, auxiliary_info):
+    """Create label for Newick tree.
+    
+    Parameters
+    ----------
+    float
+      Support value specified by label, or None
+    str
+      Taxon specified by label, or None
+    str
+      Auxiliary information, on None
+        
+    Returns
+    -------
+    str
+      Valid newick label.
+    """
+    
+    label = ''
+    if support is not None and taxon:
+        label = str(support) + ':' + taxon
+    elif support is not None:
+        label = str(support)
+    elif taxon:
+        label = taxon
+        
+    if auxiliary_info:
+        label += '|' + auxiliary_info
+
+    return label
+    

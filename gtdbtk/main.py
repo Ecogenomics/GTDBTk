@@ -38,6 +38,7 @@ from gtdbtk.external.fasttree import FastTree
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.reroot_tree import RerootTree
+from gtdbtk.decorate import Decorate
 from gtdbtk.tools import symlink_f, get_reference_ids
 
 
@@ -229,6 +230,57 @@ class OptionsParser(object):
             self.logger.error('No marker set specified.')
             raise GenomeMarkerSetUnknown('No marker set specified.')
         return marker_set_id
+        
+    def _read_taxonomy_files(self, options):
+        """Read and merge taxonomy files."""
+        
+        self.logger.info('Reading GTDB taxonomy for representative genomes.')
+        taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
+        
+        if options.gtdbtk_classification_file:
+            # add and overwrite taxonomy for genomes specified in the
+            # GTDB-Tk classification file
+            check_file_exists(options.gtdbtk_classification_file)
+
+            self.logger.info('Reading GTDB-Tk classification file.')
+            gtdbtk_taxonomy = Taxonomy().read(options.gtdbtk_classification_file)
+            del gtdbtk_taxonomy['user_genome']
+            num_reassigned = 0
+            for gid, taxa in gtdbtk_taxonomy.items():
+                if gid in taxonomy:
+                    num_reassigned += 1
+                taxonomy[gid] = taxa
+                
+            self.logger.info(f'Read GTDB-Tk classifications for {len(gtdbtk_taxonomy):,} genomes.')
+            self.logger.info(f'Reassigned taxonomy for {num_reassigned:,} GTDB representative genomes.')
+            
+        if options.custom_taxonomy_file:
+            # add and overwrite taxonomy for genomes specified in the
+            # custom taxonomy file
+            check_file_exists(options.custom_taxonomy_file)
+
+            self.logger.info('Reading custom taxonomy file.')
+            custom_taxonomy = Taxonomy().read(options.custom_taxonomy_file)
+            num_reassigned = 0
+            for gid, taxa in custom_taxonomy.items():
+                if gid in taxonomy:
+                    num_reassigned += 1
+                taxonomy[gid] = taxa
+                
+            self.logger.info(f'Read custom taxonomy for {len(custom_taxonomy):,} genomes.')
+            self.logger.info(f'Reassigned taxonomy for {num_reassigned:,} GTDB representative genomes.')
+            
+        if options.gtdbtk_classification_file and options.custom_taxonomy_file:
+            dup_genomes = set(gtdbtk_taxonomy).intersection(custom_taxonomy)
+            if len(dup_genomes) > 0:
+                self.logger.error('GTDB-Tk classification and custom taxonomy files must not specify taxonomies for the same genomes.')
+                self.logger.error('These files have {:,} genomes in common.'.format(len(dup_genomes)))
+                self.logger.error('Example duplicate genome: {}'.format(dup_genomes.pop()))
+                raise GTDBTkExit('Duplicated taxonomy information.')
+                
+        self.logger.info(f'Read taxonomy for {len(taxonomy):,} genomes.')
+        
+        return taxonomy
 
     def identify(self, options):
         """Identify marker genes in genomes.
@@ -331,7 +383,7 @@ class OptionsParser(object):
 
         fasttree = FastTree()
         fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
-                     options.no_support, options.no_gamma, options.msa_file,
+                     options.no_support, options.gamma, options.msa_file,
                      options.cpus)
         self.logger.info(f'FastTree version: {fasttree.version}')
 
@@ -473,17 +525,12 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
-        self.logger.warning("Tree rooting is still under development!")
 
         check_file_exists(options.input_tree)
 
-        if options.custom_taxonomy_file:
-            check_file_exists(options.custom_taxonomy_file)
-            taxonomy = Taxonomy().read(options.custom_taxonomy_file)
-        else:
-            taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
+        taxonomy = self._read_taxonomy_files(options)
 
-        self.logger.info('Identifying genomes from the specified outgroup.')
+        self.logger.info(f'Identifying genomes from the specified outgroup: {options.outgroup_taxon}')
         outgroup = set()
         for genome_id, taxa in taxonomy.items():
             if options.outgroup_taxon in taxa:
@@ -494,21 +541,47 @@ class OptionsParser(object):
                                   options.output_tree,
                                   outgroup)
 
-        # Symlink to the tree summary file, if not run independently
+        self.logger.info('Done.')
+        
+    def decorate(self, options):
+        """Decorate tree with GTDB taxonomy.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        check_file_exists(options.input_tree)
+        
+        taxonomy = self._read_taxonomy_files(options)
+        
+        d = Decorate()
+        d.run(options.input_tree,
+                taxonomy,
+                options.output_tree)
+
+        self.logger.info('Done.')
+        
+        # symlink to the decorated tree file, if not run independently
         if hasattr(options, 'suffix'):
             if options.suffix == 'bac120':
-                symlink_f(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix),
+                symlink_f(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))))
+                                       os.path.basename(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix))))
+                symlink_f(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table',
+                          os.path.join(options.out_dir,
+                                       os.path.basename(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix)  + '-table')))
             elif options.suffix == 'ar122':
-                symlink_f(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix),
+                symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))))
+                                       os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))))
+                symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table',
+                          os.path.join(options.out_dir,
+                                       os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix)  + '-table')))
             else:
                 raise GenomeMarkerSetUnknown(
                     'There was an error determining the marker set.')
-
-        self.logger.info('Done.')
 
     def check_install(self):
         """ Verify all GTDB-Tk data files are present.
@@ -521,21 +594,6 @@ class OptionsParser(object):
         self.logger.info("Running install verification")
         misc = Misc()
         misc.check_install()
-        self.logger.info('Done.')
-
-    def decorate(self, options):
-        """Decorate tree with GTDB taxonomy.
-
-        Parameters
-        ----------
-        options : argparse.Namespace
-            The CLI arguments input by the user.
-        """
-
-        check_file_exists(options.input_tree)
-
-        # Config.TAXONOMY_FILE
-        self.logger.warning('DECORATE NOT YET IMPLEMENTED!')
         self.logger.info('Done.')
 
     def ani_rep(self, options):
@@ -591,7 +649,7 @@ class OptionsParser(object):
             options.skip_trimming = False
             self.align(options)
 
-            if options.bac120_ms:
+            if options.bacteria:
                 options.suffix = "bac120"
             else:
                 options.suffix = "ar122"
@@ -633,13 +691,20 @@ class OptionsParser(object):
                                                   PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
                                                    PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
-            else:
-                self.logger.error(
-                    'There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown(
-                    'Unknown marker set: {}'.format(options.suffix))
 
             self.root(options)
+            
+            if options.suffix == 'bac120':
+                options.input_tree = os.path.join(options.out_dir,
+                                                  PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir,
+                                                   PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix))
+            elif options.suffix == 'ar122':
+                options.input_tree = os.path.join(options.out_dir,
+                                                  PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                options.output_tree = os.path.join(options.out_dir,
+                                                   PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))
+            
             self.decorate(options)
 
         elif options.subparser_name == 'classify_wf':

@@ -28,7 +28,7 @@ from collections import defaultdict
 
 import dendropy
 
-from .common import is_float
+from gtdbtk.biolib_lite.common import canonical_gid, is_float
 
 """
 To do:
@@ -783,7 +783,7 @@ class Taxonomy(object):
 
         return taxonomy
 
-    def read(self, taxonomy_file):
+    def read(self, taxonomy_file, canonical_ids=False):
         """Read Greengenes-style taxonomy file.
 
         Expected format is:
@@ -809,6 +809,8 @@ class Taxonomy(object):
                 for row, line in enumerate(f.readlines()):
                     line_split = line.split('\t')
                     unique_id = line_split[0]
+                    if canonical_ids:
+                        unique_id = canonical_gid(unique_id)
 
                     tax_str = line_split[1].rstrip()
                     if tax_str[-1] == ';':

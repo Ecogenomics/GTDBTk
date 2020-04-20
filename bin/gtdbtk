@@ -51,23 +51,23 @@ def print_help():
     classify_wf -> Classify genomes by placement in GTDB reference tree
                      (identify -> align -> classify)
     de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
-                     (identify -> align -> infer -> root -> decorate) [In Development]
+                     (identify -> align -> infer -> root -> decorate)
 
   Methods:
     identify      -> Identify marker genes in genome
     align         -> Create multiple sequence alignment
-    infer         -> Infer tree from multiple sequence alignment
     classify      -> Determine taxonomic classification of genomes
+    infer         -> Infer tree from multiple sequence alignment
     root          -> Root tree using an outgroup
-    decorate      -> Decorate tree with GTDB taxonomy [In Development]
-    ani_rep       -> Calculates ANI to GTDB representative genomes
-    
+    decorate      -> Decorate tree with GTDB taxonomy
+
   Tools:
+    ani_rep       -> Calculates ANI to GTDB representative genomes
     trim_msa      -> Trim an untrimmed MSA file based on a mask
     export_msa    -> Export the untrimmed archaeal or bacterial MSA file
     
   Testing:
-    test          -> Test the classify_wf pipeline with 3 archaeal genomes 
+    test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
     check_install -> Verify if all GTDB-Tk data files are present
       
   Use: gtdbtk <command> -h for command specific help
@@ -95,12 +95,12 @@ if __name__ == '__main__':
 
     mutual_ms_denovo_wf = denovo_wf_parser.add_argument_group('mutually exclusive required arguments')
     mutex_group = mutual_ms_denovo_wf.add_mutually_exclusive_group(required=True)
-    mutex_group.add_argument('--bac120_ms', action='store_true', help='use 120 bacterial marker genes')
-    mutex_group.add_argument('--ar122_ms', action='store_true', help='use 122 archaeal marker genes')
+    mutex_group.add_argument('--bacteria', action='store_true', help='process bacterial genomes')
+    mutex_group.add_argument('--archaea', action='store_true', help='process archaeal genomes')
 
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
     required_denovo_wf.add_argument('--outgroup_taxon', required=True,
-                                    help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+                                    help="taxon to use as outgroup (e.g., p__Patescibacteria or p__Aenigmarchaeota)")
     required_denovo_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
 
@@ -135,9 +135,11 @@ if __name__ == '__main__':
                                     help='protein substitution model for tree inference', default='WAG')
     optional_denovo_wf.add_argument('--no_support', action="store_true",
                                     help="do not compute local support values using the Shimodaira-Hasegawa test")
-    optional_denovo_wf.add_argument('--no_gamma', action="store_true",
-                                    help="do not rescale branch lengths to optimize the Gamma20 likelihood")
+    optional_denovo_wf.add_argument('--gamma', action="store_true",
+                                    help="rescale branch lengths to optimize the Gamma20 likelihood")
 
+    optional_denovo_wf.add_argument('--gtdbtk_classification_file',
+                               help="file with GTDB-Tk classifications produced by the `classify` command")
     optional_denovo_wf.add_argument('--custom_taxonomy_file',
                                     help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
 
@@ -282,8 +284,8 @@ if __name__ == '__main__':
                                 help='protein substitution model for tree inference', default='WAG')
     optional_infer.add_argument('--no_support', action="store_true",
                                 help="do not compute local support values using the Shimodaira-Hasegawa test")
-    optional_infer.add_argument('--no_gamma', action="store_true",
-                                help="do not rescale branch lengths to optimize the Gamma20 likelihood")
+    optional_infer.add_argument('--gamma', action="store_true",
+                                help="rescale branch lengths to optimize the Gamma20 likelihood")
     optional_infer.add_argument('--prefix', required=False, default='gtdbtk',
                                 help='desired prefix for output files')
     optional_infer.add_argument('--cpus', default=1, type=int,
@@ -336,13 +338,15 @@ if __name__ == '__main__':
     required_root.add_argument('--input_tree', required=True,
                                help="tree to root in Newick format")
     required_root.add_argument('--outgroup_taxon', required=True,
-                               help="taxon to use as outgroup (e.g., p__Patescibacteria)")
+                               help="taxon to use as outgroup (e.g., p__Patescibacteria or p__Aenigmarchaeota)")
     required_root.add_argument('--output_tree', required=True,
                                help='output tree')
 
     optional_root = root_parser.add_argument_group('optional arguments')
+    optional_root.add_argument('--gtdbtk_classification_file',
+                               help="file with GTDB-Tk classifications produced by the `classify` command")
     optional_root.add_argument('--custom_taxonomy_file',
-                               help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
+                               help="file indicating custom taxonomy strings for user genomes, which should contain any genomes belonging to the outgroup")
     optional_root.add_argument('-h', '--help', action="help",
                                help="show help message")
 
@@ -358,6 +362,10 @@ if __name__ == '__main__':
                                    help='output tree')
 
     optional_decorate = decorate_parser.add_argument_group('optional arguments')
+    optional_decorate.add_argument('--gtdbtk_classification_file',
+                               help="file with GTDB-Tk classifications produced by the `classify` command")
+    optional_decorate.add_argument('--custom_taxonomy_file',
+                               help="file indicating custom taxonomy strings for user genomes")
     optional_decorate.add_argument('-h', '--help', action="help",
                                    help="show help message")
 
@@ -383,12 +391,12 @@ if __name__ == '__main__':
     ani_rep_mash = ani_rep_parser.add_argument_group('optional Mash arguments')
     ani_rep_mash.add_argument('--no_mash', action='store_const', const=True, default=False,
                              help='skip pre-filtering using MASH')
-    ani_rep_mash.add_argument('--mash_k', default=21, type=int, help='k-mer size [1-32]')
-    ani_rep_mash.add_argument('--mash_s', default=1000, type=int, help='maximum number of non-redundant hashes')
-    ani_rep_mash.add_argument('--mash_d', default=0.3, type=float, help='maximum distance to keep [0-1]')
+    ani_rep_mash.add_argument('--mash_k', default=16, type=int, help='k-mer size [1-32]')
+    ani_rep_mash.add_argument('--mash_s', default=5000, type=int, help='maximum number of non-redundant hashes')
+    ani_rep_mash.add_argument('--mash_d', default=0.1, type=float, help='maximum distance to keep [0-1]')
     ani_rep_mash.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1])')
 
-    ani_rep_fastani_opt = ani_rep_parser.add_argument_group('optional fastANI arguments')
+    ani_rep_fastani_opt = ani_rep_parser.add_argument_group('optional FastANI arguments')
     ani_rep_fastani_opt.add_argument('--min_af', default=AF_THRESHOLD, type=float,
                              help='alignment fraction to consider closest genome')
 

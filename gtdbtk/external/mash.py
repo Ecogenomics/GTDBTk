@@ -198,8 +198,8 @@ class SketchFile(object):
                 if line.startswith('Sketching'):
                     n_processed += 1
                     pct = round(100 * (n_processed / len(self.genomes)), 2)
-                    sys.stdout.write(f'\r==> Sketching {n_processed} of '
-                                     f'{len(self.genomes)} ({pct}%) genomes')
+                    sys.stdout.write(f'\r==> Sketching {n_processed:,} of '
+                                     f'{len(self.genomes):,} ({pct}%) genomes')
                     sys.stdout.flush()
             proc.wait()
 
