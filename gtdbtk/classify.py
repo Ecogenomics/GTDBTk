@@ -466,7 +466,7 @@ class Classify(object):
             # selected genomes in the same genus
             if len(fastani_verification) > 0:
                 fastani = FastANI(cpus=self.cpus, force_single=True)
-                self.logger.info(f'fastANI version: {fastani.version}')
+                self.logger.info(f'FastANI version: {fastani.version}')
 
                 d_ani_compare, d_paths = self._get_fastani_genome_path(
                     fastani_verification, genomes)
@@ -479,9 +479,8 @@ class Classify(object):
             self.logger.info('{0} genome(s) have been classified using FastANI and pplacer.'.format(
                 len(classified_user_genomes)))
 
-            # If Fastani can't select a taxonomy for a genome, we use RED
+            # If FastANI can't select a taxonomy for a genome, we use RED
             # distances
-
             if recalculate_red:
                 tree_to_process = self._calculate_red_distances(
                     classify_tree, out_dir)

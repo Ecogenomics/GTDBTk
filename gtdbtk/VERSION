@@ -1,3 +1,6 @@
+1.1.1
+- New features:
+- Added the decorate command allowing the de novo workflow to be run
 1.1.0
 - Bug fixes:
 - In rare cases pplacer would assign an empty taxonomy string which would raise an error.

@@ -227,7 +227,7 @@ class FastANI(object):
             if result is None:
                 break
             processed_items += 1
-            status = f'==> Processing {processed_items} of {n_total} ' \
+            status = f'==> Processing {processed_items:,} of {n_total:,} ' \
                 f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
             sys.stdout.write('\r%s' % status)
             sys.stdout.flush()

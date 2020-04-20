@@ -44,7 +44,7 @@ class FastTree(object):
         except:
             return "(version unavailable)"
 
-    def run(self, output_tree, tree_log, fasttree_log, prot_model, no_support, no_gamma, msa_file, cpus=1):
+    def run(self, output_tree, tree_log, fasttree_log, prot_model, no_support, gamma, msa_file, cpus=1):
         """Run FastTree.
 
         Parameters
@@ -59,8 +59,8 @@ class FastTree(object):
             Either 'JTT', 'WAG', or 'LG'.
         no_support : bool
             True if no support should be used, False otherwise.
-        no_gamma : bool
-            True if no gamma should be used, False otherwise.
+        gamma : bool
+            True if Gamma20 should be used, False otherwise.
         msa_file : str
             The path to the input MSA.
         cpus : int
@@ -86,24 +86,27 @@ class FastTree(object):
 
         # Setup arguments
         args = [cmd]
+        model_out = [prot_model]
         if prot_model == 'WAG':
             args.append('-wag')
         elif prot_model == 'LG':
             args.append('-lg')
+            
+        if gamma:
+            args.append('-gamma')
+            model_out.append('+G')
+            
         if no_support:
             args.append('-nosupport')
-        if not no_gamma:
-            args.append('-gamma')
+        else:
+            model_out.append('SH support values')
+        
         args.append('-log')
         args.append(tree_log)
         args.append(msa_file)
 
-        model_out = [prot_model,
-                     ('-' if no_gamma else '+') + 'gamma',
-                     ('no' if no_support else '') + 'support']
         self.logger.info('Inferring FastTree ({}) using a maximum of {} CPUs.'.format(
             ', '.join(model_out), cpus))
-        self.logger.info('FastTree version: {}'.format(self.version))
 
         with open(output_tree, 'w') as f_out_tree:
             with open(fasttree_log, 'w') as f_out_err:

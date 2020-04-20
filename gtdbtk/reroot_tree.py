@@ -21,12 +21,15 @@ import sys
 
 import dendropy
 
+from gtdbtk.exceptions import GTDBTkExit
+
 
 class RerootTree(object):
     """Reroot tree."""
 
     def __init__(self):
         """Initialization."""
+        
         self.logger = logging.getLogger('timestamp')
 
     def root_with_outgroup(self, input_tree, output_tree, outgroup):
@@ -56,15 +59,14 @@ class RerootTree(object):
             else:
                 ingroup_leaves.add(n)
 
-        self.logger.info('Identified %d outgroup taxa in the tree.' %
-                         len(outgroup_in_tree))
-        self.logger.info('Identified %d ingroup taxa in the tree.' %
-                         len(ingroup_leaves))
+        self.logger.info('Identified {:,} outgroup taxa in the tree.'.format(
+                         len(outgroup_in_tree)))
+        self.logger.info('Identified {:,} ingroup taxa in the tree.'.format(
+                         len(ingroup_leaves)))
 
         if len(outgroup_in_tree) == 0:
-            self.logger.warning('No outgroup taxa identified in the tree.')
-            self.logger.warning('Tree was not rerooted.')
-            sys.exit(0)
+            self.logger.error('No outgroup taxa identified in the tree.')
+            raise GTDBTkExit('Tree was not rerooted.')
 
         # Since finding the MRCA is a rooted tree operation,
         # the tree is first rerooted on an ingroup taxa. This
@@ -94,7 +96,7 @@ class RerootTree(object):
         if len(mrca.leaf_nodes()) != len(outgroup_in_tree):
             self.logger.info(
                 'Outgroup is not monophyletic. Tree will be rerooted at the MRCA of the outgroup.')
-            self.logger.info('The outgroup consisted of %d taxa, while the MRCA has %d leaf nodes.' % (
+            self.logger.info('The outgroup consisted of {:,} taxa, while the MRCA has {:,} leaf nodes.'.format(
                 len(outgroup_in_tree), len(mrca.leaf_nodes())))
             if len(mrca.leaf_nodes()) == len(tree.leaf_nodes()):
                 self.logger.warning('The MRCA spans all taxa in the tree.')
@@ -115,7 +117,7 @@ class RerootTree(object):
                                 length2=0.5 * mrca.edge_length)
             tree.write_to_path(output_tree, schema='newick',
                                suppress_rooting=True, unquoted_underscores=True)
-            self.logger.info('Rerooted tree written to: %s' % output_tree)
+            self.logger.info('Rerooted tree written to: {}'.format(output_tree))
 
     def midpoint(self, input_tree, output_tree):
         """Reroot tree bat midpoint.

@@ -62,10 +62,12 @@ PATH_TREE_LOG = join(DIR_INFER_INTERMEDIATE, '{prefix}.tree.log')
 PATH_MARKER_FASTTREE_LOG = join(DIR_INFER_INTERMEDIATE, '{prefix}.{marker}.fasttree.log')
 PATH_FASTTREE_LOG = join(DIR_INFER_INTERMEDIATE, '{prefix}.fasttree.log')
 
-PATH_BAC120_ROOTED_TREE = join(DIR_INFER, '{prefix}.bac120.rooted.tree')
-PATH_AR122_ROOTED_TREE = join(DIR_INFER, '{prefix}.ar122.rooted.tree')
 PATH_BAC120_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.unrooted.tree')
 PATH_AR122_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.unrooted.tree')
+PATH_BAC120_ROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.rooted.tree')
+PATH_AR122_ROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.rooted.tree')
+PATH_BAC120_DECORATED_TREE = join(DIR_INFER, '{prefix}.bac120.decorated.tree')
+PATH_AR122_DECORATED_TREE = join(DIR_INFER, '{prefix}.ar122.decorated.tree')
 
 # Command: ani_rep
 DIR_ANI_REP_INT = join('intermediate_results')

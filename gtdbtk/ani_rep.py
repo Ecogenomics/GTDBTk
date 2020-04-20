@@ -3,10 +3,17 @@ import os
 from collections import defaultdict
 
 from gtdbtk.biolib_lite.execute import check_dependencies
-from gtdbtk.config.config import FASTANI_GENOMES, FASTANI_GENOMES_EXT, AF_THRESHOLD
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
+from gtdbtk.biolib_lite.common import canonical_gid
+
+from gtdbtk.config.config import (FASTANI_GENOMES, 
+                                    FASTANI_GENOMES_EXT, 
+                                    AF_THRESHOLD, 
+                                    TAXONOMY_FILE)
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.mash import Mash
+
 
 
 class ANIRep(object):
@@ -60,51 +67,68 @@ class ANIRep(object):
         fastani = FastANI(self.cpus, force_single=True)
         fastani_results = fastani.run(d_compare, d_paths)
 
-        ANISummaryFile(out_dir, prefix, fastani_results)
-        ANIClosestFile(out_dir, prefix, fastani_results, genomes, min_af)
+        taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
+        ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
+        ANIClosestFile(out_dir, 
+                        prefix, 
+                        fastani_results, 
+                        genomes, 
+                        min_af,
+                        taxonomy)
 
 
 class ANISummaryFile(object):
     name = 'ani_summary.tsv'
 
-    def __init__(self, root, prefix, results):
+    def __init__(self, root, prefix, results, taxonomy):
         self.path = os.path.join(root, f'{prefix}.{self.name}')
         self.results = results
+        self.taxonomy = taxonomy
         self.logger = logging.getLogger('timestamp')
         self._write()
 
     def _write(self):
         with open(self.path, 'w') as fh:
-            fh.write('query\treference\tani\taf\n')
+            fh.write('user_genome\treference_genome\tfastani_ani\tfastani_af\treference_taxonomy\n')
             for qry_gid, ref_hits in sorted(self.results.items()):
                 for ref_gid, ref_hit in sorted(ref_hits.items(), key=lambda x: (-x[1]['af'], -x[1]['ani'], x[0])):
-                    fh.write(f'{qry_gid}\t{ref_gid}\t{ref_hit["ani"]}\t{ref_hit["af"]}\n')
+                    canonical_rid = canonical_gid(ref_gid)
+                    taxonomy_str = ';'.join(self.taxonomy[canonical_rid])
+                    fh.write(f'{qry_gid}\t{ref_gid}')
+                    fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
+                    fh.write(f'\t{taxonomy_str}\n')
         self.logger.info(f'Summary of results saved to: {self.path}')
 
 
 class ANIClosestFile(object):
     name = 'ani_closest.tsv'
 
-    def __init__(self, root, prefix, results, genomes, min_af):
+    def __init__(self, root, prefix, results, genomes, min_af, taxonomy):
         self.logger = logging.getLogger('timestamp')
         self.path = os.path.join(root, f'{prefix}.{self.name}')
         self.results = results
         self.genomes = genomes
         self.min_af = min_af
+        self.taxonomy = taxonomy
         self._write()
 
     def _write(self):
         with open(self.path, 'w') as fh:
-            fh.write('query\treference\tani\taf\n')
+            fh.write('user_genome\treference_genome\tfastani_ani\tfastani_af\treference_taxonomy\n')
             for gid in sorted(self.genomes):
                 if gid in self.results:
                     thresh_results = [(ref_gid, hit) for (ref_gid, hit) in
                                       self.results[gid].items() if hit['af'] >= self.min_af]
                     closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
                     if len(closest) > 0:
-                        fh.write(f'{gid}\t{closest[0][0]}\t{closest[0][1]["ani"]}\t{closest[0][1]["af"]}\n')
+                        ref_gid = closest[0][0]
+                        canonical_rid = canonical_gid(ref_gid)
+                        taxonomy_str = ';'.join(self.taxonomy[canonical_rid])
+                        fh.write(f'{gid}\t{ref_gid}')
+                        fh.write(f'\t{closest[0][1]["ani"]}\t{closest[0][1]["af"]}')
+                        fh.write(f'\t{taxonomy_str}\n')
                     else:
-                        fh.write(f'{gid}\tno result\tno result\tno result\n')
+                        fh.write(f'{gid}\tno result\tno result\tno result\tno result\n')
                 else:
                     fh.write(f'{gid}\tno result\tno result\tno result\n')
         self.logger.info(f'Closest representative hits saved to: {self.path}')
