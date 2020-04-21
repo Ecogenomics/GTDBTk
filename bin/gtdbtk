@@ -54,17 +54,18 @@ def print_help():
                      (identify -> align -> infer -> root -> decorate)
 
   Methods:
-    identify      -> Identify marker genes in genome
-    align         -> Create multiple sequence alignment
-    classify      -> Determine taxonomic classification of genomes
-    infer         -> Infer tree from multiple sequence alignment
-    root          -> Root tree using an outgroup
-    decorate      -> Decorate tree with GTDB taxonomy
+    identify -> Identify marker genes in genome
+    align    -> Create multiple sequence alignment
+    classify -> Determine taxonomic classification of genomes
+    infer    -> Infer tree from multiple sequence alignment
+    root     -> Root tree using an outgroup
+    decorate -> Decorate tree with GTDB taxonomy
 
   Tools:
-    ani_rep       -> Calculates ANI to GTDB representative genomes
-    trim_msa      -> Trim an untrimmed MSA file based on a mask
-    export_msa    -> Export the untrimmed archaeal or bacterial MSA file
+    infer_ranks -> Establish taxonomic ranks of internal nodes using RED
+    ani_rep     -> Calculates ANI to GTDB representative genomes
+    trim_msa    -> Trim an untrimmed MSA file based on a mask
+    export_msa  -> Export the untrimmed archaeal or bacterial MSA file
     
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
@@ -100,7 +101,7 @@ if __name__ == '__main__':
 
     required_denovo_wf = denovo_wf_parser.add_argument_group('required named arguments')
     required_denovo_wf.add_argument('--outgroup_taxon', required=True,
-                                    help="taxon to use as outgroup (e.g., p__Patescibacteria or p__Aenigmarchaeota)")
+                                    help="taxon to use as outgroup (e.g., p__Patescibacteria or p__Altiarchaeota)")
     required_denovo_wf.add_argument('--out_dir', required=True,
                                     help="directory to output files")
 
@@ -338,7 +339,7 @@ if __name__ == '__main__':
     required_root.add_argument('--input_tree', required=True,
                                help="tree to root in Newick format")
     required_root.add_argument('--outgroup_taxon', required=True,
-                               help="taxon to use as outgroup (e.g., p__Patescibacteria or p__Aenigmarchaeota)")
+                               help="taxon to use as outgroup (e.g., p__Patescibacteria or p__Altiarchaeota)")
     required_root.add_argument('--output_tree', required=True,
                                help='output tree')
 
@@ -368,6 +369,22 @@ if __name__ == '__main__':
                                help="file indicating custom taxonomy strings for user genomes")
     optional_decorate.add_argument('-h', '--help', action="help",
                                    help="show help message")
+
+    # establish taxonomic ranks of internal nodes using RED
+    infer_ranks_parser = subparsers.add_parser('infer_ranks', conflict_handler='resolve',
+                                            formatter_class=CustomHelpFormatter,
+                                            help='Establish taxonomic ranks of internal nodes using RED.', )
+
+    infer_ranks_req = infer_ranks_parser.add_argument_group('required named arguments')
+    infer_ranks_req.add_argument('--input_tree', required=True,
+                                    help="rooted input tree with labelled ingroup taxon")
+    infer_ranks_req.add_argument('--ingroup_taxon', required=True,
+                                    help="labelled ingroup taxon to use as root for establish RED values (e.g., c__Bacilli or f__Lactobacillaceae")
+    infer_ranks_req.add_argument('--output_tree', required=True,
+                                    help="output tree")
+
+    infer_ranks_opt = infer_ranks_parser.add_argument_group('optional arguments')
+    infer_ranks_opt.add_argument('-h', '--help', action="help", help="show help message")
 
     # ani_rep
     ani_rep_parser = subparsers.add_parser('ani_rep', conflict_handler='resolve',

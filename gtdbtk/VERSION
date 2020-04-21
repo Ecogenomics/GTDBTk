@@ -1,5 +1,6 @@
 1.1.1
 - New features:
+- Added the infer_rank method which established the taxonomic ranks of internal nodes of user trees based on RED
 - Added the decorate command allowing the de novo workflow to be run
 1.1.0
 - Bug fixes:

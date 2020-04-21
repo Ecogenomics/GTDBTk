@@ -61,6 +61,7 @@ except IOError:
     sys.exit(1)
 
 # Relative Evolution Distance
+RED_INTERVAL = 0.1
 RED_MIN_SUPPORT = 0.0
 RED_MIN_CHILDREN = 2
 
