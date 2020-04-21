@@ -24,6 +24,8 @@ from numpy import (median as np_median,
                    percentile as np_percentile,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
+                   
+import dendropy
 
 from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
@@ -38,14 +40,10 @@ class RelativeDistance(object):
 
     def __init__(self):
         """Initialization."""
-        self.logger = logging.getLogger()
+        
+        pass
 
-        # Options = namedtuple('Options', 'width height tick_font_size label_font_size dpi')
-        # options = Options(6, 6, 12, 12, 96)
-        # AbstractPlot.__init__(self, options)
-        # self.dpi = 96
-
-    def _avg_descendant_rate(self, tree):
+    def _avg_descendant_rate(self, root_node):
         """Calculate average rate of divergence for each nodes in a tree.
 
         The average rate is the arithmetic mean of the
@@ -53,8 +51,8 @@ class RelativeDistance(object):
 
         Parameters
         ----------
-        tree : Dendropy Tree
-            Phylogenetic tree.
+        root_node : Dendropy Node
+            Root node defining tree or subtree.
 
         Returns
         -------
@@ -64,7 +62,7 @@ class RelativeDistance(object):
         """
 
         # calculate the mean branch length to extant taxa
-        for node in tree.postorder_node_iter():
+        for node in root_node.postorder_iter():
             avg_div = 0
             if node.is_leaf():
                 node.mean_dist = 0.0
@@ -78,13 +76,13 @@ class RelativeDistance(object):
 
             node.mean_dist = avg_div
 
-    def decorate_rel_dist(self, tree):
+    def decorate_rel_dist(self, root_node, root_red = 0.0):
         """Calculate relative distance to each internal node.
 
         Parameters
         ----------
-        tree : Dendropy Tree
-            Phylogenetic tree.
+        root_node : Dendropy Node
+            Root node defining tree or subtree.
 
         Returns
         -------
@@ -93,12 +91,15 @@ class RelativeDistance(object):
           num_taxa: number of terminal taxa
           rel_dists: relative distance of node between root and extant organisms
         """
+        
+        if isinstance(root_node, dendropy.Tree):
+            root_node = root_node.seed_node
 
-        self._avg_descendant_rate(tree)
+        self._avg_descendant_rate(root_node)
 
-        for node in tree.preorder_node_iter():
-            if node == tree.seed_node:
-                node.rel_dist = 0.0
+        for node in root_node.preorder_iter():
+            if node == root_node:
+                node.rel_dist = root_red
             elif node.is_leaf():
                 node.rel_dist = 1.0
             else:

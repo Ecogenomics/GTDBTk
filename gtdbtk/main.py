@@ -24,6 +24,7 @@ import sys
 
 import gtdbtk.config.config as Config
 from gtdbtk.ani_rep import ANIRep
+from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.biolib_lite.common import (check_dir_exists,
                                        check_file_exists,
                                        make_sure_path_exists,
@@ -595,6 +596,18 @@ class OptionsParser(object):
         misc = Misc()
         misc.check_install()
         self.logger.info('Done.')
+        
+    def infer_ranks(self, options):
+        """Establish taxonomic ranks of internal nodes using RED."""
+        
+        check_file_exists(options.input_tree)
+        
+        p = InferRanks()
+        p.run(options.input_tree,
+                options.ingroup_taxon,
+                options.output_tree)
+        
+        self.logger.info('Done.')
 
     def ani_rep(self, options):
         """Calculates ANI to GTDB representative genomes.
@@ -741,6 +754,8 @@ class OptionsParser(object):
             self.root(options)
         elif options.subparser_name == 'decorate':
             self.decorate(options)
+        elif options.subparser_name == 'infer_ranks':
+            self.infer_ranks(options)
         elif options.subparser_name == 'ani_rep':
             self.ani_rep(options)
         elif options.subparser_name == 'trim_msa':
