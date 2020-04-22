@@ -503,7 +503,7 @@ class Classify(object):
                         "'", '') for subnd in cur_node.leaf_iter()]
                     while len(set(list_subnode) & set(self.reference_ids)) < 1:
                         cur_node = cur_node.parent_node
-                        list_subnode_initials = [subnd.taxon.label.replace(
+                        list_subnode = [subnd.taxon.label.replace(
                             "'", '') for subnd in cur_node.leaf_iter()]
 
                     current_rel_list = cur_node.rel_dist
@@ -895,7 +895,7 @@ class Classify(object):
         fastani_verification : dictionary listing the potential genomes associated with a user genome d[user_genome] = {"potential_g": [
                                     (potential_genome_in_same_genus,patristic distance)], "pplacer_g": genome_of_reference_selected_by_pplacer(if any)}
         all_fastani_dict : dictionary listing the fastani ANI for each user genomes against the potential genomes d[user_genome]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
-        summaryfout: output file 
+        summaryfout: output file
 
         Returns
         -------
