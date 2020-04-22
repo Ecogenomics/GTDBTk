@@ -36,10 +36,14 @@ PFAM_HMM_DIR = os.path.join(GENERIC_PATH, MARKER_DIR, 'pfam/')
 SPLIT_DIR = os.path.join(GENERIC_PATH,'split')
 HIGH_SPLIT_DIR = os.path.join(SPLIT_DIR,'high')
 LOW_SPLIT_DIR = os.path.join(SPLIT_DIR,'low')
+LOW_TREE_MAPPING_FILE = os.path.join(LOW_SPLIT_DIR,'tree_mapping.tsv')
 HIGH_PPLACER_DIR = os.path.join(HIGH_SPLIT_DIR,'pplacer')
 LOW_PPLACER_DIR = os.path.join(LOW_SPLIT_DIR,'pplacer')
 HIGH_RED_DIR = os.path.join(HIGH_SPLIT_DIR,'red')
 LOW_RED_DIR = os.path.join(LOW_SPLIT_DIR,'red')
+
+LOW_TREE_MAPPING_FILE = os.path.join(LOW_SPLIT_DIR,'tree_mapping.tsv')
+
 
 HIGH_PPLACER_REF_PKG = 'gtdbtk_package_high_level'
 HIGH_RED_FILE = os.path.join(HIGH_RED_DIR,'high_red_value.tsv')
