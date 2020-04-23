@@ -51,3 +51,6 @@ coverage.xml
 .idea/
 /.pydevproject
 /.project
+
+# OSX
+.DS_Store
