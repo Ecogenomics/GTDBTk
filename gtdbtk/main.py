@@ -672,6 +672,9 @@ class OptionsParser(object):
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
+            if options.recalculate_red and options.split_tree:
+                self.logger.error('--split_tree and --recalculate_red are mutually exclusive.\n')
+                sys.exit(1)
             self.classify(options)
         elif options.subparser_name == 'root':
             self.root(options)

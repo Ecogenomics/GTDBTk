@@ -41,6 +41,8 @@ PATH_BAC120_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.bac120.summary.tsv')
 PATH_AR122_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar122.summary.tsv')
 PATH_HIGH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.high.bac120.classify.tree')
 PATH_LOW_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree.{iter}.tree')
+PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
+
 
 
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')

@@ -183,8 +183,8 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer = Pplacer()
-        pplacer.run(self.pplacer_cpus, 'WAG', pplacer_ref_pkg, pplacer_json_out,
-                    user_msa_file, pplacer_out, pplacer_mmap_file)
+        # pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
+        #             user_msa_file, pplacer_out, pplacer_mmap_file)
         if levelopt is None or levelopt == 'high':
             self.logger.info('pplacer version: {}'.format(pplacer.version))
 
@@ -209,22 +209,22 @@ class Classify(object):
         pplacer.tog(pplacer_json_out, tree_file)
 
         #Symlink to the tree summary file
-        if marker_set_id == 'bac120':
-            if levelopt is None:
-                symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
-            elif levelopt == 'high':
-                symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
-            elif levelopt == 'low':
-                symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter,prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter,prefix=prefix))))
-        elif marker_set_id == 'ar122':
-            symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
+        # if marker_set_id == 'bac120':
+        #     if levelopt is None:
+        #         symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+        #     elif levelopt == 'high':
+        #         symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
+        #     elif levelopt == 'low':
+        #         symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter,prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter,prefix=prefix))))
+        # elif marker_set_id == 'ar122':
+        #     symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+        # else:
+        #     self.logger.error('There was an error determining the marker set.')
+        #     raise GenomeMarkerSetUnknown
 
         return tree_file
 
@@ -385,7 +385,7 @@ class Classify(object):
             if splittreeopt is True:
                 # run pplacer to place bins in reference genome tree
                 num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
-
+                summaryfout,debugfile,conflict_file,marker_dict=self._generate_summary_file(marker_set_id,prefix,out_dir,debugopt,splittreeopt)
 
                 high_classify_tree = self.place_genomes(user_msa_file,
                                                    marker_set_id,
@@ -394,6 +394,7 @@ class Classify(object):
                                                    scratch_dir,
                                                    'high')
                 tree = self._assign_mrca_red(high_classify_tree, marker_set_id,'high')
+
                 high_classification = self._get_high_pplacer_taxonomy(out_dir,marker_set_id,prefix,user_msa_file, tree)
 
                 tree_mapping_dict = {}
@@ -402,62 +403,70 @@ class Classify(object):
                         k,v=line.strip().split()
                         tree_mapping_dict[k]=v
 
-                sorted_high_taxonomy,len_sorted_genomes = self._map_high_taxonomy(high_classification,tree_mapping_dict)
+                sorted_high_taxonomy,len_sorted_genomes = self._map_high_taxonomy(high_classification,tree_mapping_dict,summaryfout)
                 self.logger.info(f"{len_sorted_genomes} out of {num_genomes} have an order assignments. Those genomes will be reclassified.")
 
-                summaryfout,debugfile,marker_dict=self._generate_summary_file(marker_set_id,prefix,out_dir,debugopt)
                 for tree_iter in sorted(sorted_high_taxonomy, key=lambda k: len(sorted_high_taxonomy[k]), reverse=True):
                     listg = sorted_high_taxonomy.get(tree_iter)
                     low_classify_tree,submsa_file_path = self._place_in_low_tree(tree_iter,listg,msa_dict,marker_set_id,prefix,scratch_dir,out_dir)
                     mrca_lowtree = self._assign_mrca_red(low_classify_tree, marker_set_id,'low',tree_iter)
                     pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir,prefix,marker_set_id,user_msa_file, mrca_lowtree)
 
-                    self._parse_tree(mrca_lowtree,genomes,msa_dict,percent_multihit_dict,trans_table_dict,bac_ar_diff,submsa_file_path,marker_dict,
-                                    summaryfout,pplacer_taxonomy_dict,debugfile,debugopt)
+                    self._parse_tree(mrca_lowtree,genomes,msa_dict,percent_multihit_dict,trans_table_dict,
+                                     bac_ar_diff,submsa_file_path,marker_dict,summaryfout,conflict_file,pplacer_taxonomy_dict,
+                                     high_classification,debugfile,debugopt)
                 summaryfout.close()
                 if debugopt:
                     debugfile.close()
 
-
-            sys.exit(-1)
-            classify_tree = self.place_genomes(user_msa_file,
-                                               marker_set_id,
-                                               out_dir,
-                                               prefix,
-                                               scratch_dir)
-
-            # get taxonomic classification of each user genome
-            tree = dendropy.Tree.get_from_path(classify_tree,
-                                               schema='newick',
-                                               rooting='force-rooted',
-                                               preserve_underscores=True)
-            summaryfout,debugfile=self._generate_summary_file()
-
-            if recalculate_red:
-                tree_to_process = self._calculate_red_distances(
-                    classify_tree, out_dir)
             else:
-                tree_to_process = self._assign_mrca_red(
-                    classify_tree, marker_set_id)
+                classify_tree = self.place_genomes(user_msa_file,
+                                                   marker_set_id,
+                                                   out_dir,
+                                                   prefix,
+                                                   scratch_dir)
 
-            self._parse_tree(tree,summaryfout,debugfile,debugopt)
+                # get taxonomic classification of each user genome
+                tree = dendropy.Tree.get_from_path(classify_tree,
+                                                   schema='newick',
+                                                   rooting='force-rooted',
+                                                   preserve_underscores=True)
+                summaryfout,debugfile,conflict_file,marker_dict=self._generate_summary_file(marker_set_id,prefix,out_dir,debugopt,splittreeopt)
 
-            # Symlink to the summary file from the root
-            if marker_set_id == 'bac120':
-                symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-            elif marker_set_id == 'ar122':
-                symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
-            else:
-                self.logger.error(
-                    'There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                if recalculate_red:
+                    tree_to_process = self._calculate_red_distances(
+                        classify_tree, out_dir)
+                else:
+                    tree_to_process = self._assign_mrca_red(
+                        classify_tree, marker_set_id)
 
-            if debugopt:
-                debugfile.close()
+                pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir, prefix, marker_set_id, user_msa_file,
+                                                                   tree_to_process)
 
-    def _generate_summary_file(self,marker_set_id,prefix,out_dir,debugopt):
+                self._parse_tree(tree_to_process, genomes,msa_dict, percent_multihit_dict,
+                                 trans_table_dict,
+                                 bac_ar_diff, user_msa_file, marker_dict, summaryfout, conflict_file,
+                                 pplacer_taxonomy_dict,None,
+                                 debugfile, debugopt)
+
+
+                # Symlink to the summary file from the root
+                if marker_set_id == 'bac120':
+                    symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                elif marker_set_id == 'ar122':
+                    symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
+                else:
+                    self.logger.error(
+                        'There was an error determining the marker set.')
+                    raise GenomeMarkerSetUnknown
+
+                summaryfout.close()
+                if debugopt:
+                    debugfile.close()
+
+    def _generate_summary_file(self,marker_set_id,prefix,out_dir,debugopt=None,splittreeopt=None):
         if marker_set_id == 'bac120':
             path_summary = os.path.join(
                 out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
@@ -469,12 +478,9 @@ class Classify(object):
                 'There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-
         summaryfout = open(path_summary, 'w')
         debugfile = None
-        if debugopt:
-            debugfile = open(os.path.join(
-                out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
+        conflict_summary = None
 
         marker_dict = self._write_red_dict(
             out_dir, prefix, marker_set_id)
@@ -484,9 +490,16 @@ class Classify(object):
             "closest_placement_reference\tclosest_placement_taxonomy\tclosest_placement_ani\tclosest_placement_af\tpplacer_taxonomy\t" +
             "classification_method\tnote\tother_related_references(genome_id,species_name,radius,ANI,AF)\taa_percent\ttranslation_table\tred_value\twarnings\n")
         if debugopt:
+            debugfile = open(os.path.join(
+                out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
             debugfile.write(
                 "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
-        return(summaryfout,debugfile,marker_dict)
+        if splittreeopt:
+            conflict_summary = open(os.path.join(
+                out_dir, PATH_BAC120_CONFLICT.format(prefix=prefix)),'w')
+            conflict_summary.write(
+                "User genome\tHigh classification\tLow Classification\n")
+        return(summaryfout,debugfile,conflict_summary,marker_dict)
 
 
 
@@ -508,7 +521,7 @@ class Classify(object):
         return (low_classify_tree,submsa_file_path)
 
     def _parse_tree(self,tree,genomes,msa_dict,percent_multihit_dict,trans_table_dict,bac_ar_diff,
-                    user_msa_file,marker_dict,summaryfout,pplacer_taxonomy_dict,debugfile,debugopt):
+                    user_msa_file,marker_dict,summaryfout,conflict_file,pplacer_taxonomy_dict,high_classification,debugfile,debugopt):
         # Genomes can be classified by using FastANI or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -801,21 +814,30 @@ class Classify(object):
                 if debugopt:
                     debugfile.write('{0}\t{1}\t{2}\t{3}\n'.format(
                         leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
-                else:
-                    'debug false'
+                if high_classification and leaf.taxon.label in high_classification:
+                    fullrank =  [x for x in high_classification.get(leaf.taxon.label).get('tk_tax').split(';')[0:self.order_rank.index(self.rank_of_interest)+2] if len(x)>3]
+                    low_taxonomy = summary_list[1].split(';')[0:len(fullrank)]
+                    if fullrank != low_taxonomy:
+                        conflict_file.write('{}\t{}\t{}\n'.format(leaf.taxon.label,high_classification.get(leaf.taxon.label).get('tk_tax'),summary_list[1]))
 
-
-
-    def _map_high_taxonomy(self,high_classification,mapping_dict):
+    def _map_high_taxonomy(self,high_classification,mapping_dict,summary_file):
         mapped_rank = {}
         counter = 0
         for k,v in high_classification.items():
             # if the classification has an order
 
-            rk_to_check=v.split(';')[self.order_rank.index(self.rank_of_interest)]
+
+            rk_to_check=v.get('tk_tax').split(';')[self.order_rank.index(self.rank_of_interest)]
             if len(rk_to_check) > 3:
                 mapped_rank.setdefault(mapping_dict.get(rk_to_check),[]).append(k)
                 counter += 1
+            else:
+                output_file = [None]* 19
+                output_file[0]= k
+                output_file[1]= v.get('tk_tax')
+                output_file[11]=v.get('pplacer_tax')
+                output_file[17]=v.get('rel_dist')
+                summary_file.write("{}\n".format('\t'.join(['N/A' if x is None else str(x) for x in output_file])))
         return (mapped_rank,counter)
 
     def _assign_mrca_red(self, input_tree, marker_set_id,levelopt=None,tree_iter=None):
@@ -1768,7 +1790,8 @@ class Classify(object):
                                         break
                                 taxa_str = self._classify_on_internal_branch(
                                     child_taxons, current_rel_dist, child_rel_dist, parent_rank, taxa_str,marker_dict)
-                    results[leaf.taxon.label] = self.standardise_taxonomy(taxa_str, 'bac120')
+                    results[leaf.taxon.label] = {"tk_tax":self.standardise_taxonomy(taxa_str, 'bac120'),
+                    "pplacer_tax":self.standardise_taxonomy(pplacer_tax, 'bac120'),'rel_dist':current_rel_dist}
                     pplaceout.write('{}\t{}\t{}\t{}\t{}\n'.format(leaf.taxon.label, self.standardise_taxonomy(taxa_str, 'bac120'),
                                                                   self.standardise_taxonomy(pplacer_tax, 'bac120'), is_on_terminal_branch, current_rel_dist))
         return results
