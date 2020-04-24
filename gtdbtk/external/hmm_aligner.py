@@ -41,8 +41,7 @@ class HmmAligner(object):
                  pfam_hmm_dir,
                  tigrfam_hmm_dir,
                  bac120_markers,
-                 ar122_markers,
-                 rps23_markers):
+                 ar122_markers):
         """Initialization."""
 
         check_dependencies(['hmmalign'])
@@ -58,7 +57,6 @@ class HmmAligner(object):
 
         self.bac120_markers = bac120_markers
         self.ar122_markers = ar122_markers
-        self.rps23_markers = rps23_markers
 
         self.version = self.get_version()
 
