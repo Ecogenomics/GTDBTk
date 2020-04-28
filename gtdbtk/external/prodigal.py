@@ -25,7 +25,7 @@ import subprocess
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.exceptions import ProdigalException
 from gtdbtk.io.prodigal.tln_table import TlnTableFile
-from gtdbtk.tools import sha256
+from gtdbtk.tools import sha256, file_has_checksum
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 
 
@@ -87,10 +87,10 @@ class Prodigal(object):
         out_files = (nt_gene_file, gff_file, translation_table_file, aa_gene_file)
 
         # Check if this genome has already been processed (skip).
-        if all([os.path.isfile(x) for x in out_files]):
+        if all([file_has_checksum(x) for x in out_files]):
             tln_table_file = TlnTableFile(translation_table_file)
             tln_table_file.read()
-            self.warnings.info(f'Skipped gene calling as existing files were found: {genome_id}')
+            self.warnings.info(f'Skipped Prodigal processing for: {genome_id}')
             return aa_gene_file, nt_gene_file, gff_file, translation_table_file, tln_table_file.best_tln_table, True
 
         # Run Prodigal
@@ -232,10 +232,8 @@ class Prodigal(object):
         # Report if any genomes were skipped due to having already been processed.
         if n_skipped.value > 0:
             genome_s = 'genome' if n_skipped.value == 1 else 'genomes'
-            was_were = 'was' if n_skipped.value == 1 else 'were'
-            self.logger.warning(f'{n_skipped.value} {genome_s} {was_were} '
-                                f'skipped due to pre-existing data, see '
-                                f'warnings.log')
+            self.logger.warning(f'Prodigal skipped {n_skipped.value} {genome_s} '
+                                f'due to pre-existing data, see warnings.log')
 
         # Report on any genomes which failed to have any genes called
         result_dict = dict()
