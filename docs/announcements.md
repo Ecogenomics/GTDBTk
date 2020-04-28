@@ -14,6 +14,7 @@ nav_order: 1
     * *Features:*
         * Added the `infer_rank` method which established the taxonomic ranks of internal nodes of user trees based on RED
         * Added the `decorate` command allowing the `de novo workflow` to be run
+        * Skip gene calling if existing files are found.
 
 **Note (Apr 9, 2020)**:
 * GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)

@@ -24,6 +24,7 @@ import subprocess
 
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.exceptions import ProdigalException
+from gtdbtk.io.prodigal.tln_table import TlnTableFile
 from gtdbtk.tools import sha256
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 
@@ -33,7 +34,6 @@ class Prodigal(object):
 
     def __init__(self,
                  threads,
-                 proteins,
                  marker_gene_dir,
                  protein_file_suffix,
                  nt_gene_file_suffix,
@@ -45,8 +45,6 @@ class Prodigal(object):
         self.warnings = logging.getLogger('warnings')
 
         self.threads = threads
-
-        self.proteins = proteins
 
         self.marker_gene_dir = marker_gene_dir
         self.protein_file_suffix = protein_file_suffix
@@ -80,11 +78,25 @@ class Prodigal(object):
             False if an error occurred.
         """
 
+        # Set the paths for output files.
         output_dir = os.path.join(self.marker_gene_dir, genome_id)
+        aa_gene_file = os.path.join(output_dir, genome_id + self.protein_file_suffix)
+        nt_gene_file = os.path.join(output_dir, genome_id + self.nt_gene_file_suffix)
+        gff_file = os.path.join(output_dir, genome_id + self.gff_file_suffix)
+        translation_table_file = os.path.join(output_dir, 'prodigal_translation_table.tsv')
+        out_files = (nt_gene_file, gff_file, translation_table_file, aa_gene_file)
 
+        # Check if this genome has already been processed (skip).
+        if all([os.path.isfile(x) for x in out_files]):
+            tln_table_file = TlnTableFile(translation_table_file)
+            tln_table_file.read()
+            self.warnings.info(f'Skipped gene calling as existing files were found: {genome_id}')
+            return aa_gene_file, nt_gene_file, gff_file, translation_table_file, tln_table_file.best_tln_table, True
+
+        # Run Prodigal
         prodigal = BioLibProdigal(1, False)
         summary_stats = prodigal.run(
-            [fasta_path], output_dir, called_genes=self.proteins,
+            [fasta_path], output_dir, called_genes=False,
             translation_table=usr_tln_table)
 
         # An error occurred in BioLib Prodigal.
@@ -99,42 +111,26 @@ class Prodigal(object):
 
         # rename output files to adhere to GTDB conventions and desired genome
         # ID
-        aa_gene_file = os.path.join(
-            output_dir, genome_id + self.protein_file_suffix)
         shutil.move(summary_stats.aa_gene_file, aa_gene_file)
+        shutil.move(summary_stats.nt_gene_file, nt_gene_file)
+        shutil.move(summary_stats.gff_file, gff_file)
 
-        nt_gene_file = None
-        gff_file = None
-        translation_table_file = None
-        if not self.proteins:
-            nt_gene_file = os.path.join(
-                output_dir, genome_id + self.nt_gene_file_suffix)
-            shutil.move(summary_stats.nt_gene_file, nt_gene_file)
-
-            gff_file = os.path.join(
-                output_dir, genome_id + self.gff_file_suffix)
-            shutil.move(summary_stats.gff_file, gff_file)
-
-            # save translation table information
-            translation_table_file = os.path.join(
-                output_dir, 'prodigal_translation_table.tsv')
-            with open(translation_table_file, 'w') as fout:
-                fout.write('%s\t%d\n' % ('best_translation_table',
-                                         summary_stats.best_translation_table))
-                fout.write('%s\t%.2f\n' % ('coding_density_4',
-                                           summary_stats.coding_density_4 * 100))
-                fout.write('%s\t%.2f\n' % ('coding_density_11',
-                                           summary_stats.coding_density_11 * 100))
+        # save translation table information
+        tln_table_file = TlnTableFile(translation_table_file,
+                                      best_tln_table=summary_stats.best_translation_table,
+                                      coding_density_4=round(summary_stats.coding_density_4 * 100, 2),
+                                      coding_density_11=round(summary_stats.coding_density_11 * 100, 2))
+        tln_table_file.write()
 
         # Create a hash of each file
-        for out_file in [nt_gene_file, gff_file, translation_table_file, aa_gene_file]:
+        for out_file in out_files:
             if out_file is not None:
                 with open(out_file + CHECKSUM_SUFFIX, 'w') as fh:
                     fh.write(sha256(out_file))
 
-        return aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table
+        return aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table, False
 
-    def _worker(self, out_dict, worker_queue, writer_queue):
+    def _worker(self, out_dict, worker_queue, writer_queue, n_skipped):
         """This worker function is invoked in a process."""
 
         while True:
@@ -148,7 +144,10 @@ class Prodigal(object):
 
             # Only proceed if an error didn't occur in BioLib Prodigal
             if rtn_files:
-                aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table = rtn_files
+                aa_gene_file, nt_gene_file, gff_file, translation_table_file, best_translation_table, was_skipped = rtn_files
+                if was_skipped:
+                    with n_skipped.get_lock():
+                        n_skipped.value += 1
                 prodigal_infos = {"aa_gene_path": aa_gene_file,
                                   "nt_gene_path": nt_gene_file,
                                   "gff_path": gff_file,
@@ -199,10 +198,12 @@ class Prodigal(object):
         try:
             manager = mp.Manager()
             out_dict = manager.dict()
+            n_skipped = mp.Value('i', 0)
 
             worker_proc = [mp.Process(target=self._worker, args=(out_dict,
                                                                  worker_queue,
-                                                                 writer_queue)) for _ in range(self.threads)]
+                                                                 writer_queue,
+                                                                 n_skipped)) for _ in range(self.threads)]
             writer_proc = mp.Process(target=self._writer, args=(
                 len(genomic_files), writer_queue))
 
@@ -227,6 +228,14 @@ class Prodigal(object):
             writer_proc.terminate()
             raise ProdigalException(
                 'An exception was caught while running Prodigal.')
+
+        # Report if any genomes were skipped due to having already been processed.
+        if n_skipped.value > 0:
+            genome_s = 'genome' if n_skipped.value == 1 else 'genomes'
+            was_were = 'was' if n_skipped.value == 1 else 'were'
+            self.logger.warning(f'{n_skipped.value} {genome_s} {was_were} '
+                                f'skipped due to pre-existing data, see '
+                                f'warnings.log')
 
         # Report on any genomes which failed to have any genes called
         result_dict = dict()
