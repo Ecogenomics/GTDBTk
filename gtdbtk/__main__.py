@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 ###############################################################################
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
@@ -17,29 +15,18 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2017"
-__credits__ = ["Pierre Chaumeil"]
-__license__ = "GPL3"
-__maintainer__ = "Pierre Chaumeil"
-__email__ = "uqpchaum@uq.edu.au"
-__status__ = "Development"
-
 import argparse
 import logging
-import os
 import sys
 import traceback
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from gtdbtk import version
-from gtdbtk.main import OptionsParser
-from gtdbtk.biolib_lite.logger import logger_setup
+from gtdbtk import __author__, __copyright__, __version__
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.exceptions import *
 from gtdbtk.biolib_lite.exceptions import BioLibError
+from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.config.config import AF_THRESHOLD
+from gtdbtk.exceptions import *
+from gtdbtk.main import OptionsParser
 
 
 def print_help():
@@ -66,16 +53,16 @@ def print_help():
     ani_rep     -> Calculates ANI to GTDB representative genomes
     trim_msa    -> Trim an untrimmed MSA file based on a mask
     export_msa  -> Export the untrimmed archaeal or bacterial MSA file
-    
+
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
     check_install -> Verify if all GTDB-Tk data files are present
 
   Use: gtdbtk <command> -h for command specific help
-    ''' % version())
+    ''' % __version__)
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
     parser.add_argument('-f', '--force', action="store_true", default=False,
                         help="overwrite existing files without prompting.")
@@ -140,7 +127,7 @@ if __name__ == '__main__':
                                     help="rescale branch lengths to optimize the Gamma20 likelihood")
 
     optional_denovo_wf.add_argument('--gtdbtk_classification_file',
-                               help="file with GTDB-Tk classifications produced by the `classify` command")
+                                    help="file with GTDB-Tk classifications produced by the `classify` command")
     optional_denovo_wf.add_argument('--custom_taxonomy_file',
                                     help="file indicating custom taxonomy string for at least the genomes belonging to the outgroup")
 
@@ -324,7 +311,8 @@ if __name__ == '__main__':
     optional_classify.add_argument('--pplacer_cpus', type=int, default=None,
                                    help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
-    optional_classify.add_argument('-s', '--split_tree', action='store_true', help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
+    optional_classify.add_argument('-s', '--split_tree', action='store_true',
+                                   help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
     optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
                                    help='recalculate RED values based on the reference tree and all added user genomes')
 
@@ -367,40 +355,40 @@ if __name__ == '__main__':
 
     optional_decorate = decorate_parser.add_argument_group('optional arguments')
     optional_decorate.add_argument('--gtdbtk_classification_file',
-                               help="file with GTDB-Tk classifications produced by the `classify` command")
+                                   help="file with GTDB-Tk classifications produced by the `classify` command")
     optional_decorate.add_argument('--custom_taxonomy_file',
-                               help="file indicating custom taxonomy strings for user genomes")
+                                   help="file indicating custom taxonomy strings for user genomes")
     optional_decorate.add_argument('-h', '--help', action="help",
                                    help="show help message")
 
     # establish taxonomic ranks of internal nodes using RED
     infer_ranks_parser = subparsers.add_parser('infer_ranks', conflict_handler='resolve',
-                                            formatter_class=CustomHelpFormatter,
-                                            help='Establish taxonomic ranks of internal nodes using RED.', )
+                                               formatter_class=CustomHelpFormatter,
+                                               help='Establish taxonomic ranks of internal nodes using RED.', )
 
     infer_ranks_req = infer_ranks_parser.add_argument_group('required named arguments')
     infer_ranks_req.add_argument('--input_tree', required=True,
-                                    help="rooted input tree with labelled ingroup taxon")
+                                 help="rooted input tree with labelled ingroup taxon")
     infer_ranks_req.add_argument('--ingroup_taxon', required=True,
-                                    help="labelled ingroup taxon to use as root for establish RED values (e.g., c__Bacilli or f__Lactobacillaceae")
+                                 help="labelled ingroup taxon to use as root for establish RED values (e.g., c__Bacilli or f__Lactobacillaceae")
     infer_ranks_req.add_argument('--output_tree', required=True,
-                                    help="output tree")
+                                 help="output tree")
 
     infer_ranks_opt = infer_ranks_parser.add_argument_group('optional arguments')
     infer_ranks_opt.add_argument('-h', '--help', action="help", help="show help message")
 
     # ani_rep
     ani_rep_parser = subparsers.add_parser('ani_rep', conflict_handler='resolve',
-                                            formatter_class=CustomHelpFormatter,
-                                            help='Calculates ANI to GTDB representative genomes.', )
+                                           formatter_class=CustomHelpFormatter,
+                                           help='Calculates ANI to GTDB representative genomes.', )
 
     # ani_rep mutex required input genomes
     ani_rep_mutex_genome = ani_rep_parser.add_argument_group('mutually exclusive required arguments')
     ani_rep_mutex_in = ani_rep_mutex_genome.add_mutually_exclusive_group(required=True)
     ani_rep_mutex_in.add_argument('--genome_dir',
-                             help="directory containing genome files in FASTA format")
+                                  help="directory containing genome files in FASTA format")
     ani_rep_mutex_in.add_argument('--batchfile',
-                             help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
+                                  help="file describing genomes - tab separated in 2 columns (FASTA file, genome ID)")
 
     # ani_rep required arguments
     ani_rep_req = ani_rep_parser.add_argument_group('required named arguments')
@@ -410,7 +398,7 @@ if __name__ == '__main__':
     # ani_rep mash arguments
     ani_rep_mash = ani_rep_parser.add_argument_group('optional Mash arguments')
     ani_rep_mash.add_argument('--no_mash', action='store_const', const=True, default=False,
-                             help='skip pre-filtering using MASH')
+                              help='skip pre-filtering using MASH')
     ani_rep_mash.add_argument('--mash_k', default=16, type=int, help='k-mer size [1-32]')
     ani_rep_mash.add_argument('--mash_s', default=5000, type=int, help='maximum number of non-redundant hashes')
     ani_rep_mash.add_argument('--mash_d', default=0.1, type=float, help='maximum distance to keep [0-1]')
@@ -418,15 +406,15 @@ if __name__ == '__main__':
 
     ani_rep_fastani_opt = ani_rep_parser.add_argument_group('optional FastANI arguments')
     ani_rep_fastani_opt.add_argument('--min_af', default=AF_THRESHOLD, type=float,
-                             help='alignment fraction to consider closest genome')
+                                     help='alignment fraction to consider closest genome')
 
     # ani_rep optional arguments
     ani_rep_opt = ani_rep_parser.add_argument_group('optional arguments')
 
     ani_rep_opt.add_argument('-x', '--extension', default='fna',
-                                   help='extension of files to process, gz = gzipped')
+                             help='extension of files to process, gz = gzipped')
     ani_rep_opt.add_argument('--prefix', default='gtdbtk',
-                                    help='desired prefix for output files')
+                             help='desired prefix for output files')
     ani_rep_opt.add_argument('--cpus', default=1, type=int, help='number of CPUs to use')
     ani_rep_opt.add_argument('-h', '--help', action="help", help="show help message")
 
@@ -493,7 +481,7 @@ if __name__ == '__main__':
         print_help()
         sys.exit(0)
     elif sys.argv[1] in {'-v', '--v', '-version', '--version'}:
-        print("gtdbtk: version %s %s %s" % (version(),
+        print("gtdbtk: version %s %s %s" % (__version__,
                                             __copyright__,
                                             __author__))
         sys.exit(0)
@@ -505,16 +493,17 @@ if __name__ == '__main__':
 
     # setup logger
     logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
-                 "gtdbtk.log", "GTDB-Tk", version(), False,
+                 "gtdbtk.log", "GTDB-Tk", __version__, False,
                  hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
 
     # -------------------------------------------------
     # do what we came here to do
     try:
-        gt_parser = OptionsParser(version())
+        gt_parser = OptionsParser(__version__)
         if False:
             import cProfile
+
             cProfile.run('gt_parser.parseOptions(args)', 'prof')
         else:
             gt_parser.parse_options(args)
@@ -559,3 +548,7 @@ if __name__ == '__main__':
         msg += '=' * 80
         logger.error(msg)
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

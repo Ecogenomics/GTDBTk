@@ -28,3 +28,13 @@ def version():
     """
     with open(os.path.join(__path__[0], 'VERSION'), 'r') as f:
         return f.readline().strip()
+
+
+__author__ = "Pierre Chaumeil"
+__copyright__ = "Copyright 2017"
+__credits__ = ["Pierre Chaumeil"]
+__license__ = "GPL3"
+__maintainer__ = "Pierre Chaumeil"
+__email__ = "uqpchaum@uq.edu.au"
+__status__ = "Production"
+__version__ = version()
