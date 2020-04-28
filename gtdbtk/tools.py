@@ -1,15 +1,13 @@
 import hashlib
+import math
 import os
 import random
 import re
 import time
 from itertools import islice
 
-import math
-
-from gtdbtk.config.output import CHECKSUM_SUFFIX
-
 import gtdbtk.config.config as Config
+from gtdbtk.config.output import CHECKSUM_SUFFIX
 
 
 ##################################################
@@ -195,3 +193,14 @@ def get_memory_gb():
         return {k: round(int(v) / 1e6, 2) for k, v in hits}
     except Exception:
         return None
+
+
+def get_proc_memory_gb(pid):
+    virt, res = None, None
+    try:
+        with open(f'/proc/{pid}/status', 'r') as fh:
+            contents = fh.read()
+        virt = int(re.search(r'VmSize:[^\d]+(\d+)', contents).group(1)) / 1e6
+        res = int(re.search(r'VmRSS:[^\d]+(\d+)', contents).group(1)) / 1e6
+    finally:
+        return virt, res
