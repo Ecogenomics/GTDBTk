@@ -44,7 +44,6 @@ PATH_LOW_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree.{i
 PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
 
 
-
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
 PATH_AR122_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.red_dictionary.tsv')

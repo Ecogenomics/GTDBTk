@@ -427,10 +427,6 @@ class Classify(object):
                                                    scratch_dir)
 
                 # get taxonomic classification of each user genome
-                tree = dendropy.Tree.get_from_path(classify_tree,
-                                                   schema='newick',
-                                                   rooting='force-rooted',
-                                                   preserve_underscores=True)
                 summaryfout,debugfile,conflict_file,marker_dict=self._generate_summary_file(marker_set_id,prefix,out_dir,debugopt,splittreeopt)
 
                 if recalculate_red:
