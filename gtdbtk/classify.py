@@ -183,8 +183,8 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer = Pplacer()
-        # pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
-        #             user_msa_file, pplacer_out, pplacer_mmap_file)
+        pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
+                    user_msa_file, pplacer_out, pplacer_mmap_file)
         if levelopt is None or levelopt == 'high':
             self.logger.info('pplacer version: {}'.format(pplacer.version))
 

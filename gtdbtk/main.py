@@ -121,7 +121,7 @@ class OptionsParser(object):
         if genome_dir:
             for f in os.listdir(genome_dir):
                 if f.endswith(extension):
-                    genome_id = remove_extension(f)
+                    genome_id = remove_extension(f, extension)
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
 
         elif batchfile:
