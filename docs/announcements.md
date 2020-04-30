@@ -8,12 +8,13 @@ nav_order: 1
 # Announcements
 
 **Note (x, 2020)**:
- * GTDB-Tk v1.1.1 has been released 
+ * GTDB-Tk v??? has been released 
    * *Bug fixes:*
-        * none?
+        * Fixed an issue where `--scratch_dir` would fail, and not clean-up the mmap file.
     * *Features:*
         * Added the `infer_rank` method which established the taxonomic ranks of internal nodes of user trees based on RED
         * Added the `decorate` command allowing the `de novo workflow` to be run
+        * Skip gene calling if existing files are found.
 
 **Note (Apr 9, 2020)**:
 * GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)

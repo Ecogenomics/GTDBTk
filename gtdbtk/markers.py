@@ -135,7 +135,6 @@ class Markers(object):
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
         prodigal = Prodigal(self.cpus,
-                            False,
                             self.marker_gene_dir,
                             self.protein_file_suffix,
                             self.nt_gene_file_suffix,
