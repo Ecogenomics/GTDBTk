@@ -11,6 +11,7 @@ nav_order: 1
  * GTDB-Tk v??? has been released 
    * *Bug fixes:*
         * Fixed an issue where `--scratch_dir` would fail, and not clean-up the mmap file.
+        * Allow parsing of FastANI v1.0 output files. However, a warning will be displayed to update FastANI.
     * *Features:*
         * Added the `infer_rank` method which established the taxonomic ranks of internal nodes of user trees based on RED
         * Added the `decorate` command allowing the `de novo workflow` to be run
