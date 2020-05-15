@@ -65,7 +65,7 @@ class HmmAligner(object):
         try:
             env = os.environ.copy()
             proc = subprocess.Popen(['hmmalign', '-h'], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
             for line in output.split('\n'):
@@ -75,7 +75,6 @@ class HmmAligner(object):
             return "(version unavailable)"
         except:
             return "(version unavailable)"
-
 
     def align_marker_set(self, db_genome_ids, marker_set_id):
         """Threaded alignment using hmmalign for a given set of genomes.
@@ -236,9 +235,9 @@ class HmmAligner(object):
             if hit:
                 # print(marker_id)
                 gene_dict[marker_id] = {"marker_path": marker_path,
-                                       "gene": hit['hit'].gene_id,
-                                       "gene_seq": hit['seq'],
-                                       "bitscore": hit['hit'].bit_score}
+                                        "gene": hit['hit'].gene_id,
+                                        "gene_seq": hit['seq'],
+                                        "bitscore": hit['hit'].bit_score}
             else:
                 hmm_len = self._get_hmm_size(marker_path)
                 result_align[marker_id] = '-' * hmm_len
@@ -271,7 +270,7 @@ class HmmAligner(object):
                 out_fh.write("{0}".format(marker_info.get("gene_seq")))
             proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
                 "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, encoding='utf-8')
+                                    stderr=subprocess.PIPE, encoding='utf-8')
             stdout, stderr = proc.communicate()
 
             for line in stderr.splitlines():

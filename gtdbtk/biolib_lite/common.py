@@ -39,18 +39,18 @@ def canonical_gid(gid):
         RS_GCF_005435135.1 -> G005435135
         GB_GCA_005435135.1 -> G005435135
     """
-    
+
     if gid.startswith('U'):
         return gid
-        
+
     gid = gid.replace('RS_', '').replace('GB_', '')
     gid = gid.replace('GCA_', 'G').replace('GCF_', 'G')
     if '.' in gid:
         gid = gid[0:gid.find('.')]
-    
+
     return gid
-    
-    
+
+
 def is_float(s):
     """Check if a string can be converted to a float.
 

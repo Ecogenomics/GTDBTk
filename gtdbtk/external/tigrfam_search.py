@@ -41,6 +41,7 @@ class TigrfamSearch(object):
         self.logger = logging.getLogger('timestamp')
         self.warnings = logging.getLogger('warnings')
         self.threads = threads
+        self.cpus_per_genome = 1
         self.tigrfam_hmms = tigrfam_hmms
         self.protein_file_suffix = protein_file_suffix
         self.tigrfam_suffix = tigrfam_suffix
@@ -54,7 +55,7 @@ class TigrfamSearch(object):
         try:
             env = os.environ.copy()
             proc = subprocess.Popen(['hmmsearch', '-h'], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
             for line in output.split('\n'):
@@ -109,10 +110,10 @@ class TigrfamSearch(object):
             genome_id = filename.replace(self.protein_file_suffix, '')
             genome_dir = os.path.join(self.output_dir, genome_id)
             output_hit_file = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
-                                                                                        self.tigrfam_suffix))
+                                                                        self.tigrfam_suffix))
 
             hmmsearch_out = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
-                                                                                      '_tigrfam.out'))
+                                                                      '_tigrfam.out'))
 
             # Check if this has already been processed.
             out_files = (output_hit_file, hmmsearch_out, TopHitTigrFile.get_path(self.output_dir, genome_id))

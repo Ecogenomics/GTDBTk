@@ -19,14 +19,14 @@ import logging
 import multiprocessing as mp
 import os
 import shutil
-import sys
 import subprocess
+import sys
 
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
+from gtdbtk.config.output import CHECKSUM_SUFFIX
 from gtdbtk.exceptions import ProdigalException
 from gtdbtk.io.prodigal.tln_table import TlnTableFile
 from gtdbtk.tools import sha256, file_has_checksum
-from gtdbtk.config.output import CHECKSUM_SUFFIX
 
 
 class Prodigal(object):
@@ -57,7 +57,7 @@ class Prodigal(object):
         try:
             env = os.environ.copy()
             proc = subprocess.Popen(['prodigal', '-v'], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
 

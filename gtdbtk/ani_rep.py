@@ -2,18 +2,15 @@ import logging
 import os
 from collections import defaultdict
 
+from gtdbtk.biolib_lite.common import canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
-from gtdbtk.biolib_lite.common import canonical_gid
-
-from gtdbtk.config.config import (FASTANI_GENOMES, 
-                                    FASTANI_GENOMES_EXT, 
-                                    AF_THRESHOLD, 
-                                    TAXONOMY_FILE)
+from gtdbtk.config.config import (FASTANI_GENOMES,
+                                  FASTANI_GENOMES_EXT,
+                                  TAXONOMY_FILE)
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.mash import Mash
-
 
 
 class ANIRep(object):
@@ -69,12 +66,12 @@ class ANIRep(object):
 
         taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
         ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
-        ANIClosestFile(out_dir, 
-                        prefix, 
-                        fastani_results, 
-                        genomes, 
-                        min_af,
-                        taxonomy)
+        ANIClosestFile(out_dir,
+                       prefix,
+                       fastani_results,
+                       genomes,
+                       min_af,
+                       taxonomy)
 
 
 class ANISummaryFile(object):

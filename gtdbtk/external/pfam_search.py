@@ -39,6 +39,7 @@ class PfamSearch(object):
         """Initialization."""
 
         self.threads = threads
+        self.cpus_per_genome = 1
         self.logger = logging.getLogger('timestamp')
         self.warnings = logging.getLogger('warnings')
         self.pfam_hmm_dir = pfam_hmm_dir

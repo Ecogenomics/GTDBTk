@@ -44,7 +44,7 @@ Therefore, you will need to specify where you are willing to allow GTDB-Tk to re
 
 ## Running the container
 
-Putting this all together, a command may look like (note that since `gtdbtk` is the entrypoint, this can be ommited):
+Putting this all together, a command may look like (note that since `gtdbtk` is the entrypoint, this can be omitted):
 
 ```bash
 docker run -v /host/gtdbtk_output:/data -v /host/release89:/refdata ecogenomic/gtdbtk --help

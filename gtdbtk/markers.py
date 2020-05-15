@@ -51,6 +51,7 @@ class Markers(object):
 
         self.cpus = cpus
         self.debug = debug
+        self.marker_gene_dir = None
 
         self.genome_file_suffix = GENOME_FILE_SUFFIX
         self.protein_file_suffix = PROTEIN_FILE_SUFFIX
@@ -401,7 +402,7 @@ class Markers(object):
         gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
         for gids, msa_file, mask_file, marker_set_id in ((bac_gids, Config.CONCAT_BAC120, Config.MASK_BAC120, "bac120"),
                                                          (ar_gids, Config.CONCAT_AR122, Config.MASK_AR122, "ar122")):
-                                                         
+
             domain_str = 'archaeal'
             if marker_set_id == 'bac120':
                 domain_str = 'bacterial'

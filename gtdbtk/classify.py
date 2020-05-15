@@ -208,6 +208,17 @@ class Classify(object):
 
         pplacer.tog(pplacer_json_out, tree_file)
 
+        # Symlink to the tree summary file
+        if marker_set_id == 'bac120':
+            symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+        elif marker_set_id == 'ar122':
+            symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+        else:
+            self.logger.error('There was an error determining the marker set.')
+            raise GenomeMarkerSetUnknown
+
         #Symlink to the tree summary file
         # if marker_set_id == 'bac120':
         #     if levelopt is None:
@@ -406,7 +417,7 @@ class Classify(object):
                 sorted_high_taxonomy,len_sorted_genomes = self._map_high_taxonomy(high_classification,tree_mapping_dict,summaryfout)
                 self.logger.info(f"{len_sorted_genomes} out of {num_genomes} have an order assignments. Those genomes will be reclassified.")
 
-                for tree_iter in sorted(sorted_high_taxonomy, key=lambda k: len(sorted_high_taxonomy[k]), reverse=True):
+                for tree_iter in sorted(sorted_high_taxonomy, key=lambda z: len(sorted_high_taxonomy[z]), reverse=True):
                     listg = sorted_high_taxonomy.get(tree_iter)
                     low_classify_tree,submsa_file_path = self._place_in_low_tree(tree_iter,listg,msa_dict,marker_set_id,prefix,scratch_dir,out_dir)
                     mrca_lowtree = self._assign_mrca_red(low_classify_tree, marker_set_id,'low',tree_iter)
@@ -495,7 +506,7 @@ class Classify(object):
                 out_dir, PATH_BAC120_CONFLICT.format(prefix=prefix)),'w')
             conflict_summary.write(
                 "User genome\tHigh classification\tLow Classification\n")
-        return(summaryfout,debugfile,conflict_summary,marker_dict)
+        return summaryfout, debugfile, conflict_summary, marker_dict
 
 
 
@@ -514,7 +525,7 @@ class Classify(object):
                                                    prefix,
                                                    scratch_dir,
                                                    'low',tree_iter)
-        return (low_classify_tree,submsa_file_path)
+        return low_classify_tree, submsa_file_path
 
     def _parse_tree(self,tree,genomes,msa_dict,percent_multihit_dict,trans_table_dict,bac_ar_diff,
                     user_msa_file,marker_dict,summaryfout,conflict_file,pplacer_taxonomy_dict,high_classification,debugfile,debugopt):
@@ -827,7 +838,7 @@ class Classify(object):
                 output_file[11]=v.get('pplacer_tax')
                 output_file[17]=v.get('rel_dist')
                 summary_file.write("{}\n".format('\t'.join(['N/A' if x is None else str(x) for x in output_file])))
-        return (mapped_rank,counter)
+        return mapped_rank, counter
 
     def _assign_mrca_red(self, input_tree, marker_set_id,levelopt=None,tree_iter=None):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -1815,7 +1826,7 @@ class Classify(object):
         if closest_rank is not None:
             for k, v in self.gtdb_taxonomy.items():
                 if '{};'.format(closest_rank) in v:
-                    return(';'.join(v[1:v.index(closest_rank) + 1]))
+                    return ';'.join(v[1:v.index(closest_rank) + 1])
         return taxa_str
 
     def _classify_on_terminal_branch(self, list_leaf_ranks, current_rel_list, parent_rank, term_branch_taxonomy,marker_dict):
@@ -1824,7 +1835,7 @@ class Classify(object):
             # print leaf_taxon
             if leaf_taxon == list_leaf_ranks[0]:
                 if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
-                        (current_rel_list) - marker_dict.get(parent_rank)):
+                        current_rel_list - marker_dict.get(parent_rank)):
                     closest_rank = leaf_taxon[:3]
                     break
             else:

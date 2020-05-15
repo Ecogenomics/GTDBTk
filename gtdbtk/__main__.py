@@ -170,12 +170,12 @@ def main():
     optional_classify_wf.add_argument('--pplacer_cpus', type=int, default=None,
                                       help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify_wf.add_argument('--force', action='store_const', const=True, default=False,
-                                      help='continue processing if an error occurrs on a single genome')
+                                      help='continue processing if an error occurs on a single genome')
     optional_classify_wf.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
     optional_classify_wf.add_argument('-r', '--recalculate_red', action='store_true',
                                       help='recalculate RED values based on the reference tree and all added user genomes')
-    optional_classify_wf.add_argument('-s', '--split_tree', action='store_true',
-                                      help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
+    # optional_classify_wf.add_argument('-s', '--split_tree', action='store_true',
+    #                                   help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
     optional_classify_wf.add_argument('-d', '--debug', action="store_true",
                                       help='create intermediate files for debugging purposes')
     optional_classify_wf.add_argument('-h', '--help', action="help",
@@ -205,7 +205,7 @@ def main():
     optional_identify.add_argument('--cpus', default=1, type=int,
                                    help='number of CPUs to use')
     optional_identify.add_argument('--force', action='store_const', const=True, default=False,
-                                   help='continue processing if an error occurrs on a single genome')
+                                   help='continue processing if an error occurs on a single genome')
     optional_identify.add_argument('-h', '--help', action="help",
                                    help="show help message")
 
@@ -311,8 +311,8 @@ def main():
     optional_classify.add_argument('--pplacer_cpus', type=int, default=None,
                                    help='use PPLACER_CPUS during placement (default: CPUS)')
     optional_classify.add_argument('--scratch_dir', help='reduce memory usage by writing to disk (slower)')
-    optional_classify.add_argument('-s', '--split_tree', action='store_true',
-                                   help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
+    # optional_classify.add_argument('-s', '--split_tree', action='store_true',
+    #                                help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
     optional_classify.add_argument('-r', '--recalculate_red', action='store_true',
                                    help='recalculate RED values based on the reference tree and all added user genomes')
 

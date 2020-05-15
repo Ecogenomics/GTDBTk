@@ -38,7 +38,7 @@ class FastTree(object):
             env = os.environ.copy()
             args = ['FastTree']
             proc = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
             output, error = proc.communicate()
             return error.split('\n')[0].split(' ')[4]
         except:
@@ -91,16 +91,16 @@ class FastTree(object):
             args.append('-wag')
         elif prot_model == 'LG':
             args.append('-lg')
-            
+
         if gamma:
             args.append('-gamma')
             model_out.append('+G')
-            
+
         if no_support:
             args.append('-nosupport')
         else:
             model_out.append('SH support values')
-        
+
         args.append('-log')
         args.append(tree_log)
         args.append(msa_file)

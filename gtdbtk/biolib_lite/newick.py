@@ -77,7 +77,6 @@ def create_label(support, taxon, auxiliary_info):
     str
       Valid newick label.
     """
-    
     label = ''
     if support is not None and taxon:
         label = str(support) + ':' + taxon
@@ -85,9 +84,8 @@ def create_label(support, taxon, auxiliary_info):
         label = str(support)
     elif taxon:
         label = taxon
-        
+
     if auxiliary_info:
         label += '|' + auxiliary_info
 
     return label
-    

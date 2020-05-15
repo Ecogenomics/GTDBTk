@@ -15,17 +15,15 @@
 #                                                                             #
 ###############################################################################
 
-import logging
 from collections import defaultdict
 
+import dendropy
 from numpy import (median as np_median,
                    array as np_array,
                    arange as np_arange,
                    percentile as np_percentile,
                    ones_like as np_ones_like,
                    histogram as np_histogram)
-                   
-import dendropy
 
 from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
@@ -40,7 +38,7 @@ class RelativeDistance(object):
 
     def __init__(self):
         """Initialization."""
-        
+
         pass
 
     def _avg_descendant_rate(self, root_node):
@@ -72,11 +70,11 @@ class RelativeDistance(object):
                 for c in node.child_node_iter():
                     num_tips = c.num_taxa
                     avg_div += (float(c.num_taxa) / node.num_taxa) * \
-                        (c.mean_dist + c.edge_length)
+                               (c.mean_dist + c.edge_length)
 
             node.mean_dist = avg_div
 
-    def decorate_rel_dist(self, root_node, root_red = 0.0):
+    def decorate_rel_dist(self, root_node, root_red=0.0):
         """Calculate relative distance to each internal node.
 
         Parameters
@@ -91,7 +89,7 @@ class RelativeDistance(object):
           num_taxa: number of terminal taxa
           rel_dists: relative distance of node between root and extant organisms
         """
-        
+
         if isinstance(root_node, dendropy.Tree):
             root_node = root_node.seed_node
 

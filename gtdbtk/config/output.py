@@ -43,7 +43,6 @@ PATH_HIGH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.high.bac120.classify.t
 PATH_LOW_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree.{iter}.tree')
 PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
 
-
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
 PATH_AR122_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.red_dictionary.tsv')
@@ -60,12 +59,12 @@ PATH_AR122_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.ar122.out')
 PATH_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.bac120.json')
 PATH_AR122_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.ar122.json')
 
-#SPLIT TREE
+# SPLIT TREE
 PATH_HIGH_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.high.bac120.out')
 PATH_HIGH_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.high.bac120.json')
-DIR_LOW_PPLACER = join(DIR_PPLACER,'tree_{iter}')
-PATH_LOW_BAC120_SUBMSA = join(DIR_LOW_PPLACER,'user_msa_file.fasta')
-PATH_LOW_BAC120_PPLACER_OUT = join(DIR_LOW_PPLACER,'pplacer.low.bac120.out')
+DIR_LOW_PPLACER = join(DIR_PPLACER, 'tree_{iter}')
+PATH_LOW_BAC120_SUBMSA = join(DIR_LOW_PPLACER, 'user_msa_file.fasta')
+PATH_LOW_BAC120_PPLACER_OUT = join(DIR_LOW_PPLACER, 'pplacer.low.bac120.out')
 PATH_LOW_BAC120_PPLACER_JSON = join(DIR_LOW_PPLACER, 'pplacer.low.bac120.json')
 
 # Command: infer

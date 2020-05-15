@@ -17,7 +17,6 @@
 
 import logging
 import random
-import sys
 
 import dendropy
 

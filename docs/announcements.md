@@ -7,8 +7,8 @@ nav_order: 1
 
 # Announcements
 
-**Note (x, 2020)**:
- * GTDB-Tk v??? has been released 
+**Note (May 15, 2020)**:
+ * GTDB-Tk v1.2.0 has been released 
    * *Bug fixes:*
         * Fixed an issue where `--scratch_dir` would fail, and not clean-up the mmap file.
         * Allow parsing of FastANI v1.0 output files. However, a warning will be displayed to update FastANI.
