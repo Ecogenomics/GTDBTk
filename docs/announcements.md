@@ -7,6 +7,16 @@ nav_order: 1
 
 # Announcements
 
+**Note (May 15, 2020)**:
+ * GTDB-Tk v1.2.0 has been released 
+   * *Bug fixes:*
+        * Fixed an issue where `--scratch_dir` would fail, and not clean-up the mmap file.
+        * Allow parsing of FastANI v1.0 output files. However, a warning will be displayed to update FastANI.
+    * *Features:*
+        * Added the `infer_rank` method which established the taxonomic ranks of internal nodes of user trees based on RED
+        * Added the `decorate` command allowing the `de novo workflow` to be run
+        * Skip gene calling if existing files are found.
+
 **Note (Apr 9, 2020)**:
 * GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)
     * *Bug fixes:*

@@ -44,8 +44,10 @@ class FastANI(object):
         self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
         self.version = self._get_version()
+        self._suppress_v1_warning = False
 
-    def _get_version(self):
+    @staticmethod
+    def _get_version():
         """Returns the version of FastANI on the system path.
 
         Returns
@@ -69,14 +71,14 @@ class FastANI(object):
 
         Parameters
         ----------
-        dict_compare : Dict[str, Set[str]]
+        dict_compare : dict[str, set[str]]
             All query to reference comparisons to be made.
-        dict_paths : Dict[str, str]
+        dict_paths : dict[str, str]
             The path for each genome id being compared.
 
         Returns
         -------
-        Dict[str, Dict[str, Dict[str, float]]]
+        dict[str, dict[str, dict[str, float]]]
             A dictionary containing the ANI and AF for each comparison."""
 
         # Create the multiprocessing items.
@@ -169,11 +171,11 @@ class FastANI(object):
 
         Parameters
         ----------
-        q_worker : Queue
+        q_worker : mp.Queue
             A multiprocessing queue containing the available jobs.
-        q_writer : Queue
+        q_writer : mp.Queue
             A multiprocessing queue to track progress.
-        q_results : Queue
+        q_results : mp.Queue
             A multiprocessing queue containing raw results.
         """
         while True:
@@ -216,7 +218,7 @@ class FastANI(object):
 
         Parameters
         ----------
-        q_writer : multiprocessing.Queue
+        q_writer : mp.Queue
             A queue of genome ids which have been processed.
         n_total : int
             The total number of items to be processed.
@@ -227,8 +229,8 @@ class FastANI(object):
             if result is None:
                 break
             processed_items += 1
-            status = f'==> Processing {processed_items} of {n_total} ' \
-                f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
+            status = f'==> Processing {processed_items:,} of {n_total:,} ' \
+                     f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
             sys.stdout.write('\r%s' % status)
             sys.stdout.flush()
         sys.stdout.write('\n')
@@ -252,7 +254,7 @@ class FastANI(object):
 
         Returns
         -------
-        Dict[str, Dict[str, float]]
+        dict[str, dict[str, float]]
             The ANI/AF of the query genomes to the reference genomes.
         """
         args = ['fastANI']
@@ -265,7 +267,7 @@ class FastANI(object):
         if rl is not None:
             args.extend(['--rl', rl])
         args.extend(['-o', output])
-
+        self.logger.debug(' '.join(args))
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, encoding='utf-8')
         stdout, stderr = proc.communicate()
@@ -276,9 +278,9 @@ class FastANI(object):
             raise GTDBTkExit('FastANI returned a non-zero exit code.')
 
         # Parse the output
-        return self._parse_output_file(output)
+        return self.parse_output_file(output)
 
-    def _parse_output_file(self, path_out):
+    def parse_output_file(self, path_out):
         """Parses the resulting output file from FastANI.
 
         Parameters
@@ -288,19 +290,33 @@ class FastANI(object):
 
         Returns
         -------
-        Dict[str, Dict[str, Tuple[float, float]]]
+        dict[str, dict[str, tuple[float, float]]]
             The ANI/AF of the query genomes to the reference genomes.
         """
         out = dict()
         if os.path.isfile(path_out):
             with open(path_out, 'r') as fh:
                 for line in fh.readlines():
-                    path_qry, path_ref, ani, frac1, frac2 = line.strip().split('\t')
-                    af = round(float(frac1) / float(frac2), 2)
-                    if path_qry not in out:
-                        out[path_qry] = {path_ref: (float(ani), af)}
-                    elif path_ref not in out[path_qry]:
-                        out[path_qry][path_ref] = (float(ani), af)
+                    """FastANI version >=1.1 uses tabs instead of spaces to separate columns.
+                    Preferentially try split with tabs first instead of split() in-case of 
+                    spaces in the file path."""
+                    try:
+                        try:
+                            path_qry, path_ref, ani, frac1, frac2 = line.strip().split('\t')
+                        except ValueError:
+                            path_qry, path_ref, ani, frac1, frac2 = line.strip().split(' ')
+                            if not self._suppress_v1_warning:
+                                self.logger.warning('You are using FastANI v1.0, it is recommended '
+                                                    'that you update to a more recent version.')
+                                self._suppress_v1_warning = True
+                        af = round(float(frac1) / float(frac2), 2)
+                        if path_qry not in out:
+                            out[path_qry] = {path_ref: (float(ani), af)}
+                        elif path_ref not in out[path_qry]:
+                            out[path_qry][path_ref] = (float(ani), af)
+                    except Exception as e:
+                        self.logger.error(f'Exception reading FastANI output: {repr(e)}')
+                        raise GTDBTkExit(f'Unable to read line "{line}"')
         return out
 
     def _maybe_write_list(self, d_genomes, path):
@@ -308,7 +324,7 @@ class FastANI(object):
 
         Parameters
         ----------
-        d_genomes : Dict[str, str]
+        d_genomes : dict[str, str]
             A dictionary containing the key as the accession and value as path.
         path : str
             The path to write the file to.
@@ -324,14 +340,14 @@ class FastANI(object):
 
         Parameters
         ----------
-        q_results : Queue
+        q_results : mp.Queue
             A multiprocessing queue containing raw results.
-        path_to_gid : Dict[str ,str]
+        path_to_gid : dict[str ,str]
             A dictionary containing the file path to genome id.
 
         Returns
         -------
-        Dict[str, Dict[str, Dict[str, float]]]
+        dict[str, dict[str, dict[str, float]]]
             The ANI/AF of the query genome to all reference genomes.
         """
         out = dict()

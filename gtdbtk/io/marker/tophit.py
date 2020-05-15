@@ -163,16 +163,24 @@ class TopHitPfamFile(TopHitFile):
     """The top hit file given the Pfam output."""
 
     def __init__(self, out_dir: str, gid: str):
-        path = os.path.join(out_dir, gid, f'{gid}{PFAM_TOP_HIT_SUFFIX}')
+        path = self.get_path(out_dir, gid)
         super().__init__(path)
+
+    @staticmethod
+    def get_path(out_dir: str, gid: str):
+        return os.path.join(out_dir, gid, f'{gid}{PFAM_TOP_HIT_SUFFIX}')
 
 
 class TopHitTigrFile(TopHitFile):
     """The top hit file given the Tigrfam output."""
 
     def __init__(self, out_dir: str, gid: str):
-        path = os.path.join(out_dir, gid, f'{gid}{TIGRFAM_TOP_HIT_SUFFIX}')
+        path = self.get_path(out_dir, gid)
         super().__init__(path)
+
+    @staticmethod
+    def get_path(out_dir: str, gid: str):
+        return os.path.join(out_dir, gid, f'{gid}{TIGRFAM_TOP_HIT_SUFFIX}')
 
     def add_hit(self, gene_id: str, hmm_id: str, e_val: float, bit_score: float):
         """Only store the most significant HMM hit per gene as per GTDBNCBI."""

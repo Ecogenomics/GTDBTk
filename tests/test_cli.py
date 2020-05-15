@@ -125,6 +125,7 @@ class TestCli(unittest.TestCase):
         classify_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'classify')
         classify_options.recalculate_red = False
+        classify_options.split_tree = False
         self.optionparser.classify(classify_options)
         summary_out = os.path.join(classify_options.out_dir,
                                    PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
@@ -190,6 +191,7 @@ class TestCli(unittest.TestCase):
 
         classify_options = self.options
         classify_options.genome_dir = self.genome_dir
+        classify_options.split_tree = False
         classify_options.align_dir = align_options.out_dir
         classify_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'classify')
@@ -223,6 +225,7 @@ class TestCli(unittest.TestCase):
         classify_wf_options.cols_per_gene = None
         classify_wf_options.max_consensus = None
         classify_wf_options.recalculate_red = False
+        classify_wf_options.split_tree = False
         self.optionparser.align(classify_wf_options)
         self.optionparser.classify(classify_wf_options)
         summary_out = os.path.join(classify_wf_options.out_dir,
@@ -242,6 +245,7 @@ class TestCli(unittest.TestCase):
         path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.prefix)
         infer_options.msa_file = os.path.join(self.align_dir_reference, path_user_msa)
         infer_options.out_dir = os.path.join(self.generic_out_path, tmp_folder, 'infer')
+        infer_options.gamma = False
         # if not os.path.isdir(infer_options.out_dir):
         #     os.makedirs(infer_options.out_dir)
         self.optionparser.infer(infer_options)
@@ -262,6 +266,7 @@ class TestCli(unittest.TestCase):
         de_novo_wf_options = self.options
         de_novo_wf_options.genome_dir = self.genome_dir
         de_novo_wf_options.suffix = ".ar122"
+        de_novo_wf_options.gamma = False
         de_novo_wf_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'de_novo_wf')
         de_novo_wf_options.identify_dir = de_novo_wf_options.out_dir
@@ -277,7 +282,7 @@ class TestCli(unittest.TestCase):
         options.genome_dir = 'tests/data/genomes_gz/'
         options.cpus = 5
         options.batchfile = None
-        options.extension = 'gz'
+        options.extension = 'fna.gz'
         options.prefix = 'gtdbtk'
         options.force = None
         options.genes = False
@@ -306,6 +311,7 @@ class TestCli(unittest.TestCase):
         options.outgroup_taxon = 'p__Altiarchaeota'
         options.output_tree = os.path.join(self.generic_out_path, 'test.rooted.tree')
         options.custom_taxonomy_file = None
+        options.gtdbtk_classification_file = None
         self.optionparser.root(options)
         self.assertTrue(os.path.isfile(options.output_tree))
 

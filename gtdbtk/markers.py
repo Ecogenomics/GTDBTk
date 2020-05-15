@@ -51,6 +51,7 @@ class Markers(object):
 
         self.cpus = cpus
         self.debug = debug
+        self.marker_gene_dir = None
 
         self.genome_file_suffix = GENOME_FILE_SUFFIX
         self.protein_file_suffix = PROTEIN_FILE_SUFFIX
@@ -135,7 +136,6 @@ class Markers(object):
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
         prodigal = Prodigal(self.cpus,
-                            False,
                             self.marker_gene_dir,
                             self.protein_file_suffix,
                             self.nt_gene_file_suffix,
@@ -169,7 +169,7 @@ class Markers(object):
                                  self.marker_gene_dir)
         pfam_search.run(gene_files)
         self.logger.info(
-            "Annotations done using HMMER {}".format(tigr_search.version))
+            "Annotations done using HMMER {}.".format(tigr_search.version))
 
         self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
 
@@ -215,7 +215,7 @@ class Markers(object):
         msa = read_fasta(concatenated_file)
         msa_len = len(msa)
         self.logger.info(
-            'Read concatenated alignment for %d GTDB genomes.' % msa_len)
+            'Read concatenated alignment for {:,} GTDB genomes.'.format(msa_len))
 
         if taxa_filter is not None:
             taxa_to_keep = set(taxa_filter.split(','))
@@ -231,8 +231,8 @@ class Markers(object):
                         del msa[genome_id]
                         filtered_genomes += 1
 
-            msg = 'Filtered %.2f%% (%d/%d) taxa based on assigned taxonomy, ' \
-                  '%d taxa remain.' % (
+            msg = 'Filtered {:.2f}% ({:,}/{:,}) taxa based on assigned taxonomy, ' \
+                  '{:,} taxa remain.'.format(
                       (float(filtered_genomes) / float(msa_len)) * 100.0,
                       filtered_genomes, msa_len, msa_len - filtered_genomes)
             self.logger.info(msg) if len(msa) > 0 else self.logger.warning(msg)
@@ -403,12 +403,17 @@ class Markers(object):
         for gids, msa_file, mask_file, marker_set_id in ((bac_gids, Config.CONCAT_BAC120, Config.MASK_BAC120, "bac120"),
                                                          (ar_gids, Config.CONCAT_AR122, Config.MASK_AR122, "ar122")):
 
+            domain_str = 'archaeal'
+            if marker_set_id == 'bac120':
+                domain_str = 'bacterial'
+
             if len(gids) == 0:
                 continue
 
+            self.logger.info('Processing {:,} genomes identified as {}.'.format(
+                                len(gids),
+                                domain_str))
             if marker_set_id == 'bac120':
-                self.logger.info(
-                    'Processing %d genomes identified as bacterial.' % len(gids))
                 marker_info_file = bac120_marker_info_file
                 marker_filtered_genomes = os.path.join(
                     out_dir, PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))
@@ -417,8 +422,6 @@ class Markers(object):
                 marker_user_msa_path = os.path.join(
                     out_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
             else:
-                self.logger.info(
-                    'Processing %d genomes identified as archaeal.' % len(gids))
                 marker_info_file = ar122_marker_info_file
                 marker_filtered_genomes = os.path.join(
                     out_dir, PATH_AR122_FILTERED_GENOMES.format(prefix=prefix))
@@ -446,8 +449,7 @@ class Markers(object):
                                      self.pfam_hmm_dir,
                                      self.tigrfam_hmms,
                                      Config.BAC120_MARKERS,
-                                     Config.AR122_MARKERS,
-                                     Config.RPS23_MARKERS)
+                                     Config.AR122_MARKERS)
             user_msa = hmm_aligner.align_marker_set(cur_genome_files,
                                                     marker_set_id)
 
@@ -480,32 +482,35 @@ class Markers(object):
                                                           marker_info_file)
 
                 if trimmed_seqs:
-                    self.logger.info('Filtered MSA from %d to %d AAs.' % (
+                    self.logger.info('Filtered MSA from {:,} to {:,} AAs.'.format(
                         len(list(aligned_genomes.values())[0]),
                         len(list(trimmed_seqs.values())[0])))
 
-                self.logger.info('Filtered %d genomes with amino acids in <%.1f%% of columns in filtered MSA.' % (
+                self.logger.info('Filtered {:,} genomes with amino acids in <{:.1f}% of columns in filtered MSA.'.format(
                     len(pruned_seqs),
                     min_perc_aa))
 
                 filtered_user_genomes = set(
                     pruned_seqs).intersection(user_msa)
                 if len(filtered_user_genomes):
-                    self.logger.info('Filtered genomes include %d user submitted genomes.' % len(
-                        filtered_user_genomes))
+                    self.logger.info('Filtered genomes include {:.} user submitted genomes.'.format(len(
+                        filtered_user_genomes)))
             else:
                 self.logger.info(
-                    'Masking columns of multiple sequence alignment using canonical mask.')
+                    f'Masking columns of {domain_str} multiple sequence alignment using canonical mask.')
                 trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa,
                                                              user_msa,
                                                              gtdb_msa_mask,
                                                              min_perc_aa / 100.0)
-                self.logger.info('Masked alignment from %d to %d AAs.' % (len(list(user_msa.values())[0]),
-                                                                          len(list(trimmed_seqs.values())[0])))
+                self.logger.info('Masked {} alignment from {:,} to {:,} AAs.'.format(
+                                    domain_str,
+                                    len(list(user_msa.values())[0]),
+                                    len(list(trimmed_seqs.values())[0])))
 
                 if min_perc_aa > 0:
-                    self.logger.info('%d user genomes have amino acids in <%.1f%% of columns in filtered MSA.' % (
+                    self.logger.info('{:,} {} user genomes have amino acids in <{:.1f}% of columns in filtered MSA.'.format(
                         len(pruned_seqs),
+                        domain_str,
                         min_perc_aa))
 
             # write out filtering information
@@ -518,28 +523,27 @@ class Markers(object):
                             [1 for c in pruned_seq if c.isalpha()])
                         perc_alignment = valid_bases * 100.0 / len(pruned_seq)
                     fout.write('%s\t%s\n' % (pruned_seq_id,
-                                             'Insufficient number of amino acids in MSA (%.1f%%)' % perc_alignment))
+                                             'Insufficient number of amino acids in MSA ({:.1f}%)'.format(perc_alignment)))
 
             # write out MSAs
             if not skip_gtdb_refs:
                 self.logger.info(
-                    'Creating concatenated alignment for %d GTDB and user genomes.' % len(trimmed_seqs))
+                    'Creating concatenated alignment for {:,} {} GTDB and user genomes.'.format(
+                        len(trimmed_seqs),
+                        domain_str))
                 self._write_msa(trimmed_seqs, marker_msa_path, gtdb_taxonomy)
 
             trimmed_user_msa = {
                 k: v for k, v in trimmed_seqs.items() if k in user_msa}
             if len(trimmed_user_msa) > 0:
                 self.logger.info(
-                    'Creating concatenated alignment for %d user genomes.' % len(trimmed_user_msa))
+                    'Creating concatenated alignment for {:,} {} user genomes.'.format(
+                        len(trimmed_user_msa),
+                        domain_str))
                 self._write_msa(trimmed_user_msa,
                                 marker_user_msa_path, gtdb_taxonomy)
             else:
-                if marker_set_id == 'bac120':
-                    self.logger.info(
-                        'All bacterial user genomes have been filtered out.')
-                else:
-                    self.logger.info(
-                        'All archaeal user genomes have been filtered out.')
+                self.logger.info(f'All {domain_str} user genomes have been filtered out.')
 
             # Create symlinks to the summary files
             if marker_set_id == 'bac120':

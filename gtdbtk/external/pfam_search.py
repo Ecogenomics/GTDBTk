@@ -14,7 +14,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-
+import logging
 import multiprocessing as mp
 import os
 import sys
@@ -22,7 +22,7 @@ import sys
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.pypfam.Scan.PfamScan import PfamScan
 from gtdbtk.io.marker.tophit import TopHitPfamFile
-from gtdbtk.tools import sha256
+from gtdbtk.tools import sha256, file_has_checksum
 
 
 class PfamSearch(object):
@@ -39,7 +39,9 @@ class PfamSearch(object):
         """Initialization."""
 
         self.threads = threads
-
+        self.cpus_per_genome = 1
+        self.logger = logging.getLogger('timestamp')
+        self.warnings = logging.getLogger('warnings')
         self.pfam_hmm_dir = pfam_hmm_dir
         self.protein_file_suffix = protein_file_suffix
         self.pfam_suffix = pfam_suffix
@@ -80,7 +82,7 @@ class PfamSearch(object):
 
         tophit_file.write()
 
-    def _workerThread(self, queueIn, queueOut):
+    def _workerThread(self, queueIn, queueOut, n_skipped):
         """Process each data item in parallel."""
         try:
             while True:
@@ -93,16 +95,23 @@ class PfamSearch(object):
                 output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
                                                                                             self.pfam_suffix))
 
-                pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
-                pfam_scan.search()
-                pfam_scan.write_results(output_hit_file, None, None, None, None)
+                # Check if this has already been processed.
+                out_files = (output_hit_file, TopHitPfamFile.get_path(self.output_dir, genome_id))
+                if all([file_has_checksum(x) for x in out_files]):
+                    self.warnings.info(f'Skipped Pfam processing for: {genome_id}')
+                    with n_skipped.get_lock():
+                        n_skipped.value += 1
+                else:
+                    pfam_scan = PfamScan(cpu=self.cpus_per_genome, fasta=gene_file, dir=self.pfam_hmm_dir)
+                    pfam_scan.search()
+                    pfam_scan.write_results(output_hit_file, None, None, None, None)
 
-                # calculate checksum
-                with open(output_hit_file + self.checksum_suffix, 'w') as fh:
-                    fh.write(sha256(output_hit_file))
+                    # calculate checksum
+                    with open(output_hit_file + self.checksum_suffix, 'w') as fh:
+                        fh.write(sha256(output_hit_file))
 
-                # identify top hit for each gene
-                self._topHit(output_hit_file)
+                    # identify top hit for each gene
+                    self._topHit(output_hit_file)
 
                 queueOut.put(gene_file)
         except Exception as error:
@@ -138,6 +147,7 @@ class PfamSearch(object):
         # populate worker queue with data to process
         workerQueue = mp.Queue()
         writerQueue = mp.Queue()
+        n_skipped = mp.Value('i', 0)
 
         for f in gene_files:
             workerQueue.put(f)
@@ -147,7 +157,7 @@ class PfamSearch(object):
 
         try:
             workerProc = [mp.Process(target=self._workerThread, args=(
-                workerQueue, writerQueue)) for _ in range(self.threads)]
+                workerQueue, writerQueue, n_skipped)) for _ in range(self.threads)]
             writeProc = mp.Process(target=self._writerThread, args=(
                 len(gene_files), writerQueue))
 
@@ -169,3 +179,8 @@ class PfamSearch(object):
 
             writeProc.terminate()
             raise
+
+        if n_skipped.value > 0:
+            genome_s = 'genome' if n_skipped.value == 1 else 'genomes'
+            self.logger.warning(f'Pfam skipped {n_skipped.value} {genome_s} '
+                                f'due to pre-existing data, see warnings.log')

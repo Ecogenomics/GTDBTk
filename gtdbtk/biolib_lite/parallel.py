@@ -117,7 +117,7 @@ class Parallel(object):
             Function to process data items.
         producer_queue : queue
             Data items to process.
-        consumer_queue : queue
+        consumer_queue : mp.Queue
             Queue for holding processed data items to be consumed.
         """
 

@@ -281,7 +281,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         print_help()
         sys.exit(0)
-    elif (sys.argv[1] in {'-h', '--h', '-help', '--help'}):
+    elif sys.argv[1] in {'-h', '--h', '-help', '--help'}:
         print_help()
         sys.exit(0)
     else:
