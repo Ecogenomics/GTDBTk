@@ -162,27 +162,29 @@ class Pplacer(object):
                     cur_state = 8
                 else:
                     cur_state = None
-                    sys.stdout.write(f'\r==> {state}')
+                    sys.stdout.write(f'\033[2K\033[1G==> {state}')
 
                 if cur_state and cur_state == 8:
                     if not n_total:
                         n_total = int(re.search(r'\((\d+)\/(\d+)\)', state).group(2))
                     n_placed += 1
-                    sys.stdout.write(
-                        f'\r==> Step 9 of 9: placing genome {n_placed} of {n_total} ({n_placed / n_total:.2%})')
+                    sys.stdout.write(f'\033[2K\033[1G==> Step 9 of 9: placing genome {n_placed} '
+                                     f'of {n_total} ({n_placed / n_total:.2%})')
                 elif cur_state and (cur_state >= 0 or cur_state < 8):
-                    sys.stdout.write(f'\r==> Step {cur_state + 1} of 9: {states[cur_state + 1]}.')
+                    sys.stdout.write(f'\033[2K\033[1G==> Step {cur_state + 1} of '
+                                     f'9: {states[cur_state + 1]}.')
                 sys.stdout.flush()
 
             # Report the memory usage if at a memory-reportable state.
             except queue.Empty:
                 if cur_state == 3:
                     virt, res = get_proc_memory_gb(pid.value)
-                    sys.stdout.write(f'\r==> Step {cur_state + 1} of 9: {states[4]} ({virt:.2f} GB)')
+                    sys.stdout.write(f'\033[2K\033[1G==> Step {cur_state + 1} of 9: '
+                                     f'{states[4]} ({virt:.2f} GB)')
                 elif cur_state == 4:
                     virt, res = get_proc_memory_gb(pid.value)
-                    sys.stdout.write(
-                        f'\r==> Step {cur_state + 1} of 9: {states[5]} ({res:.2f}/{virt:.2f} GB, {res / virt:.2%})')
+                    sys.stdout.write(f'\033[2K\033[1G==> Step {cur_state + 1} of 9: '
+                                     f'{states[5]} ({res:.2f}/{virt:.2f} GB, {res / virt:.2%})')
                 sys.stdout.flush()
             except Exception:
                 pass
