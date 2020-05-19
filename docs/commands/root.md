@@ -7,8 +7,6 @@ parent: Commands
 
 # root
 
-In development
-{: .label .label-yellow }
 
 Root a tree using an outgroup.
 
@@ -45,7 +43,6 @@ gtdbtk root --input_tree input.tree --outgroup_taxon p__Nanoarchaeota --output_t
 [2020-04-14 08:26:53] INFO: GTDB-Tk v1.1.0
 [2020-04-14 08:26:53] INFO: gtdbtk root --input_tree input.tree --outgroup_taxon p__Nanoarchaeota --output_tree output.tree
 [2020-04-14 08:26:53] INFO: Using GTDB-Tk reference data version r89: /release89
-[2020-04-14 08:26:53] WARNING: Tree rooting is still under development!
 [2020-04-14 08:26:53] INFO: Identifying genomes from the specified outgroup.
 [2020-04-14 08:26:53] INFO: Identified 101 outgroup taxa in the tree.
 [2020-04-14 08:26:53] INFO: Identified 1151 ingroup taxa in the tree.
