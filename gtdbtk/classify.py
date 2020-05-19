@@ -324,6 +324,7 @@ class Classify(object):
                 results['s__'] = v
         return results
 
+    # TODO: Use the io.marker.copy_number class to read this
     def parser_marker_summary_file(self, marker_summary_file, marker_set_id):
         results = {}
         with open(marker_summary_file, 'r') as msf:
@@ -574,7 +575,7 @@ class Classify(object):
                         "'", '') for subnd in par_node.leaf_iter()]
                     if len(set(list_subnode_initials) & set(self.reference_ids)) < 1:
                         raise Exception(
-                            "There is no reference genomes under '{}'".format('parent_rank'))
+                            "There are no reference genomes under '{}'".format('parent_rank'))
                     else:
                         dict_dist_refgenomes = {}
                         list_ref_genomes = [subnd for subnd in par_node.leaf_iter(
