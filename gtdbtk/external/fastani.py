@@ -21,8 +21,9 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
+
+from tqdm import tqdm
 
 from gtdbtk.exceptions import GTDBTkExit
 
@@ -223,18 +224,11 @@ class FastANI(object):
         n_total : int
             The total number of items to be processed.
         """
-        processed_items = 0
-        while True:
-            result = q_writer.get(block=True)
-            if result is None:
-                break
-            processed_items += 1
-            status = f'==> Processing {processed_items:,} of {n_total:,} ' \
-                     f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
-            sys.stdout.write('\r%s' % status)
-            sys.stdout.flush()
-        sys.stdout.write('\n')
-        return True
+        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'comparisons |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=n_total, bar_format=bar_fmt) as p_bar:
+            for _ in iter(q_writer.get, None):
+                p_bar.update()
 
     def run_proc(self, q, r, ql, rl, output):
         """Runs the FastANI process.

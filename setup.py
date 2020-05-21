@@ -50,6 +50,6 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
-    install_requires=["dendropy>=4.1.0", 'numpy>=1.9.0'],
+    install_requires=["dendropy>=4.1.0", 'numpy>=1.9.0', 'tqdm'],
     data_files=[("", ["LICENSE"])]
 )

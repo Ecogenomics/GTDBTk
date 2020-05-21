@@ -25,9 +25,10 @@ GTDB-Tk can be either installed locally, or run using the third-party web based 
 * ~1 hour per 1,000 genomes when using 64 CPUs
 
 ## Python libraries
-GTDB-Tk is designed for Python >=3.6 and requires the following libraries which will be automatically installed:
+GTDB-Tk is designed for Python >=3.6 and requires the following libraries, which will be automatically installed:
 * [dendropy](http://dendropy.org/)  >=4.1.0: a Python library for phylogenetic computing.
 * [NumPy](https://numpy.org/) >=1.9.0: scientific computing with Python.
+* [tqdm](https://github.com/tqdm/tqdm): A Fast, Extensible Progress Bar for Python and CLI https://tqdm.github.io
 
 
 ## Third-party software

@@ -402,7 +402,7 @@ def main():
     ani_rep_mash.add_argument('--mash_k', default=16, type=int, help='k-mer size [1-32]')
     ani_rep_mash.add_argument('--mash_s', default=5000, type=int, help='maximum number of non-redundant hashes')
     ani_rep_mash.add_argument('--mash_d', default=0.1, type=float, help='maximum distance to keep [0-1]')
-    ani_rep_mash.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1])')
+    ani_rep_mash.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1]')
 
     ani_rep_fastani_opt = ani_rep_parser.add_argument_group('optional FastANI arguments')
     ani_rep_fastani_opt.add_argument('--min_af', default=AF_THRESHOLD, type=float,

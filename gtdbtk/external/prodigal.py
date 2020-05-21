@@ -20,7 +20,8 @@ import multiprocessing as mp
 import os
 import shutil
 import subprocess
-import sys
+
+from tqdm import tqdm
 
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.config.output import CHECKSUM_SUFFIX
@@ -159,20 +160,11 @@ class Prodigal(object):
 
     def _writer(self, num_items, writer_queue):
         """Store or write results of worker threads in a single thread."""
-        processed_items = 0
-        while processed_items < num_items:
-            a = writer_queue.get(block=True, timeout=None)
-            if a is None:
-                break
-
-            processed_items += 1
-            statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processed_items,
-                                                                                num_items,
-                                                                                float(processed_items) * 100 / num_items)
-            sys.stdout.write('\r%s' % statusStr)
-            sys.stdout.flush()
-
-        sys.stdout.write('\n')
+        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'genomes |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=num_items, bar_format=bar_fmt) as p_bar:
+            for _ in iter(writer_queue.get, None):
+                p_bar.update()
 
     def run(self, genomic_files, tln_tables):
         """Run Prodigal across a set of genomes.

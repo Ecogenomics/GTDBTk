@@ -21,8 +21,9 @@ import multiprocessing as mp
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
+
+from tqdm import tqdm
 
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
@@ -165,19 +166,11 @@ class HmmAligner(object):
         n_genomes : int
             The total number of genomes to be processed.
         """
-        processed_items = 0
-        result = q_writer.get(block=True, timeout=None)
-
-        while result is not None:
-            processed_items += 1
-            status_str = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
-                                                                               n_genomes,
-                                                                               float(processed_items) * 100 / n_genomes)
-            sys.stdout.write('\r%s' % status_str)
-            sys.stdout.flush()
-            result = q_writer.get(block=True, timeout=None)
-
-        sys.stdout.write('\n')
+        bar_fmt = '==> Aligned {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'genomes |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=n_genomes, bar_format=bar_fmt) as p_bar:
+            for _ in iter(q_writer.get, None):
+                p_bar.update()
 
     def _run_multi_align(self, db_genome_id, path, marker_set_id):
         """

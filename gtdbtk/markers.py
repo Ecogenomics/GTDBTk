@@ -21,6 +21,7 @@ from collections import defaultdict
 from shutil import copy
 
 import numpy as np
+from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists
@@ -246,7 +247,9 @@ class Markers(object):
 
         output_seqs = {}
         pruned_seqs = {}
-        for seq_id, seq in aligned_genomes.items():
+        bar_fmt = '==> Masked {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'alignments |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+        for seq_id, seq in tqdm(aligned_genomes.items(), bar_format=bar_fmt):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:
                 raise MSAMaskLengthMismatch(

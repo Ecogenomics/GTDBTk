@@ -807,8 +807,8 @@ class Taxonomy(object):
 
         Returns
         -------
-        dict : d[unique_id] -> [d__<taxon>, ..., s__<taxon>]
-            Taxa indexed by unique ids.
+        dict[str, tuple[str, str, str, str, str, str, str]]
+            d[unique_id] -> [d__<taxon>, ..., s__<taxon>]
         """
 
         try:
