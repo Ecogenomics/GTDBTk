@@ -161,7 +161,7 @@ class Prodigal(object):
     def _writer(self, num_items, writer_queue):
         """Store or write results of worker threads in a single thread."""
         bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+                  'genomes [{rate_fmt}, ETA {remaining}]'
         with tqdm(total=num_items, bar_format=bar_fmt) as p_bar:
             for _ in iter(writer_queue.get, None):
                 p_bar.update()

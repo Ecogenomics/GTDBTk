@@ -248,7 +248,7 @@ class Markers(object):
         output_seqs = {}
         pruned_seqs = {}
         bar_fmt = '==> Masked {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'alignments |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+                  'alignments [{rate_fmt}, ETA {remaining}]'
         for seq_id, seq in tqdm(aligned_genomes.items(), bar_format=bar_fmt):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:

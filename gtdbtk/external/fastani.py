@@ -225,7 +225,7 @@ class FastANI(object):
             The total number of items to be processed.
         """
         bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'comparisons |{bar:10}| [{rate_fmt}, ETA {remaining}]'
+                  'comparisons [{rate_fmt}, ETA {remaining}]'
         with tqdm(total=n_total, bar_format=bar_fmt) as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
