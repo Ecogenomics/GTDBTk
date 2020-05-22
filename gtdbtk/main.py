@@ -468,6 +468,10 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
+        # See ticket #255... perhaps an upstream version/OS issue?
+        if not hasattr(options, 'pplacer_cpus'):
+            options.pplacer_cpus = None
+
         check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
         if options.scratch_dir:
