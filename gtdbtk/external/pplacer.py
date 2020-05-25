@@ -21,7 +21,8 @@ import os
 import queue
 import re
 import subprocess
-import sys
+
+from tqdm import tqdm
 
 from gtdbtk.exceptions import PplacerException, TogException
 from gtdbtk.tools import get_proc_memory_gb
@@ -125,7 +126,7 @@ class Pplacer(object):
     def _writer(self, out_q, pid):
         """The writer subprocess is able to report on newly piped events from
         subprocess in the worker thread, and report on memory usage while
-        waiting for new comands."""
+        waiting for new commands."""
         states = ['Reading user alignment',
                   'Reading reference alignment',
                   'Pre-masking sequences',
@@ -137,58 +138,68 @@ class Pplacer(object):
                   'Placing genomes']
         cur_state = None
         n_total, n_placed = None, 0
-        while True:
-            try:
-                state = out_q.get(block=True, timeout=5)
-                if not state:
-                    break
-                elif state.startswith('Running pplacer'):
-                    cur_state = 0
-                elif state.startswith("Didn't find any reference"):
-                    cur_state = 1
-                elif state.startswith('Pre-masking sequences'):
-                    cur_state = 2
-                elif state.startswith('Determining figs'):
-                    cur_state = 3
-                elif state.startswith('Allocating memory for internal'):
-                    cur_state = 4
-                elif state.startswith('Caching likelihood information'):
-                    cur_state = 5
-                elif state.startswith('Pulling exponents'):
-                    cur_state = 6
-                elif state.startswith('Preparing the edges'):
-                    cur_state = 7
-                elif state.startswith('working on '):
-                    cur_state = 8
-                else:
-                    cur_state = None
-                    sys.stdout.write(f'\033[2K\033[1G\r==> {state}')
 
-                if cur_state and cur_state == 8:
-                    if not n_total:
-                        n_total = int(re.search(r'\((\d+)\/(\d+)\)', state).group(2))
-                    n_placed += 1
-                    sys.stdout.write(f'\033[2K\033[1G\r==> Step 9 of 9: placing genome {n_placed} '
-                                     f'of {n_total} ({n_placed / n_total:.2%})')
-                elif cur_state and (cur_state >= 0 or cur_state < 8):
-                    sys.stdout.write(f'\033[2K\033[1G\r==> Step {cur_state + 1} of '
-                                     f'9: {states[cur_state + 1]}.')
-                sys.stdout.flush()
+        # Create a progress bar which tracks the initialization step of pplacer.
+        bar_fmt = '==> {desc}.'
+        with tqdm(bar_format=bar_fmt) as p_bar:
+            p_bar.set_description_str(desc='Step 1 of 9: Starting pplacer')
+            while True:
+                try:
+                    state = out_q.get(block=True, timeout=5)
+                    if not state:
+                        break
+                    elif state.startswith('Running pplacer'):
+                        cur_state = 0
+                    elif state.startswith("Didn't find any reference"):
+                        cur_state = 1
+                    elif state.startswith('Pre-masking sequences'):
+                        cur_state = 2
+                    elif state.startswith('Determining figs'):
+                        cur_state = 3
+                    elif state.startswith('Allocating memory for internal'):
+                        cur_state = 4
+                    elif state.startswith('Caching likelihood information'):
+                        cur_state = 5
+                    elif state.startswith('Pulling exponents'):
+                        cur_state = 6
+                    elif state.startswith('Preparing the edges'):
+                        cur_state = 7
+                    elif state.startswith('working on '):
+                        cur_state = 8
+                    else:
+                        cur_state = None
 
-            # Report the memory usage if at a memory-reportable state.
-            except queue.Empty:
-                if cur_state == 3:
-                    virt, res = get_proc_memory_gb(pid.value)
-                    sys.stdout.write(f'\033[2K\033[1G\r==> Step {cur_state + 1} of 9: '
-                                     f'{states[4]} ({virt:.2f} GB)')
-                elif cur_state == 4:
-                    virt, res = get_proc_memory_gb(pid.value)
-                    sys.stdout.write(f'\033[2K\033[1G\r==> Step {cur_state + 1} of 9: '
-                                     f'{states[5]} ({res:.2f}/{virt:.2f} GB, {res / virt:.2%})')
-                sys.stdout.flush()
-            except Exception:
-                pass
-        sys.stdout.write('\n')
+                    # Error, display the log file line.
+                    if not cur_state:
+                        p_bar.set_description_str(desc=state.strip())
+
+                    # New line written for each placed genome, update the count.
+                    elif cur_state == 8:
+                        if not n_total:
+                            n_total = int(re.search(r'\((\d+)\/(\d+)\)', state).group(2))
+                        n_placed += 1
+                        p_bar.set_description_str(desc=f'Step 9 of {len(states)}: placing '
+                                                       f'genome {n_placed} of {n_total} '
+                                                       f'({n_placed / n_total:.2%})')
+
+                    # Display the output for the current state.
+                    else:
+                        p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                       f'{states[cur_state + 1]}')
+
+                # Report the memory usage if at a memory-reportable state.
+                except queue.Empty:
+                    if cur_state == 3:
+                        virt, res = get_proc_memory_gb(pid.value)
+                        p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
+                                                       f'{states[4]} ({virt:.2f} GB)')
+                    elif cur_state == 4:
+                        virt, res = get_proc_memory_gb(pid.value)
+                        p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                       f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
+                                                       f'{res / virt:.2%})')
+                except Exception:
+                    pass
 
     def tog(self, pplacer_json_out, tree_file):
         """ Convert the pplacer json output into a newick tree.
