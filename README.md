@@ -4,7 +4,7 @@
 [![PyPI Downloads](https://pepy.tech/badge/gtdbtk)](https://pepy.tech/project/gtdbtk)
 [![Bioconda](https://img.shields.io/conda/vn/bioconda/gtdbtk.svg?color=43b02a)](https://anaconda.org/bioconda/gtdbtk)
 [![BioConda Downloads](https://img.shields.io/conda/dn/bioconda/gtdbtk.svg?style=flag&label=downloads&color=43b02a)](https://anaconda.org/bioconda/gtdbtk)
-[![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/ecogenomic/gtdbtk/latest?color=299bec&label=docker)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
+[![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ecogenomic/gtdbtk?sort=date&color=299bec&label=docker)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
 
 

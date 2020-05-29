@@ -7,7 +7,7 @@ nav_order: 1
 
 # Announcements
 
-**Note (May 19, 2020)**:
+**Note (May 29, 2020)**:
  * GTDB-Tk v1.2.0 has been released 
     * *Bug fixes:*
         * ([#241](https://github.com/Ecogenomics/GTDBTk/issues/241)) Moved GTDB-Tk entry point to `__main__.py` instead of `bin/gtdbtk` to support execution in some HPC systems (`gtdbtk` will still be aliased on install).
