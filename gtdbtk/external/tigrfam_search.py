@@ -19,7 +19,8 @@ import logging
 import multiprocessing as mp
 import os
 import subprocess
-import sys
+
+from tqdm import tqdm
 
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.io.marker.tophit import TopHitTigrFile
@@ -144,21 +145,11 @@ class TigrfamSearch(object):
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
-        processedItems = 0
-        while True:
-            a = writerQueue.get(block=True, timeout=None)
-            if a is None:
-                break
-
-            processedItems += 1
-            statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
-                                                                                numDataItems,
-                                                                                float(
-                                                                                    processedItems) * 100 / numDataItems)
-            sys.stdout.write('\r%s' % statusStr)
-            sys.stdout.flush()
-
-        sys.stdout.write('\n')
+        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'genomes [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=numDataItems, bar_format=bar_fmt) as p_bar:
+            for _ in iter(writerQueue.get, None):
+                p_bar.update()
 
     def run(self, gene_files):
         """Annotate genes with TIGRFAM HMMs.

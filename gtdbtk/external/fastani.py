@@ -21,8 +21,9 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
+
+from tqdm import tqdm
 
 from gtdbtk.exceptions import GTDBTkExit
 
@@ -44,6 +45,7 @@ class FastANI(object):
         self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
         self.version = self._get_version()
+        self.minFrac = self._isMinFrac_present()
         self._suppress_v1_warning = False
 
     @staticmethod
@@ -65,6 +67,25 @@ class FastANI(object):
             return version.group(1)
         except Exception:
             return 'unknown'
+     
+    @staticmethod   
+    def _isMinFrac_present():
+        """Returns true if --minFraction is an option of FastANI on the system path.
+
+        Returns
+        -------
+        bool
+            True/False.
+        """
+        try:
+            proc = subprocess.Popen(['fastANI', '-h'], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='utf-8')
+            stdout, stderr = proc.communicate()
+            if '--minFraction' in stderr:
+                return True
+            return False
+        except Exception:
+            return False
 
     def run(self, dict_compare, dict_paths):
         """Runs FastANI in batch mode.
@@ -223,18 +244,11 @@ class FastANI(object):
         n_total : int
             The total number of items to be processed.
         """
-        processed_items = 0
-        while True:
-            result = q_writer.get(block=True)
-            if result is None:
-                break
-            processed_items += 1
-            status = f'==> Processing {processed_items:,} of {n_total:,} ' \
-                     f'({float(processed_items) * 100 / n_total:.1f}%) comparisons.'
-            sys.stdout.write('\r%s' % status)
-            sys.stdout.flush()
-        sys.stdout.write('\n')
-        return True
+        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'comparisons [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=n_total, bar_format=bar_fmt) as p_bar:
+            for _ in iter(q_writer.get, None):
+                p_bar.update()
 
     def run_proc(self, q, r, ql, rl, output):
         """Runs the FastANI process.
@@ -258,6 +272,8 @@ class FastANI(object):
             The ANI/AF of the query genomes to the reference genomes.
         """
         args = ['fastANI']
+        if self.minFrac:
+            args.extend(['--minFraction', '0'])
         if q is not None:
             args.extend(['-q', q])
         if r is not None:

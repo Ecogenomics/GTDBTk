@@ -7,9 +7,6 @@ parent: Commands
 
 # decorate
 
-In development
-{: .label .label-yellow }
-
 Decorate a tree with the GTDB-Tk taxonomy.
 
 ## Arguments

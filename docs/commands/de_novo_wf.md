@@ -7,9 +7,6 @@ parent: Commands
 
 # *de*_*novo*_wf 
 
-In development
-{: .label .label-yellow }
-
 For arguments and output files, see each of the individual steps:
 
 * [infer](infer.html)

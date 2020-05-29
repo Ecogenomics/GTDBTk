@@ -21,6 +21,7 @@ from collections import defaultdict
 from shutil import copy
 
 import numpy as np
+from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists
@@ -246,7 +247,9 @@ class Markers(object):
 
         output_seqs = {}
         pruned_seqs = {}
-        for seq_id, seq in aligned_genomes.items():
+        bar_fmt = '==> Masked {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'alignments [{rate_fmt}, ETA {remaining}]'
+        for seq_id, seq in tqdm(aligned_genomes.items(), bar_format=bar_fmt):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:
                 raise MSAMaskLengthMismatch(
@@ -389,7 +392,9 @@ class Markers(object):
             self.logger.error('{} are not present in the input list of genome to process.'.format(
                 list(set(genomic_files.keys()) - set(genomes_to_process.keys()))))
             raise InconsistentGenomeBatch(
-                'Number of processed genomes in the identify directory is unequal to the list of input genomes.')
+                'You are attempting to run GTDB-Tk on a non-empty directory that contains extra '
+                'genomes not present in your initial identify directory. Remove them, or run '
+                'GTDB-Tk on a new directory.')
 
         self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
                                                                               self.cpus))

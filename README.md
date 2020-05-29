@@ -4,7 +4,7 @@
 [![PyPI Downloads](https://pepy.tech/badge/gtdbtk)](https://pepy.tech/project/gtdbtk)
 [![Bioconda](https://img.shields.io/conda/vn/bioconda/gtdbtk.svg?color=43b02a)](https://anaconda.org/bioconda/gtdbtk)
 [![BioConda Downloads](https://img.shields.io/conda/dn/bioconda/gtdbtk.svg?style=flag&label=downloads&color=43b02a)](https://anaconda.org/bioconda/gtdbtk)
-[![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/ecogenomic/gtdbtk/latest?color=299bec&label=docker)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
+[![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ecogenomic/gtdbtk?sort=date&color=299bec&label=docker)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/repository/docker/ecogenomic/gtdbtk)
 
 
@@ -25,8 +25,9 @@ GTDB-Tk is described in:
 
 The Genome Taxonomy Database (GTDB) is described in:
 
-* Parks DH, et al. 2019. [Selection of representative genomes for 24,706 bacterial and archaeal species clusters provide a complete genome-based taxonomy](https://www.biorxiv.org/content/10.1101/771964v2). <i>bioRxiv</i>, https://doi.org/10.1101/771964.
-* Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nat. Biotechnol.</i>, http://dx.doi.org/10.1038/nbt.4229.
+* Parks, D.H., et al. 2020. [A complete domain-to-species taxonomy for Bacteria and Archaea](https://rdcu.be/b3OI7). <i>Nature Biotechnology</i>, https://doi.org/10.1038/s41587-020-0501-8.
+
+* Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nature Biotechnology</i>, http://dx.doi.org/10.1038/nbt.4229.
  
  We strongly encourage you to cite the following 3rd party dependencies:
 
