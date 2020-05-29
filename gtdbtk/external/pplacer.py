@@ -195,13 +195,21 @@ class Pplacer(object):
                 except queue.Empty:
                     if cur_state == 3:
                         virt, res = get_proc_memory_gb(pid.value)
-                        p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
-                                                  f'{states[4]} ({virt:.2f} GB)')
+                        if virt and res:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
+                                                      f'{states[4]} ({virt:.2f} GB)')
+                        else:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
+                                                           f'{states[4]}')
                     elif cur_state == 4:
                         virt, res = get_proc_memory_gb(pid.value)
-                        p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
-                                                  f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
-                                                  f'{res / virt:.2%})')
+                        if virt and res:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                      f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
+                                                      f'{res / virt:.2%})')
+                        else:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                           f'{states[5]}')
                 except Exception:
                     pass
 
