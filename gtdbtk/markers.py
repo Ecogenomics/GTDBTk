@@ -392,7 +392,9 @@ class Markers(object):
             self.logger.error('{} are not present in the input list of genome to process.'.format(
                 list(set(genomic_files.keys()) - set(genomes_to_process.keys()))))
             raise InconsistentGenomeBatch(
-                'Number of processed genomes in the identify directory is unequal to the list of input genomes.')
+                'You are attempting to run GTDB-Tk on a non-empty directory that contains extra '
+                'genomes not present in your initial identify directory. Remove them, or run '
+                'GTDB-Tk on a new directory.')
 
         self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
                                                                               self.cpus))
