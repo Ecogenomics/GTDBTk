@@ -76,7 +76,8 @@ class Pplacer(object):
 
         out_q = mp.Queue()
         pid = mp.Value('i', 0)
-        p_worker = mp.Process(target=self._worker, args=(args, out_q, pplacer_out, pid))
+        p_worker = mp.Process(target=self._worker, args=(
+            args, out_q, pplacer_out, pid))
         p_writer = mp.Process(target=self._writer, args=(out_q, pid))
 
         try:
@@ -88,7 +89,8 @@ class Pplacer(object):
             p_writer.join()
 
             if p_worker.exitcode != 0:
-                raise PplacerException('An error was encountered while running pplacer.')
+                raise PplacerException(
+                    'An error was encountered while running pplacer.')
         except Exception:
             p_worker.terminate()
             p_writer.terminate()
@@ -138,8 +140,8 @@ class Pplacer(object):
                   'Placing genomes']
         cur_state = None
         n_total, n_placed = None, 0
-
-        # Create a progress bar which tracks the initialization step of pplacer.
+        # Create a progress bar which tracks the initialization step of
+        # pplacer.
         bar_fmt = '==> {desc}.'
         with tqdm(bar_format=bar_fmt) as p_bar:
             p_bar.set_description_str(desc='Step 1 of 9: Starting pplacer')
@@ -173,31 +175,33 @@ class Pplacer(object):
                     if not cur_state:
                         p_bar.set_description_str(desc=state.strip())
 
-                    # New line written for each placed genome, update the count.
+                    # New line written for each placed genome, update the
+                    # count.
                     elif cur_state == 8:
                         if not n_total:
-                            n_total = int(re.search(r'\((\d+)\/(\d+)\)', state).group(2))
+                            n_total = int(
+                                re.search(r'\((\d+)\/(\d+)\)', state).group(2))
                         n_placed += 1
                         p_bar.set_description_str(desc=f'Step 9 of {len(states)}: placing '
-                                                       f'genome {n_placed} of {n_total} '
-                                                       f'({n_placed / n_total:.2%})')
+                                                  f'genome {n_placed} of {n_total} '
+                                                  f'({n_placed / n_total:.2%})')
 
                     # Display the output for the current state.
                     else:
                         p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
-                                                       f'{states[cur_state + 1]}')
+                                                  f'{states[cur_state + 1]}')
 
                 # Report the memory usage if at a memory-reportable state.
                 except queue.Empty:
                     if cur_state == 3:
                         virt, res = get_proc_memory_gb(pid.value)
                         p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
-                                                       f'{states[4]} ({virt:.2f} GB)')
+                                                  f'{states[4]} ({virt:.2f} GB)')
                     elif cur_state == 4:
                         virt, res = get_proc_memory_gb(pid.value)
                         p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
-                                                       f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
-                                                       f'{res / virt:.2%})')
+                                                  f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
+                                                  f'{res / virt:.2%})')
                 except Exception:
                     pass
 

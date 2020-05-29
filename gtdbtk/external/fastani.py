@@ -45,6 +45,7 @@ class FastANI(object):
         self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
         self.version = self._get_version()
+        self.minFrac = self._isMinFrac_present()
         self._suppress_v1_warning = False
 
     @staticmethod
@@ -66,6 +67,25 @@ class FastANI(object):
             return version.group(1)
         except Exception:
             return 'unknown'
+     
+    @staticmethod   
+    def _isMinFrac_present():
+        """Returns true if --minFraction is an option of FastANI on the system path.
+
+        Returns
+        -------
+        bool
+            True/False.
+        """
+        try:
+            proc = subprocess.Popen(['fastANI', '-h'], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, encoding='utf-8')
+            stdout, stderr = proc.communicate()
+            if '--minFraction' in stderr:
+                return True
+            return False
+        except Exception:
+            return False
 
     def run(self, dict_compare, dict_paths):
         """Runs FastANI in batch mode.
@@ -252,6 +272,8 @@ class FastANI(object):
             The ANI/AF of the query genomes to the reference genomes.
         """
         args = ['fastANI']
+        if self.minFrac:
+            args.extend(['--minFraction', '0'])
         if q is not None:
             args.extend(['-q', q])
         if r is not None:
