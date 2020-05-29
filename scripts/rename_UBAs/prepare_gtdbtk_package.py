@@ -37,8 +37,9 @@ import sys
 from shutil import copyfile
 
 import dendropy
-from gtdbtk.biolib_lite.logger import logger_setup
+
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
+from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.biolib_lite.seq_io import read_fasta
 
 

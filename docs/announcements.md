@@ -7,6 +7,18 @@ nav_order: 1
 
 # Announcements
 
+**Note (May 19, 2020)**:
+ * GTDB-Tk v1.2.0 has been released 
+    * *Bug fixes:*
+        * ([#241](https://github.com/Ecogenomics/GTDBTk/issues/241)) Moved GTDB-Tk entry point to `__main__.py` instead of `bin/gtdbtk` to support execution in some HPC systems (`gtdbtk` will still be aliased on install).
+        * ([#251](https://github.com/Ecogenomics/GTDBTk/issues/251)) Allow parsing of FastANI v1.0 output files. However, a warning will be displayed to update FastANI.
+        * ([#254](https://github.com/Ecogenomics/GTDBTk/issues/254)) Fixed an issue where `--scratch_dir` would fail, and not clean-up the mmap file.
+    * *Features:*
+        * ([#242](https://github.com/Ecogenomics/GTDBTk/pull/242)) Added the `decorate` command allowing the `de novo workflow` to be run
+        * ([#244](https://github.com/Ecogenomics/GTDBTk/pull/244)) Added the `infer_rank` method which established the taxonomic ranks of internal nodes of user trees based on RED
+        * ([#248](https://github.com/Ecogenomics/GTDBTk/pull/248)) If the identify command is run on the same directory, genomes which were already processed will be skipped.
+        * ([#248](https://github.com/Ecogenomics/GTDBTk/pull/248)) Improved `pplacer` output with running the `classify` command.
+ 
 **Note (Apr 9, 2020)**:
 * GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)
     * *Bug fixes:*

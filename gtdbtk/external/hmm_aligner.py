@@ -21,8 +21,9 @@ import multiprocessing as mp
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
+
+from tqdm import tqdm
 
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
@@ -41,8 +42,7 @@ class HmmAligner(object):
                  pfam_hmm_dir,
                  tigrfam_hmm_dir,
                  bac120_markers,
-                 ar122_markers,
-                 rps23_markers):
+                 ar122_markers):
         """Initialization."""
 
         check_dependencies(['hmmalign'])
@@ -58,7 +58,6 @@ class HmmAligner(object):
 
         self.bac120_markers = bac120_markers
         self.ar122_markers = ar122_markers
-        self.rps23_markers = rps23_markers
 
         self.version = self.get_version()
 
@@ -67,7 +66,7 @@ class HmmAligner(object):
         try:
             env = os.environ.copy()
             proc = subprocess.Popen(['hmmalign', '-h'], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
             for line in output.split('\n'):
@@ -77,7 +76,6 @@ class HmmAligner(object):
             return "(version unavailable)"
         except:
             return "(version unavailable)"
-
 
     def align_marker_set(self, db_genome_ids, marker_set_id):
         """Threaded alignment using hmmalign for a given set of genomes.
@@ -168,19 +166,11 @@ class HmmAligner(object):
         n_genomes : int
             The total number of genomes to be processed.
         """
-        processed_items = 0
-        result = q_writer.get(block=True, timeout=None)
-
-        while result is not None:
-            processed_items += 1
-            status_str = '==> Finished aligning %d of %d (%.1f%%) genomes.' % (processed_items,
-                                                                               n_genomes,
-                                                                               float(processed_items) * 100 / n_genomes)
-            sys.stdout.write('\r%s' % status_str)
-            sys.stdout.flush()
-            result = q_writer.get(block=True, timeout=None)
-
-        sys.stdout.write('\n')
+        bar_fmt = '==> Aligned {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'genomes [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=n_genomes, bar_format=bar_fmt) as p_bar:
+            for _ in iter(q_writer.get, None):
+                p_bar.update()
 
     def _run_multi_align(self, db_genome_id, path, marker_set_id):
         """
@@ -238,9 +228,9 @@ class HmmAligner(object):
             if hit:
                 # print(marker_id)
                 gene_dict[marker_id] = {"marker_path": marker_path,
-                                       "gene": hit['hit'].gene_id,
-                                       "gene_seq": hit['seq'],
-                                       "bitscore": hit['hit'].bit_score}
+                                        "gene": hit['hit'].gene_id,
+                                        "gene_seq": hit['seq'],
+                                        "bitscore": hit['hit'].bit_score}
             else:
                 hmm_len = self._get_hmm_size(marker_path)
                 result_align[marker_id] = '-' * hmm_len
@@ -273,7 +263,7 @@ class HmmAligner(object):
                 out_fh.write("{0}".format(marker_info.get("gene_seq")))
             proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
                 "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, encoding='utf-8')
+                                    stderr=subprocess.PIPE, encoding='utf-8')
             stdout, stderr = proc.communicate()
 
             for line in stderr.splitlines():

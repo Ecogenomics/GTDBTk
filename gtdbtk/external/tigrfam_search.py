@@ -19,11 +19,12 @@ import logging
 import multiprocessing as mp
 import os
 import subprocess
-import sys
+
+from tqdm import tqdm
 
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.io.marker.tophit import TopHitTigrFile
-from gtdbtk.tools import sha256
+from gtdbtk.tools import sha256, file_has_checksum
 
 
 class TigrfamSearch(object):
@@ -39,7 +40,9 @@ class TigrfamSearch(object):
                  output_dir):
         """Initialization."""
         self.logger = logging.getLogger('timestamp')
+        self.warnings = logging.getLogger('warnings')
         self.threads = threads
+        self.cpus_per_genome = 1
         self.tigrfam_hmms = tigrfam_hmms
         self.protein_file_suffix = protein_file_suffix
         self.tigrfam_suffix = tigrfam_suffix
@@ -53,7 +56,7 @@ class TigrfamSearch(object):
         try:
             env = os.environ.copy()
             proc = subprocess.Popen(['hmmsearch', '-h'], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
             for line in output.split('\n'):
@@ -97,7 +100,7 @@ class TigrfamSearch(object):
         # Write the top-hit file to disk and calculate checksum.
         tophit_file.write()
 
-    def _workerThread(self, queueIn, queueOut):
+    def _workerThread(self, queueIn, queueOut, n_skipped):
         """Process each data item in parallel."""
         while True:
             gene_file = queueIn.get(block=True, timeout=None)
@@ -106,47 +109,47 @@ class TigrfamSearch(object):
 
             assembly_dir, filename = os.path.split(gene_file)
             genome_id = filename.replace(self.protein_file_suffix, '')
-            output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                        self.tigrfam_suffix))
+            genome_dir = os.path.join(self.output_dir, genome_id)
+            output_hit_file = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
+                                                                        self.tigrfam_suffix))
 
-            hmmsearch_out = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                      '_tigrfam.out'))
-            cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
-                                                                                             output_hit_file,
-                                                                                             self.cpus_per_genome,
-                                                                                             self.tigrfam_hmms,
-                                                                                             gene_file)
-            os.system(cmd)
+            hmmsearch_out = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
+                                                                      '_tigrfam.out'))
 
-            # calculate checksum
-            for out_file in [output_hit_file, hmmsearch_out]:
-                checksum = sha256(out_file)
-                with open(out_file + self.checksum_suffix, 'w') as fh:
-                    fh.write(checksum)
+            # Check if this has already been processed.
+            out_files = (output_hit_file, hmmsearch_out, TopHitTigrFile.get_path(self.output_dir, genome_id))
+            if all([file_has_checksum(x) for x in out_files]):
+                self.warnings.info(f'Skipped TIGRFAM processing for: {genome_id}')
+                with n_skipped.get_lock():
+                    n_skipped.value += 1
 
-            # identify top hit for each gene
-            self._topHit(output_hit_file)
+            else:
+                cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
+                                                                                                 output_hit_file,
+                                                                                                 self.cpus_per_genome,
+                                                                                                 self.tigrfam_hmms,
+                                                                                                 gene_file)
+                os.system(cmd)
+
+                # calculate checksum
+                for out_file in [output_hit_file, hmmsearch_out]:
+                    checksum = sha256(out_file)
+                    with open(out_file + self.checksum_suffix, 'w') as fh:
+                        fh.write(checksum)
+
+                # identify top hit for each gene
+                self._topHit(output_hit_file)
 
             # allow results to be processed or written to file
             queueOut.put(gene_file)
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
-        processedItems = 0
-        while True:
-            a = writerQueue.get(block=True, timeout=None)
-            if a is None:
-                break
-
-            processedItems += 1
-            statusStr = '==> Finished processing %d of %d (%.1f%%) genomes.' % (processedItems,
-                                                                                numDataItems,
-                                                                                float(
-                                                                                    processedItems) * 100 / numDataItems)
-            sys.stdout.write('\r%s' % statusStr)
-            sys.stdout.flush()
-
-        sys.stdout.write('\n')
+        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
+                  'genomes [{rate_fmt}, ETA {remaining}]'
+        with tqdm(total=numDataItems, bar_format=bar_fmt) as p_bar:
+            for _ in iter(writerQueue.get, None):
+                p_bar.update()
 
     def run(self, gene_files):
         """Annotate genes with TIGRFAM HMMs.
@@ -163,6 +166,7 @@ class TigrfamSearch(object):
         # populate worker queue with data to process
         workerQueue = mp.Queue()
         writerQueue = mp.Queue()
+        n_skipped = mp.Value('i', 0)
 
         for f in gene_files:
             workerQueue.put(f)
@@ -172,7 +176,7 @@ class TigrfamSearch(object):
 
         try:
             workerProc = [mp.Process(target=self._workerThread, args=(
-                workerQueue, writerQueue)) for _ in range(self.threads)]
+                workerQueue, writerQueue, n_skipped)) for _ in range(self.threads)]
             writeProc = mp.Process(target=self._writerThread, args=(
                 len(gene_files), writerQueue))
 
@@ -198,3 +202,8 @@ class TigrfamSearch(object):
 
             writeProc.terminate()
             raise
+
+        if n_skipped.value > 0:
+            genome_s = 'genome' if n_skipped.value == 1 else 'genomes'
+            self.logger.warning(f'TIGRFAM skipped {n_skipped.value} {genome_s} '
+                                f'due to pre-existing data, see warnings.log')

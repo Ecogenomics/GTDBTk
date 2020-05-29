@@ -164,5 +164,9 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
         warning_logger.addHandler(warning_fh)
 
     timestamp_logger.info('%s v%s' % (program_name, version))
-    timestamp_logger.info(ntpath.basename(
-        sys.argv[0]) + ' ' + ' '.join(sys.argv[1:]))
+    base_name = ntpath.basename(sys.argv[0])
+    if base_name == '__main__.py':
+        prog_name = __name__.split('.')[0]
+    else:
+        prog_name = base_name
+    timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')

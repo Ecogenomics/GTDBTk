@@ -1,3 +1,13 @@
+1.2.0
+- Bug fixes:
+- (#241) Moved GTDB-Tk entry point to __main__.py instead of bin/gtdbtk to support execution in some HPC systems (gtdbtk will still be aliased on install).
+- (#251) Allow parsing of FastANI v1.0 output files. However, a warning will be displayed to update FastANI.
+- (#254) Fixed an issue where --scratch_dir would fail, and not clean-up the mmap file.
+- Features:
+- (#242) Added the decorate command allowing the de novo workflow to be run
+- (#244) Added the infer_rank method which established the taxonomic ranks of internal nodes of user trees based on RED
+- (#248) If the identify command is run on the same directory, genomes which were already processed will be skipped.
+- (#248) Improved pplacer output with running the classify command.
 1.1.1
 - Minor bug fixes.
 1.1.0

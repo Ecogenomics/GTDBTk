@@ -27,9 +27,13 @@ setup(
     packages=['gtdbtk', 'gtdbtk.biolib_lite', 'gtdbtk.config', 'gtdbtk.external', 'gtdbtk.tests',
               'gtdbtk.external.pypfam', 'gtdbtk.external.pypfam.HMM', 'gtdbtk.external.pypfam.Scan',
               'gtdbtk.io', 'gtdbtk.io.marker', 'gtdbtk.io.prodigal'],
-    scripts=['bin/gtdbtk'],
     package_data={'gtdbtk': ['VERSION',
                              'MANIFEST.in', 'tests/data/genomes/*']},
+    entry_points={
+        'console_scripts': [
+            'gtdbtk = gtdbtk.__main__:main'
+        ]
+    },
     url='https://github.com/Ecogenomics/GTDBTk',
     license='GPL3',
     description='A toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes.',
@@ -46,6 +50,6 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
-    install_requires=["dendropy>=4.1.0", 'numpy>=1.9.0'],
+    install_requires=["dendropy>=4.1.0", 'numpy>=1.9.0', 'tqdm'],
     data_files=[("", ["LICENSE"])]
 )

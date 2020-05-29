@@ -16,9 +16,8 @@
 ###############################################################################
 
 import os
-import random
 import shutil
-import string
+import tempfile
 import unittest
 
 import dendropy
@@ -33,19 +32,16 @@ class TestClassify(unittest.TestCase):
 
     def setUp(self):
         self.classify = Classify()
-
-        self.generic_out_path = 'tests/data/results'
-        tmp_folder = ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(10))
-        self.out_dir = os.path.join(self.generic_out_path, tmp_folder)
-        if not os.path.exists(self.generic_out_path):
-            os.makedirs(self.generic_out_path)
+        self.out_dir = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         self.prefix = 'gtdbtk'
         self.pplacer_dir_reference = 'tests/data/pplacer_dir_reference'
         self.aln_dir_ref = 'tests/data/align_dir_reference/align'
         self.user_msa_file = os.path.join(self.aln_dir_ref, 'gtdbtk.ar122.user_msa.fasta')
         self.taxonomy_file = Config.TAXONOMY_FILE
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
+
+    def tearDown(self):
+        shutil.rmtree(self.out_dir)
 
     def test_standardise_taxonomy(self):
         taxstring = 'p__phylum1;c_class1'
@@ -124,8 +120,6 @@ class TestClassify(unittest.TestCase):
             'genome_1'), 'd__Archaea;p__Euryarchaeota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__')
 
     def test_place_genomes(self):
-        if not os.path.exists(self.out_dir):
-            os.makedirs(self.out_dir)
         tree_file = self.classify.place_genomes(
             self.user_msa_file, 'ar122', self.out_dir, self.prefix)
         with open(tree_file, 'r') as f:
@@ -154,9 +148,6 @@ class TestClassify(unittest.TestCase):
                 if eg.length is not None]
 
         self.assertTrue(sum(egs2) / len(egs2) < 0.1)
-
-    def tearDown(self):
-        shutil.rmtree(self.generic_out_path)
 
 
 if __name__ == '__main__':

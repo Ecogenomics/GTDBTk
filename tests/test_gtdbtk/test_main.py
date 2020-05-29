@@ -140,35 +140,35 @@ class TestOptionsParser(unittest.TestCase):
         self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile,
                           'fna')
 
-    def test__genomes_to_process__batchfile__invalid_genome_id(self):
-        """ Test that a batchfile containing duplicate genome ids throws an exception. """
-        # Branch 1: The number of columns are not equal to 2.
-        path_batchfile_1 = os.path.join(self.dir_tmp, 'batchfile_1.txt')
-        path_batchfile_2 = os.path.join(self.dir_tmp, 'batchfile_2.txt')
-        path_batchfile_3 = os.path.join(self.dir_tmp, 'batchfile_3.txt')
-        path_genome_1 = os.path.join(self.dir_tmp, 'genome_1.fna')
-        path_genome_2 = os.path.join(self.dir_tmp, 'genome_2.fna')
-        open(path_genome_1, 'a').close()
-        open(path_genome_2, 'a').close()
-
-        with open(path_batchfile_1, 'a') as f:
-            f.write('%s\tgenome_1\n' % path_genome_1)
-            f.write('\n')
-            f.write('%s\tGB_genome_2\n' % path_genome_2)
-
-        with open(path_batchfile_2, 'a') as f:
-            f.write('%s\tgenome_1\n' % path_genome_1)
-            f.write('\n')
-            f.write('%s\tRS_genome_2\n' % path_genome_2)
-
-        with open(path_batchfile_3, 'a') as f:
-            f.write('%s\tgenome_1\n' % path_genome_1)
-            f.write('\n')
-            f.write('%s\tUBAgenome_2\n' % path_genome_2)
-
-        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_1, 'fna')
-        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_2, 'fna')
-        self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_3, 'fna')
+    # def test__genomes_to_process__batchfile__invalid_genome_id(self):
+    #     """ Test that a batchfile containing duplicate genome ids throws an exception. """
+    #     # Branch 1: The number of columns are not equal to 2.
+    #     path_batchfile_1 = os.path.join(self.dir_tmp, 'batchfile_1.txt')
+    #     path_batchfile_2 = os.path.join(self.dir_tmp, 'batchfile_2.txt')
+    #     path_batchfile_3 = os.path.join(self.dir_tmp, 'batchfile_3.txt')
+    #     path_genome_1 = os.path.join(self.dir_tmp, 'genome_1.fna')
+    #     path_genome_2 = os.path.join(self.dir_tmp, 'genome_2.fna')
+    #     open(path_genome_1, 'a').close()
+    #     open(path_genome_2, 'a').close()
+    #
+    #     with open(path_batchfile_1, 'a') as f:
+    #         f.write('%s\tgenome_1\n' % path_genome_1)
+    #         f.write('\n')
+    #         f.write('%s\tGB_genome_2\n' % path_genome_2)
+    #
+    #     with open(path_batchfile_2, 'a') as f:
+    #         f.write('%s\tgenome_1\n' % path_genome_1)
+    #         f.write('\n')
+    #         f.write('%s\tRS_genome_2\n' % path_genome_2)
+    #
+    #     with open(path_batchfile_3, 'a') as f:
+    #         f.write('%s\tgenome_1\n' % path_genome_1)
+    #         f.write('\n')
+    #         f.write('%s\tUBAgenome_2\n' % path_genome_2)
+    #
+    #     self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_1, 'fna')
+    #     self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_2, 'fna')
+    #     self.assertRaises(GTDBTkExit, self.options_parser._genomes_to_process, '', path_batchfile_3, 'fna')
 
     def test__genomes_to_process__no_files(self):
         """ Test that an exception is thrown if no files are found to process """

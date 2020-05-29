@@ -16,80 +16,16 @@
 ###############################################################################
 
 import logging
+import multiprocessing as mp
 import os
+import queue
 import re
 import subprocess
-import sys
+
+from tqdm import tqdm
 
 from gtdbtk.exceptions import PplacerException, TogException
-
-
-class PplacerLogger(object):
-    """Helper class for writing pplacer output."""
-
-    def __init__(self, fh):
-        """Initialise the class.
-
-        Parameters
-        ----------
-        fh : BinaryIO
-            The file to write to .
-        """
-        self.fh = fh
-
-    def _disp_progress(self, line):
-        """Calculates the progress and writes it to stdout.
-
-        Parameters
-        ----------
-        line : str
-            The line passed from pplacer stdout.
-        """
-        if not line.startswith('working on '):
-            sys.stdout.write(f'\rInitialising pplacer [{line[0:50].center(50)}]')
-            sys.stdout.flush()
-        else:
-            re_hits = re.search(r'\((\d+)\/(\d+)\)', line)
-            current = int(re_hits.group(1))
-            total = int(re_hits.group(2))
-            sys.stdout.write('\r{}'.format(self._get_progress_str(current,
-                                                                  total)))
-            sys.stdout.flush()
-
-    def _get_progress_str(self, current, total):
-        """Determines the format of the genomes % string.
-
-        Parameters
-        ----------
-        current : int
-            The current number of genomes which have been placed.
-        total : int
-            The total number of genomes which are to be placed.
-
-        Returns
-        -------
-        out : str
-            A string formatted to show the progress of placement.
-        """
-        width = 50
-        bar = str()
-        prop = float(current) / total
-        bar += '#' * int(prop * width)
-        bar += '-' * (width - len(bar))
-        return 'Placing genomes |{}| {}/{} ({:.2f}%)'.format(bar, current,
-                                                             total, prop * 100)
-
-    def read(self, line):
-        """Reads a line and writes the progress to stdout and the file.
-
-        Parameters
-        ----------
-        line : str
-            A line returned from Prodigal stdout.
-        """
-        self.fh.write(line)
-        line = line.strip()
-        self._disp_progress(line)
+from gtdbtk.tools import get_proc_memory_gb
 
 
 class Pplacer(object):
@@ -106,7 +42,7 @@ class Pplacer(object):
         try:
             env = os.environ.copy()
             proc = subprocess.Popen(['pplacer', '--version'], stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env, encoding='utf-8')
+                                    stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
             return output.strip()
@@ -131,7 +67,6 @@ class Pplacer(object):
                               file isn't generated.
 
         """
-
         args = ['pplacer', '-m', model, '-j', str(cpus), '-c', ref_pkg, '-o',
                 json_out, msa_file]
         if mmap_file:
@@ -139,26 +74,144 @@ class Pplacer(object):
             args.append(mmap_file)
         self.logger.debug(' '.join(args))
 
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf-8')
-        with open(pplacer_out, 'w') as fh:
-            pplacer_logger = PplacerLogger(fh)
-            while True:
-                line = proc.stdout.readline()
-                if not line:
-                    sys.stdout.write('\n')
-                    break
-                pplacer_logger.read(line)
-        proc.wait()
+        out_q = mp.Queue()
+        pid = mp.Value('i', 0)
+        p_worker = mp.Process(target=self._worker, args=(
+            args, out_q, pplacer_out, pid))
+        p_writer = mp.Process(target=self._writer, args=(out_q, pid))
 
-        if proc.returncode != 0:
-            raise PplacerException('An error was encountered while '
-                                   'running pplacer, check the log '
-                                   'file: {}'.format(pplacer_out))
+        try:
+            p_worker.start()
+            p_writer.start()
+
+            p_worker.join()
+            out_q.put(None)
+            p_writer.join()
+
+            if p_worker.exitcode != 0:
+                raise PplacerException(
+                    'An error was encountered while running pplacer.')
+        except Exception:
+            p_worker.terminate()
+            p_writer.terminate()
+            raise
+        finally:
+            if mmap_file:
+                os.remove(mmap_file)
 
         if not os.path.isfile(json_out):
             self.logger.error('pplacer returned a zero exit code but no output '
                               'file was generated.')
             raise PplacerException
+
+    def _worker(self, args, out_q, pplacer_out, pid):
+        """The worker thread writes the piped output of pplacer to disk and
+        shares it with the writer thread for logging."""
+        with subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf-8') as proc:
+            with pid.get_lock():
+                pid.value = proc.pid
+
+            with open(pplacer_out, 'w') as fh:
+                while True:
+                    line = proc.stdout.readline()
+                    if not line:
+                        break
+                    fh.write(f'{line}')
+                    out_q.put(line)
+            proc.wait()
+
+            if proc.returncode != 0:
+                raise PplacerException('An error was encountered while '
+                                       'running pplacer, check the log '
+                                       'file: {}'.format(pplacer_out))
+
+    def _writer(self, out_q, pid):
+        """The writer subprocess is able to report on newly piped events from
+        subprocess in the worker thread, and report on memory usage while
+        waiting for new commands."""
+        states = ['Reading user alignment',
+                  'Reading reference alignment',
+                  'Pre-masking sequences',
+                  'Determining figs',
+                  'Allocating memory for internal nodes',
+                  'Caching likelihood information on reference tree',
+                  'Pulling exponents',
+                  'Preparing the edges for baseball',
+                  'Placing genomes']
+        cur_state = None
+        n_total, n_placed = None, 0
+        # Create a progress bar which tracks the initialization step of
+        # pplacer.
+        bar_fmt = '==> {desc}.'
+        with tqdm(bar_format=bar_fmt) as p_bar:
+            p_bar.set_description_str(desc='Step 1 of 9: Starting pplacer')
+            while True:
+                try:
+                    state = out_q.get(block=True, timeout=5)
+                    if not state:
+                        break
+                    elif state.startswith('Running pplacer'):
+                        cur_state = 0
+                    elif state.startswith("Didn't find any reference"):
+                        cur_state = 1
+                    elif state.startswith('Pre-masking sequences'):
+                        cur_state = 2
+                    elif state.startswith('Determining figs'):
+                        cur_state = 3
+                    elif state.startswith('Allocating memory for internal'):
+                        cur_state = 4
+                    elif state.startswith('Caching likelihood information'):
+                        cur_state = 5
+                    elif state.startswith('Pulling exponents'):
+                        cur_state = 6
+                    elif state.startswith('Preparing the edges'):
+                        cur_state = 7
+                    elif state.startswith('working on '):
+                        cur_state = 8
+                    else:
+                        cur_state = None
+
+                    # Error, display the log file line.
+                    if not cur_state:
+                        p_bar.set_description_str(desc=state.strip())
+
+                    # New line written for each placed genome, update the
+                    # count.
+                    elif cur_state == 8:
+                        if not n_total:
+                            n_total = int(
+                                re.search(r'\((\d+)\/(\d+)\)', state).group(2))
+                        n_placed += 1
+                        p_bar.set_description_str(desc=f'Step 9 of {len(states)}: placing '
+                                                  f'genome {n_placed} of {n_total} '
+                                                  f'({n_placed / n_total:.2%})')
+
+                    # Display the output for the current state.
+                    else:
+                        p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                  f'{states[cur_state + 1]}')
+
+                # Report the memory usage if at a memory-reportable state.
+                except queue.Empty:
+                    if cur_state == 3:
+                        virt, res = get_proc_memory_gb(pid.value)
+                        if virt and res:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
+                                                      f'{states[4]} ({virt:.2f} GB)')
+                        else:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
+                                                           f'{states[4]}')
+                    elif cur_state == 4:
+                        virt, res = get_proc_memory_gb(pid.value)
+                        if virt and res:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                      f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
+                                                      f'{res / virt:.2%})')
+                        else:
+                            p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
+                                                           f'{states[5]}')
+                except Exception:
+                    pass
 
     def tog(self, pplacer_json_out, tree_file):
         """ Convert the pplacer json output into a newick tree.
