@@ -122,7 +122,7 @@ class PfamSearch(object):
         """Store or write results of worker threads in a single thread."""
         bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
                   'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=numDataItems, bar_format=bar_fmt) as p_bar:
+        with tqdm(total=numDataItems, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
             for _ in iter(writerQueue.get, None):
                 p_bar.update()
 

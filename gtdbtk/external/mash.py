@@ -224,7 +224,7 @@ class SketchFile(object):
                                     stderr=subprocess.PIPE, encoding='utf-8')
             bar_fmt = '==> Sketched {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
                       'genomes [{rate_fmt}, ETA {remaining}]'
-            with tqdm(bar_format=bar_fmt, total=len(self.genomes)) as p_bar:
+            with tqdm(bar_format=bar_fmt, total=len(self.genomes), mininterval=1, smoothing=0.1) as p_bar:
                 for line in iter(proc.stderr.readline, ''):
                     if line.startswith('Sketching'):
                         p_bar.update()

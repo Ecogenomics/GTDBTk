@@ -246,7 +246,7 @@ class FastANI(object):
         """
         bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
                   'comparisons [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=n_total, bar_format=bar_fmt) as p_bar:
+        with tqdm(total=n_total, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 
