@@ -803,7 +803,9 @@ class Taxonomy(object):
         Parameters
         ----------
         taxonomy_file : str
-            Greengenes-style taxonomy file.
+            Path to a Greengenes-style taxonomy file.
+        canonical_ids : bool
+            True if to use the canonical ID format, False otherwise.
 
         Returns
         -------
