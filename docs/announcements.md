@@ -7,6 +7,13 @@ nav_order: 1
 
 # Announcements
 
+**Note (MONTH DD, YYYY)**:
+ * GTDB-Tk v1.x.x has been released 
+    * *Bug fixes:*
+        * ????
+    * *Features:*
+        * Report if the species-specific ANI circumscription criteria is satisfied in the `ani_closest.tsv` file output by `ani_rep`.
+ 
 **Note (May 29, 2020)**:
  * GTDB-Tk v1.2.0 has been released 
     * *Bug fixes:*
