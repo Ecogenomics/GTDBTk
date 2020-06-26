@@ -8,7 +8,7 @@ nav_order: 1
 # Announcements
 
 **Note (May 29, 2020)**:
- * GTDB-Tk v1.2.0 has been released 
+ * GTDB-Tk v1.2.0 has been released
     * *Bug fixes:*
         * ([#241](https://github.com/Ecogenomics/GTDBTk/issues/241)) Moved GTDB-Tk entry point to `__main__.py` instead of `bin/gtdbtk` to support execution in some HPC systems (`gtdbtk` will still be aliased on install).
         * ([#251](https://github.com/Ecogenomics/GTDBTk/issues/251)) Allow parsing of FastANI v1.0 output files. However, a warning will be displayed to update FastANI.
@@ -20,7 +20,7 @@ nav_order: 1
         * ([#248](https://github.com/Ecogenomics/GTDBTk/pull/248)) Improved `pplacer` output with running the `classify` command.
  
 **Note (Apr 9, 2020)**:
-* GTDB-Tk v1.1.0 has been released (**we recommend all users update to this version**)
+* GTDB-Tk v1.1.0 has been released
     * *Bug fixes:*
         * In rare cases pplacer would assign an empty taxonomy string which would raise an error.
         * ([#229](https://github.com/Ecogenomics/GTDBTk/issues/229)) Genomes using windows line carriage `\r\n` would raise an error.
