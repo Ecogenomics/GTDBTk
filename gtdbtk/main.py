@@ -20,6 +20,7 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Dict, Tuple
 
 import gtdbtk.config.config as Config
 from gtdbtk.ani_rep import ANIRep
@@ -231,7 +232,7 @@ class OptionsParser(object):
             raise GenomeMarkerSetUnknown('No marker set specified.')
         return marker_set_id
 
-    def _read_taxonomy_files(self, options):
+    def _read_taxonomy_files(self, options) -> Dict[str, Tuple[str, str, str, str, str, str, str]]:
         """Read and merge taxonomy files."""
 
         self.logger.info('Reading GTDB taxonomy for representative genomes.')
@@ -360,10 +361,7 @@ class OptionsParser(object):
         check_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
 
-        if options.cpus > 1:
-            check_dependencies(['FastTreeMP'])
-        else:
-            check_dependencies(['FastTree'])
+        check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
         if hasattr(options, 'suffix'):
             output_tree = os.path.join(options.out_dir,
@@ -659,8 +657,7 @@ class OptionsParser(object):
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
-            check_dependencies(
-                ['FastTree' + ('MP' if options.cpus > 1 else '')])
+            check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
             self.identify(options)
 

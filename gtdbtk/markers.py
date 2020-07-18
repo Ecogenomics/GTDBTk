@@ -19,6 +19,7 @@ import logging
 import os
 from collections import defaultdict
 from shutil import copy
+from typing import Dict, Tuple, Optional
 
 import numpy as np
 from tqdm import tqdm
@@ -210,13 +211,32 @@ class Markers(object):
                 self.warnings.info(lq_gid)
         return genomic_files
 
-    def _msa_filter_by_taxa(self, concatenated_file, gtdb_taxonomy, taxa_filter, outgroup_taxon):
-        """Filter GTDB MSA filtered to specified taxa."""
+    def _msa_filter_by_taxa(self, concatenated_file: str,
+                            gtdb_taxonomy: Dict[str, Tuple[str, str, str, str, str, str, str]],
+                            taxa_filter: Optional[str],
+                            outgroup_taxon: Optional[str]) -> Dict[str, str]:
+        """Filter GTDB MSA to a subset of specified taxa.
+
+        Parameters
+        ----------
+        concatenated_file
+            The path to the MSA.
+        gtdb_taxonomy
+            A dictionary mapping the accession to the 7 rank taxonomy.
+        taxa_filter
+            A comma separated list of taxa to include.
+        outgroup_taxon
+            If using an outgroup (de novo workflow), ensure this is retained.
+
+        Returns
+        -------
+        Dict[str, str]
+            The genome id to msa of those genomes specified in the filter.
+        """
 
         msa = read_fasta(concatenated_file)
         msa_len = len(msa)
-        self.logger.info(
-            'Read concatenated alignment for {:,} GTDB genomes.'.format(msa_len))
+        self.logger.info(f'Read concatenated alignment for {msa_len:,} GTDB genomes.')
 
         if taxa_filter is not None:
             taxa_to_keep = set(taxa_filter.split(','))
@@ -232,10 +252,8 @@ class Markers(object):
                         del msa[genome_id]
                         filtered_genomes += 1
 
-            msg = 'Filtered {:.2f}% ({:,}/{:,}) taxa based on assigned taxonomy, ' \
-                  '{:,} taxa remain.'.format(
-                      (float(filtered_genomes) / float(msa_len)) * 100.0,
-                      filtered_genomes, msa_len, msa_len - filtered_genomes)
+            msg = f'Filtered {filtered_genomes / msa_len:.2%} ({filtered_genomes:,}/{msa_len:,}) ' \
+                  f'taxa based on assigned taxonomy, {msa_len - filtered_genomes:,} taxa remain.'
             self.logger.info(msg) if len(msa) > 0 else self.logger.warning(msg)
 
         return msa

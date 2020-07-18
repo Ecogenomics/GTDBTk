@@ -7,6 +7,15 @@ nav_order: 1
 
 # Announcements
 
+**Note (July 17, 2020)**:
+ * GTDB-Tk v1.3.0 has been released
+    * This version of GTDB-Tk requires a new version of the GTDB-Tk reference package 
+    (gtdbtk_r95_data.tar.gz) available [here](https://data.ace.uq.edu.au/public/gtdb/data/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz).
+    * *Features:*
+        * Updated reference package to use the **GTDB Release 95** taxonomy.
+        * Report if the species-specific ANI circumscription criteria is satisfied in the `ani_closest.tsv` file output by `ani_rep`.
+        * Estimated time until completion has been dampened.
+
 **Note (May 29, 2020)**:
  * GTDB-Tk v1.2.0 has been released
     * *Bug fixes:*

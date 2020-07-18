@@ -105,7 +105,7 @@ class PackageChecker(object):
         # Archaeal Pplacer MSA should have the same number of genomes as the
         # Archaeal untrimmed MSA
         ar_pplacer_msa_file = glob.glob(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_msa_r89.faa'))[0]
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_msa_r95.faa'))[0]
         ar_pplacer_msa = read_fasta(ar_pplacer_msa_file)
         if len(ar_pplacer_msa) != len(ar_msa):
             print('ERROR: len(ar_pplacer_msa) != len(ar_msa)')
@@ -122,7 +122,7 @@ class PackageChecker(object):
         # Bacterial Pplacer MSA should have the same number of genomes as the
         # Bacterial untrimmed MSA
         bac_pplacer_msa_file = os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'bac120_msa_r89.faa')
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_bac120.refpkg', 'bac120_msa_r95.faa')
         bac_pplacer_msa = read_fasta(bac_pplacer_msa_file)
         if len(bac_pplacer_msa) != len(bac_msa):
             print('ERROR: len(bac_pplacer_msa) != len(bac_msa)')

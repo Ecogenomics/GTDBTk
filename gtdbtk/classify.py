@@ -95,14 +95,14 @@ class Classify(object):
         mem_gb = get_memory_gb()
         if mem_gb is not None:
             mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and mem_total < 100:
-                self.logger.warning(f'pplacer requires ~113 GB of RAM to fully '
+            if marker_set_id == 'bac120' and mem_total < 145:
+                self.logger.warning(f'pplacer requires ~152 GB of RAM to fully '
                                     f'load the bacterial tree into memory. '
                                     f'However, {mem_total}GB was detected. '
                                     f'This may affect pplacer performance, '
                                     f'or fail if there is insufficient scratch space.')
-            elif marker_set_id == 'ar122' and mem_total < 5:
-                self.logger.warning(f'pplacer requires ~6.2 GB of RAM to fully '
+            elif marker_set_id == 'ar122' and mem_total < 6:
+                self.logger.warning(f'pplacer requires ~8.2 GB of RAM to fully '
                                     f'load the archaeal tree into memory. '
                                     f'However, {mem_total}GB was detected. '
                                     f'This may affect pplacer performance, '

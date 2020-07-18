@@ -17,6 +17,7 @@
 
 import logging
 import random
+from typing import Set
 
 import dendropy
 
@@ -31,16 +32,16 @@ class RerootTree(object):
         
         self.logger = logging.getLogger('timestamp')
 
-    def root_with_outgroup(self, input_tree, output_tree, outgroup):
+    def root_with_outgroup(self, input_tree: str, output_tree: str, outgroup: Set[str]):
         """Reroot the tree using the given outgroup.
 
         Parameters
         ----------
-        input_tree : str
+        input_tree
           File containing Newick tree to rerooted.
-        output_tree : str
+        output_tree
           Name of file for rerooted tree.
-        outgroup : iterable
+        outgroup
           Labels of taxa in outgroup.
         """
 
@@ -58,10 +59,8 @@ class RerootTree(object):
             else:
                 ingroup_leaves.add(n)
 
-        self.logger.info('Identified {:,} outgroup taxa in the tree.'.format(
-                         len(outgroup_in_tree)))
-        self.logger.info('Identified {:,} ingroup taxa in the tree.'.format(
-                         len(ingroup_leaves)))
+        self.logger.info(f'Identified {len(outgroup_in_tree):,} outgroup taxa in the tree.')
+        self.logger.info(f'Identified {len(ingroup_leaves):,} ingroup taxa in the tree.')
 
         if len(outgroup_in_tree) == 0:
             self.logger.error('No outgroup taxa identified in the tree.')
@@ -93,22 +92,22 @@ class RerootTree(object):
             mrca_leaves = len(mrca.leaf_nodes())
 
         if len(mrca.leaf_nodes()) != len(outgroup_in_tree):
-            self.logger.info(
-                'Outgroup is not monophyletic. Tree will be rerooted at the MRCA of the outgroup.')
-            self.logger.info('The outgroup consisted of {:,} taxa, while the MRCA has {:,} leaf nodes.'.format(
-                len(outgroup_in_tree), len(mrca.leaf_nodes())))
+            self.logger.info('Outgroup is not monophyletic. Tree will be '
+                             'rerooted at the MRCA of the outgroup.')
+            self.logger.info(f'The outgroup consisted of '
+                             f'{len(outgroup_in_tree):,} taxa, while the MRCA '
+                             f'has {len(mrca.leaf_nodes()):,} leaf nodes.')
             if len(mrca.leaf_nodes()) == len(tree.leaf_nodes()):
                 self.logger.warning('The MRCA spans all taxa in the tree.')
-                self.logger.warning(
-                    'This indicating the selected outgroup is likely polyphyletic in the current tree.')
-                self.logger.warning(
-                    'Polyphyletic outgroups are not suitable for rooting. Try another outgroup.')
+                self.logger.warning('This indicating the selected outgroup is '
+                                    'likely polyphyletic in the current tree.')
+                self.logger.warning('Polyphyletic outgroups are not suitable '
+                                    'for rooting. Try another outgroup.')
         else:
             self.logger.info('Outgroup is monophyletic.')
 
         if mrca.edge_length is None:
-            self.logger.info(
-                'Tree appears to already be rooted on this outgroup.')
+            self.logger.info('Tree appears to already be rooted on this outgroup.')
         else:
             self.logger.info('Rerooting tree.')
             tree.reroot_at_edge(mrca.edge,
@@ -116,7 +115,7 @@ class RerootTree(object):
                                 length2=0.5 * mrca.edge_length)
             tree.write_to_path(output_tree, schema='newick',
                                suppress_rooting=True, unquoted_underscores=True)
-            self.logger.info('Rerooted tree written to: {}'.format(output_tree))
+            self.logger.info(f'Rerooted tree written to: {output_tree}')
 
     def midpoint(self, input_tree, output_tree):
         """Reroot tree bat midpoint.
