@@ -207,13 +207,12 @@ MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")
 MRCA_RED_AR122 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_ar122.tsv")
 
 # Hashing information for validating the reference package.
-# TODO: UPDATE THIS
-REF_HASHES = {PPLACER_DIR: 'cc53e494048fb50b2789bcdec2868eac2d3cb2b3',
-              MASK_DIR: 'a6c8143c0bb393898e01aae90799e640f7c2057b',
+REF_HASHES = {PPLACER_DIR: 'f41cfe0284ebaca4485b42e054936190c6a88bd1',
+              MASK_DIR: '63551a43333bc6cbc9abf139ce881847ca19240b',
               MARKER_DIR: 'a325720422d8348d7a934143cc86112b6c92ac98',
-              RADII_DIR: '4b0f6ce959a67afa6277d8810d4a1a2bd11f212f',
-              MSA_FOLDER: 'a318b890b35af70c91b6c8d0cd25671d9aff21ed',
-              METADATA_DIR: '309c5f643d55f2740837dfa0423af7ce873107d5',
-              TAX_FOLDER: '2037fd5fb43d886821ef21e7d2e899465b37589d',
-              FASTANI_DIR: '5a5021fb098c4abda08928b7991f4bc00a77e851',
-              RED_DIR: '1dd0316cf4bd9f1afc490bb121b16b956759ee75'}
+              RADII_DIR: '1092727925f38a8a2b3f4fb40e3316c0083671f5',
+              MSA_FOLDER: 'cf91d712c733e7e2535a41e6153c12b3c37d1ede',
+              METADATA_DIR: 'e003b4d5d48302e85c536751f663a70447de83d4',
+              TAX_FOLDER: '30c5970b2eaf5df654b2e01bfa39265302c0be89',
+              FASTANI_DIR: '6a3555bb61d9cc3163c26e65772b96b8f58a2d84',
+              RED_DIR: '6f661eef8e172a8a7e78af2a74fe4d079a3f5b0f'}

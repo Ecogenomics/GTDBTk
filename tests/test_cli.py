@@ -308,7 +308,7 @@ class TestCli(unittest.TestCase):
         """Test that rooting is successful when called through the CLI"""
         options = argparse.ArgumentParser()
         options.input_tree = 'tests/data/pplacer_dir_reference/gtdbtk.ar122.classify.tree'
-        options.outgroup_taxon = 'p__Altiarchaeota'
+        options.outgroup_taxon = 'p__Altarchaeota'
         options.output_tree = os.path.join(self.generic_out_path, 'test.rooted.tree')
         options.custom_taxonomy_file = None
         options.gtdbtk_classification_file = None
