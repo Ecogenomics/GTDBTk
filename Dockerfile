@@ -1,6 +1,6 @@
 # How to build and deploy the Docker image:
-# sudo docker build --no-cache -t ecogenomic/gtdbtk:latest -t ecogenomic/gtdbtk:1.1.2 .
-# sudo docker push ecogenomic/gtdbtk:latest && sudo docker push ecogenomic/gtdbtk:1.1.2
+# sudo docker build --no-cache -t ecogenomic/gtdbtk:latest -t ecogenomic/gtdbtk:1.3.0 .
+# sudo docker push ecogenomic/gtdbtk:latest && sudo docker push ecogenomic/gtdbtk:1.3.0
 
 FROM ubuntu:18.04
 
@@ -41,9 +41,9 @@ RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplace
 # ---------------------------------------------------------------------------- #
 # ----------------------------- INSTALL FASTANI ------------------------------ #
 # ---------------------------------------------------------------------------- #
-RUN wget https://github.com/ParBLiSS/FastANI/releases/download/v1.3/fastANI-Linux64-v1.3.zip -q && \
-    unzip fastANI-Linux64-v1.3.zip -d /usr/bin && \
-    rm fastANI-Linux64-v1.3.zip
+RUN wget https://github.com/ParBLiSS/FastANI/releases/download/v1.31/fastANI-Linux64-v1.31.zip -q && \
+    unzip fastANI-Linux64-v1.31.zip -d /usr/bin && \
+    rm fastANI-Linux64-v1.31.zip
 
 # ---------------------------------------------------------------------------- #
 # --------------------- SET GTDB-TK MOUNTED DIRECTORIES ---------------------- #
@@ -58,7 +58,8 @@ ENV GTDBTK_DATA_PATH="/refdata/"
 RUN python -m pip install --upgrade pip && \
     python -m pip install dendropy>=4.1.0 && \
     python -m pip install numpy>=1.9.0 && \
-    python -m pip install gtdbtk==1.2.0
+    python -m pip install tqdm>=4.31.0 && \
+    python -m pip install gtdbtk==1.3.0
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------- SET THE ENTRYPOINT ---------------------------- #

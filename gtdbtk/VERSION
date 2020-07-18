@@ -1,3 +1,8 @@
+1.3.0
+- Features:
+-- Updated reference package to use the GTDB Release 95 taxonomy.
+-- Report if the species-specific ANI circumscription criteria is satisfied in the ani_closest.tsv file output by ani_rep.
+-- Estimated time until completion has been dampened.
 1.2.0
 - Bug fixes:
 - (#241) Moved GTDB-Tk entry point to __main__.py instead of bin/gtdbtk to support execution in some HPC systems (gtdbtk will still be aliased on install).
