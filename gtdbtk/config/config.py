@@ -21,7 +21,7 @@ except KeyError:
 If the reference package sub-folders still exist in GTDBTK_DATA_PATH, then there
 is no need to edit the variables below.
 """
-MIN_REF_DATA_VERSION = 'r89'
+MIN_REF_DATA_VERSION = 'r95'
 
 MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
 MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
@@ -207,6 +207,7 @@ MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")
 MRCA_RED_AR122 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_ar122.tsv")
 
 # Hashing information for validating the reference package.
+# TODO: UPDATE THIS
 REF_HASHES = {PPLACER_DIR: 'cc53e494048fb50b2789bcdec2868eac2d3cb2b3',
               MASK_DIR: 'a6c8143c0bb393898e01aae90799e640f7c2057b',
               MARKER_DIR: 'a325720422d8348d7a934143cc86112b6c92ac98',

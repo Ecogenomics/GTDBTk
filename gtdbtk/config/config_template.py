@@ -21,7 +21,7 @@ except KeyError:
 If the reference package sub-folders still exist in GTDBTK_DATA_PATH, then there
 is no need to edit the variables below.
 """
-MIN_REF_DATA_VERSION = 'r89'
+MIN_REF_DATA_VERSION = 'r95'
 
 MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
 MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
