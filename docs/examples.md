@@ -9,4 +9,4 @@ nav_order: 6
 
 Example jupyter notebooks can be found here:
 
-* [Classify workflow]()
+* [Classify workflow](https://github.com/Ecogenomics/GTDBTk/blob/master/docs/examples/classify_wf.ipynb)
