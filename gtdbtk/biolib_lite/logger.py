@@ -37,9 +37,12 @@ def supports_colour():
         https://github.com/django/django/blob/master/django/core/management/color.py
 
     """
-    supported_platform = sys.platform != 'win32' or 'ANSICON' in os.environ
-    is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-    return supported_platform and is_a_tty
+    try:
+        supported_platform = sys.platform != 'win32' or 'ANSICON' in os.environ
+        is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+        return supported_platform and is_a_tty
+    except Exception:
+        return False
 
 
 def colour(to_fmt, attr=None, fg=None, bg=None):
