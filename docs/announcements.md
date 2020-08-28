@@ -7,6 +7,11 @@ nav_order: 1
 
 # Announcements
 
+**Note (MONTH DD, YYYY)**:
+ * GTDB-Tk v1.X.X has been released
+    * Check if stdout is being piped to a file before adding colour.
+
+
 **Note (July 17, 2020)**:
  * GTDB-Tk v1.3.0 has been released
     * This version of GTDB-Tk requires a new version of the GTDB-Tk reference package 

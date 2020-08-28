@@ -24,9 +24,26 @@ import sys
 from .common import make_sure_path_exists
 
 
+def supports_colour():
+    """Check that the current terminal supports colour.
+
+    Returns
+    -------
+    bool
+        True if the terminal supports colour, False otherwise.
+
+    References
+    ----------
+        https://github.com/django/django/blob/master/django/core/management/color.py
+
+    """
+    supported_platform = sys.platform != 'win32' or 'ANSICON' in os.environ
+    is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+    return supported_platform and is_a_tty
+
+
 def colour(to_fmt, attr=None, fg=None, bg=None):
-    """Format a string according to the following rules.
-    http://www.termsys.demon.co.uk/vtansi.htm
+    """Format a string using ANSI colour encoding, if the terminal supports it.
 
     Parameters
     ----------
@@ -44,16 +61,19 @@ def colour(to_fmt, attr=None, fg=None, bg=None):
     str
         A string formatted according to the specifications.
     """
-    options_attr = {'reset': 0, 'bright': 1, 'dim': 2, 'underscore': 4,
-                    'blink': 5, 'reverse': 7, 'hidden': 8}
-    options_col = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4,
-                   'magenta': 5, 'cyan': 6, 'white': 7}
-    options = list() if not attr else [str(options_attr[x]) for x in attr]
-    if fg:
-        options.append(str(30 + options_col[fg]))
-    if bg:
-        options.append(str(40 + options_col[bg]))
-    return '\x1b[{}m{}\x1b[0m'.format(';'.join(options), to_fmt)
+    if not supports_colour():
+        return to_fmt
+    else:
+        options_attr = {'reset': 0, 'bright': 1, 'dim': 2, 'underscore': 4,
+                        'blink': 5, 'reverse': 7, 'hidden': 8}
+        options_col = {'black': 0, 'red': 1, 'green': 2, 'yellow': 3, 'blue': 4,
+                       'magenta': 5, 'cyan': 6, 'white': 7}
+        options = list() if not attr else [str(options_attr[x]) for x in attr]
+        if fg:
+            options.append(str(30 + options_col[fg]))
+        if bg:
+            options.append(str(40 + options_col[bg]))
+        return '\x1b[{}m{}\x1b[0m'.format(';'.join(options), to_fmt)
 
 
 def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
