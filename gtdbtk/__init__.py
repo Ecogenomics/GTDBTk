@@ -15,26 +15,17 @@
 #                                                                             #
 ###############################################################################
 
-import os
-
-
-def version():
-    """Read program version from file.
-
-    Returns
-    -------
-    str
-        The current version number (e.g. 0.2.2).
-    """
-    with open(os.path.join(__path__[0], 'VERSION'), 'r') as f:
-        return f.readline().strip()
-
-
-__author__ = "Pierre Chaumeil"
-__copyright__ = "Copyright 2017"
-__credits__ = ["Pierre Chaumeil"]
-__license__ = "GPL3"
-__maintainer__ = "Pierre Chaumeil"
-__email__ = "uqpchaum@uq.edu.au"
-__status__ = "Production"
-__version__ = version()
+__author__ = 'Pierre-Alain Chaumeil and Donovan Parks'
+__author_email__ = 'p.chaumeil@uq.edu.au'
+__copyright__ = 'Copyright 2017'
+__credits__ = ['Pierre Chaumeil']
+__description__ = 'A toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes.'
+__email__ = 'uqpchaum@uq.edu.au'
+__license__ = 'GPL3'
+__maintainer__ = 'Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks'
+__maintainer_email__ = 'donovan.parks@gmail.com'
+__name__ = 'gtdbtk'
+__python_requires__ = '>=3.6'
+__status__ = 'Production'
+__url__ = 'https://github.com/Ecogenomics/GTDBTk'
+__version__ = '1.3.0'

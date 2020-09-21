@@ -1,3 +1,0 @@
-include genome_1.fna genome_2.fna genome_3.fna
-global-exclude genome_*_protein.fna
-
