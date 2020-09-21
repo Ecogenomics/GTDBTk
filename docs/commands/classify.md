@@ -23,7 +23,7 @@ Determine taxonomic classification of genomes.
 | Argument     | Description                |
 |:------------|:---------------------------|
 | `--genome_dir GENOME_DIR`          | directory containing genome files in FASTA format |
-| `--batchfile BATCHFILE`        | file describing genomes - tab separated in 2 columns (FASTA file, genome ID) |
+| `--batchfile BATCHFILE`        | file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table[optional]) |
 
 ### Optional
 
