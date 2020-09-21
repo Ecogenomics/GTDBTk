@@ -1,9 +1,11 @@
 import hashlib
+import json
 import math
 import os
 import random
 import re
 import time
+import urllib.request
 from itertools import islice
 
 import gtdbtk.config.config as Config
@@ -204,3 +206,11 @@ def get_proc_memory_gb(pid):
         res = int(re.search(r'VmRSS:[^\d]+(\d+)', contents).group(1)) / 1e6
     finally:
         return virt, res
+
+
+def get_gtdbtk_latest_version():
+    try:
+        resp = json.loads(urllib.request.urlopen('https://pypi.org/pypi/gtdbtk/json', timeout=3).read().decode('utf-8'))
+        return resp['info']['version']
+    except Exception:
+        return None
