@@ -12,18 +12,15 @@ def subparser(parser, name, desc):
 
 
 @contextmanager
-def mutex_group(parser):
-    group = parser.add_argument_group('mutually exclusive required arguments')
-    yield group.add_mutually_exclusive_group(required=True)
+def mutex_group(parser, required):
+    group = parser.add_argument_group(f'mutually exclusive '
+                                      f'{"required" if required else "optional"} '
+                                      f'arguments')
+    yield group.add_mutually_exclusive_group(required=required)
 
 
 @contextmanager
-def required_group(parser):
-    yield parser.add_argument_group('required named arguments')
-
-
-@contextmanager
-def optional_group(parser, name='optional arguments'):
+def arg_group(parser, name):
     yield parser.add_argument_group(name)
 
 
@@ -32,8 +29,8 @@ def __genome_dir(group):
 
 
 def __batchfile(group):
-    group.add_argument('--batchfile', help="file describing genomes - tab "
-                                           "separated in 3 columns (FASTA "
+    group.add_argument('--batchfile', help="path to file describing genomes - tab "
+                                           "separated in 2 or 3 columns (FASTA "
                                            "file, genome ID, translation "
                                            "table [optional])")
 
@@ -46,19 +43,20 @@ def __bacteria(group):
     group.add_argument('--bacteria', action='store_true', help='process bacterial genomes')
 
 
-def __outgroup_taxon(group):
-    group.add_argument('--outgroup_taxon', required=True,
+def __outgroup_taxon(group, required):
+    group.add_argument('--outgroup_taxon', required=required,
                        help="taxon to use as outgroup (e.g., "
-                            "p__Patescibacteria or p__Altarchaeota)")
+                            "``p__Patescibacteria`` or ``p__Altarchaeota``)")
 
 
-def __out_dir(group):
-    group.add_argument('--out_dir', required=True, help="directory to output files")
+def __out_dir(group, required):
+    group.add_argument('--out_dir', required=required,
+                       help="directory to output files")
 
 
 def __extension(group):
     group.add_argument('-x', '--extension', default='fna',
-                       help='extension of files to process, gz = gzipped')
+                       help='extension of files to process, ``gz`` = gzipped')
 
 
 def __skip_gtdb_refs(group):
@@ -69,24 +67,26 @@ def __skip_gtdb_refs(group):
 def __taxa_filter(group):
     group.add_argument('--taxa_filter',
                        help=('filter GTDB genomes to taxa (comma separated) within '
-                             + 'specific taxonomic groups (e.g., d__Bacteria '
-                             + 'or p__Proteobacteria, p__Actinobacteria)'))
+                             + 'specific taxonomic groups (e.g.: ``d__Bacteria`` '
+                             + 'or ``p__Proteobacteria,p__Actinobacteria``)'))
 
 
 def __min_perc_aa(group):
     group.add_argument('--min_perc_aa', type=float, default=10,
-                       help='filter genomes with an insufficient percentage of AA in the MSA (inclusive bound)')
+                       help='exclude genomes that do not have at least this '
+                            'percentage of AA in the MSA (inclusive bound)')
 
 
 def __custom_msa_filters(group):
     group.add_argument('--custom_msa_filters', action="store_true", default=False,
-                       help=('perform custom filtering of MSA with cols_per_gene, min_consensus '
-                             + 'max_consensus, and min_perc_taxa parameters instead of using canonical mask'))
+                       help=('perform custom filtering of MSA with ``cols_per_gene``, ``min_consensus`` '
+                             + '``max_consensus``, and ``min_perc_taxa`` parameters instead of using canonical mask'))
 
 
 def __cols_per_gene(group):
     group.add_argument('--cols_per_gene', type=int, default=42,
-                       help='maximum number of columns to retain per gene')
+                       help='maximum number of columns to retain per gene '
+                            'when generating the MSA')
 
 
 def __min_consensus(group):
@@ -113,7 +113,7 @@ def __prot_model(group):
 
 def __rnd_seed(group):
     group.add_argument('--rnd_seed', type=int, default=None,
-                       help='random seed to use for selecting columns')
+                       help='random seed to use for selecting columns, e.g. ``42``')
 
 
 def __no_support(group):
@@ -138,8 +138,8 @@ def __custom_taxonomy_file(group):
 
 
 def __prefix(group):
-    group.add_argument('--prefix', default='gtdbtk',
-                       help='desired prefix for output files')
+    group.add_argument('--prefix', default='gtdbtk', type=str,
+                       help='prefix for all output files')
 
 
 def __cpus(group):
@@ -162,11 +162,11 @@ def __help(group):
 
 def __pplacer_cpus(group):
     group.add_argument('--pplacer_cpus', type=int, default=None,
-                       help='use PPLACER_CPUS during placement (default: CPUS)')
+                       help='use ``pplacer_cpus`` during placement (default: ``cpus``)')
 
 
 def __scratch_dir(group):
-    group.add_argument('--scratch_dir', help='Reduce memory usage by writing to disk (slower).')
+    group.add_argument('--scratch_dir', help='Reduce pplacer memory usage by writing to disk (slower).')
 
 
 def __recalculate_red(group):
@@ -179,50 +179,51 @@ def __split_tree(group):
                        help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
 
 
-def __identify_dir(group):
-    group.add_argument('--identify_dir', required=True,
+def __identify_dir(group, required):
+    group.add_argument('--identify_dir', required=required,
                        help="output directory of 'identify' command")
 
 
 def __skip_trimming(group):
     group.add_argument('--skip_trimming', action="store_true", default=False,
-                       help='skip trimming step and return the full MSAs')
+                       help='skip the trimming step and return the full MSAs')
 
 
-def __msa_file(group):
-    group.add_argument('--msa_file', required=True,
+def __msa_file(group, required):
+    group.add_argument('--msa_file', required=required,
                        help="multiple sequence alignment in FASTA format")
 
 
-def __align_dir(group):
-    group.add_argument('--align_dir', required=True,
+def __align_dir(group, required):
+    group.add_argument('--align_dir', required=required,
                        help="output directory of 'align' command")
 
 
-def __input_tree(group):
-    group.add_argument('--input_tree', required=True,
-                       help="tree to root in Newick format")
+def __input_tree(group, required):
+    group.add_argument('--input_tree', required=required, type=str,
+                       help="path to the unrooted tree in Newick format")
 
 
-def __rooted_tree(group):
-    group.add_argument('--rooted_tree', required=True,
+def __rooted_tree(group, required):
+    group.add_argument('--rooted_tree', required=required,
                        help="rooted input tree with labelled ingroup taxon")
 
 
-def __output_tree(group):
-    group.add_argument('--output_tree', required=True,
-                       help='output tree')
+def __output_tree(group, required):
+    group.add_argument('--output_tree', required=required, type=str,
+                       help='path to output the'
+                            ' tree')
 
 
-def __ingroup_taxon(group):
-    group.add_argument('--ingroup_taxon', required=True,
+def __ingroup_taxon(group, required):
+    group.add_argument('--ingroup_taxon', required=required,
                        help="labelled ingroup taxon to use as root for "
                             "establishing RED values (e.g., c__Bacilli or f__Lactobacillaceae")
 
 
 def __no_mash(group):
     group.add_argument('--no_mash', action='store_const', const=True, default=False,
-                       help='skip pre-filtering using MASH')
+                       help='skip pre-filtering of genomes using Mash')
 
 
 def __mash_k(group):
@@ -243,22 +244,22 @@ def __mash_v(group):
 
 def __min_af(group):
     group.add_argument('--min_af', default=AF_THRESHOLD, type=float,
-                       help='alignment fraction to consider closest genome')
+                       help='minimum alignment fraction to consider closest genome')
 
 
-def __untrimmed_msa(group):
-    group.add_argument('--untrimmed_msa', required=True,
-                       help="untrimmed MSA file")
+def __untrimmed_msa(group, required):
+    group.add_argument('--untrimmed_msa', required=required,
+                       help="path to the untrimmed MSA file")
 
 
-def __output(group):
-    group.add_argument('--output', required=True,
+def __output(group, required):
+    group.add_argument('--output', required=required,
                        help='output file')
 
 
 def __mask_file(group):
     group.add_argument('--mask_file',
-                       help="mask file to use for trimming the MSA")
+                       help="path to a custom mask file for trimming the MSA")
 
 
 def __reference_mask(group):
@@ -267,9 +268,9 @@ def __reference_mask(group):
                        help="reference mask already present in GTDB-Tk")
 
 
-def __domain(group):
-    group.add_argument('--domain', required=True, choices=['arc', 'bac'],
-                       help="select domain to download")
+def __domain(group, required):
+    group.add_argument('--domain', required=required, choices=['arc', 'bac'],
+                       help="domain to export")
 
 
 def get_main_parser():
@@ -279,16 +280,16 @@ def get_main_parser():
 
     # de novo workflow.
     with subparser(sub_parsers, 'de_novo_wf', 'Infer de novo tree and decorate with GTDB taxonomy.') as parser:
-        with mutex_group(parser) as grp:
+        with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
-        with mutex_group(parser) as grp:
+        with mutex_group(parser, required=True) as grp:
             __bacteria(grp)
             __archaea(grp)
-        with required_group(parser) as grp:
-            __outgroup_taxon(grp)
-            __out_dir(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __outgroup_taxon(grp, required=True)
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __skip_gtdb_refs(grp)
             __taxa_filter(grp)
@@ -312,12 +313,12 @@ def get_main_parser():
 
     # Classify workflow.
     with subparser(sub_parsers, 'classify_wf', 'Classify genomes by placement in GTDB reference tree.') as parser:
-        with mutex_group(parser) as grp:
+        with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
-        with required_group(parser) as grp:
-            __out_dir(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __min_perc_aa(grp)
             __prefix(grp)
@@ -332,12 +333,12 @@ def get_main_parser():
 
     # Identify marker genes in genomes.
     with subparser(sub_parsers, 'identify', 'Identify marker genes in genomes.') as parser:
-        with mutex_group(parser) as grp:
+        with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
-        with required_group(parser) as grp:
-            __out_dir(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
@@ -347,10 +348,10 @@ def get_main_parser():
 
     # Create a multiple sequence alignment.
     with subparser(sub_parsers, 'align', 'Create multiple sequence alignment.') as parser:
-        with required_group(parser) as grp:
-            __identify_dir(grp)
-            __out_dir(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __identify_dir(grp, required=True)
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __skip_gtdb_refs(grp)
             __taxa_filter(grp)
             __min_perc_aa(grp)
@@ -363,16 +364,16 @@ def get_main_parser():
             __cpus(grp)
             __debug(grp)
             __help(grp)
-        with mutex_group(parser) as grp:
+        with mutex_group(parser, required=False) as grp:
             __custom_msa_filters(grp)
             __skip_trimming(grp)
 
     # Infer a de novo tree.
     with subparser(sub_parsers, 'infer', 'Infer tree from multiple sequence alignment.') as parser:
-        with required_group(parser) as grp:
-            __msa_file(grp)
-            __out_dir(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __msa_file(grp, required=True)
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __prot_model(grp)
             __no_support(grp)
             __gamma(grp)
@@ -383,13 +384,13 @@ def get_main_parser():
 
     # Classify genomes via placement with pplacer.
     with subparser(sub_parsers, 'classify', 'Determine taxonomic classification of genomes.') as parser:
-        with mutex_group(parser) as grp:
+        with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
-        with required_group(parser) as grp:
-            __align_dir(grp)
-            __out_dir(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __align_dir(grp, required=True)
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
@@ -402,11 +403,11 @@ def get_main_parser():
 
     # Root a tree using an outgroup.
     with subparser(sub_parsers, 'root', 'Root tree using an outgroup.') as parser:
-        with required_group(parser) as grp:
-            __input_tree(grp)
-            __outgroup_taxon(grp)
-            __output_tree(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __outgroup_taxon(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
             __debug(grp)
@@ -414,10 +415,10 @@ def get_main_parser():
 
     # Decorate a tree.
     with subparser(sub_parsers, 'decorate', 'Decorate tree with GTDB taxonomy') as parser:
-        with required_group(parser) as grp:
-            __input_tree(grp)
-            __output_tree(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
             __debug(grp)
@@ -425,30 +426,30 @@ def get_main_parser():
 
     # Establish taxonomic ranks of internal nodes using RED
     with subparser(sub_parsers, 'infer_ranks', 'Establish taxonomic ranks of internal nodes using RED.') as parser:
-        with required_group(parser) as grp:
-            __rooted_tree(grp)
-            __ingroup_taxon(grp)
-            __output_tree(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __rooted_tree(grp, required=True)
+            __ingroup_taxon(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)
 
     # Calculate ANI to representative genomes.
     with subparser(sub_parsers, 'ani_rep', 'Calculate ANI to GTDB representative genomes.') as parser:
-        with required_group(parser) as grp:
+        with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
-        with required_group(parser) as grp:
-            __out_dir(grp)
-        with optional_group(parser, 'optional Mash arguments') as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional Mash arguments') as grp:
             __no_mash(grp)
             __mash_k(grp)
             __mash_s(grp)
             __mash_d(grp)
             __mash_v(grp)
-        with optional_group(parser, 'optional FastANI arguments') as grp:
+        with arg_group(parser, 'optional FastANI arguments') as grp:
             __min_af(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
@@ -457,36 +458,37 @@ def get_main_parser():
 
     # Run a test.
     with subparser(sub_parsers, 'test', 'Test the classify_wf pipeline with 3 archaeal genomes.') as parser:
-        with required_group(parser) as grp:
-            __out_dir(grp)
+        with arg_group(parser, 'required named arguments') as grp:
+            __out_dir(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __cpus(grp)
             __debug(grp)
             __help(grp)
 
     # Trim MSA.
     with subparser(sub_parsers, 'trim_msa', 'Trim an untrimmed MSA file based on a mask.') as parser:
-        with required_group(parser) as grp:
-            __untrimmed_msa(grp)
-            __output(grp)
-        with mutex_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __untrimmed_msa(grp, required=True)
+            __output(grp, required=True)
+        with mutex_group(parser, required=True) as grp:
             __mask_file(grp)
             __reference_mask(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)
 
     # Export MSA.
     with subparser(sub_parsers, 'export_msa', 'Export the untrimmed archaeal or bacterial MSA file.') as parser:
-        with required_group(parser) as grp:
-            __domain(grp)
-            __output(grp)
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'required named arguments') as grp:
+            __domain(grp, required=True)
+            __output(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)
 
     # Verify install.
     with subparser(sub_parsers, 'check_install', 'Verify if all gtdb data files are present to run GTDB-Tk.') as parser:
-        with optional_group(parser) as grp:
+        with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)
 

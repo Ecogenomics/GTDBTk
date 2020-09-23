@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installing GTDB-Tk &mdash; GTDB-Tk 1.3.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script src="../_static/custom.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pip" href="pip.html" />
+    <link rel="prev" title="Announcements" href="../announcements.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/GTDBTk.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing GTDB-Tk</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#sources">Sources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#local">Local</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pip.html">pip</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bioconda.html">Bioconda</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docker.html">Docker</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#online">Online</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="kbase.html">KBase</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hardware-requirements">Hardware requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-libraries">Python libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#third-party-software">Third-party software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-reference-data">GTDB-Tk reference data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Running GTDB-Tk</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../commands/index.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../files/index.html">Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+<p class="caption"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GTDB-Tk</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installing GTDB-Tk</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docsrc/installing/index.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installing-gtdb-tk">
+<span id="installing"></span><h1>Installing GTDB-Tk<a class="headerlink" href="#installing-gtdb-tk" title="Permalink to this headline">¶</a></h1>
+<p>GTDB-Tk is available through multiple sources.</p>
+<p>If you are unsure which source to install, Bioconda is generally the easiest.</p>
+<div class="section" id="sources">
+<h2>Sources<a class="headerlink" href="#sources" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="local">
+<h3>Local<a class="headerlink" href="#local" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pip.html">pip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bioconda.html">Bioconda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docker.html">Docker</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="online">
+<h3>Online<a class="headerlink" href="#online" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="kbase.html">KBase</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="hardware-requirements">
+<h2>Hardware requirements<a class="headerlink" href="#hardware-requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>~100Gb of memory to run</p></li>
+<li><p>~27Gb of storage</p></li>
+<li><p>~1 hour per 1,000 genomes when using 64 CPUs</p></li>
+</ul>
+</div>
+<div class="section" id="python-libraries">
+<h2>Python libraries<a class="headerlink" href="#python-libraries" title="Permalink to this headline">¶</a></h2>
+<p>GTDB-Tk is designed for Python &gt;=3.6 and requires the following libraries, which will be automatically installed:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://dendropy.org/">dendropy</a>  &gt;=4.1.0: a Python library for phylogenetic computing.</p></li>
+<li><p><a class="reference external" href="https://numpy.org/">NumPy</a> &gt;=1.9.0: scientific computing with Python.</p></li>
+<li><p><a class="reference external" href="https://github.com/tqdm/tqdm">tqdm</a>: A Fast, Extensible Progress Bar for Python and CLI <a class="reference external" href="https://tqdm.github.io">https://tqdm.github.io</a></p></li>
+</ul>
+</div>
+<div class="section" id="third-party-software">
+<h2>Third-party software<a class="headerlink" href="#third-party-software" title="Permalink to this headline">¶</a></h2>
+<p>GTDB-Tk makes use of the following 3rd party dependencies and assumes they are on your system path:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://compbio.ornl.gov/prodigal/">Prodigal</a> &gt;= 2.6.2: Hyatt D, et al. 2010. <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/20211023">Prodigal: prokaryotic gene recognition and translation initiation site identification</a>.
+<em>BMC Bioinformatics</em>, 11:119. doi: 10.1186/1471-2105-11-119.</p></li>
+<li><p><a class="reference external" href="http://hmmer.org/">HMMER</a> &gt;= 3.1: Eddy SR. 2011. <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/22039361">Accelerated profile HMM searches</a>.
+<em>PLOS Comp. Biol.</em>, 7:e1002195.</p></li>
+<li><p><a class="reference external" href="http://matsen.fhcrc.org/pplacer/">pplacer</a> &gt;= 1.1: Matsen FA, et al. 2010. <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/21034504">pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree</a>.
+<em>BMC Bioinformatics</em>, 11:538.</p></li>
+<li><p><a class="reference external" href="https://github.com/ParBLiSS/FastANI">FastANI</a> &gt;= 1.2: Jain C, et al. 2019. <a class="reference external" href="https://www.nature.com/articles/s41467-018-07641-9">High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries</a>.
+<em>Nat. Communications</em>, doi: 10.1038/s41467-018-07641-9.</p></li>
+<li><p><a class="reference external" href="http://www.microbesonline.org/fasttree/">FastTree</a> &gt;= 2.1.9: Price MN, et al. 2010. <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/">FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments</a>.
+<em>PLoS One</em>, 5, e9490.</p></li>
+<li><p><a class="reference external" href="https://github.com/marbl/Mash">Mash</a> &gt;= 2.2: Ondov BD, et al. 2016. <a class="reference external" href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0997-x">Mash: fast genome and metagenome distance estimation using MinHash</a>.
+<em>Genome Biol</em> 17, 132. doi: doi: 10.1186/s13059-016-0997-x.</p></li>
+</ul>
+<p>Please cite these tools if you use GTDB-Tk in your work.</p>
+</div>
+<div class="section" id="gtdb-tk-reference-data">
+<h2>GTDB-Tk reference data<a class="headerlink" href="#gtdb-tk-reference-data" title="Permalink to this headline">¶</a></h2>
+<p>GTDB-Tk requires ~27G of external data that need to be downloaded and unarchived:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz
+tar xvzf gtdbtk_r95_data.tar.gz
+</pre></div>
+</div>
+<p>Reference data for prior releases of GTDB-Tk are available at: <a class="reference external" href="https://data.ace.uq.edu.au/public/gtdbtk">https://data.ace.uq.edu.au/public/gtdbtk</a></p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pip.html" class="btn btn-neutral float-right" title="pip" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../announcements.html" class="btn btn-neutral float-left" title="Announcements" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
