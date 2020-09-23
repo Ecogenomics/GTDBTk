@@ -1,14 +1,21 @@
-#!/usr/bin/env python
-
 import os
+import re
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
-def version():
-    setup_dir = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(setup_dir, 'gtdbtk', 'VERSION'), 'r') as f:
-        return f.readline().strip()
+def read_meta():
+    """Read each of the keys stored in __init__.py
+
+    Returns
+    -------
+    dict[str, str]
+        A dictionary containing each of the string key value pairs.
+    """
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'gtdbtk/__init__.py')
+    with open(path) as fh:
+        hits = re.findall(r'__(\w+)__ ?= ?["\'](.+)["\']\n', fh.read())
+    return {k: v for k, v in hits}
 
 
 def readme():
@@ -16,29 +23,10 @@ def readme():
         return f.read()
 
 
+meta = read_meta()
 setup(
-    name='gtdbtk',
-    python_requires='>=3.6',
-    version=version(),
-    author='Pierre-Alain Chaumeil and Donovan Parks',
-    author_email='p.chaumeil@uq.edu.au',
-    maintainer='Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks',
-    maintainer_email='donovan.parks@gmail.com',
-    packages=['gtdbtk', 'gtdbtk.biolib_lite', 'gtdbtk.config', 'gtdbtk.external', 'gtdbtk.tests',
-              'gtdbtk.external.pypfam', 'gtdbtk.external.pypfam.HMM', 'gtdbtk.external.pypfam.Scan',
-              'gtdbtk.io', 'gtdbtk.io.marker', 'gtdbtk.io.prodigal'],
-    package_data={'gtdbtk': ['VERSION',
-                             'MANIFEST.in', 'tests/data/genomes/*']},
-    entry_points={
-        'console_scripts': [
-            'gtdbtk = gtdbtk.__main__:main'
-        ]
-    },
-    url='https://github.com/Ecogenomics/GTDBTk',
-    license='GPL3',
-    description='A toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes.',
-    long_description=readme(),
-    long_description_content_type='text/markdown',
+    author=meta['author'],
+    author_email=meta['author_email'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
@@ -50,6 +38,23 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
+    data_files=[("", ["LICENSE"])],
+    description=meta['description'],
+    entry_points={
+        'console_scripts': [
+            'gtdbtk = gtdbtk.__main__:main'
+        ]
+    },
     install_requires=["dendropy>=4.1.0", 'numpy>=1.9.0', 'tqdm>=4.31.0'],
-    data_files=[("", ["LICENSE"])]
+    license=meta['license'],
+    long_description=readme(),
+    long_description_content_type='text/markdown',
+    maintainer=meta['maintainer'],
+    maintainer_email=meta['maintainer_email'],
+    name=meta['name'],
+    packages=find_packages(),
+    package_data={'gtdbtk': ['VERSION', 'tests/data/genomes/*']},
+    python_requires=meta['python_requires'],
+    url=meta['url'],
+    version=meta['version']
 )

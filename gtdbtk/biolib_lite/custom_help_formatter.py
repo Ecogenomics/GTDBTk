@@ -52,6 +52,10 @@ class CustomHelpFormatter(argparse.HelpFormatter):
     def _get_help_string(self, action):
         """Place default value in help string."""
         h = action.help
+
+        # Remove any formatting used for Sphinx argparse hints.
+        h = h.replace('``', '')
+
         if '%(default)' not in action.help:
             if action.default != '' and action.default != [] and \
                     action.default is not None and \

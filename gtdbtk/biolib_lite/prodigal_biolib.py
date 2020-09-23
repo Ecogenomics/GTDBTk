@@ -380,9 +380,9 @@ class ProdigalGeneFeatureParser(object):
 
         # safe way to calculate coding bases as it accounts
         # for the potential of overlapping genes
-        coding_base_mask = np.zeros(self.last_coding_base[seq_id])
+        coding_base_mask = np.zeros(self.last_coding_base[seq_id], dtype=np.bool)
         for pos in self.genes[seq_id].values():
-            coding_base_mask[pos[0]:pos[1] + 1] = 1
+            coding_base_mask[pos[0]:pos[1] + 1] = True
 
         return coding_base_mask
 
