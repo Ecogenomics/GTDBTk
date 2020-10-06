@@ -1,0 +1,3 @@
+User-agent: *
+
+Sitemap: https://ecogenomics.github.io/GTDBTk/sitemap.xml

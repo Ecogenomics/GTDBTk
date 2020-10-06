@@ -29,7 +29,7 @@ github_url = __url__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autodoc',
-              'recommonmark']
+              'recommonmark', 'sphinx_sitemap']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -44,6 +44,8 @@ source_suffix = {
     '.txt': 'markdown',
     '.md': 'markdown',
 }
+
+html_extra_path = ['robots.txt']
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -87,3 +89,5 @@ html_js_files = [
 ]
 
 html_logo = '_static/GTDBTk.svg'
+
+html_baseurl = 'https://ecogenomics.github.io/GTDBTk/'

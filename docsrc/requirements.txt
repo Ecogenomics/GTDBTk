@@ -3,3 +3,4 @@ sphinx-argparse
 sphinx-rtd-theme
 recommonmark
 sphinx_rtd_theme
+sphinx-sitemap

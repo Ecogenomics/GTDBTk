@@ -53,8 +53,6 @@
 
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Bioconda" href="bioconda.html" />
-    <link rel="prev" title="Installing GTDB-Tk" href="index.html" />
  
 </head>
 
@@ -108,25 +106,9 @@
             
             
               <p class="caption"><span class="caption-text">Getting started</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Installing GTDB-Tk</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="index.html#sources">Sources</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="index.html#local">Local</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">pip</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bioconda.html">Bioconda</a></li>
-<li class="toctree-l4"><a class="reference internal" href="docker.html">Docker</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#online">Online</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#hardware-requirements">Hardware requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#python-libraries">Python libraries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#third-party-software">Third-party software</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#gtdb-tk-reference-data">GTDB-Tk reference data</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Installing GTDB-Tk</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Running GTDB-Tk</span></p>
@@ -185,8 +167,6 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="index.html">Installing GTDB-Tk</a> &raquo;</li>
-        
       <li>pip</li>
     
     
@@ -194,7 +174,7 @@
         
             
             
-              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docsrc/installing/pip.md" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docsrc/installing/pip.rst" class="fa fa-github"> Edit on GitHub</a>
             
           
         
@@ -209,21 +189,25 @@
            <div itemprop="articleBody">
             
   <div class="section" id="pip">
-<h1>pip<a class="headerlink" href="#pip" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="https://pypi.python.org/pypi/gtdbtk"><img alt="PyPI" src="https://img.shields.io/pypi/v/gtdbtk.svg" /></a>
-<a class="reference external" href="https://pepy.tech/project/gtdbtk"><img alt="PyPI Downloads" src="https://pepy.tech/badge/gtdbtk" /></a></p>
-<div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>Once the third-party dependencies have been installed, GTDB-Tk can be installed using <a class="reference external" href="https://pypi.python.org/pypi/gtdbtk">pip</a>:</p>
+<span id="installing-pip"></span><h1>pip<a class="headerlink" href="#pip" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="step-1-install-third-party-dependencies">
+<h2>Step 1: Install third-party dependencies<a class="headerlink" href="#step-1-install-third-party-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Ensure that the software described in <a class="reference internal" href="index.html#installing-third-party-software"><span class="std std-ref">Third-party software</span></a> are on the system path.</p>
+</div>
+<div class="section" id="step-2-install-gtdb-tk-via-pip">
+<h2>Step 2: Install GTDB-Tk via pip<a class="headerlink" href="#step-2-install-gtdb-tk-via-pip" title="Permalink to this headline">¶</a></h2>
+<p>Note: It is strongly recommended to create a <a class="reference external" href="https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/">virtual environment</a>
+for each version of GTDB-Tk installed.</p>
+<p>Once the third-party dependencies have been installed, install GTDB-Tk via <a class="reference external" href="https://pypi.python.org/pypi/gtdbtk">pip</a>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install gtdbtk
 </pre></div>
 </div>
 </div>
-<div class="section" id="post-install">
-<h2>Post-install<a class="headerlink" href="#post-install" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="step-3-download-and-alias-the-gtdb-tk-reference-data">
+<h2>Step 3: Download and alias the GTDB-Tk reference data<a class="headerlink" href="#step-3-download-and-alias-the-gtdb-tk-reference-data" title="Permalink to this headline">¶</a></h2>
 <p>GTDB-Tk requires an environment variable named <code class="docutils literal notranslate"><span class="pre">GTDBTK_DATA_PATH</span></code> to be set to the directory
-containing the unarchived GTDB-Tk reference data.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">GTDBTK_DATA_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">release</span><span class="o">/</span><span class="n">package</span><span class="o">/</span>
+containing the unarchived <a class="reference internal" href="index.html#installing-gtdbtk-reference-data"><span class="std std-ref">GTDB-Tk reference data</span></a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">GTDBTK_DATA_PATH</span><span class="o">=</span>/path/to/release/package/
 </pre></div>
 </div>
 <p>You can permanently save this variable as described <a class="reference external" href="https://unix.stackexchange.com/questions/26047/how-to-correctly-add-a-path-to-path">here</a>.</p>
@@ -235,15 +219,6 @@ containing the unarchived GTDB-Tk reference data.</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="bioconda.html" class="btn btn-neutral float-right" title="Bioconda" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Installing GTDB-Tk" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
