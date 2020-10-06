@@ -90,4 +90,6 @@ html_js_files = [
 
 html_logo = '_static/GTDBTk.svg'
 
+# Sitemap settings
 html_baseurl = 'https://ecogenomics.github.io/GTDBTk/'
+sitemap_url_scheme = "{link}"
