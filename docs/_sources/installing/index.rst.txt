@@ -65,6 +65,9 @@ GTDB-Tk is designed for Python >=3.6 and requires the following libraries, which
      - DOI: `10.5281/zenodo.595120 <https://doi.org/10.5281/zenodo.595120>`_
 
 
+Please cite these libraries if you use GTDB-Tk in your work.
+
+
 .. _installing#third-party-software:
 
 Third-party software

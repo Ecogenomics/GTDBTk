@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../..'))
 from gtdbtk import __author__, __version__, __title__, __maintainer__, __url__
 
 # Configuration file for the Sphinx documentation builder.
@@ -29,7 +29,7 @@ github_url = __url__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autodoc',
-              'recommonmark', 'sphinx_sitemap']
+              'recommonmark', 'sphinx_sitemap', 'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -81,7 +81,7 @@ html_context = {
     'display_github': True,
     'github_user': 'Ecogenomics',
     'github_repo': 'GTDBTk',
-    'github_version': 'master/docsrc/'
+    'github_version': 'master/doc_src/src/'
      }
 
 html_js_files = [

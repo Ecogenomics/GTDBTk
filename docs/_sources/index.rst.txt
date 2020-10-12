@@ -48,7 +48,7 @@ We encourage you to cite GTDB-Tk and the third-party dependencies as described i
 
    commands/index
    files/index
-   examples
+   examples/classify_wf
 
 
 .. toctree::

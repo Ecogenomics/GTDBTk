@@ -56,3 +56,8 @@ a:visited, a {
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
     color: #578f5d;
 }
+
+/* Change the row colour when mouseover */
+.row-even:hover td, .row-odd:hover td {
+    background-color: #e5e5e5 !important;
+}

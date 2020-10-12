@@ -32,6 +32,7 @@
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
         <script src="../_static/custom.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -146,7 +147,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../files/index.html">Files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/classify_wf.html">Example</a></li>
 </ul>
 <p class="caption"><span class="caption-text">About</span></p>
 <ul>
@@ -207,7 +208,7 @@
         
             
             
-              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docsrc/commands/align.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/doc_src/src/commands/align.rst" class="fa fa-github"> Edit on GitHub</a>
             
           
         
@@ -221,13 +222,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="align">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="align">
 <span id="commands-align"></span><h1>align<a class="headerlink" href="#align" title="Permalink to this headline">¶</a></h1>
 <p>Create a multiple sequence alignment based on the AR122/BAC120 marker set.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">align</span> <span class="o">--</span><span class="n">identify_dir</span> <span class="n">IDENTIFY_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">skip_gtdb_refs</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">taxa_filter</span> <span class="n">TAXA_FILTER</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cols_per_gene</span> <span class="n">COLS_PER_GENE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_consensus</span> <span class="n">MIN_CONSENSUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">max_consensus</span> <span class="n">MAX_CONSENSUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_perc_taxa</span> <span class="n">MIN_PERC_TAXA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">rnd_seed</span> <span class="n">RND_SEED</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">custom_msa_filters</span> <span class="o">|</span> <span class="o">--</span><span class="n">skip_trimming</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">align</span> <span class="o">--</span><span class="n">identify_dir</span> <span class="n">IDENTIFY_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">skip_gtdb_refs</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">taxa_filter</span> <span class="n">TAXA_FILTER</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">cols_per_gene</span> <span class="n">COLS_PER_GENE</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">min_consensus</span> <span class="n">MIN_CONSENSUS</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">max_consensus</span> <span class="n">MAX_CONSENSUS</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">min_perc_taxa</span> <span class="n">MIN_PERC_TAXA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">rnd_seed</span> <span class="n">RND_SEED</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">--</span><span class="n">custom_msa_filters</span> <span class="o">|</span> <span class="o">--</span><span class="n">skip_trimming</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="required named arguments">
