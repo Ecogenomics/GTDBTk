@@ -12,15 +12,18 @@ Ensure that ``conda`` on the system path. It is recommended to download `minicon
 Step 2: Create the GTDB-Tk environment
 --------------------------------------
 
-It is strongly recommended to create a new GTDB-Tk environment for each version of GTDB-Tk released.
+.. note:: It is strongly recommended to create a new GTDB-Tk environment for each version of GTDB-Tk released.
+
+GTDB-Tk package requires third-party packages from the ``conda-forge`` and ``bioconda`` channels.
+
 
 .. code-block:: bash
 
     # latest version
-    conda create -n gtdbtk -c bioconda gtdbtk
+    conda create -n gtdbtk -c conda-forge -c bioconda gtdbtk
 
     # specific version (replace 1.3.0 with the version you wish to install, recommended)
-    conda create -n gtdbtk-1.3.0 -c bioconda gtdbtk=1.3.0
+    conda create -n gtdbtk-1.3.0 -c conda-forge -c bioconda gtdbtk=1.3.0
 
 
 Step 3: Download and alias the GTDB-Tk reference data
