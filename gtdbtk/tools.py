@@ -209,8 +209,11 @@ def get_proc_memory_gb(pid):
 
 
 def get_gtdbtk_latest_version():
+    if not Config.GTDBTK_VER_CHECK:
+        return None
     try:
-        resp = json.loads(urllib.request.urlopen('https://pypi.org/pypi/gtdbtk/json', timeout=3).read().decode('utf-8'))
+        resp = json.loads(urllib.request.urlopen('https://pypi.org/pypi/gtdbtk/json',
+                                                 timeout=Config.GTDBTK_VER_TIMEOUT).read().decode('utf-8'))
         return resp['info']['version']
     except Exception:
         return None

@@ -216,3 +216,7 @@ REF_HASHES = {PPLACER_DIR: 'f41cfe0284ebaca4485b42e054936190c6a88bd1',
               TAX_FOLDER: '30c5970b2eaf5df654b2e01bfa39265302c0be89',
               FASTANI_DIR: '6a3555bb61d9cc3163c26e65772b96b8f58a2d84',
               RED_DIR: '6f661eef8e172a8a7e78af2a74fe4d079a3f5b0f'}
+
+# Config values for checking GTDB-Tk on startup.
+GTDBTK_VER_CHECK = True
+GTDBTK_VER_TIMEOUT = 3  # seconds
