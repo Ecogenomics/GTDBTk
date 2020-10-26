@@ -8,6 +8,8 @@ import time
 import urllib.request
 from itertools import islice
 
+import dendropy
+
 import gtdbtk.config.config as Config
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 
@@ -18,17 +20,24 @@ from gtdbtk.config.output import CHECKSUM_SUFFIX
 
 
 def get_reference_ids():
-    results = []
+    """Create a set of reference IDs using the config taxonomy file. This set
+    contains the base id and the NCBI formatted ID (e.g. GB_GCA.. and  GCA_...)
+
+    Returns
+    -------
+    frozenset
+        An immutable set with short and long accessions (e.g. GB_GCA_ and GCA_).
+    """
+    results = set()
     with open(Config.TAXONOMY_FILE) as tf:
         for line in tf:
             raw_id = line.split('\t')[0]
-            results.append(raw_id)
+            results.add(raw_id)
             if raw_id[0:4] in ['GCF_', 'GCA_']:
-                results.append(add_ncbi_prefix(raw_id))
+                results.add(add_ncbi_prefix(raw_id))
             elif raw_id[0:3] in ['RS_', 'GB_']:
-                results.append(raw_id[3:])
-
-    return results
+                results.add(raw_id[3:])
+    return frozenset(results)
 
 
 def add_ncbi_prefix(refname):
@@ -214,3 +223,67 @@ def get_gtdbtk_latest_version():
         return resp['info']['version']
     except Exception:
         return None
+
+
+def deep_copy_tree(tree):
+    """Returns a deep copy of the input tree, preserving only the information
+    contained in the Newick string.
+
+    Parameters
+    ----------
+    tree : dendropy.Tree
+        The input tree to copy.
+
+    Returns
+    -------
+    dendropy.Tree
+        A deep copy of the tree.
+    """
+    return dendropy.Tree.get_from_string(tree.as_string(schema='newick'),
+                                         schema='newick',
+                                         rooting='force-rooted',
+                                         preserve_underscores=True)
+
+
+class TreeTraversal(object):
+
+    def __init__(self):
+        self.d_node_desc = dict()
+
+    def get_leaf_nodes(self, node):
+        """Efficiently return all leaf nodes under a given node.
+
+        Parameters
+        ----------
+        node : dendropy.Node
+
+        Returns
+        -------
+        frozenset
+            The set of all leaf nodes under the given node.
+        """
+
+        # Leaf nodes will always return themselves.
+        if node.is_leaf():
+            self.d_node_desc[node] = frozenset({node})
+
+        # Stop traversing down if the descendants are already known.
+        if node in self.d_node_desc:
+            return self.d_node_desc[node]
+
+        # Descendants are not known, traverse down to find them.
+        desc_nodes = set()
+        for child_node in node.child_node_iter():
+
+            # Already calculated, add it.
+            if child_node in self.d_node_desc:
+                desc_nodes = desc_nodes.union(self.d_node_desc[child_node])
+
+            # Needs to be calculated, recurse.
+            else:
+                desc_nodes = desc_nodes.union(self.get_leaf_nodes(child_node))
+
+        # Store the desc and exit.
+        self.d_node_desc[node] = frozenset(desc_nodes)
+        return self.d_node_desc[node]
+

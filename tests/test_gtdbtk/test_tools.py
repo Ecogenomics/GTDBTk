@@ -15,11 +15,13 @@
 #                                                                             #
 ###############################################################################
 import os
+import random
 import shutil
 import tempfile
 import unittest
-
+from dendropy.simulate import treesim
 from gtdbtk import tools
+from gtdbtk.tools import TreeTraversal
 
 
 class TestTools(unittest.TestCase):
@@ -96,6 +98,18 @@ class TestTools(unittest.TestCase):
             self.assertFalse(tools.file_has_checksum('/dev/null/foo', '.sha256'))
         finally:
             shutil.rmtree(dir_tmp)
+
+    def test_get_leaf_nodes(self):
+        tree = treesim.birth_death_tree(birth_rate=1.0, death_rate=0.5, num_extant_tips=500)
+
+        all_nodes = list(tree.postorder_node_iter())
+        random.shuffle(all_nodes)
+
+        tt = TreeTraversal()
+        for node in all_nodes:
+            true = frozenset(node.leaf_nodes())
+            test = tt.get_leaf_nodes(node)
+            self.assertEqual(true, test)
 
 
 if __name__ == '__main__':
