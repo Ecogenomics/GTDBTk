@@ -12,6 +12,7 @@ import dendropy
 
 import gtdbtk.config.config as Config
 from gtdbtk.config.output import CHECKSUM_SUFFIX
+from gtdbtk.exceptions import GTDBTkExit
 
 
 ##################################################
@@ -225,27 +226,10 @@ def get_gtdbtk_latest_version():
         return None
 
 
-def deep_copy_tree(tree):
-    """Returns a deep copy of the input tree, preserving only the information
-    contained in the Newick string.
-
-    Parameters
-    ----------
-    tree : dendropy.Tree
-        The input tree to copy.
-
-    Returns
-    -------
-    dendropy.Tree
-        A deep copy of the tree.
-    """
-    return dendropy.Tree.get_from_string(tree.as_string(schema='newick'),
-                                         schema='newick',
-                                         rooting='force-rooted',
-                                         preserve_underscores=True)
-
-
 class TreeTraversal(object):
+    """Efficiently calculates leaf nodes of a given node without re-computing
+    any information.
+    """
 
     def __init__(self):
         self.d_node_desc = dict()
@@ -287,3 +271,72 @@ class TreeTraversal(object):
         self.d_node_desc[node] = frozenset(desc_nodes)
         return self.d_node_desc[node]
 
+
+def calculate_patristic_distance(qry_node, ref_nodes, tt=None):
+    """Computes the patristic distance from the query node to all reference
+    nodes. Note that all nodes must be a leaf nodes under max_node.
+
+    Parameters
+    ----------
+    qry_node : dendropy.Node
+        The query taxon node that the distance to all ref nodes will be found.
+    ref_nodes : List[dendropy.Node]
+        A list of reference nodes that the qry_node will be calculated to.
+    tt : Optional[TreeTraversal]
+        A TreeTraversal index, if absent a new one will be created.
+
+    Returns
+    -------
+    Dict[dendropy.Node, float]
+        A dictionary keyed by each reference taxon, valued by patristic dist.
+    """
+    tt = tt or TreeTraversal()
+
+    # Iterate over each of the ref_nodes to find the MRCA to qry_node.
+    d_ref_to_mrca = dict()
+    for ref_node in ref_nodes:
+        cur_dist_to_mrca = ref_node.edge_length
+
+        # Go up the tree until the descendants include qry_node.
+        parent_node = ref_node.parent_node
+        while parent_node is not None:
+            leaf_nodes = tt.get_leaf_nodes(parent_node)
+
+            # Found the MRCA node.
+            if qry_node in leaf_nodes:
+                d_ref_to_mrca[ref_node] = (parent_node, cur_dist_to_mrca)
+                break
+
+            # Keep going up.
+            cur_dist_to_mrca += parent_node.edge_length
+            parent_node = parent_node.parent_node
+
+        # If the loop did not break, raise an exception.
+        else:
+            raise GTDBTkExit(f'Unable to find MRCA: {qry_node.taxon.label} / '
+                             f'{ref_node.taxon.label}')
+
+    # Compute the distance from the qry_node to each of the MRCAs.
+    out = dict()
+    for ref_node, (mrca_node, ref_mrca_dist) in d_ref_to_mrca.items():
+
+        # Go up the tree until the MRCA is found again.
+        cur_dist_to_mrca = qry_node.edge_length
+        cur_node = qry_node.parent_node
+        while cur_node is not None:
+
+            # Found the MRCA node.
+            if cur_node == mrca_node:
+                out[ref_node] = cur_dist_to_mrca + ref_mrca_dist
+                break
+
+            # Keep going up.
+            cur_dist_to_mrca += cur_node.edge_length
+            cur_node = cur_node.parent_node
+
+        # Impossible case, but throw an exception anyway.
+        else:
+            raise GTDBTkExit(f'Tree is inconsistent: {qry_node.taxon.label} / '
+                             f'{ref_node.taxon.label}')
+
+    return out

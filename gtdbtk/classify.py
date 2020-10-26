@@ -25,6 +25,8 @@ from collections import defaultdict
 from operator import itemgetter
 
 import dendropy
+
+from tqdm import tqdm
 from numpy import median as np_median
 
 import gtdbtk.config.config as Config
@@ -39,7 +41,8 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
-from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal
+from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
+    calculate_patristic_distance
 
 sys.setrecursionlimit(15000)
 
@@ -236,8 +239,7 @@ class Classify(object):
                           os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
             elif levelopt == 'low':
                 symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(
-                              PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
+                          os.path.join(out_dir, os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
         elif marker_set_id == 'ar122':
             symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
                       os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
@@ -341,10 +343,10 @@ class Classify(object):
                 infos = line.strip().split('\t')
                 if marker_set_id == "bac120":
                     multi_hits_percent = (100 * float(infos[2])) / \
-                                         Config.BAC_MARKER_COUNT
+                        Config.BAC_MARKER_COUNT
                 elif marker_set_id == "ar122":
                     multi_hits_percent = (100 * float(infos[2])) / \
-                                         Config.AR_MARKER_COUNT
+                        Config.AR_MARKER_COUNT
                 # print (marker_set_id, float(infos[3]), multi_hits_percent)
                 if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
                     results[infos[0]] = round(multi_hits_percent, 1)
@@ -429,8 +431,7 @@ class Classify(object):
 
                 sorted_high_taxonomy, len_sorted_genomes = self._map_high_taxonomy(
                     high_classification, tree_mapping_dict, summaryfout)
-                self.logger.info(
-                    f"{len_sorted_genomes} out of {num_genomes} have an order assignments. Those genomes will be reclassified.")
+                self.logger.info(f"{len_sorted_genomes} out of {num_genomes} have an order assignments. Those genomes will be reclassified.")
 
                 for tree_iter in sorted(sorted_high_taxonomy, key=lambda z: len(sorted_high_taxonomy[z]), reverse=True):
                     listg = sorted_high_taxonomy.get(tree_iter)
@@ -442,8 +443,7 @@ class Classify(object):
                         out_dir, prefix, marker_set_id, user_msa_file, mrca_lowtree)
 
                     self._parse_tree(mrca_lowtree, genomes, msa_dict, percent_multihit_dict, trans_table_dict,
-                                     bac_ar_diff, submsa_file_path, marker_dict, summaryfout, conflict_file,
-                                     pplacer_taxonomy_dict,
+                                     bac_ar_diff, submsa_file_path, marker_dict, summaryfout, conflict_file, pplacer_taxonomy_dict,
                                      high_classification, debugfile, debugopt)
                 summaryfout.close()
                 if debugopt:
@@ -570,7 +570,8 @@ class Classify(object):
         # Traverse up the tree, starting at each user leaf node.
         out = dict()
         number_comparison = 0
-        for leaf_node in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids):
+        qry_nodes = list(tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids))
+        for leaf_node in tqdm(qry_nodes):
 
             # Traverse up to find the first labelled parent node.
             par_node = leaf_node.parent_node
@@ -601,21 +602,15 @@ class Classify(object):
                 if len(set(list_subnode_initials) & reference_ids) < 1:
                     raise GTDBTkExit(f"There are no reference genomes under '{parent_rank}'")
                 else:
-                    dict_dist_refgenomes = {}
                     list_ref_genomes = [subnd for subnd in tt.get_leaf_nodes(par_node)
                                         if subnd.taxon.label.replace("'", '') in reference_ids]
+
                     # we pick the first 100 genomes closest (patristic distance) to the
                     # user genome under the same genus
-                    for ref_genome in list_ref_genomes:
-                        taxon_labels = [leaf_node.taxon.label,
-                                        ref_genome.taxon.label]
-                        mrca = tree.mrca(taxon_labels=taxon_labels)
-                        # the following command is faster than
-                        # calculating the patristic distance
-                        dict_dist_refgenomes[ref_genome] = (leaf_node.distance_from_root() -
-                                                            mrca.distance_from_root()) + \
-                                                           (ref_genome.distance_from_root() -
-                                                            mrca.distance_from_root())
+                    dict_dist_refgenomes = calculate_patristic_distance(leaf_node,
+                                                                        list_ref_genomes,
+                                                                        tt)
+
                     sorted_l = sorted(iter(dict_dist_refgenomes.items()), key=itemgetter(1))
                     sorted_l = sorted_l[0:100]
                     number_comparison += len(sorted_l)
@@ -1115,7 +1110,7 @@ class Classify(object):
                     # import IPython; IPython.embed()
                     prefilter_af_reference_dictionary = {k: v for k, v in
                                                          all_fastani_dict.get(userleaf.taxon.label).items() if v.get(
-                            'af') >= self.af_threshold}
+                                                             'af') >= self.af_threshold}
                     sorted_prefilter_af_dict = sorted(iter(prefilter_af_reference_dictionary.items()),
                                                       key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
 
@@ -1124,8 +1119,7 @@ class Classify(object):
 
                     fastani_matching_reference = None
                     if len(sorted_prefilter_af_dict) > 0:
-                        if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
-                                sorted_prefilter_af_dict[0][0]):
+                        if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(sorted_prefilter_af_dict[0][0]):
                             fastani_matching_reference = sorted_prefilter_af_dict[0][0]
                             current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
                                 fastani_matching_reference).get('ani')
@@ -1230,7 +1224,7 @@ class Classify(object):
                 # import IPython; IPython.embed()
                 prefilter_af_reference_dictionary = {k: v for k, v in
                                                      all_fastani_dict.get(userleaf.taxon.label).items() if v.get(
-                        'af') >= self.af_threshold}
+                                                         'af') >= self.af_threshold}
                 sorted_prefilter_af_dict = sorted(iter(prefilter_af_reference_dictionary.items()),
                                                   key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
                 sorted_dict = sorted(iter(all_fastani_dict.get(
@@ -1258,8 +1252,7 @@ class Classify(object):
                     if len(notes) > 0:
                         summary_list[19] = ';'.join(notes)
 
-                    if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
-                            sorted_prefilter_af_dict[0][0]):
+                    if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(sorted_prefilter_af_dict[0][0]):
                         fastani_matching_reference = sorted_prefilter_af_dict[0][0]
                         exception_genomes.append(fastani_matching_reference)
 
@@ -1811,10 +1804,9 @@ class Classify(object):
                     if is_on_terminal_branch:
                         tax_of_leaf = term_branch_taxonomy[term_branch_taxonomy.index(
                             taxa_str.split(';')[-1]) + 1:-1]
-                        # print ('tax_of_leaf', tax_of_leaf)
+                        #print ('tax_of_leaf', tax_of_leaf)
                         taxa_str = self._classify_on_terminal_branch(
-                            tax_of_leaf, current_rel_dist, taxa_str.split(';')[-1][0:3], term_branch_taxonomy,
-                            marker_dict)
+                            tax_of_leaf, current_rel_dist, taxa_str.split(';')[-1][0:3], term_branch_taxonomy, marker_dict)
                     else:
                         cur_node = leaf
                         parent_taxon_node = cur_node.parent_node
@@ -1845,12 +1837,12 @@ class Classify(object):
 
                             # get all reference genomes under the current node
                             list_subnode = [childnd.taxon.label.replace("'", '') for childnd in
-                                            node_in_ref_tree.leaf_iter(
-                                            ) if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
+                                            node_in_ref_tree.leaf_iter()
+                                            if childnd.taxon.label[0:3] in ['RS_', 'UBA', 'GB_']]
 
                             # get all names for the child rank
-                            list_ranks = [self.gtdb_taxonomy.get(
-                                name)[self.order_rank.index(child_rk)] for name in list_subnode]
+                            list_ranks = [self.gtdb_taxonomy.get(name)[self.order_rank.index(child_rk)]
+                                          for name in list_subnode]
 
                             # if there is just one rank name
                             if len(set(list_ranks)) == 1:
@@ -1867,16 +1859,12 @@ class Classify(object):
                                 taxa_str = self._classify_on_internal_branch(
                                     child_taxons, current_rel_dist, child_rel_dist, parent_rank, taxa_str, marker_dict)
                     results[leaf.taxon.label] = {"tk_tax": self.standardise_taxonomy(taxa_str, 'bac120'),
-                                                 "pplacer_tax": self.standardise_taxonomy(pplacer_tax, 'bac120'),
-                                                 'rel_dist': current_rel_dist}
-                    pplaceout.write(
-                        '{}\t{}\t{}\t{}\t{}\n'.format(leaf.taxon.label, self.standardise_taxonomy(taxa_str, 'bac120'),
-                                                      self.standardise_taxonomy(pplacer_tax, 'bac120'),
-                                                      is_on_terminal_branch, current_rel_dist))
+                                                 "pplacer_tax": self.standardise_taxonomy(pplacer_tax, 'bac120'), 'rel_dist': current_rel_dist}
+                    pplaceout.write('{}\t{}\t{}\t{}\t{}\n'.format(leaf.taxon.label, self.standardise_taxonomy(taxa_str, 'bac120'),
+                                                                  self.standardise_taxonomy(pplacer_tax, 'bac120'), is_on_terminal_branch, current_rel_dist))
         return results
 
-    def _classify_on_internal_branch(self, child_taxons, current_rel_list, child_rel_dist, parent_rank, taxa_str,
-                                     marker_dict):
+    def _classify_on_internal_branch(self, child_taxons, current_rel_list, child_rel_dist, parent_rank, taxa_str, marker_dict):
         # if there is multiple ranks on the child node (i.e genome between p__Nitrospirae and c__Nitrospiria;o__Nitrospirales;f__Nitropiraceae)
         # we loop through the list of rank from f_ to c_ rank
         closest_rank = None
@@ -1906,8 +1894,7 @@ class Classify(object):
                     return ';'.join(v[1:v.index(closest_rank) + 1])
         return taxa_str
 
-    def _classify_on_terminal_branch(self, list_leaf_ranks, current_rel_list, parent_rank, term_branch_taxonomy,
-                                     marker_dict):
+    def _classify_on_terminal_branch(self, list_leaf_ranks, current_rel_list, parent_rank, term_branch_taxonomy, marker_dict):
         closest_rank = None
         for leaf_taxon in reversed(list_leaf_ranks):
             # print leaf_taxon

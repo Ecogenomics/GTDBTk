@@ -19,9 +19,12 @@ import random
 import shutil
 import tempfile
 import unittest
+
+import numpy as np
 from dendropy.simulate import treesim
+
 from gtdbtk import tools
-from gtdbtk.tools import TreeTraversal
+from gtdbtk.tools import TreeTraversal, calculate_patristic_distance
 
 
 class TestTools(unittest.TestCase):
@@ -110,6 +113,35 @@ class TestTools(unittest.TestCase):
             true = frozenset(node.leaf_nodes())
             test = tt.get_leaf_nodes(node)
             self.assertEqual(true, test)
+
+    def test_calculate_patristic_distance(self):
+        tree = treesim.birth_death_tree(birth_rate=1.0, death_rate=0.5, num_extant_tips=100)
+        for edge in tree.postorder_edge_iter():
+            edge.length += np.random.random()
+        pdm = tree.phylogenetic_distance_matrix()
+
+        # Generate test cases.
+        for int_node in tree.internal_nodes():
+            leaf_nodes = int_node.leaf_nodes()
+            if len(leaf_nodes) < 2:
+                continue
+
+            # Select test data.
+            random.shuffle(leaf_nodes)
+            qry_node = leaf_nodes[0]
+            ref_nodes = leaf_nodes[1:int(np.ceil(len(leaf_nodes) * 0.5))]
+
+            # Calculate the true/test data.
+            true = dict()
+            for ref_node in ref_nodes:
+                true[ref_node] = pdm.patristic_distance(qry_node.taxon,
+                                                        ref_node.taxon)
+            test = calculate_patristic_distance(qry_node, ref_nodes)
+
+            # Verify that it's correct.
+            self.assertSetEqual(set(test.keys()), set(true.keys()))
+            for k in test:
+                self.assertAlmostEqual(true[k], test[k])
 
 
 if __name__ == '__main__':
