@@ -37,6 +37,7 @@ from gtdbtk.external.prodigal import Prodigal
 from gtdbtk.external.tigrfam_search import TigrfamSearch
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.io.prodigal.tln_table import TlnTableFile
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.tools import merge_two_dicts, symlink_f
 from gtdbtk.trim_msa import TrimMSA
@@ -231,7 +232,7 @@ class Markers(object):
                 lq_gids.append(gid)
             else:
                 genomic_files[gid] = {'aa_gene_path': aa_gene_path,
-                                      'translation_table_path': os.path.join(gid_dir, 'prodigal' + TRANSLATION_TABLE_SUFFIX),
+                                      'translation_table_path': TlnTableFile.get_path(gid_dir, gid),
                                       'nt_gene_path': os.path.join(gid_dir, gid + self.nt_gene_file_suffix),
                                       'gff_path': os.path.join(gid_dir, gid + self.gff_file_suffix)
                                       }

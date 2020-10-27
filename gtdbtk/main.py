@@ -661,6 +661,7 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
+            options.write_single_copy_genes = False
             self.identify(options)
 
             options.identify_dir = options.out_dir
@@ -733,8 +734,10 @@ class OptionsParser(object):
                                     ' supported, overriding value to False.')
             options.split_tree = False
 
-            check_dependencies(
-                ['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
+                                'fastANI'])
+
+            options.write_single_copy_genes = False
             self.identify(options)
 
             options.identify_dir = options.out_dir

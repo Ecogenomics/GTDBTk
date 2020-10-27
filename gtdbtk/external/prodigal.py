@@ -79,20 +79,21 @@ class Prodigal(object):
             False if an error occurred.
         """
 
-        # Set the paths for output files.
+        # Create objects to write the output data to.
         output_dir = os.path.join(self.marker_gene_dir, genome_id)
+        tln_table_file = TlnTableFile(output_dir, genome_id)
+
+        # Set the paths for output files.
         aa_gene_file = os.path.join(output_dir, genome_id + self.protein_file_suffix)
         nt_gene_file = os.path.join(output_dir, genome_id + self.nt_gene_file_suffix)
         gff_file = os.path.join(output_dir, genome_id + self.gff_file_suffix)
-        translation_table_file = os.path.join(output_dir, 'prodigal_translation_table.tsv')
-        out_files = (nt_gene_file, gff_file, translation_table_file, aa_gene_file)
+        out_files = (nt_gene_file, gff_file, tln_table_file.path, aa_gene_file)
 
         # Check if this genome has already been processed (skip).
         if all([file_has_checksum(x) for x in out_files]):
-            tln_table_file = TlnTableFile(translation_table_file)
             tln_table_file.read()
             self.warnings.info(f'Skipped Prodigal processing for: {genome_id}')
-            return aa_gene_file, nt_gene_file, gff_file, translation_table_file, tln_table_file.best_tln_table, True
+            return aa_gene_file, nt_gene_file, gff_file, tln_table_file.path, tln_table_file.best_tln_table, True
 
         # Run Prodigal
         prodigal = BioLibProdigal(1, False)
@@ -116,10 +117,9 @@ class Prodigal(object):
         shutil.move(summary_stats.gff_file, gff_file)
 
         # save translation table information
-        tln_table_file = TlnTableFile(translation_table_file,
-                                      best_tln_table=summary_stats.best_translation_table,
-                                      coding_density_4=round(summary_stats.coding_density_4 * 100, 2),
-                                      coding_density_11=round(summary_stats.coding_density_11 * 100, 2))
+        tln_table_file.best_tln_table = summary_stats.best_translation_table
+        tln_table_file.coding_density_4 = round(summary_stats.coding_density_4 * 100, 2)
+        tln_table_file.coding_density_11 = round(summary_stats.coding_density_11 * 100, 2)
         tln_table_file.write()
 
         # Create a hash of each file
@@ -128,7 +128,7 @@ class Prodigal(object):
                 with open(out_file + CHECKSUM_SUFFIX, 'w') as fh:
                     fh.write(sha256(out_file))
 
-        return aa_gene_file, nt_gene_file, gff_file, translation_table_file, summary_stats.best_translation_table, False
+        return aa_gene_file, nt_gene_file, gff_file, tln_table_file.path, summary_stats.best_translation_table, False
 
     def _worker(self, out_dict, worker_queue, writer_queue, n_skipped):
         """This worker function is invoked in a process."""
