@@ -2,7 +2,7 @@
 Change log
 ==========
 
-1.x.x
+1.4.0
 -----
 
 * Check if stdout is being piped to a file before adding colour.
@@ -10,6 +10,7 @@ Change log
 * Automatically cap pplacer CPUs to 64 unless specifying ``--pplacer_cpus`` to prevent pplacer from hanging.
 * (`#262 <https://github.com/Ecogenomics/GTDBTk/issues/262>`_) Added ``--write_single_copy_genes`` to the ``identify`` command. Writes unaligned single-copy AR122/BAC120 marker genes to disk.
 * Warn if GTDB-Tk is not running the most up-to-date version (disable via ``GTDBTK_VER_CHECK = False`` in ``config.py``). If GTDB-Tk encounters an error it will silently continue (3 second timeout).
+* (`#276 <https://github.com/Ecogenomics/GTDBTk/issues/276>`_) Renamed the column ``aa_percent`` to ``msa_percent`` in ``summary.tsv`` (produced by ``classify``).
 
 
 1.3.0
