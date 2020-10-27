@@ -35,7 +35,7 @@ class TlnTableFile(object):
     @coding_density_4.setter
     def coding_density_4(self, v):
         try:
-            self._coding_density_4 = int(v)
+            self._coding_density_4 = float(v)
         except ValueError:
             raise GTDBTkExit(f'Invalid coding density: {v} for {self.path}')
 
@@ -46,7 +46,7 @@ class TlnTableFile(object):
     @coding_density_11.setter
     def coding_density_11(self, v):
         try:
-            self._coding_density_11 = int(v)
+            self._coding_density_11 = float(v)
         except ValueError:
             raise GTDBTkExit(f'Invalid coding density: {v} for {self.path}')
 

@@ -94,10 +94,7 @@ class Prodigal(object):
                 total_bases += len(seq)
 
             # call genes under different translation tables
-            if self.translation_table:
-                translation_tables = [self.translation_table]
-            else:
-                translation_tables = [4, 11]
+            translation_tables = [4, 11]
 
             for translation_table in translation_tables:
                 os.makedirs(os.path.join(tmp_dir, str(translation_table)))
