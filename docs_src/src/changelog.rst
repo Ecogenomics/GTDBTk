@@ -9,6 +9,7 @@ Change log
 * (`#283 <https://github.com/Ecogenomics/GTDBTk/issues/283>`_) Significantly improved ``classify`` performance (noticeable when running trees > 1,000 taxa).
 * Automatically cap pplacer CPUs to 64 unless specifying ``--pplacer_cpus`` to prevent pplacer from hanging.
 * (`#262 <https://github.com/Ecogenomics/GTDBTk/issues/262>`_) Added ``--write_single_copy_genes`` to the ``identify`` command. Writes unaligned single-copy AR122/BAC120 marker genes to disk.
+* Warn if GTDB-Tk is not running the most up-to-date version (disable via ``GTDBTK_VER_CHECK = False`` in ``config.py``). If GTDB-Tk encounters an error it will silently continue (3 second timeout).
 
 
 1.3.0
