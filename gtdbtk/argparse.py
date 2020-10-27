@@ -273,6 +273,11 @@ def __domain(group, required):
                        help="domain to export")
 
 
+def __write_single_copy_genes(group):
+    group.add_argument('--write_single_copy_genes', action='store_const', const=True, default=False,
+                       help='output unaligned single-copy marker genes')
+
+
 def get_main_parser():
     # Setup the main, and sub parsers.
     main_parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
@@ -343,6 +348,7 @@ def get_main_parser():
             __prefix(grp)
             __cpus(grp)
             __force(grp)
+            __write_single_copy_genes(grp)
             __debug(grp)
             __help(grp)
 

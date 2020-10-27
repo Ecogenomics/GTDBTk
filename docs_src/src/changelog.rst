@@ -8,6 +8,7 @@ Change log
 * Check if stdout is being piped to a file before adding colour.
 * (`#283 <https://github.com/Ecogenomics/GTDBTk/issues/283>`_) Significantly improved ``classify`` performance (noticeable when running trees > 1,000 taxa).
 * Automatically cap pplacer CPUs to 64 unless specifying ``--pplacer_cpus`` to prevent pplacer from hanging.
+* (`#262 <https://github.com/Ecogenomics/GTDBTk/issues/262>`_) Added ``--write_single_copy_genes`` to the ``identify`` command. Writes unaligned single-copy AR122/BAC120 marker genes to disk.
 
 
 1.3.0

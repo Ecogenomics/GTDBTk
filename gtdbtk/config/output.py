@@ -4,6 +4,7 @@ from os.path import join
 DIR_IDENTIFY = 'identify'
 DIR_IDENTIFY_INTERMEDIATE = join(DIR_IDENTIFY, 'intermediate_results')
 DIR_MARKER_GENE = join(DIR_IDENTIFY_INTERMEDIATE, 'marker_genes')
+DIR_IDENTIFY_FASTA = join(DIR_IDENTIFY_INTERMEDIATE, 'single_copy_fasta')
 PATH_BAC120_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.bac120.markers_summary.tsv')
 PATH_AR122_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.ar122.markers_summary.tsv')
 PATH_TLN_TABLE_SUMMARY = join(DIR_IDENTIFY, '{prefix}.translation_table_summary.tsv')

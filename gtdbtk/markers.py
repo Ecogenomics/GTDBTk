@@ -71,7 +71,8 @@ class Markers(object):
         self.tigrfam_suffix = TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = TIGRFAM_TOP_HIT_SUFFIX
 
-    def _report_identified_marker_genes(self, gene_dict, outdir, prefix):
+    def _report_identified_marker_genes(self, gene_dict, outdir, prefix,
+                                        write_single_copy_genes):
         """Report statistics for identified marker genes."""
 
         # Summarise the copy number of each AR122 and BAC120 markers.
@@ -109,7 +110,42 @@ class Markers(object):
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                   os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
 
-    def identify(self, genomes, tln_tables, out_dir, prefix, force):
+        # Write the single copy AR122/BAC120 FASTA files to disk.
+        if write_single_copy_genes:
+            fasta_dir = os.path.join(outdir, DIR_IDENTIFY_FASTA)
+            self.logger.info(f'Writing unaligned single-copy genes to: {fasta_dir}')
+
+            # Iterate over each domain.
+            marker_doms = list()
+            marker_doms.append((Config.AR122_MARKERS['PFAM'] +
+                                Config.AR122_MARKERS['TIGRFAM'],
+                                ar122_copy_number_file, 'ar122'))
+            marker_doms.append((Config.BAC120_MARKERS['PFAM'] +
+                                Config.BAC120_MARKERS['TIGRFAM'],
+                                bac120_copy_number_file, 'bac120'))
+            for marker_names, marker_file, marker_d in marker_doms:
+
+                # Create the domain-specific subdirectory.
+                fasta_d_dir = os.path.join(fasta_dir, marker_d)
+                make_sure_path_exists(fasta_d_dir)
+
+                # Iterate over each marker.
+                for marker_name in marker_names:
+                    marker_name = marker_name.rstrip(r'\.[HMMhmm]')
+                    marker_path = os.path.join(fasta_d_dir, f'{marker_name}.fa')
+
+                    to_write = list()
+                    for genome_id in sorted(gene_dict):
+                        unq_hits = marker_file.get_single_copy_hits(genome_id)
+                        if marker_name in unq_hits:
+                            to_write.append(f'>{genome_id}')
+                            to_write.append(unq_hits[marker_name]['seq'])
+
+                    if len(to_write) > 0:
+                        with open(marker_path, 'w') as fh:
+                            fh.write('\n'.join(to_write))
+
+    def identify(self, genomes, tln_tables, out_dir, prefix, force, write_single_copy_genes):
         """Identify marker genes in genomes.
 
         Parameters
@@ -124,6 +160,8 @@ class Markers(object):
             Prefix to append to generated files.
         force : bool
             Overwrite any existing files.
+        write_single_copy_genes : bool
+            Write unique AR122/BAC120 marker files to disk.
 
         Raises
         ------
@@ -170,7 +208,8 @@ class Markers(object):
         pfam_search.run(gene_files)
         self.logger.info(f'Annotations done using HMMER {tigr_search.version}.')
 
-        self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
+        self._report_identified_marker_genes(genome_dictionary, out_dir, prefix,
+                                             write_single_copy_genes)
 
     def _path_to_identify_data(self, identity_dir, warn=True):
         """Get path to genome data produced by 'identify' command."""

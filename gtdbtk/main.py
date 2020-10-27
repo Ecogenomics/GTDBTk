@@ -312,7 +312,8 @@ class OptionsParser(object):
                          tln_tables,
                          options.out_dir,
                          options.prefix,
-                         options.force)
+                         options.force,
+                         options.write_single_copy_genes)
 
         self.logger.info('Done.')
 
