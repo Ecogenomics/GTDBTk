@@ -96,17 +96,16 @@ class Prodigal(object):
 
         # Run Prodigal
         prodigal = BioLibProdigal(1, False)
-        summary_stats = prodigal.run(
-            [fasta_path], output_dir, called_genes=False,
-            translation_table=usr_tln_table)
+        summary_stats = prodigal.run([fasta_path], output_dir,
+                                     called_genes=False,
+                                     translation_table=usr_tln_table)
 
         # An error occurred in BioLib Prodigal.
         if not summary_stats:
             if self.force:
                 return None
             else:
-                raise Exception(
-                    "An error was encountered while running Prodigal.")
+                raise Exception("An error was encountered while running Prodigal.")
 
         summary_stats = summary_stats[list(summary_stats.keys())[0]]
 
@@ -195,9 +194,10 @@ class Prodigal(object):
             worker_proc = [mp.Process(target=self._worker, args=(out_dict,
                                                                  worker_queue,
                                                                  writer_queue,
-                                                                 n_skipped)) for _ in range(self.threads)]
-            writer_proc = mp.Process(target=self._writer, args=(
-                len(genomic_files), writer_queue))
+                                                                 n_skipped))
+                           for _ in range(self.threads)]
+            writer_proc = mp.Process(target=self._writer, args=(len(genomic_files),
+                                                                writer_queue))
 
             writer_proc.start()
             for p in worker_proc:
@@ -208,8 +208,7 @@ class Prodigal(object):
 
                 # Gracefully terminate the program.
                 if p.exitcode != 0:
-                    raise ProdigalException(
-                        'Prodigal returned a non-zero exit code.')
+                    raise ProdigalException('Prodigal returned a non-zero exit code.')
 
             writer_queue.put(None)
             writer_proc.join()
@@ -218,8 +217,7 @@ class Prodigal(object):
                 p.terminate()
 
             writer_proc.terminate()
-            raise ProdigalException(
-                'An exception was caught while running Prodigal.')
+            raise ProdigalException('An exception was caught while running Prodigal.')
 
         # Report if any genomes were skipped due to having already been processed.
         if n_skipped.value > 0:

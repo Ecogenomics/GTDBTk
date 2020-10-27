@@ -133,8 +133,8 @@ class Markers(object):
         """
         check_dependencies(['prodigal', 'hmmsearch'])
 
-        self.logger.info('Identifying markers in %d genomes with %d threads.' % (len(genomes),
-                                                                                 self.cpus))
+        self.logger.info(f'Identifying markers in {len(genomes)} genomes with '
+                         f'{self.cpus} threads.')
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
         prodigal = Prodigal(self.cpus,
@@ -143,15 +143,13 @@ class Markers(object):
                             self.nt_gene_file_suffix,
                             self.gff_file_suffix,
                             force)
-        self.logger.info(
-            "Running Prodigal {} to identify genes.".format(prodigal.version))
+        self.logger.info(f'Running Prodigal {prodigal.version} to identify genes.')
         genome_dictionary = prodigal.run(genomes, tln_tables)
 
         # annotated genes against TIGRFAM and Pfam databases
-        self.logger.info("Identifying TIGRFAM protein families.")
+        self.logger.info('Identifying TIGRFAM protein families.')
         gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
                       for db_genome_id in genome_dictionary.keys()]
-
         tigr_search = TigrfamSearch(self.cpus,
                                     self.tigrfam_hmms,
                                     self.protein_file_suffix,
@@ -161,7 +159,7 @@ class Markers(object):
                                     self.marker_gene_dir)
         tigr_search.run(gene_files)
 
-        self.logger.info("Identifying Pfam protein families.")
+        self.logger.info('Identifying Pfam protein families.')
         pfam_search = PfamSearch(self.cpus,
                                  self.pfam_hmm_dir,
                                  self.protein_file_suffix,
@@ -170,8 +168,7 @@ class Markers(object):
                                  self.checksum_suffix,
                                  self.marker_gene_dir)
         pfam_search.run(gene_files)
-        self.logger.info(
-            "Annotations done using HMMER {}.".format(tigr_search.version))
+        self.logger.info(f'Annotations done using HMMER {tigr_search.version}.')
 
         self._report_identified_marker_genes(genome_dictionary, out_dir, prefix)
 

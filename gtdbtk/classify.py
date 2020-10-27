@@ -62,8 +62,21 @@ class Classify(object):
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
 
         self.logger = logging.getLogger('timestamp')
+
         self.cpus = max(cpus, 1)
         self.pplacer_cpus = max(pplacer_cpus if pplacer_cpus else cpus, 1)
+
+        # pplacer seems to hang if more than 64 threads are given, warn the user
+        # otherwise let them if they specify pplacer_cpus.
+        if pplacer_cpus and pplacer_cpus > 64:
+            self.logger.warning('pplacer is known to hang if >64 CPUs are '
+                                'used. You have overridden this using: '
+                                '--pplacer_cpus')
+        elif not pplacer_cpus and cpus > 64:
+            self.logger.warning('Setting pplacer CPUs to 64, as pplacer is '
+                                'known to hang if >64 are used. You can '
+                                'override this using: --pplacer_cpus')
+            self.pplacer_cpus = 64
 
         self.species_radius = self.parse_radius_file()
 
@@ -118,9 +131,7 @@ class Classify(object):
             elif marker_set_id == 'ar122':
                 t = PATH_AR122_USER_MSA.format(prefix=prefix)
             else:
-                self.logger.error(
-                    'There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
@@ -140,29 +151,32 @@ class Classify(object):
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
             if levelopt is None:
-                self.logger.info(
-                    f'Placing {num_genomes} bacterial genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
-                pplacer_ref_pkg = os.path.join(
-                    Config.PPLACER_DIR, Config.PPLACER_BAC120_REF_PKG)
+                self.logger.info(f'Placing {num_genomes} bacterial genomes '
+                                 f'into reference tree with pplacer using '
+                                 f'{self.pplacer_cpus} CPUs (be patient).')
+                pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
+                                               Config.PPLACER_BAC120_REF_PKG)
             elif levelopt == 'high':
-                self.logger.info(
-                    f'Placing {num_genomes} bacterial genomes into high reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
-                pplacer_ref_pkg = os.path.join(
-                    Config.HIGH_PPLACER_DIR, Config.HIGH_PPLACER_REF_PKG)
+                self.logger.info(f'Placing {num_genomes} bacterial genomes '
+                                 f'into high reference tree with pplacer using '
+                                 f'{self.pplacer_cpus} CPUs (be patient).')
+                pplacer_ref_pkg = os.path.join(Config.HIGH_PPLACER_DIR,
+                                               Config.HIGH_PPLACER_REF_PKG)
             elif levelopt == 'low':
-                self.logger.info(
-                    f'Placing {num_genomes} bacterial genomes into low reference tree {tree_iter} with pplacer using {self.pplacer_cpus} cpus (be patient).')
-                pplacer_ref_pkg = os.path.join(
-                    Config.LOW_PPLACER_DIR, Config.LOW_PPLACER_REF_PKG.format(iter=tree_iter))
+                self.logger.info(f'Placing {num_genomes} bacterial genomes '
+                                 f'into low reference tree {tree_iter} with '
+                                 f'pplacer using {self.pplacer_cpus} CPUs '
+                                 f'(be patient).')
+                pplacer_ref_pkg = os.path.join(Config.LOW_PPLACER_DIR,
+                                               Config.LOW_PPLACER_REF_PKG.format(iter=tree_iter))
         elif marker_set_id == 'ar122':
-            self.logger.info(
-                f'Placing {num_genomes} archaeal genomes into reference tree with pplacer using {self.pplacer_cpus} cpus (be patient).')
-            pplacer_ref_pkg = os.path.join(
-                Config.PPLACER_DIR, Config.PPLACER_AR122_REF_PKG)
+            self.logger.info(f'Placing {num_genomes} archaeal genomes into '
+                             f'reference tree with pplacer using '
+                             f'{self.pplacer_cpus} CPUs (be patient).')
+            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
+                                           Config.PPLACER_AR122_REF_PKG)
         else:
-            self.logger.error('Unknown marker set: {}'.format(marker_set_id))
-            raise GenomeMarkerSetUnknown(
-                'Unknown marker set: {}'.format(marker_set_id))
+            raise GenomeMarkerSetUnknown(f'Unknown marker set: {marker_set_id}')
 
         # create pplacer output directory
         pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
@@ -196,7 +210,7 @@ class Classify(object):
         pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                     user_msa_file, pplacer_out, pplacer_mmap_file)
         if levelopt is None or levelopt == 'high':
-            self.logger.info('pplacer version: {}'.format(pplacer.version))
+            self.logger.info(f'pplacer version: {pplacer.version}')
 
         # extract tree
         if marker_set_id == 'bac120':

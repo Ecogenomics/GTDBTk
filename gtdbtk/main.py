@@ -302,8 +302,9 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes, tln_tables = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes, tln_tables = self._genomes_to_process(options.genome_dir,
+                                                       options.batchfile,
+                                                       options.extension)
         self.genomes_to_process = genomes
 
         markers = Markers(options.cpus)
