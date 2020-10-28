@@ -42,3 +42,13 @@ class TlnTableSummaryFile(object):
         with open(self.path, 'w') as fh:
             for genome_id, tln_table in sorted(self.genomes.items()):
                 fh.write(f'{genome_id}\t{tln_table}\n')
+
+    def read(self):
+        """Read the translation table summary file from disk."""
+        if len(self.genomes) > 0:
+            raise GTDBTkExit(f'Warning! Attempting to override in-memory values '
+                             f'for translation table summary file: {self.path}')
+        with open(self.path, 'r') as fh:
+            for line in fh.readlines():
+                gid, tbl = line.strip().split('\t')
+                self.genomes[gid] = int(tbl)

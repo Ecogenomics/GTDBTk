@@ -39,10 +39,11 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
+from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
-    calculate_patristic_distance
+    calculate_patristic_distance, tqdm_log
 
 sys.setrecursionlimit(15000)
 
@@ -366,14 +367,6 @@ class Classify(object):
                     results[infos[0]] = round(multi_hits_percent, 1)
         return results
 
-    def parse_trans_table_file(self, trans_table_file):
-        results = {}
-        with open(trans_table_file, 'r') as msf:
-            for line in msf:
-                infos = line.strip().split('\t')
-                results[infos[0]] = infos[1]
-        return results
-
     def run(self,
             genomes,
             align_dir,
@@ -400,9 +393,7 @@ class Classify(object):
                 user_msa_file = os.path.join(
                     align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
             else:
-                self.logger.error(
-                    'There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
             if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
                 # file will not exist if there are no User genomes from a
@@ -412,9 +403,11 @@ class Classify(object):
             percent_multihit_dict = self.parser_marker_summary_file(
                 marker_summary_file, marker_set_id)
 
-            trans_table_file = os.path.join(
-                align_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
-            trans_table_dict = self.parse_trans_table_file(trans_table_file)
+            tln_table_summary_file = TlnTableSummaryFile(align_dir, prefix)
+            tln_table_summary_file.read()
+            # TODO: Make sure that below can handle integer values.
+            trans_table_dict = {k: str(v) for k, v
+                                in tln_table_summary_file.genomes.items()}
 
             msa_dict = read_fasta(user_msa_file)
 
