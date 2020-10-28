@@ -477,8 +477,9 @@ class OptionsParser(object):
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
 
-        genomes, _ = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                              options.batchfile,
+                                              options.extension)
 
         classify = Classify(options.cpus, options.pplacer_cpus)
         classify.run(genomes,

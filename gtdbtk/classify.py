@@ -42,6 +42,7 @@ from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.io.classify_summary import ClassifySummaryFileAR122, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
+from gtdbtk.io.red_dict import REDDictFileAR122, REDDictFileBAC120
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
@@ -214,10 +215,10 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer = Pplacer()
-        pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
-                    user_msa_file, pplacer_out, pplacer_mmap_file)
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
+        pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
+                    user_msa_file, pplacer_out, pplacer_mmap_file)
 
         # extract tree
         if marker_set_id == 'bac120':
@@ -297,44 +298,6 @@ class Classify(object):
         new_taxstring = ";".join(taxlist)
         return new_taxstring
 
-    def _write_red_dict(self, out_dir, prefix, marker_set_id):
-        """Write the RED value for each rank to a file
-
-        Parameters
-        ----------
-        out_dir : output directory
-        prefix : desired prefix for output files
-        marker_set_id : bacterial or archeal id (bac120 or ar122)
-
-        Returns
-        -------
-        dictionary
-            dictionary[rank_prefix] = red_value
-
-        """
-
-        if marker_set_id == 'bac120':
-            marker_dict = Config.RED_DIST_BAC_DICT
-            out_path = os.path.join(
-                out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
-        elif marker_set_id == 'ar122':
-            marker_dict = Config.RED_DIST_ARC_DICT
-            out_path = os.path.join(
-                out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
-
-        make_sure_path_exists(os.path.dirname(out_path))
-
-        with open(out_path, 'w') as reddictfile:
-            reddictfile.write('Phylum\t{}\n'.format(marker_dict.get('p__')))
-            reddictfile.write('Class\t{}\n'.format(marker_dict.get('c__')))
-            reddictfile.write('Order\t{}\n'.format(marker_dict.get('o__')))
-            reddictfile.write('Family\t{}\n'.format(marker_dict.get('f__')))
-            reddictfile.write('Genus\t{}\n'.format(marker_dict.get('g__')))
-
-        return marker_dict
 
     def _parse_red_dict(self, red_dist_dict):
         results = {}
@@ -385,12 +348,14 @@ class Classify(object):
                 user_msa_file = os.path.join(align_dir,
                                              PATH_AR122_USER_MSA.format(prefix=prefix))
                 summary_file = ClassifySummaryFileAR122(out_dir, prefix)
+                red_dict_file = REDDictFileAR122(out_dir, prefix)
             elif marker_set_id == 'bac120':
                 marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                 marker_summary_fh.read()
                 user_msa_file = os.path.join(align_dir,
                                              PATH_BAC120_USER_MSA.format(prefix=prefix))
                 summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+                red_dict_file = REDDictFileBAC120(out_dir, prefix)
             else:
                 raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
@@ -399,20 +364,21 @@ class Classify(object):
                 # given domain
                 continue
 
+            # Write the RED dictionary to disk (intermediate file).
+            red_dict_file.write()
+
             percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
 
+            # Read the translation table summary file (identify).
             tln_table_summary_file = TlnTableSummaryFile(align_dir, prefix)
             tln_table_summary_file.read()
-            # TODO: Make sure that below can handle integer values.
-            trans_table_dict = {k: str(v) for k, v
-                                in tln_table_summary_file.genomes.items()}
 
             msa_dict = read_fasta(user_msa_file)
 
             if splittreeopt is True:
                 # run pplacer to place bins in reference genome tree
                 num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
-                debugfile, conflict_file, marker_dict = self._generate_summary_file(
+                debugfile, conflict_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, splittreeopt)
 
                 high_classify_tree = self.place_genomes(user_msa_file,
@@ -446,8 +412,8 @@ class Classify(object):
                     pplacer_taxonomy_dict = self._get_pplacer_taxonomy(
                         out_dir, prefix, marker_set_id, user_msa_file, mrca_lowtree)
 
-                    self._parse_tree(mrca_lowtree, genomes, msa_dict, percent_multihit_dict, trans_table_dict,
-                                     bac_ar_diff, submsa_file_path, marker_dict, summary_file, conflict_file, pplacer_taxonomy_dict,
+                    self._parse_tree(mrca_lowtree, genomes, msa_dict, percent_multihit_dict, tln_table_summary_file.genomes,
+                                     bac_ar_diff, submsa_file_path, red_dict_file.data, summary_file, conflict_file, pplacer_taxonomy_dict,
                                      high_classification, debugfile, debugopt)
                 if debugopt:
                     debugfile.close()
@@ -460,7 +426,7 @@ class Classify(object):
                                                    scratch_dir)
 
                 # get taxonomic classification of each user genome
-                debugfile, conflict_file, marker_dict = self._generate_summary_file(
+                debugfile, conflict_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, splittreeopt)
 
                 if recalculate_red:
@@ -474,8 +440,8 @@ class Classify(object):
                                                                    tree_to_process)
 
                 self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
-                                 trans_table_dict,
-                                 bac_ar_diff, user_msa_file, marker_dict, summary_file, conflict_file,
+                                 tln_table_summary_file.genomes,
+                                 bac_ar_diff, user_msa_file, red_dict_file.data, summary_file, conflict_file,
                                  pplacer_taxonomy_dict, None,
                                  debugfile, debugopt)
 
@@ -499,8 +465,6 @@ class Classify(object):
         debugfile = None
         conflict_summary = None
 
-        marker_dict = self._write_red_dict(out_dir, prefix, marker_set_id)
-
         if debugopt:
             debugfile = open(os.path.join(
                 out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
@@ -511,7 +475,7 @@ class Classify(object):
                 out_dir, PATH_BAC120_CONFLICT.format(prefix=prefix)), 'w')
             conflict_summary.write(
                 "User genome\tHigh classification\tLow Classification\n")
-        return debugfile, conflict_summary, marker_dict
+        return debugfile, conflict_summary
 
     def _place_in_low_tree(self, tree_iter, listg, msa_dict, marker_set_id, prefix, scratch_dir, out_dir):
         make_sure_path_exists(os.path.join(
@@ -610,7 +574,7 @@ class Classify(object):
         return out
 
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                               user_msa_file, marker_dict, summary_file, conflict_file, pplacer_taxonomy_dict,
+                               user_msa_file, red_dict, summary_file, conflict_file, pplacer_taxonomy_dict,
                                high_classification, debugfile, debugopt, classified_user_genomes,
                                unclassified_user_genomes, tt):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
@@ -704,16 +668,16 @@ class Classify(object):
                                   self.order_rank.index(child_rk):-1]  # We remove the species name
                 for leaf_taxon in reversed(list_leaf_ranks):
                     if leaf_taxon == list_leaf_ranks[0]:
-                        if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
-                                current_rel_list - marker_dict.get(parent_rank)):
+                        if abs(current_rel_list - red_dict.get(leaf_taxon[:3])) < abs(
+                                current_rel_list - red_dict.get(parent_rank)):
                             closest_rank = leaf_taxon[:3]
                             debug_info[3] = leaf_taxon
                             debug_info[5] = 'case 1b - III'
                             break
                     else:
                         pchildrank = list_leaf_ranks[list_leaf_ranks.index(leaf_taxon) - 1]
-                        if abs(current_rel_list - marker_dict.get(leaf_taxon[:3])) < abs(
-                                current_rel_list - marker_dict.get(pchildrank[:3])):
+                        if abs(current_rel_list - red_dict.get(leaf_taxon[:3])) < abs(
+                                current_rel_list - red_dict.get(pchildrank[:3])):
                             closest_rank = leaf_taxon[:3]
                             debug_info[1] = pchildrank
                             debug_info[2] = 1.0
@@ -730,10 +694,10 @@ class Classify(object):
             for child_taxon in reversed(child_taxons):
                 # if lower rank is c__Nitropiria
                 if child_taxon == child_taxons[0]:
-                    if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
-                            child_rel_dist - marker_dict.get(child_taxon[:3])) and
-                            abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
-                                current_rel_list - marker_dict.get(parent_rank))):
+                    if (abs(current_rel_list - red_dict.get(child_taxon[:3])) < abs(
+                            child_rel_dist - red_dict.get(child_taxon[:3])) and
+                            abs(current_rel_list - red_dict.get(child_taxon[:3])) < abs(
+                                current_rel_list - red_dict.get(parent_rank))):
                         debug_info[3] = ';'.join(child_taxons)
                         debug_info[4] = child_rel_dist
                         debug_info[5] = 'case 3b - II'
@@ -746,10 +710,10 @@ class Classify(object):
                 else:
                     pchildrank = child_taxons[child_taxons.index(
                         child_taxon) - 1]
-                    if (abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
-                            current_rel_list - marker_dict.get(pchildrank[:3])) and
-                            abs(current_rel_list - marker_dict.get(child_taxon[:3])) < abs(
-                                child_rel_dist - marker_dict.get(child_taxon[:3]))):
+                    if (abs(current_rel_list - red_dict.get(child_taxon[:3])) < abs(
+                            current_rel_list - red_dict.get(pchildrank[:3])) and
+                            abs(current_rel_list - red_dict.get(child_taxon[:3])) < abs(
+                                child_rel_dist - red_dict.get(child_taxon[:3]))):
                         closest_rank = child_taxon
                         debug_info[3] = ';'.join(child_taxons)
                         debug_info[4] = child_rel_dist
@@ -807,7 +771,7 @@ class Classify(object):
                         leaf.taxon.label).get('tk_tax'), summary_row.classification))
 
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                    user_msa_file, marker_dict, summary_file, conflict_file, pplacer_taxonomy_dict, high_classification,
+                    user_msa_file, red_dict, summary_file, conflict_file, pplacer_taxonomy_dict, high_classification,
                     debugfile, debugopt):
         # Genomes can be classified by using FastANI or RED values
         # We go through all leaves of the tree. if the leaf is a user
@@ -842,7 +806,7 @@ class Classify(object):
         # Iterate over each leaf node that was not classified with FastANI.
         self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
                                     trans_table_dict, bac_ar_diff, user_msa_file,
-                                    marker_dict, summary_file, conflict_file,
+                                    red_dict, summary_file, conflict_file,
                                     pplacer_taxonomy_dict, high_classification,
                                     debugfile, debugopt, classified_user_genomes,
                                     unclassified_user_genomes, tt)

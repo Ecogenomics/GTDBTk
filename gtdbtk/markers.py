@@ -452,8 +452,7 @@ class Markers(object):
                                                                               self.cpus))
 
         # determine marker set for each user genome
-        bac_gids, ar_gids, _bac_ar_diff = self.genome_domain(
-            identify_dir, prefix)
+        bac_gids, ar_gids, _bac_ar_diff = self.genome_domain(identify_dir, prefix)
 
         # align user genomes
         gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
