@@ -23,12 +23,11 @@ import shutil
 import subprocess
 import tempfile
 
-from tqdm import tqdm
-
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.tools import tqdm_log
 
 
 class HmmAligner(object):
@@ -166,9 +165,7 @@ class HmmAligner(object):
         n_genomes : int
             The total number of genomes to be processed.
         """
-        bar_fmt = '==> Aligned {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=n_genomes, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(total=n_genomes, unit='genome') as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 

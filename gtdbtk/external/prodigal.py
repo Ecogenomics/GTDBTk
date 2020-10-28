@@ -21,13 +21,11 @@ import os
 import shutil
 import subprocess
 
-from tqdm import tqdm
-
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 from gtdbtk.exceptions import ProdigalException
 from gtdbtk.io.prodigal.tln_table import TlnTableFile
-from gtdbtk.tools import sha256, file_has_checksum
+from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 
 class Prodigal(object):
@@ -159,9 +157,7 @@ class Prodigal(object):
 
     def _writer(self, num_items, writer_queue):
         """Store or write results of worker threads in a single thread."""
-        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=num_items, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(total=num_items,  unit='genome') as p_bar:
             for _ in iter(writer_queue.get, None):
                 p_bar.update()
 

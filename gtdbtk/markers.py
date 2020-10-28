@@ -22,7 +22,6 @@ from shutil import copy
 from typing import Dict, Tuple, Optional
 
 import numpy as np
-from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists
@@ -39,7 +38,7 @@ from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC1
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
 from gtdbtk.io.prodigal.tln_table import TlnTableFile
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
-from gtdbtk.tools import merge_two_dicts, symlink_f
+from gtdbtk.tools import merge_two_dicts, symlink_f, tqdm_log
 from gtdbtk.trim_msa import TrimMSA
 
 
@@ -302,9 +301,7 @@ class Markers(object):
 
         output_seqs = {}
         pruned_seqs = {}
-        bar_fmt = '==> Masked {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'alignments [{rate_fmt}, ETA {remaining}]'
-        for seq_id, seq in tqdm(aligned_genomes.items(), bar_format=bar_fmt):
+        for seq_id, seq in tqdm_log(aligned_genomes.items(), unit='alignment'):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:
                 raise MSAMaskLengthMismatch(
