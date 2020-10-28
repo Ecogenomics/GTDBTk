@@ -181,11 +181,11 @@ class Markers(object):
                             self.nt_gene_file_suffix,
                             self.gff_file_suffix,
                             force)
-        self.logger.info(f'Running Prodigal {prodigal.version} to identify genes.')
+        self.logger.log(Config.LOG_TASK, f'Running Prodigal {prodigal.version} to identify genes.')
         genome_dictionary = prodigal.run(genomes, tln_tables)
 
         # annotated genes against TIGRFAM and Pfam databases
-        self.logger.info('Identifying TIGRFAM protein families.')
+        self.logger.log(Config.LOG_TASK, 'Identifying TIGRFAM protein families.')
         gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
                       for db_genome_id in genome_dictionary.keys()]
         tigr_search = TigrfamSearch(self.cpus,
@@ -197,7 +197,7 @@ class Markers(object):
                                     self.marker_gene_dir)
         tigr_search.run(gene_files)
 
-        self.logger.info('Identifying Pfam protein families.')
+        self.logger.log(Config.LOG_TASK, 'Identifying Pfam protein families.')
         pfam_search = PfamSearch(self.cpus,
                                  self.pfam_hmm_dir,
                                  self.protein_file_suffix,
@@ -499,6 +499,7 @@ class Markers(object):
                                                     outgroup_taxon)
             gtdb_msa_mask = os.path.join(Config.MASK_DIR, mask_file)
 
+            self.logger.log(Config.LOG_TASK, f'Aligning {len(cur_genome_files):,} {domain_str} genomes.')
             hmm_aligner = HmmAligner(self.cpus,
                                      self.pfam_top_hit_suffix,
                                      self.tigrfam_top_hit_suffix,
@@ -553,7 +554,7 @@ class Markers(object):
                     self.logger.info('Filtered genomes include {:.} user submitted genomes.'.format(len(
                         filtered_user_genomes)))
             else:
-                self.logger.info(
+                self.logger.log(Config.LOG_TASK,
                     f'Masking columns of {domain_str} multiple sequence alignment using canonical mask.')
                 trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa,
                                                              user_msa,

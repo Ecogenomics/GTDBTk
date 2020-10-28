@@ -143,7 +143,7 @@ class Pplacer(object):
         # Create a progress bar which tracks the initialization step of
         # pplacer.
         bar_fmt = '==> {desc}.'
-        with tqdm(bar_format=bar_fmt, miniters=1) as p_bar:
+        with tqdm(bar_format=bar_fmt, miniters=1, leave=False) as p_bar:
             p_bar.set_description_str(desc='Step 1 of 9: Starting pplacer')
             while True:
                 try:

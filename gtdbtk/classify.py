@@ -152,28 +152,32 @@ class Classify(object):
         # get path to pplacer reference package
         if marker_set_id == 'bac120':
             if levelopt is None:
-                self.logger.info(f'Placing {num_genomes} bacterial genomes '
-                                 f'into reference tree with pplacer using '
-                                 f'{self.pplacer_cpus} CPUs (be patient).')
+                self.logger.log(Config.LOG_TASK,
+                                f'Placing {num_genomes} bacterial genomes '
+                                f'into reference tree with pplacer using '
+                                f'{self.pplacer_cpus} CPUs (be patient).')
                 pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
                                                Config.PPLACER_BAC120_REF_PKG)
             elif levelopt == 'high':
-                self.logger.info(f'Placing {num_genomes} bacterial genomes '
-                                 f'into high reference tree with pplacer using '
-                                 f'{self.pplacer_cpus} CPUs (be patient).')
+                self.logger.log(Config.LOG_TASK,
+                                f'Placing {num_genomes} bacterial genomes '
+                                f'into high reference tree with pplacer using '
+                                f'{self.pplacer_cpus} CPUs (be patient).')
                 pplacer_ref_pkg = os.path.join(Config.HIGH_PPLACER_DIR,
                                                Config.HIGH_PPLACER_REF_PKG)
             elif levelopt == 'low':
-                self.logger.info(f'Placing {num_genomes} bacterial genomes '
-                                 f'into low reference tree {tree_iter} with '
-                                 f'pplacer using {self.pplacer_cpus} CPUs '
-                                 f'(be patient).')
+                self.logger.log(Config.LOG_TASK,
+                                f'Placing {num_genomes} bacterial genomes '
+                                f'into low reference tree {tree_iter} with '
+                                f'pplacer using {self.pplacer_cpus} CPUs '
+                                f'(be patient).')
                 pplacer_ref_pkg = os.path.join(Config.LOW_PPLACER_DIR,
                                                Config.LOW_PPLACER_REF_PKG.format(iter=tree_iter))
         elif marker_set_id == 'ar122':
-            self.logger.info(f'Placing {num_genomes} archaeal genomes into '
-                             f'reference tree with pplacer using '
-                             f'{self.pplacer_cpus} CPUs (be patient).')
+            self.logger.log(Config.LOG_TASK,
+                            f'Placing {num_genomes} archaeal genomes into '
+                            f'reference tree with pplacer using '
+                            f'{self.pplacer_cpus} CPUs (be patient).')
             pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
                                            Config.PPLACER_AR122_REF_PKG)
         else:
@@ -578,7 +582,7 @@ class Classify(object):
         out = dict()
         number_comparison = 0
         qry_nodes = list(tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids))
-        for leaf_node in tqdm(qry_nodes):
+        for leaf_node in tqdm_log(qry_nodes, unit='genome'):
 
             # Traverse up to find the first labelled parent node.
             par_node = leaf_node.parent_node
@@ -838,17 +842,18 @@ class Classify(object):
         # Persist descendant information for efficient traversal.
         tt = TreeTraversal()
 
-        self.logger.info('Traversing tree to determine classification method.')
+        self.logger.log(Config.LOG_TASK, 'Traversing tree to determine classification method.')
         fastani_verification = self._get_fastani_verification(tree, self.reference_ids, tt)
 
         # we run a fastani comparison for each user genomes against the
         # selected genomes in the same genus
         if len(fastani_verification) > 0:
             fastani = FastANI(cpus=self.cpus, force_single=True)
-            self.logger.info('Calculating average nucleotide identity using FastANI.')
-            self.logger.info(f'fastANI version: {fastani.version}')
             d_ani_compare, d_paths = self._get_fastani_genome_path(
                 fastani_verification, genomes)
+            self.logger.log(Config.LOG_TASK,
+                            f'Calculating average nucleotide identity using '
+                            f'FastANI (v{fastani.version}).')
             all_fastani_dict = fastani.run(d_ani_compare, d_paths)
         else:
             all_fastani_dict = {}

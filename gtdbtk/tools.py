@@ -361,7 +361,7 @@ class tqdm_log(object):
         default = {'leave': False,
                    'smoothing': 0.1,
                    'bar_format': '==> Processed {n_fmt}/{total_fmt} {unit}s '
-                                 '|{bar:15}| ({percentage:.0f}%) [{rate_fmt}, ETA {remaining}]'}
+                                 '({percentage:.0f}%) |{bar:15}| [{rate_fmt}, ETA {remaining}]'}
         merged = {**default, **kwargs}
         self.args = merged
 
@@ -395,16 +395,16 @@ class tqdm_log(object):
 
             # Determine what scale to use for the output.
             if per > 1:
-                per_msg = f'{per:.2f} {unit}s/{time_unit}'
+                per_msg = f'{per:,.2f} {unit}s/{time_unit}'
             else:
-                per_msg = f'{1 / per:.2f} {time_unit}s/{unit}'
+                per_msg = f'{1 / per:,.2f} {time_unit}s/{unit}'
 
             # Output the message.
             s = 's' if n > 1 else ''
-            msg = f'Completed {n} {unit}{s} in {value:.2f} {time_unit}s ({per_msg}).'
+            msg = f'Completed {n:,} {unit}{s} in {value:,.2f} {time_unit}s ({per_msg}).'
             self.logger.info(msg)
         except Exception:
-            print('Unable to log current progress message.')
+            pass
 
     def __enter__(self):
         self.start_ts = time.time()

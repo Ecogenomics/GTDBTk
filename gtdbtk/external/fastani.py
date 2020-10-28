@@ -23,9 +23,8 @@ import shutil
 import subprocess
 import tempfile
 
-from tqdm import tqdm
-
 from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.tools import tqdm_log
 
 
 class FastANI(object):
@@ -244,9 +243,7 @@ class FastANI(object):
         n_total : int
             The total number of items to be processed.
         """
-        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'comparisons [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=n_total, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(unit='comparison', total=n_total) as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 

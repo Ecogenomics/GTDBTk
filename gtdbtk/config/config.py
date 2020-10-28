@@ -220,3 +220,6 @@ REF_HASHES = {PPLACER_DIR: 'f41cfe0284ebaca4485b42e054936190c6a88bd1',
 # Config values for checking GTDB-Tk on startup.
 GTDBTK_VER_CHECK = True
 GTDBTK_VER_TIMEOUT = 3  # seconds
+
+# Internal settings used for logging.
+LOG_TASK = 21

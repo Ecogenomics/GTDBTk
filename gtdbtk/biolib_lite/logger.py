@@ -23,6 +23,7 @@ import sys
 
 from tqdm import tqdm
 
+from gtdbtk.config.config import LOG_TASK
 from .common import make_sure_path_exists
 
 
@@ -122,8 +123,13 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
         err_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
                                     format(colour('ERROR:', ['bright'], 'red')),
                                     datefmt="%Y-%m-%d %H:%M:%S")
+        task_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                     format(colour('TASK:', ['bright'])),
+                                     datefmt="%Y-%m-%d %H:%M:%S")
 
         def format(self, record):
+            if record.levelno == LOG_TASK:
+                return self.task_fmt.format(record)
             if record.levelno >= logging.ERROR:
                 return self.err_fmt.format(record)
             elif record.levelno >= logging.WARNING:
