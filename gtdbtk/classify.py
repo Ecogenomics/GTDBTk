@@ -39,6 +39,7 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
+from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
@@ -353,22 +354,13 @@ class Classify(object):
                 results['s__'] = v
         return results
 
-    # TODO: Use the io.marker.copy_number class to read this
-    def parser_marker_summary_file(self, marker_summary_file, marker_set_id):
-        results = {}
-        with open(marker_summary_file, 'r') as msf:
-            msf.readline()
-            for line in msf:
-                infos = line.strip().split('\t')
-                if marker_set_id == "bac120":
-                    multi_hits_percent = (100 * float(infos[2])) / \
-                        Config.BAC_MARKER_COUNT
-                elif marker_set_id == "ar122":
-                    multi_hits_percent = (100 * float(infos[2])) / \
-                        Config.AR_MARKER_COUNT
-                # print (marker_set_id, float(infos[3]), multi_hits_percent)
-                if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
-                    results[infos[0]] = round(multi_hits_percent, 1)
+    def parser_marker_summary_file(self, marker_summary_fh):
+        results = dict()
+        for gid, marker_dict in marker_summary_fh.genomes.items():
+            multi_hits_percent = (100 * len(marker_dict['mul'])) / \
+                                 len(marker_summary_fh.marker_names)
+            if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
+                results[gid] = round(multi_hits_percent, 1)
         return results
 
     def run(self,
@@ -387,15 +379,15 @@ class Classify(object):
         for marker_set_id in ('ar122', 'bac120'):
 
             if marker_set_id == 'ar122':
-                marker_summary_file = os.path.join(
-                    align_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
-                user_msa_file = os.path.join(
-                    align_dir, PATH_AR122_USER_MSA.format(prefix=prefix))
+                marker_summary_fh = CopyNumberFileAR122(align_dir, prefix)
+                marker_summary_fh.read()
+                user_msa_file = os.path.join(align_dir,
+                                             PATH_AR122_USER_MSA.format(prefix=prefix))
             elif marker_set_id == 'bac120':
-                marker_summary_file = os.path.join(
-                    align_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
-                user_msa_file = os.path.join(
-                    align_dir, PATH_BAC120_USER_MSA.format(prefix=prefix))
+                marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
+                marker_summary_fh.read()
+                user_msa_file = os.path.join(align_dir,
+                                             PATH_BAC120_USER_MSA.format(prefix=prefix))
             else:
                 raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
@@ -404,8 +396,7 @@ class Classify(object):
                 # given domain
                 continue
 
-            percent_multihit_dict = self.parser_marker_summary_file(
-                marker_summary_file, marker_set_id)
+            percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
 
             tln_table_summary_file = TlnTableSummaryFile(align_dir, prefix)
             tln_table_summary_file.read()
@@ -519,8 +510,7 @@ class Classify(object):
         debugfile = None
         conflict_summary = None
 
-        marker_dict = self._write_red_dict(
-            out_dir, prefix, marker_set_id)
+        marker_dict = self._write_red_dict(out_dir, prefix, marker_set_id)
 
         summaryfout.write(
             "user_genome\tclassification\tfastani_reference\tfastani_reference_radius\tfastani_taxonomy\tfastani_ani\tfastani_af\t" +
