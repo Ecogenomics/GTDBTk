@@ -93,10 +93,10 @@ class OptionsParser(object):
 
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
-            self.logger.error('Invalid genome ID: %s' % genome_id)
-            self.logger.error(
-                'The following characters are invalid: %s' % ' '.join(invalid_chars))
-            raise GenomeNameInvalid('Invalid genome ID: {}'.format(genome_id))
+            self.logger.error(f'Invalid genome ID: {genome_id}')
+            self.logger.error(f'The following characters are invalid: '
+                              f'{" ".join(invalid_chars)}')
+            raise GenomeNameInvalid(f'Invalid genome ID: {genome_id}')
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):

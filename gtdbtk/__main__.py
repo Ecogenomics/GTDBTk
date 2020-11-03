@@ -55,7 +55,7 @@ def print_help():
 
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
-    check_install -> Verify if all GTDB-Tk data files are present
+    check_install -> Verify third party programs and GTDB reference package.
 
   Use: gtdbtk <command> -h for command specific help
     ''' % __version__)

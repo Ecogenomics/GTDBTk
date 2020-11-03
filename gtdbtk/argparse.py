@@ -493,7 +493,8 @@ def get_main_parser():
             __help(grp)
 
     # Verify install.
-    with subparser(sub_parsers, 'check_install', 'Verify if all gtdb data files are present to run GTDB-Tk.') as parser:
+    with subparser(sub_parsers, 'check_install', 'Verify third party programs and '
+                                                 'GTDB reference package.') as parser:
         with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)
