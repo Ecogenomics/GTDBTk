@@ -171,7 +171,7 @@ class Markers(object):
         """
         check_dependencies(['prodigal', 'hmmsearch'])
 
-        self.logger.info(f'Identifying markers in {len(genomes)} genomes with '
+        self.logger.info(f'Identifying markers in {len(genomes):,} genomes with '
                          f'{self.cpus} threads.')
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
@@ -448,8 +448,8 @@ class Markers(object):
                 'genomes not present in your initial identify directory. Remove them, or run '
                 'GTDB-Tk on a new directory.')
 
-        self.logger.info('Aligning markers in %d genomes with %d threads.' % (len(genomic_files),
-                                                                              self.cpus))
+        self.logger.info(f'Aligning markers in {len(genomic_files):,} genomes '
+                         f'with {self.cpus} CPUs.')
 
         # determine marker set for each user genome
         bac_gids, ar_gids, _bac_ar_diff = self.genome_domain(identify_dir, prefix)
@@ -466,9 +466,7 @@ class Markers(object):
             if len(gids) == 0:
                 continue
 
-            self.logger.info('Processing {:,} genomes identified as {}.'.format(
-                                len(gids),
-                                domain_str))
+            self.logger.info(f'Processing {len(gids):,} genomes identified as {domain_str}.')
             if marker_set_id == 'bac120':
                 marker_info_file = bac120_marker_info_file
                 marker_filtered_genomes = os.path.join(
@@ -517,15 +515,13 @@ class Markers(object):
 
             # filter columns without sufficient representation across taxa
             if skip_trimming:
-                self.logger.info(
-                    'Skipping custom filtering and selection of columns.')
+                self.logger.info('Skipping custom filtering and selection of columns.')
                 pruned_seqs = {}
                 trimmed_seqs = merge_two_dicts(gtdb_msa, user_msa)
 
             elif custom_msa_filters:
                 aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-                self.logger.info(
-                    'Performing custom filtering and selection of columns.')
+                self.logger.info('Performing custom filtering and selection of columns.')
 
                 trim_msa = TrimMSA(cols_per_gene,
                                    min_perc_aa / 100.0,
@@ -533,7 +529,7 @@ class Markers(object):
                                    max_consensus / 100.0,
                                    min_per_taxa / 100.0,
                                    rnd_seed,
-                                   os.path.join(out_dir, 'filter_%s' % marker_set_id))
+                                   os.path.join(out_dir, f'filter_{marker_set_id}'))
 
                 trimmed_seqs, pruned_seqs = trim_msa.trim(aligned_genomes,
                                                           marker_info_file)

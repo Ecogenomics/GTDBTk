@@ -626,8 +626,9 @@ class OptionsParser(object):
         """
         make_sure_path_exists(options.out_dir)
 
-        genomes, _ = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                              options.batchfile,
+                                              options.extension)
 
         ani_rep = ANIRep(options.cpus)
         ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,

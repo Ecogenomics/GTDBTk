@@ -84,6 +84,7 @@ class ANIRep(object):
         """
         self.check_dependencies(no_mash)
 
+        self.logger.info('Loading reference genomes.')
         ref_genomes = self._get_ref_genomes()
         d_compare = defaultdict(set)
         d_paths = {**genomes, **ref_genomes}

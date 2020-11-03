@@ -127,17 +127,13 @@ class TrimMSA(object):
                 total_msa_len += marker_len
 
         if len(list(msa.values())[0]) == total_msa_len:
-            self.logger.info(
-                'Length of MSA and length of marker genes both equal %d columns' % total_msa_len)
+            self.logger.info(f'Length of MSA and length of marker genes both equal {total_msa_len:,} columns')
         else:
-            self.logger.error('Length of MSA (%d columns) does not equal length of marker genes (%d columns).' % (
-                len(list(msa.values())[0]),
-                total_msa_len))
-            raise MSAMarkerLengthMismatch
+            raise MSAMarkerLengthMismatch(f'Length of MSA ({len(list(msa.values())[0]):,} columns) '
+                                          f'does not equal length of marker genes ({total_msa_len} columns).')
 
         # randomly select columns meeting filtering criteria
-        self.logger.info(
-            'Randomly sampling %d columns passing filtering criteria from each marker gene.' % self.subset)
+        self.logger.info(f'Randomly sampling {self.subset:,} columns passing filtering criteria from each marker gene.')
         mask, output_seqs = self.subsample_msa(msa, markers)
 
         # write mask to file
