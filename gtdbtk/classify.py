@@ -41,6 +41,7 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.io.classify_summary import ClassifySummaryFileAR122, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
+from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR122
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.io.red_dict import REDDictFileAR122, REDDictFileBAC120
 from gtdbtk.markers import Markers
@@ -349,6 +350,7 @@ class Classify(object):
                                              PATH_AR122_USER_MSA.format(prefix=prefix))
                 summary_file = ClassifySummaryFileAR122(out_dir, prefix)
                 red_dict_file = REDDictFileAR122(out_dir, prefix)
+                pplacer_classify_file = PplacerClassifyFileAR122(out_dir, prefix)
             elif marker_set_id == 'bac120':
                 marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                 marker_summary_fh.read()
@@ -356,6 +358,7 @@ class Classify(object):
                                              PATH_BAC120_USER_MSA.format(prefix=prefix))
                 summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
                 red_dict_file = REDDictFileBAC120(out_dir, prefix)
+                pplacer_classify_file = PplacerClassifyFileBAC120(out_dir, prefix)
             else:
                 raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
@@ -409,8 +412,8 @@ class Classify(object):
                         tree_iter, listg, msa_dict, marker_set_id, prefix, scratch_dir, out_dir)
                     mrca_lowtree = self._assign_mrca_red(
                         low_classify_tree, marker_set_id, 'low', tree_iter)
-                    pplacer_taxonomy_dict = self._get_pplacer_taxonomy(
-                        out_dir, prefix, marker_set_id, user_msa_file, mrca_lowtree)
+                    pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
+                        marker_set_id, user_msa_file, mrca_lowtree)
 
                     self._parse_tree(mrca_lowtree, genomes, msa_dict, percent_multihit_dict, tln_table_summary_file.genomes,
                                      bac_ar_diff, submsa_file_path, red_dict_file.data, summary_file, conflict_file, pplacer_taxonomy_dict,
@@ -436,7 +439,9 @@ class Classify(object):
                     tree_to_process = self._assign_mrca_red(
                         classify_tree, marker_set_id)
 
-                pplacer_taxonomy_dict = self._get_pplacer_taxonomy(out_dir, prefix, marker_set_id, user_msa_file,
+                pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
+                                                                   marker_set_id,
+                                                                   user_msa_file,
                                                                    tree_to_process)
 
                 self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
@@ -932,13 +937,12 @@ class Classify(object):
 
         return tree
 
-    def _get_pplacer_taxonomy(self, out_dir, prefix, marker_set_id, user_msa_file, tree):
+    def _get_pplacer_taxonomy(self, pplacer_classify_file, marker_set_id, user_msa_file, tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
 
         Parameters
         ----------
-        out_dir : output directory
-        prefix : desired prefix for output files
+        pplacer_classify_file : output file object to write
         marker_set_id : bacterial or archaeal id (bac120 or ar122)
         user_msa_file : msa file listing all user genomes for a certain domain
         tree : pplacer tree including the user genomes
@@ -949,40 +953,24 @@ class Classify(object):
 
         """
 
-        out_root = os.path.join(out_dir, 'classify', 'intermediate_results')
-        make_sure_path_exists(out_root)
-        result = {}
-
-        if marker_set_id == 'bac120':
-            out_pplacer = os.path.join(
-                out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
-        elif marker_set_id == 'ar122':
-            out_pplacer = os.path.join(
-                out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
-
         # We get the pplacer taxonomy for comparison
-        with open(out_pplacer, 'w') as pplaceout:
-            user_genome_ids = set(read_fasta(user_msa_file).keys())
-            for leaf in tree.leaf_node_iter():
-                if leaf.taxon.label in user_genome_ids:
-                    taxa = []
-                    cur_node = leaf
-                    while cur_node.parent_node:
-                        _support, taxon, _aux_info = parse_label(
-                            cur_node.label)
-                        if taxon:
-                            for t in taxon.split(';')[::-1]:
-                                taxa.append(t.strip())
-                        cur_node = cur_node.parent_node
-                    taxa_str = ';'.join(taxa[::-1])
-                    pplaceout.write('{}\t{}\n'.format(
-                        leaf.taxon.label, self.standardise_taxonomy(taxa_str, marker_set_id)))
-                    result[leaf.taxon.label] = self.standardise_taxonomy(
-                        taxa_str, marker_set_id)
-        return result
+        user_genome_ids = set(read_fasta(user_msa_file).keys())
+        for leaf in tree.leaf_node_iter():
+            if leaf.taxon.label in user_genome_ids:
+                taxa = []
+                cur_node = leaf
+                while cur_node.parent_node:
+                    _support, taxon, _aux_info = parse_label(cur_node.label)
+                    if taxon:
+                        for t in taxon.split(';')[::-1]:
+                            taxa.append(t.strip())
+                    cur_node = cur_node.parent_node
+                taxa_str = ';'.join(taxa[::-1])
+                pplacer_classify_file.add_genome(leaf.taxon.label,
+                                                 self.standardise_taxonomy(taxa_str, marker_set_id))
+        pplacer_classify_file.write()
+
+        return pplacer_classify_file.data
 
     def _formatnote(self, sorted_dict, labels):
         """Format the note field by concatenating all information in a sorted dictionary
