@@ -5,10 +5,9 @@ import subprocess
 import tempfile
 from collections import defaultdict
 
-from tqdm import tqdm
-
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.tools import tqdm_log
 
 
 class Mash(object):
@@ -222,9 +221,7 @@ class SketchFile(object):
             args = list(map(str, args))
             proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, encoding='utf-8')
-            bar_fmt = '==> Sketched {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                      'genomes [{rate_fmt}, ETA {remaining}]'
-            with tqdm(bar_format=bar_fmt, total=len(self.genomes), mininterval=1, smoothing=0.1) as p_bar:
+            with tqdm_log(total=len(self.genomes), unit='genome') as p_bar:
                 for line in iter(proc.stderr.readline, ''):
                     if line.startswith('Sketching'):
                         p_bar.update()

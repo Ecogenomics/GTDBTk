@@ -365,6 +365,7 @@ class OptionsParser(object):
         else:
             out_dir_fh = tempfile.TemporaryDirectory(prefix='gtdbtk_tmp_')
             options.out_dir = out_dir_fh.name
+            self.logger.info('Using a temporary directory as out_dir was not specified.')
 
         try:
             output_dir = os.path.join(options.out_dir, 'output')
