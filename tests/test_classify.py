@@ -26,6 +26,7 @@ import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
+from gtdbtk.io.pplacer_classification import PplacerClassifyFileAR122
 
 
 class TestClassify(unittest.TestCase):
@@ -82,20 +83,6 @@ class TestClassify(unittest.TestCase):
                 test_value = self.classify.standardise_taxonomy(test_str, cur_dom)
                 self.assertEqual(expected_str, test_value)
 
-    def test_write_red_dict(self):
-        if not os.path.exists(self.out_dir):
-            os.makedirs(self.out_dir)
-        marker_dict = self.classify._write_red_dict(
-            self.out_dir, self.prefix, 'bac120')
-        self.assertTrue(len(marker_dict) == 6)
-        self.assertTrue('d__' in marker_dict)
-        self.assertTrue(marker_dict.get('d__') == 0)
-        self.assertTrue('p__' in marker_dict)
-        self.assertTrue('c__' in marker_dict)
-        self.assertTrue('o__' in marker_dict)
-        self.assertTrue('f__' in marker_dict)
-        self.assertTrue('g__' in marker_dict)
-
     def test_get_pplacer_taxonomy(self):
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
@@ -104,8 +91,8 @@ class TestClassify(unittest.TestCase):
                                            schema='newick',
                                            rooting='force-rooted',
                                            preserve_underscores=True)
-        self.classify._get_pplacer_taxonomy(
-            self.out_dir, self.prefix, 'ar122', self.user_msa_file, tree)
+        pplacer_classify_file = PplacerClassifyFileAR122(self.out_dir, self.prefix)
+        self.classify._get_pplacer_taxonomy(pplacer_classify_file, 'ar122', self.user_msa_file, tree)
         results = {}
 
         with open(os.path.join(self.out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=self.prefix)), 'r') as f:

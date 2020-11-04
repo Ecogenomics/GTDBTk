@@ -25,6 +25,7 @@ import unittest
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.config.output import *
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
 from gtdbtk.main import OptionsParser
 from tests.common import *
 
@@ -44,6 +45,7 @@ class TestCli(unittest.TestCase):
         self.options.debug = False
         self.options.force = False
         self.options.genes = False
+        self.options.write_single_copy_genes = False
 
         # align option
         self.options.skip_gtdb_refs = False
@@ -127,15 +129,17 @@ class TestCli(unittest.TestCase):
         classify_options.recalculate_red = False
         classify_options.split_tree = False
         self.optionparser.classify(classify_options)
-        summary_out = os.path.join(classify_options.out_dir,
-                                   PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
-        self.assertTrue(os.path.isfile(summary_out))
-        with open(summary_out, 'r') as f:
-            lines = f.read().splitlines()
-            last_line = lines[-1]
-        infos = last_line.split('\t')
-        self.assertEqual(len(infos), 19)
-        self.assertTrue(infos[1].startswith('d__Archaea'))
+        summary_fh = ClassifySummaryFileAR122(classify_options.out_dir, classify_options.prefix)
+        summary_fh.read()
+        self.assertEqual(
+            'd__Archaea;p__Euryarchaeota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__Methanobrevibacter ruminantium',
+            summary_fh.rows['genome_1'].classification)
+        self.assertEqual(
+            'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365',
+            summary_fh.rows['genome_2'].classification)
+        self.assertEqual(
+            'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365',
+            summary_fh.rows['genome_3'].classification)
 
     def test_identify_align(self):
         tmp_folder = ''.join(random.choice(
@@ -283,6 +287,7 @@ class TestCli(unittest.TestCase):
         options.cpus = 5
         options.batchfile = None
         options.extension = 'fna.gz'
+        options.write_single_copy_genes = False
         options.prefix = 'gtdbtk'
         options.force = None
         options.genes = False

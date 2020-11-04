@@ -204,8 +204,8 @@ def __input_tree(group, required):
                        help="path to the unrooted tree in Newick format")
 
 
-def __rooted_tree(group, required):
-    group.add_argument('--rooted_tree', required=required,
+def __input_tree__rooted(group, required):
+    group.add_argument('--input_tree', required=required, type=str,
                        help="rooted input tree with labelled ingroup taxon")
 
 
@@ -433,7 +433,7 @@ def get_main_parser():
     # Establish taxonomic ranks of internal nodes using RED
     with subparser(sub_parsers, 'infer_ranks', 'Establish taxonomic ranks of internal nodes using RED.') as parser:
         with arg_group(parser, 'required named arguments') as grp:
-            __rooted_tree(grp, required=True)
+            __input_tree__rooted(grp, required=True)
             __ingroup_taxon(grp, required=True)
             __output_tree(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:

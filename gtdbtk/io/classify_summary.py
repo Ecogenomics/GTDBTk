@@ -107,6 +107,44 @@ class ClassifySummaryFile(object):
                     buf.append(self.none_value if data is None else str(data))
                 fh.write('\t'.join(buf) + '\n')
 
+    def read(self):
+        """Read the summary file from disk."""
+        if not os.path.isfile(self.path):
+            raise GTDBTkExit(f'Error, classify summary file not found: {self.path}')
+        with open(self.path) as fh:
+
+            # Load and verify the columns match the expected order.
+            cols_exp, _ = self.get_col_order()
+            cols_cur = fh.readline().strip().split('\t')
+            if cols_exp != cols_cur:
+                raise GTDBTkExit(f'The classify summary file columns are inconsistent: {cols_cur}')
+
+            # Process the data.
+            for line in fh.readlines():
+                data = line.strip().split('\t')
+                row = ClassifySummaryFileRow()
+                row.gid = data[0]
+                row.classification = data[1]
+                row.fastani_ref = data[2]
+                row.fastani_ref_radius = data[3]
+                row.fastani_tax = data[4]
+                row.fastani_ani = data[5]
+                row.fastani_af = data[6]
+                row.closest_placement_ref = data[7]
+                row.closest_placement_radius = data[8]
+                row.closest_placement_tax = data[9]
+                row.closest_placement_ani = data[10]
+                row.closest_placement_af = data[11]
+                row.pplacer_tax = data[12]
+                row.classification_method = data[13]
+                row.note = data[14]
+                row.other_related_refs = data[15]
+                row.msa_percent = data[16]
+                row.tln_table = data[17]
+                row.red_value = data[18]
+                row.warnings = data[19]
+                self.add_row(row)
+
 
 class ClassifySummaryFileAR122(ClassifySummaryFile):
     """Store classify summary information for AR122 markers."""
