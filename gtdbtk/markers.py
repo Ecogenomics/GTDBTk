@@ -299,8 +299,7 @@ class Markers(object):
         aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
         list_mask = np.fromfile(msa_mask, dtype='S1') == b'1'
 
-        output_seqs = {}
-        pruned_seqs = {}
+        output_seqs, pruned_seqs = dict(), dict()
         for seq_id, seq in tqdm_log(aligned_genomes.items(), unit='alignment'):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:
@@ -572,27 +571,21 @@ class Markers(object):
                     if len(pruned_seq) == 0:
                         perc_alignment = 0
                     else:
-                        valid_bases = sum(
-                            [1 for c in pruned_seq if c.isalpha()])
+                        valid_bases = sum([1 for c in pruned_seq if c.isalpha()])
                         perc_alignment = valid_bases * 100.0 / len(pruned_seq)
-                    fout.write('%s\t%s\n' % (pruned_seq_id,
-                                             'Insufficient number of amino acids in MSA ({:.1f}%)'.format(perc_alignment)))
+                    fout.write(f'{pruned_seq_id}\tInsufficient number of amino acids in MSA ({perc_alignment:.1f}%)\n')
 
             # write out MSAs
             if not skip_gtdb_refs:
-                self.logger.info(
-                    'Creating concatenated alignment for {:,} {} GTDB and user genomes.'.format(
-                        len(trimmed_seqs),
-                        domain_str))
+                self.logger.info(f'Creating concatenated alignment for {len(trimmed_seqs):,} '
+                                 f'{domain_str} GTDB and user genomes.')
                 self._write_msa(trimmed_seqs, marker_msa_path, gtdb_taxonomy)
 
-            trimmed_user_msa = {
-                k: v for k, v in trimmed_seqs.items() if k in user_msa}
+            trimmed_user_msa = {k: v for k, v in trimmed_seqs.items()
+                                if k in user_msa}
             if len(trimmed_user_msa) > 0:
-                self.logger.info(
-                    'Creating concatenated alignment for {:,} {} user genomes.'.format(
-                        len(trimmed_user_msa),
-                        domain_str))
+                self.logger.info(f'Creating concatenated alignment for {len(trimmed_user_msa):,} '
+                                 f'{domain_str} user genomes.')
                 self._write_msa(trimmed_user_msa,
                                 marker_user_msa_path, gtdb_taxonomy)
             else:
@@ -618,9 +611,7 @@ class Markers(object):
                     symlink_f(PATH_AR122_MSA.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_AR122_MSA.format(prefix=prefix))))
             else:
-                self.logger.error(
-                    'There was an error determining the marker set.')
-                raise GenomeMarkerSetUnknown
+                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
     def _write_individual_markers(self, user_msa, marker_set_id, marker_list, out_dir, prefix):
         marker_dir = join(out_dir, DIR_ALIGN_MARKERS)
