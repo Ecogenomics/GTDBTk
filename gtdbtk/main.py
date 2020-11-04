@@ -65,12 +65,11 @@ class OptionsParser(object):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
         pkg_ver = float(Config.VERSION_DATA.replace('r', ''))
         min_ver = float(Config.MIN_REF_DATA_VERSION.replace('r', ''))
-        self.logger.info('Using GTDB-Tk reference data version {}: {}'
-                         .format(Config.VERSION_DATA, Config.GENERIC_PATH))
+        self.logger.info('Using GTDB-Tk reference data version '
+                         '{Config.VERSION_DATA}: {Config.GENERIC_PATH}')
         if pkg_ver < min_ver:
-            self.logger.warning(colour('You are not using the reference data '
-                                       'intended for this release: {}'
-                                       .format(Config.MIN_REF_DATA_VERSION),
+            self.logger.warning(colour(f'You are not using the reference data '
+                                       f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
                                        ['bright'], fg='yellow'))
 
     def _verify_genome_id(self, genome_id):
@@ -171,37 +170,6 @@ class OptionsParser(object):
                              f'rename them. See gtdb.warnings.log.')
 
         return genomic_files, tln_tables
-
-    def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
-        """Get unique identifier for marker set.
-
-        Parameters
-        ----------
-        bac120_ms : bool
-        ar122_ms : bool
-        rps23_ms : bool
-
-        Returns
-        -------
-        str
-            The unique identifier for the marker set.
-
-        Raises
-        ------
-        GenomeMarkerSetUnknown
-            If the marker set is unknown.
-        """
-
-        if bac120_ms:
-            marker_set_id = "bac120"
-        elif ar122_ms:
-            marker_set_id = "ar122"
-        elif rps23_ms:
-            marker_set_id = "rps23"
-        else:
-            self.logger.error('No marker set specified.')
-            raise GenomeMarkerSetUnknown('No marker set specified.')
-        return marker_set_id
 
     def _read_taxonomy_files(self, options) -> Dict[str, Tuple[str, str, str, str, str, str, str]]:
         """Read and merge taxonomy files."""
