@@ -37,6 +37,7 @@ from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
+from gtdbtk.io.batchfile import Batchfile
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.reroot_tree import RerootTree
@@ -125,42 +126,12 @@ class OptionsParser(object):
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
 
         elif batchfile:
-            with open(batchfile, "r") as fh:
-                for line_no, line in enumerate(fh):
-                    line_split = line.strip().split("\t")
-                    if line_split[0] == '':
-                        continue  # blank line
+            batchfile_fh = Batchfile(batchfile)
+            genomic_files, tln_tables = batchfile_fh.genome_path, batchfile_fh.genome_tln
 
-                    if len(line_split) not in {2, 3}:
-                        raise GTDBTkExit('Batch file must contain either 2 '
-                                         'columns (detect translation table), '
-                                         'or 3 (specify translation table).')
-
-                    if len(line_split) == 2:
-                        genome_file, genome_id = line_split
-                    elif len(line_split) == 3:
-                        genome_file, genome_id, tln_table = line_split
-                        if tln_table not in {'4', '11'}:
-                            raise GTDBTkExit('Specified translation table must '
-                                             'be either 4, or 11.')
-                        tln_tables[genome_id] = int(tln_table)
-
-                    self._verify_genome_id(genome_id)
-
-                    if genome_file is None or genome_file == '':
-                        raise GTDBTkExit(
-                            'Missing genome file on line %d.' % (line_no + 1))
-                    elif genome_id is None or genome_id == '':
-                        raise GTDBTkExit(
-                            'Missing genome ID on line %d.' % (line_no + 1))
-                    elif genome_id in genomic_files:
-                        raise GTDBTkExit(
-                            'Genome ID %s appears multiple times.' % genome_id)
-                    if genome_file in genomic_files.values():
-                        self.logger.warning(
-                            'Genome file appears multiple times: %s' % genome_file)
-
-                    genomic_files[genome_id] = genome_file
+        # Check that all of the genome IDs are valid.
+        for genome_key in genomic_files:
+            self._verify_genome_id(genome_key)
 
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
