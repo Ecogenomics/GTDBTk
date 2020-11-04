@@ -19,8 +19,11 @@ import logging
 import os
 import shutil
 import subprocess
+import tempfile
 import sys
 from typing import Dict, Tuple
+
+from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.ani_rep import ANIRep
@@ -38,6 +41,7 @@ from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.io.batchfile import Batchfile
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.reroot_tree import RerootTree
@@ -65,8 +69,8 @@ class OptionsParser(object):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
         pkg_ver = float(Config.VERSION_DATA.replace('r', ''))
         min_ver = float(Config.MIN_REF_DATA_VERSION.replace('r', ''))
-        self.logger.info('Using GTDB-Tk reference data version '
-                         '{Config.VERSION_DATA}: {Config.GENERIC_PATH}')
+        self.logger.info(f'Using GTDB-Tk reference data version '
+                         f'{Config.VERSION_DATA}: {Config.GENERIC_PATH}')
         if pkg_ver < min_ver:
             self.logger.warning(colour(f'You are not using the reference data '
                                        f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
@@ -354,46 +358,64 @@ class OptionsParser(object):
             If the test fails.
         """
 
-        make_sure_path_exists(options.out_dir)
+        # Use a temporary directory if none is supplied.
+        if options.out_dir:
+            out_dir_fh = None
+            make_sure_path_exists(options.out_dir)
+        else:
+            out_dir_fh = tempfile.TemporaryDirectory(prefix='gtdbtk_tmp_')
+            options.out_dir = out_dir_fh.name
 
-        output_dir = os.path.join(options.out_dir, 'output')
-        genome_test_dir = os.path.join(options.out_dir, 'genomes')
-        if os.path.exists(genome_test_dir):
-            self.logger.error(
-                'Test directory {} already exists'.format(genome_test_dir))
-            self.logger.error('Test must be run in a new directory.')
-            sys.exit(1)
+        try:
+            output_dir = os.path.join(options.out_dir, 'output')
+            genome_test_dir = os.path.join(options.out_dir, 'genomes')
+            if os.path.exists(genome_test_dir):
+                self.logger.error(f'Test directory {genome_test_dir} already exists.')
+                self.logger.error('Test must be run in a new directory.')
+                sys.exit(1)
 
-        current_path = os.path.dirname(os.path.realpath(__file__))
-        input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
+            current_path = os.path.dirname(os.path.realpath(__file__))
+            input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
 
-        shutil.copytree(input_dir, genome_test_dir)
+            shutil.copytree(input_dir, genome_test_dir)
 
-        args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
-                '--out_dir', output_dir, '--cpus', str(options.cpus)]
-        self.logger.info('Command: {}'.format(' '.join(args)))
+            args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
+                    '--out_dir', output_dir, '--cpus', str(options.cpus)]
+            self.logger.info('Command: {}'.format(' '.join(args)))
 
-        path_stdout = os.path.join(options.out_dir, 'test_execution.log')
-        with open(path_stdout, 'w') as fh_stdout:
-            proc = subprocess.Popen(args, stdout=fh_stdout,
-                                    stderr=subprocess.PIPE)
-            proc.communicate()
+            # Pipe the output and write to disk.
+            path_stdout = os.path.join(options.out_dir, 'test_execution.log')
+            with subprocess.Popen(args, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE, encoding='utf-8') as proc:
+                with open(path_stdout, 'w') as fh_stdout:
+                    bar_fmt = ' <TEST OUTPUT> '.center(22) + '{desc}'
+                    with tqdm(bar_format=bar_fmt, leave=False) as p_bar:
+                        while True:
+                            line = proc.stdout.readline()
+                            if not line:
+                                break
+                            fh_stdout.write(f'{line}')
+                            p_bar.set_description_str(line.strip())
+                proc.wait()
+                exit_code = proc.returncode
 
-        summary_file = os.path.join(
-            output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
+            summary_fh = ClassifySummaryFileAR122(output_dir, 'gtdbtk')
 
-        if proc.returncode != 0:
-            self.logger.error('The test returned a non-zero exit code.')
-            self.logger.error('A detailed summary of the execution log can be '
-                              'found here: {}'.format(path_stdout))
-            self.logger.error('The test has failed.')
-            sys.exit(1)
-        if not os.path.exists(summary_file):
-            self.logger.error("{} is missing.".format(summary_file))
-            self.logger.error('A detailed summary of the execution log can be '
-                              'found here: {}'.format(path_stdout))
-            self.logger.error('The test has failed.')
-            sys.exit(1)
+            if exit_code != 0:
+                self.logger.error('The test returned a non-zero exit code.')
+                self.logger.error('A detailed summary of the execution log can be '
+                                  'found here: {}'.format(path_stdout))
+                self.logger.error('The test has failed.')
+                sys.exit(1)
+            if not os.path.exists(summary_fh.path):
+                self.logger.error(f"{summary_fh.path} is missing.")
+                self.logger.error('A detailed summary of the execution log can be '
+                                  'found here: {}'.format(path_stdout))
+                self.logger.error('The test has failed.')
+                sys.exit(1)
+        finally:
+            if out_dir_fh:
+                out_dir_fh.cleanup()
 
         self.logger.info('Test has successfully finished.')
         return True
@@ -589,7 +611,7 @@ class OptionsParser(object):
             raise GTDBTkExit('Python 2 is no longer supported.')
 
         # Correct user paths
-        if hasattr(options, 'out_dir'):
+        if hasattr(options, 'out_dir') and options.out_dir:
             options.out_dir = os.path.expanduser(options.out_dir)
 
         # Assert that the number of CPUs is a positive integer.

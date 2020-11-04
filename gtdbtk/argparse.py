@@ -464,9 +464,8 @@ def get_main_parser():
 
     # Run a test.
     with subparser(sub_parsers, 'test', 'Test the classify_wf pipeline with 3 archaeal genomes.') as parser:
-        with arg_group(parser, 'required named arguments') as grp:
-            __out_dir(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __out_dir(grp, required=False)
             __cpus(grp)
             __debug(grp)
             __help(grp)
