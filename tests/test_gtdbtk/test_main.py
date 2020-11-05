@@ -188,12 +188,6 @@ class TestOptionsParser(unittest.TestCase):
         finally:
             shutil.rmtree(tmp_genome_dir)
 
-    def test__marker_set_id(self):
-        """ Test that the correct marker set id is returned """
-        self.assertEqual(self.options_parser._marker_set_id(True, False, False), 'bac120')
-        self.assertEqual(self.options_parser._marker_set_id(False, True, False), 'ar122')
-        self.assertEqual(self.options_parser._marker_set_id(False, False, True), 'rps23')
-
     def test_identify__genome_dir_raises_io_exception(self):
         """ Test that the identify method raises an exception on invalid genome_dir """
         options = argparse.ArgumentParser()

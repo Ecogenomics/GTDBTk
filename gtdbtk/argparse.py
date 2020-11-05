@@ -204,8 +204,8 @@ def __input_tree(group, required):
                        help="path to the unrooted tree in Newick format")
 
 
-def __rooted_tree(group, required):
-    group.add_argument('--rooted_tree', required=required,
+def __input_tree__rooted(group, required):
+    group.add_argument('--input_tree', required=required, type=str,
                        help="rooted input tree with labelled ingroup taxon")
 
 
@@ -271,6 +271,11 @@ def __reference_mask(group):
 def __domain(group, required):
     group.add_argument('--domain', required=required, choices=['arc', 'bac'],
                        help="domain to export")
+
+
+def __write_single_copy_genes(group):
+    group.add_argument('--write_single_copy_genes', action='store_const', const=True, default=False,
+                       help='output unaligned single-copy marker genes')
 
 
 def get_main_parser():
@@ -343,6 +348,7 @@ def get_main_parser():
             __prefix(grp)
             __cpus(grp)
             __force(grp)
+            __write_single_copy_genes(grp)
             __debug(grp)
             __help(grp)
 
@@ -427,7 +433,7 @@ def get_main_parser():
     # Establish taxonomic ranks of internal nodes using RED
     with subparser(sub_parsers, 'infer_ranks', 'Establish taxonomic ranks of internal nodes using RED.') as parser:
         with arg_group(parser, 'required named arguments') as grp:
-            __rooted_tree(grp, required=True)
+            __input_tree__rooted(grp, required=True)
             __ingroup_taxon(grp, required=True)
             __output_tree(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
@@ -458,9 +464,8 @@ def get_main_parser():
 
     # Run a test.
     with subparser(sub_parsers, 'test', 'Test the classify_wf pipeline with 3 archaeal genomes.') as parser:
-        with arg_group(parser, 'required named arguments') as grp:
-            __out_dir(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __out_dir(grp, required=False)
             __cpus(grp)
             __debug(grp)
             __help(grp)
@@ -487,7 +492,8 @@ def get_main_parser():
             __help(grp)
 
     # Verify install.
-    with subparser(sub_parsers, 'check_install', 'Verify if all gtdb data files are present to run GTDB-Tk.') as parser:
+    with subparser(sub_parsers, 'check_install', 'Verify third party programs and '
+                                                 'GTDB reference package.') as parser:
         with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)

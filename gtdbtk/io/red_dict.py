@@ -16,39 +16,42 @@
 ###############################################################################
 
 import os
+from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import PATH_TLN_TABLE_SUMMARY
-from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.config.config import RED_DIST_ARC_DICT, RED_DIST_BAC_DICT
+from gtdbtk.config.output import PATH_AR122_RED_DICT, PATH_BAC120_RED_DICT
 
 
-class TlnTableSummaryFile(object):
-    """Records the translation table for one or more genomes."""
+class REDDictFile(object):
+    """Store the GTDB-Tk RED dictionary."""
 
-    def __init__(self, out_dir: str, prefix: str):
-        """Configure paths and initialise storage dictionary."""
-        self.path = os.path.join(out_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
-        self.genomes = dict()
-
-    def add_genome(self, genome_id: str, tln_table: int):
-        """Record a translation table for a genome."""
-        if genome_id in self.genomes:
-            raise GTDBTkExit(f'Genome already exists in summary file: {genome_id}')
-        self.genomes[genome_id] = tln_table
+    def __init__(self, path: str, red_dict: Dict[str, float]):
+        self.path = path
+        self.data = red_dict
 
     def write(self):
-        """Write the translation table summary file to disk."""
+        """Write the file to disk, note that domain is omitted."""
         make_sure_path_exists(os.path.dirname(self.path))
         with open(self.path, 'w') as fh:
-            for genome_id, tln_table in sorted(self.genomes.items()):
-                fh.write(f'{genome_id}\t{tln_table}\n')
+            fh.write(f'Phylum\t{self.data["p__"]}\n')
+            fh.write(f'Class\t{self.data["c__"]}\n')
+            fh.write(f'Order\t{self.data["o__"]}\n')
+            fh.write(f'Family\t{self.data["f__"]}\n')
+            fh.write(f'Genus\t{self.data["g__"]}\n')
 
-    def read(self):
-        """Read the translation table summary file from disk."""
-        if len(self.genomes) > 0:
-            raise GTDBTkExit(f'Warning! Attempting to override in-memory values '
-                             f'for translation table summary file: {self.path}')
-        with open(self.path, 'r') as fh:
-            for line in fh.readlines():
-                gid, tbl = line.strip().split('\t')
-                self.genomes[gid] = int(tbl)
+
+class REDDictFileAR122(REDDictFile):
+    """Store the RED dictionary for the AR122 marker set."""
+
+    def __init__(self, out_dir: str, prefix: str):
+        path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
+        super().__init__(path, RED_DIST_ARC_DICT)
+
+
+class REDDictFileBAC120(REDDictFile):
+    """Store the RED dictionary for the BAC120 marker set."""
+
+    def __init__(self, out_dir: str, prefix: str):
+        path = os.path.join(out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
+        super().__init__(path, RED_DIST_BAC_DICT)

@@ -18,12 +18,10 @@ import logging
 import multiprocessing as mp
 import os
 
-from tqdm import tqdm
-
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.pypfam.Scan.PfamScan import PfamScan
 from gtdbtk.io.marker.tophit import TopHitPfamFile
-from gtdbtk.tools import sha256, file_has_checksum
+from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 
 class PfamSearch(object):
@@ -120,9 +118,7 @@ class PfamSearch(object):
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
-        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=numDataItems, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(total=numDataItems, unit='genome') as p_bar:
             for _ in iter(writerQueue.get, None):
                 p_bar.update()
 
