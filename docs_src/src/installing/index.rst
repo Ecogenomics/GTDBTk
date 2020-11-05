@@ -11,35 +11,40 @@ If you are unsure which source to install, Bioconda is generally the easiest.
 Sources
 -------
 
-.. list-table::
-   :widths: 10 10
-   :header-rows: 1
 
-   * - Source
-     - Guide
-   * - Local
-     - :ref:`installing/pip`
-   * - Local
-     - :ref:`installing/bioconda`
-   * - Local
-     - :ref:`installing/docker`
-   * - Online (third-party)
-     - `KBase <https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk>`_
+.. toctree::
+   :maxdepth: 1
+
+   pip
+   bioconda
+   docker
+
+Alternatively, GTDB-Tk can be run online through `KBase <https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk>`_ (third party).
 
 
 Hardware requirements
 ---------------------
 
 .. list-table::
-   :widths: 10 10 30
+   :widths: 10 10 10 30
    :header-rows: 1
 
-   * - Memory
+   * - Domain
+     - Memory
      - Storage
      - Time
-   * - ~100 GB
+   * - Archaea
+     - ~8 GB
      - ~27 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
+   * - Bacteria
+     - ~150 GB
+     - ~27 GB
+     - ~1 hour / 1,000 genomes @ 64 CPUs
+
+.. note::
+   The amount reported of memory reported can vary depending on the number of pplacer threads.
+   See :ref:`faq_pplacer` for more information.
 
 
 Python libraries
@@ -75,6 +80,8 @@ Third-party software
 
 GTDB-Tk makes use of the following 3rd party dependencies and assumes they are on your system path:
 
+.. tip::
+   The :ref:`commands/check_install` command will verify that all of the programs are on the path.
 
 .. list-table::
    :widths: 10 10 80
@@ -87,7 +94,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes they are o
      - >= 2.6.2
      - Hyatt D, et al. 2010. `Prodigal: prokaryotic gene recognition and translation initiation site identification <https://www.ncbi.nlm.nih.gov/pubmed/20211023>`_. *BMC Bioinformatics*, 11:119. doi: 10.1186/1471-2105-11-119.
    * - `HMMER <http://hmmer.org/>`_
-     - >= 3.1
+     - >= 3.1b2
      - Eddy SR. 2011. `Accelerated profile HMM searches <https://www.ncbi.nlm.nih.gov/pubmed/22039361>`_. *PLOS Comp. Biol.*, 7:e1002195.
    * - `pplacer <http://matsen.fhcrc.org/pplacer/>`_
      - >= 1.1
@@ -131,7 +138,7 @@ Note that different versions of the GTDB release data may not run on all version
      - Maximum version
    * - R95
      - 1.3.0
-     -
+     - N/A
    * - R89
      - 0.3.0
      - 0.1.2

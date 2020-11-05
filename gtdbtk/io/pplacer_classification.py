@@ -18,37 +18,42 @@
 import os
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import PATH_TLN_TABLE_SUMMARY
+from gtdbtk.config.output import PATH_AR122_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS
 from gtdbtk.exceptions import GTDBTkExit
 
 
-class TlnTableSummaryFile(object):
-    """Records the translation table for one or more genomes."""
+class PplacerClassifyFile(object):
+    """Store the pplacer classifications."""
 
-    def __init__(self, out_dir: str, prefix: str):
-        """Configure paths and initialise storage dictionary."""
-        self.path = os.path.join(out_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
-        self.genomes = dict()
+    def __init__(self, path: str):
+        self.path = path
+        self.data = dict()
 
-    def add_genome(self, genome_id: str, tln_table: int):
-        """Record a translation table for a genome."""
-        if genome_id in self.genomes:
-            raise GTDBTkExit(f'Genome already exists in summary file: {genome_id}')
-        self.genomes[genome_id] = tln_table
+    def add_genome(self, gid: str, tax_str: str):
+        """Adds the pplacer classification of a given genome."""
+        if gid in self.data:
+            raise GTDBTkExit(f'Warning! Attempting to add duplicate genome: {gid}')
+        self.data[gid] = tax_str
 
     def write(self):
-        """Write the translation table summary file to disk."""
+        """Write the file to disk."""
         make_sure_path_exists(os.path.dirname(self.path))
         with open(self.path, 'w') as fh:
-            for genome_id, tln_table in sorted(self.genomes.items()):
-                fh.write(f'{genome_id}\t{tln_table}\n')
+            for gid, tax_str in sorted(self.data.items()):
+                fh.write(f'{gid}\t{tax_str}\n')
 
-    def read(self):
-        """Read the translation table summary file from disk."""
-        if len(self.genomes) > 0:
-            raise GTDBTkExit(f'Warning! Attempting to override in-memory values '
-                             f'for translation table summary file: {self.path}')
-        with open(self.path, 'r') as fh:
-            for line in fh.readlines():
-                gid, tbl = line.strip().split('\t')
-                self.genomes[gid] = int(tbl)
+
+class PplacerClassifyFileAR122(PplacerClassifyFile):
+    """Store the pplacer classifications for the AR122 marker set."""
+
+    def __init__(self, out_dir: str, prefix: str):
+        path = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
+        super().__init__(path)
+
+
+class PplacerClassifyFileBAC120(PplacerClassifyFile):
+    """Store the pplacer classifications for the BAC120 marker set."""
+
+    def __init__(self, out_dir: str, prefix: str):
+        path = os.path.join(out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
+        super().__init__(path)

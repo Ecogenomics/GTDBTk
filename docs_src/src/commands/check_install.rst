@@ -35,18 +35,28 @@ Output
 
 .. code-block:: text
     
-    [2020-04-13 09:35:16] INFO: GTDB-Tk v1.1.0
-    [2020-04-13 09:35:16] INFO: gtdbtk check_install
-    [2020-04-13 09:35:16] INFO: Using GTDB-Tk reference data version r89: /release89
-    [2020-04-13 09:35:16] INFO: Running install verification
-    [2020-04-13 09:35:16] INFO: Checking /release89
-    [2020-04-13 09:35:16] INFO:          |-- pplacer          OK
-    [2020-04-13 09:35:16] INFO:          |-- masks            OK
-    [2020-04-13 09:35:17] INFO:          |-- markers          OK
-    [2020-04-13 09:35:17] INFO:          |-- radii            OK
-    [2020-04-13 09:35:20] INFO:          |-- msa              OK
-    [2020-04-13 09:35:20] INFO:          |-- metadata         OK
-    [2020-04-13 09:35:20] INFO:          |-- taxonomy         OK
-    [2020-04-13 09:47:36] INFO:          |-- fastani          OK
-    [2020-04-13 09:47:36] INFO:          |-- mrca_red         OK
-    [2020-04-13 09:47:36] INFO: Done.
+    [2020-11-04 09:35:16] INFO: GTDB-Tk v1.4.0
+    [2020-11-04 09:35:16] INFO: gtdbtk check_install
+    [2020-11-04 09:35:16] INFO: Using GTDB-Tk reference data version r95: /release95
+    [2020-11-04 09:35:16] INFO: Running install verification
+    [2020-11-04 09:35:16] INFO: Checking that all third-party software are on the system path:
+    [2020-11-04 09:35:16] INFO:          |-- FastTree         OK
+    [2020-11-04 09:35:16] INFO:          |-- FastTreeMP       OK
+    [2020-11-04 09:35:16] INFO:          |-- fastANI          OK
+    [2020-11-04 09:35:16] INFO:          |-- guppy            OK
+    [2020-11-04 09:35:16] INFO:          |-- hmmalign         OK
+    [2020-11-04 09:35:16] INFO:          |-- hmmsearch        OK
+    [2020-11-04 09:35:16] INFO:          |-- mash             OK
+    [2020-11-04 09:35:16] INFO:          |-- pplacer          OK
+    [2020-11-04 09:35:16] INFO:          |-- prodigal         OK
+    [2020-11-04 09:35:16] INFO: Checking /release95
+    [2020-11-04 09:35:16] INFO:          |-- pplacer          OK
+    [2020-11-04 09:35:16] INFO:          |-- masks            OK
+    [2020-11-04 09:35:17] INFO:          |-- markers          OK
+    [2020-11-04 09:35:17] INFO:          |-- radii            OK
+    [2020-11-04 09:35:20] INFO:          |-- msa              OK
+    [2020-11-04 09:35:20] INFO:          |-- metadata         OK
+    [2020-11-04 09:35:20] INFO:          |-- taxonomy         OK
+    [2020-11-04 09:47:36] INFO:          |-- fastani          OK
+    [2020-11-04 09:47:36] INFO:          |-- mrca_red         OK
+    [2020-11-04 09:47:36] INFO: Done.

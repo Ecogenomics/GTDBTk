@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import math
 import os
 import random
@@ -9,6 +10,7 @@ import urllib.request
 from itertools import islice
 
 import dendropy
+from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.config.output import CHECKSUM_SUFFIX
@@ -219,8 +221,11 @@ def get_proc_memory_gb(pid):
 
 
 def get_gtdbtk_latest_version():
+    if not Config.GTDBTK_VER_CHECK:
+        return None
     try:
-        resp = json.loads(urllib.request.urlopen('https://pypi.org/pypi/gtdbtk/json', timeout=3).read().decode('utf-8'))
+        resp = json.loads(urllib.request.urlopen('https://pypi.org/pypi/gtdbtk/json',
+                                                 timeout=Config.GTDBTK_VER_TIMEOUT).read().decode('utf-8'))
         return resp['info']['version']
     except Exception:
         return None
@@ -340,3 +345,83 @@ def calculate_patristic_distance(qry_node, ref_nodes, tt=None):
                              f'{ref_node.taxon.label}')
 
     return out
+
+
+class tqdm_log(object):
+    """A basic wrapper for the tqdm progress bar. Automatically reports the
+    runtime statistics after exit.
+    """
+
+    def __init__(self, iterable=None, **kwargs):
+        # Setup reporting information.
+        self.logger = logging.getLogger('timestamp')
+        self.start_ts = None
+
+        # Set default parameters.
+        default = {'leave': False,
+                   'smoothing': 0.1,
+                   'bar_format': '==> Processed {n_fmt}/{total_fmt} {unit}s '
+                                 '({percentage:.0f}%) |{bar:15}| [{rate_fmt}, ETA {remaining}]'}
+        merged = {**default, **kwargs}
+        self.args = merged
+
+        # Instantiate tqdm
+        self.tqdm = tqdm(iterable, **merged)
+
+    def log(self):
+        try:
+            # Collect values.
+            delta = time.time() - self.start_ts
+            n = self.tqdm.n
+            unit = self.args.get('unit', 'item')
+
+            # Determine the scale.
+            if delta > 60:
+                time_unit = 'minute'
+                scale = 1 / 60
+            elif delta > 60 * 60:
+                time_unit = 'hour'
+                scale = 1 / (60 * 60)
+            elif delta > 60 * 60 * 24:
+                time_unit = 'day'
+                scale = 1 / (60 * 60 * 24)
+            else:
+                time_unit = 'second'
+                scale = 1
+
+            # Scale units.
+            value = delta * scale
+            per = n / value
+
+            # Determine what scale to use for the output.
+            if per > 1:
+                per_msg = f'{per:,.2f} {unit}s/{time_unit}'
+            else:
+                per_msg = f'{1 / per:,.2f} {time_unit}s/{unit}'
+
+            # Output the message.
+            s = 's' if n > 1 else ''
+            msg = f'Completed {n:,} {unit}{s} in {value:,.2f} {time_unit}s ({per_msg}).'
+            self.logger.info(msg)
+        except Exception:
+            pass
+
+    def __enter__(self):
+        self.start_ts = time.time()
+        return self.tqdm
+
+    def __iter__(self):
+        try:
+            self.start_ts = time.time()
+            for item in self.tqdm:
+                yield item
+            self.log()
+        finally:
+            self.tqdm.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.log()
+        self.tqdm.close()
+
+    def __del__(self):
+        self.tqdm.close()

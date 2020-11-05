@@ -55,7 +55,7 @@ def print_help():
 
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
-    check_install -> Verify if all GTDB-Tk data files are present
+    check_install -> Verify third party programs and GTDB reference package.
 
   Use: gtdbtk <command> -h for command specific help
     ''' % __version__)
@@ -94,32 +94,19 @@ def main():
     # do what we came here to do
     try:
         gt_parser = OptionsParser(__version__)
-        if False:
-            import cProfile
-
-            cProfile.run('gt_parser.parseOptions(args)', 'prof')
-        else:
-            gt_parser.parse_options(args)
+        gt_parser.parse_options(args)
     except SystemExit:
-        sys.stdout.write('\n')
-        sys.stdout.flush()
         logger.error('Controlled exit resulting from early termination.')
         sys.exit(1)
     except KeyboardInterrupt:
-        sys.stdout.write('\n')
-        sys.stdout.flush()
         logger.error('Controlled exit resulting from interrupt signal.')
         sys.exit(1)
     except GTDBTkExit as e:
-        sys.stdout.write('\n')
-        sys.stdout.flush()
         if len(str(e)) > 0:
             logger.error('{}'.format(e))
         logger.error('Controlled exit resulting from an unrecoverable error or warning.')
         sys.exit(1)
     except (GTDBTkException, BioLibError) as e:
-        sys.stdout.write('\n')
-        sys.stdout.flush()
         msg = 'Controlled exit resulting from an unrecoverable error or warning.\n\n'
         msg += '=' * 80 + '\n'
         msg += 'EXCEPTION: {}\n'.format(type(e).__name__)
@@ -130,8 +117,6 @@ def main():
         logger.error(msg)
         sys.exit(1)
     except Exception as e:
-        sys.stdout.write('\n')
-        sys.stdout.flush()
         msg = 'Uncontrolled exit resulting from an unexpected error.\n\n'
         msg += '=' * 80 + '\n'
         msg += 'EXCEPTION: {}\n'.format(type(e).__name__)

@@ -19,16 +19,14 @@
 import logging
 import multiprocessing as mp
 import os
-import shutil
 import subprocess
 import tempfile
-
-from tqdm import tqdm
 
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.tools import tqdm_log
 
 
 class HmmAligner(object):
@@ -166,9 +164,7 @@ class HmmAligner(object):
         n_genomes : int
             The total number of genomes to be processed.
         """
-        bar_fmt = '==> Aligned {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=n_genomes, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(total=n_genomes, unit='genome') as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 
@@ -252,32 +248,31 @@ class HmmAligner(object):
         List of tuple to be inserted in aligned_markers table
         """
         result_genomes_dict = {}
-        hmmalign_dir = tempfile.mkdtemp()
-        input_count = 0
-        for markerid, marker_info in marker_dict.items():
-            hmmalign_gene_input = os.path.join(
-                hmmalign_dir, "input_gene{0}.fa".format(input_count))
-            input_count += 1
-            with open(hmmalign_gene_input, 'w') as out_fh:
-                out_fh.write(">{0}\n".format(marker_info.get("gene")))
-                out_fh.write("{0}".format(marker_info.get("gene_seq")))
-            proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
-                "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, encoding='utf-8')
-            stdout, stderr = proc.communicate()
+        with tempfile.TemporaryDirectory('gtdbtk_hmmalign_tmp_') as hmmalign_dir:
+            input_count = 0
+            for markerid, marker_info in marker_dict.items():
+                hmmalign_gene_input = os.path.join(
+                    hmmalign_dir, "input_gene{0}.fa".format(input_count))
+                input_count += 1
+                with open(hmmalign_gene_input, 'w') as out_fh:
+                    out_fh.write(">{0}\n".format(marker_info.get("gene")))
+                    out_fh.write("{0}".format(marker_info.get("gene_seq")))
+                proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
+                    "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, encoding='utf-8')
+                stdout, stderr = proc.communicate()
 
-            for line in stderr.splitlines():
-                print(line)
+                for line in stderr.splitlines():
+                    print(line)
 
-            result = self._get_aligned_marker(
-                marker_info.get("gene"), stdout)
-            if len(result) < 1:
-                return "TODO"
+                result = self._get_aligned_marker(
+                    marker_info.get("gene"), stdout)
+                if len(result) < 1:
+                    return "TODO"
 
-            result_genomes_dict[markerid] = result
+                result_genomes_dict[markerid] = result
 
-            input_count += 1
-        shutil.rmtree(hmmalign_dir)
+                input_count += 1
         return result_genomes_dict
 
     def _get_hmm_size(self, path):

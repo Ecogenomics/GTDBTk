@@ -23,9 +23,8 @@ import shutil
 import subprocess
 import tempfile
 
-from tqdm import tqdm
-
 from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.tools import tqdm_log
 
 
 class FastANI(object):
@@ -206,22 +205,17 @@ class FastANI(object):
                 break
 
             # Extract the values
-            q = list(job.get('q').values())[0] if job.get(
-                'q') is not None else None
-            r = list(job.get('r').values())[0] if job.get(
-                'r') is not None else None
+            q = list(job.get('q').values())[0] if job.get('q') is not None else None
+            r = list(job.get('r').values())[0] if job.get('r') is not None else None
             ql = job.get('ql')
             rl = job.get('rl')
 
             # Create a temporary directory to write the lists to.
-            dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_fastani_tmp_')
-            path_qry = os.path.join(
-                dir_tmp, 'ql.txt') if ql is not None else None
-            path_ref = os.path.join(
-                dir_tmp, 'rl.txt') if rl is not None else None
-            path_out = os.path.join(dir_tmp, 'output.txt')
+            with tempfile.TemporaryDirectory(prefix='gtdbtk_fastani_tmp') as dir_tmp:
+                path_qry = os.path.join(dir_tmp, 'ql.txt') if ql is not None else None
+                path_ref = os.path.join(dir_tmp, 'rl.txt') if rl is not None else None
+                path_out = os.path.join(dir_tmp, 'output.txt')
 
-            try:
                 # Write to the query and reference lists
                 self._maybe_write_list(ql, path_qry)
                 self._maybe_write_list(rl, path_ref)
@@ -230,8 +224,7 @@ class FastANI(object):
                 result = self.run_proc(q, r, path_qry, path_ref, path_out)
                 q_results.put((job, result))
                 q_writer.put(True)
-            finally:
-                shutil.rmtree(dir_tmp)
+
         return True
 
     def _writer(self, q_writer, n_total):
@@ -244,9 +237,7 @@ class FastANI(object):
         n_total : int
             The total number of items to be processed.
         """
-        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'comparisons [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=n_total, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(unit='comparison', total=n_total) as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 

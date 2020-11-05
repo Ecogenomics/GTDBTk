@@ -82,97 +82,92 @@ class Prodigal(object):
             seqs = read_fasta(genome_file)
 
             if len(seqs) == 0:
-                self.logger.warning(
-                    'Cannot call Prodigal on an empty genome. Skipped: {}'.format(genome_file))
+                self.logger.warning('Cannot call Prodigal on an empty genome. '
+                                    'Skipped: {}'.format(genome_file))
                 return None
 
-            tmp_dir = tempfile.mkdtemp()
+            with tempfile.TemporaryDirectory('gtdbtk_prodigal_tmp_') as tmp_dir:
 
-            # determine number of bases
-            total_bases = 0
-            for seq in seqs.values():
-                total_bases += len(seq)
+                # determine number of bases
+                total_bases = 0
+                for seq in seqs.values():
+                    total_bases += len(seq)
 
-            # call genes under different translation tables
-            if self.translation_table:
-                translation_tables = [self.translation_table]
-            else:
+                # call genes under different translation tables
                 translation_tables = [4, 11]
 
-            for translation_table in translation_tables:
-                os.makedirs(os.path.join(tmp_dir, str(translation_table)))
-                aa_gene_file_tmp = os.path.join(tmp_dir, str(
-                    translation_table), genome_id + '_genes.faa')
-                nt_gene_file_tmp = os.path.join(tmp_dir, str(
-                    translation_table), genome_id + '_genes.fna')
-                gff_file_tmp = os.path.join(tmp_dir, str(
-                    translation_table), genome_id + '.gff')
+                for translation_table in translation_tables:
+                    os.makedirs(os.path.join(tmp_dir, str(translation_table)))
+                    aa_gene_file_tmp = os.path.join(tmp_dir, str(
+                        translation_table), genome_id + '_genes.faa')
+                    nt_gene_file_tmp = os.path.join(tmp_dir, str(
+                        translation_table), genome_id + '_genes.fna')
+                    gff_file_tmp = os.path.join(tmp_dir, str(
+                        translation_table), genome_id + '.gff')
 
-                # check if there is sufficient bases to calculate prodigal
-                # parameters
-                if total_bases < 100000 or self.meta:
-                    proc_str = 'meta'  # use best pre-calculated parameters
+                    # check if there is sufficient bases to calculate prodigal
+                    # parameters
+                    if total_bases < 100000 or self.meta:
+                        proc_str = 'meta'  # use best pre-calculated parameters
+                    else:
+                        proc_str = 'single'  # estimate parameters from data
+
+                    # If this is a gzipped genome, re-write the uncompressed genome
+                    # file to disk
+                    prodigal_input = genome_file
+                    if genome_file.endswith('.gz'):
+                        prodigal_input = os.path.join(
+                            tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
+                        write_fasta(seqs, prodigal_input)
+
+                    # there may be ^M character in the input file,
+                    # the following code is similar to dos2unix command to remove
+                    # those special characters.
+                    with open(prodigal_input, 'r') as fh:
+                        text = fh.read().replace('\r\n', '\n')
+                    processed_prodigal_input = os.path.join(
+                        tmp_dir, os.path.basename(prodigal_input))
+                    with open(processed_prodigal_input, 'w') as fh:
+                        fh.write(text)
+
+                    args = '-m'
+                    if self.closed_ends:
+                        args += ' -c'
+
+                    cmd = 'prodigal %s -p %s -q -f gff -g %d -a %s -d %s -i %s > %s 2> /dev/null' % (args,
+                                                                                                     proc_str,
+                                                                                                     translation_table,
+                                                                                                     aa_gene_file_tmp,
+                                                                                                     nt_gene_file_tmp,
+                                                                                                     processed_prodigal_input,
+                                                                                                     gff_file_tmp)
+                    os.system(cmd)
+
+                    # determine coding density
+                    prodigalParser = ProdigalGeneFeatureParser(gff_file_tmp)
+
+                    codingBases = 0
+                    for seq_id, _seq in seqs.items():
+                        codingBases += prodigalParser.coding_bases(seq_id)
+
+                    codingDensity = float(codingBases) / total_bases
+                    table_coding_density[translation_table] = codingDensity
+
+                # determine best translation table
+                if not self.translation_table:
+                    best_translation_table = 11
+                    if (table_coding_density[4] - table_coding_density[11] > 0.05) and table_coding_density[4] > 0.7:
+                        best_translation_table = 4
                 else:
-                    proc_str = 'single'  # estimate parameters from data
+                    best_translation_table = self.translation_table
 
-                # If this is a gzipped genome, re-write the uncompressed genome
-                # file to disk
-                prodigal_input = genome_file
-                if genome_file.endswith('.gz'):
-                    prodigal_input = os.path.join(
-                        tmp_dir, os.path.basename(genome_file[0:-3]) + '.fna')
-                    write_fasta(seqs, prodigal_input)
+                shutil.copyfile(os.path.join(tmp_dir, str(best_translation_table),
+                                             genome_id + '_genes.faa'), aa_gene_file)
+                shutil.copyfile(os.path.join(tmp_dir, str(best_translation_table),
+                                             genome_id + '_genes.fna'), nt_gene_file)
+                shutil.copyfile(os.path.join(tmp_dir, str(best_translation_table),
+                                             genome_id + '.gff'), gff_file)
 
-                # there may be ^M character in the input file,
-                # the following code is similar to dos2unix command to remove
-                # those special characters.
-                with open(prodigal_input, 'r') as fh:
-                    text = fh.read().replace('\r\n', '\n')
-                processed_prodigal_input = os.path.join(
-                    tmp_dir, os.path.basename(prodigal_input))
-                with open(processed_prodigal_input, 'w') as fh:
-                    fh.write(text)
-
-                args = '-m'
-                if self.closed_ends:
-                    args += ' -c'
-
-                cmd = 'prodigal %s -p %s -q -f gff -g %d -a %s -d %s -i %s > %s 2> /dev/null' % (args,
-                                                                                                 proc_str,
-                                                                                                 translation_table,
-                                                                                                 aa_gene_file_tmp,
-                                                                                                 nt_gene_file_tmp,
-                                                                                                 processed_prodigal_input,
-                                                                                                 gff_file_tmp)
-                os.system(cmd)
-
-                # determine coding density
-                prodigalParser = ProdigalGeneFeatureParser(gff_file_tmp)
-
-                codingBases = 0
-                for seq_id, _seq in seqs.items():
-                    codingBases += prodigalParser.coding_bases(seq_id)
-
-                codingDensity = float(codingBases) / total_bases
-                table_coding_density[translation_table] = codingDensity
-
-            # determine best translation table
-            if not self.translation_table:
-                best_translation_table = 11
-                if (table_coding_density[4] - table_coding_density[11] > 0.05) and table_coding_density[4] > 0.7:
-                    best_translation_table = 4
-            else:
-                best_translation_table = self.translation_table
-
-            shutil.copyfile(os.path.join(tmp_dir, str(
-                best_translation_table), genome_id + '_genes.faa'), aa_gene_file)
-            shutil.copyfile(os.path.join(tmp_dir, str(
-                best_translation_table), genome_id + '_genes.fna'), nt_gene_file)
-            shutil.copyfile(os.path.join(tmp_dir, str(
-                best_translation_table), genome_id + '.gff'), gff_file)
-
-            # clean up temporary files
-            shutil.rmtree(tmp_dir)
         return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4],
                 table_coding_density[11])
 
