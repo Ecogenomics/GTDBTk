@@ -147,9 +147,33 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
         fmt = logging.Formatter(fmt="[%(asctime)s] %(levelname)s: %(message)s",
                                 datefmt="%Y-%m-%d %H:%M:%S")
 
+        default_fmt = logging.Formatter(fmt="[%(asctime)s] INFO: %(message)s",
+                                        datefmt="%Y-%m-%d %H:%M:%S")
+        debug_fmt = logging.Formatter(fmt="[%(asctime)s] DEBUG: %(message)s",
+                                      datefmt="%Y-%m-%d %H:%M:%S")
+        info_fmt = logging.Formatter(fmt="[%(asctime)s] INFO: %(message)s",
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+        warn_fmt = logging.Formatter(fmt="[%(asctime)s] WARNING: %(message)s",
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+        err_fmt = logging.Formatter(fmt="[%(asctime)s] ERROR: %(message)s",
+                                    datefmt="%Y-%m-%d %H:%M:%S")
+        task_fmt = logging.Formatter(fmt="[%(asctime)s] TASK: %(message)s",
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+
         def format(self, record):
             record.msg = self.ansi_escape.sub('', record.msg)
-            return self.fmt.format(record)
+            if record.levelno == LOG_TASK:
+                return self.task_fmt.format(record)
+            if record.levelno >= logging.ERROR:
+                return self.err_fmt.format(record)
+            elif record.levelno >= logging.WARNING:
+                return self.warn_fmt.format(record)
+            elif record.levelno >= logging.INFO:
+                return self.info_fmt.format(record)
+            elif record.levelno >= logging.DEBUG:
+                return self.debug_fmt.format(record)
+            else:
+                return self.default_fmt.format(record)
 
     # setup general properties of loggers
     timestamp_logger = logging.getLogger('timestamp')
