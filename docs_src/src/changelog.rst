@@ -14,6 +14,7 @@ Change log
 * (`#286 <https://github.com/Ecogenomics/GTDBTk/pull/286>`_) Fixed a file not found error when the reference data is a symbolic link (thanks `davidealbanese <https://github.com/davidealbanese>`_!).
 * (`#277 <https://github.com/Ecogenomics/GTDBTk/issues/277>`_) Fixed an issue where if the user overrides the translation table using the optional 3rd column in the batchfile, the other coding density would appear as -100. Both translation table densities are now reported.
 * The :ref:`commands/check_install` command now also checks that all third party binaries can be found on the system path.
+* The ``align`` step is now approximately 10x faster.
 
 
 1.3.0
