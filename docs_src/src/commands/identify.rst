@@ -3,7 +3,7 @@
 identify
 ========
 
-Identify marker genes in genome(s).
+Identify marker genes in genome(s). The following heuristic is used to establish the translation table used by Prodigal: use table 11 unless the coding density using table 4 is 5% higher than when using table 11 and the coding density under table 4 is >70%. Distinguishing between tables 4 and 25 is challenging so GTDB-Tk does not attempt to distinguish between these two tables. If you know the correct translation table for your genomes this can be provided to GTDB-Tk in the `--batchfile`.
 
 Arguments
 ---------
