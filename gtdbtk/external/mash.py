@@ -20,6 +20,8 @@ class Mash(object):
         ----------
         cpus : int
             The maximum number of CPUs available to Mash.
+        dir_ref_match:
+            Directory to load the pre computed Mash sktech database from if it exists
         out_dir : str
             The directory to write output files to.
         prefix : str
@@ -44,7 +46,7 @@ class Mash(object):
         except Exception:
             return 'unknown'
 
-    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s):
+    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s,import_msh, export_msh):
         """Run Mash on a set of reference and query genomes.
 
         Parameters
@@ -61,6 +63,11 @@ class Mash(object):
             Maximum p-value to report.
         mash_s: int
             Maximum number of non-redundant hashes.
+        import_msh : str
+            The path to the pre-computed Mash sketch database.
+        export_msh : str
+            The directory to write the Mash sketch database to.
+
 
         Returns
         -------
@@ -68,7 +75,7 @@ class Mash(object):
             dict[query_id][ref_id] = (dist, p_val, shared_numerator, shared_denominator)
         """
         qry_sketch = QrySketchFile(qry, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
-        ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
+        ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s,import_msh, export_msh)
 
         # Generate an output file comparing the distances between these genomes.
         mash_dists = DistanceFile(qry_sketch, ref_sketch, self.out_dir, self.prefix,
@@ -234,7 +241,7 @@ class SketchFile(object):
 class QrySketchFile(SketchFile):
     name = 'user_query_sketch.msh'
 
-    def __init__(self, genomes, root, prefix, cpus, k, s):
+    def __init__(self, genomes, root, prefix, cpus, k, s ):
         """Create a query file for a given set of genomes.
 
         Parameters
@@ -252,14 +259,16 @@ class QrySketchFile(SketchFile):
         s : int
             Maximum number of non-redundant hashes.
         """
+
         path = os.path.join(root, f'{prefix}.{self.name}')
+
         super().__init__(genomes, path, cpus, k, s)
 
 
 class RefSketchFile(SketchFile):
     name = 'gtdb_ref_sketch.msh'
 
-    def __init__(self, genomes, root, prefix, cpus, k, s):
+    def __init__(self, genomes, root, prefix, cpus, k, s, import_msh=None, export_msh = None):
         """Create a query file for a given set of genomes.
 
         Parameters
@@ -276,6 +285,22 @@ class RefSketchFile(SketchFile):
             The k-mer size.
         s : int
             Maximum number of non-redundant hashes.
+        import_msh : str
+            The path to the pre-computed Mash sketch database.
+        export_msh : str
+            The directory to write the Mash sketch database to.
         """
-        path = os.path.join(root, f'{prefix}.{self.name}')
+        if export_msh is not None:
+            export_msh = export_msh.rstrip('\\')
+            if not export_msh.endswith(".msh"):
+                export_msh = export_msh+".msh"
+            if os.path.isdir(export_msh):
+                raise GTDBTkExit(f"{export_msh} is a directory")
+            make_sure_path_exists(os.path.dirname(export_msh))
+            path = export_msh
+        elif import_msh is not None:
+            path = import_msh
+        else:
+            path = os.path.join(root, f'{prefix}.{self.name}')
+
         super().__init__(genomes, path, cpus, k, s)

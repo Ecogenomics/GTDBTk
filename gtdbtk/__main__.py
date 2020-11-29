@@ -87,6 +87,7 @@ def main():
 
     # Warn the user they are not using the latest version (if possible)
     latest_ver = get_gtdbtk_latest_version()
+
     if latest_ver and latest_ver != __version__:
         logger.warning(f'There is a newer version of GTDB-Tk available: v{latest_ver}')
 

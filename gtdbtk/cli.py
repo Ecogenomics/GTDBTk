@@ -241,6 +241,13 @@ def __mash_d(group):
 def __mash_v(group):
     group.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1]')
 
+def __mash_import(group):
+    group.add_argument('--import_msh',
+                       help='path to pre-computed Mash sketch database.')
+
+def __mash_export(group):
+    group.add_argument('--export_msh',
+                       help='path to save the pre-computed Mash sketch database (.msh).')
 
 def __min_af(group):
     group.add_argument('--min_af', default=AF_THRESHOLD, type=float,
@@ -447,6 +454,9 @@ def get_main_parser():
         with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
+        with mutex_group(parser) as grp:
+            __mash_import(grp)
+            __mash_export(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional Mash arguments') as grp:
