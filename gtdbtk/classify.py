@@ -26,7 +26,6 @@ from operator import itemgetter
 
 import dendropy
 
-from tqdm import tqdm
 from numpy import median as np_median
 
 import gtdbtk.config.config as Config
@@ -55,13 +54,13 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, pplacer_cpus=None):
+    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=Config.AF_THRESHOLD):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
 
         self.taxonomy_file = Config.TAXONOMY_FILE
-        self.af_threshold = Config.AF_THRESHOLD
+        self.af_threshold = af_threshold
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
