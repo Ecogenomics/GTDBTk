@@ -20,7 +20,7 @@ import sys
 import traceback
 
 from gtdbtk import __author__, __copyright__, __version__
-from gtdbtk.argparse import get_main_parser
+from gtdbtk.cli import get_main_parser
 from gtdbtk.biolib_lite.exceptions import BioLibError
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.exceptions import *
