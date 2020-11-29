@@ -333,6 +333,7 @@ def get_main_parser():
             __scratch_dir(grp)
             __recalculate_red(grp)
             # __split_tree(grp)
+            __min_af(grp)
             __debug(grp)
             __help(grp)
 
@@ -404,6 +405,7 @@ def get_main_parser():
             __scratch_dir(grp)
             # __split_tree(grp)
             __recalculate_red(grp)
+            __min_af(grp)
             __debug(grp)
             __help(grp)
 

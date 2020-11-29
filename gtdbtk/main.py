@@ -443,7 +443,7 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        classify = Classify(options.cpus, options.pplacer_cpus)
+        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
         classify.run(genomes,
                      options.align_dir,
                      options.out_dir,
