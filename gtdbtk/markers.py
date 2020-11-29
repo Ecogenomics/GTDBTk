@@ -82,7 +82,7 @@ class Markers(object):
         bac120_copy_number_file = CopyNumberFileBAC120(outdir, prefix)
 
         # Process each genome.
-        for db_genome_id, info in sorted(gene_dict.items()):
+        for db_genome_id, info in tqdm_log(sorted(gene_dict.items()), unit='genome'):
             cur_marker_dir = os.path.join(outdir, DIR_MARKER_GENE)
             pfam_tophit_file = TopHitPfamFile(cur_marker_dir, db_genome_id)
             tigr_tophit_file = TopHitTigrFile(cur_marker_dir, db_genome_id)
@@ -209,6 +209,7 @@ class Markers(object):
         pfam_search.run(gene_files)
         self.logger.info(f'Annotations done using HMMER {tigr_search.version}.')
 
+        self.logger.log(Config.LOG_TASK, 'Summarising identified marker genes.')
         self._report_identified_marker_genes(genome_dictionary, out_dir, prefix,
                                              write_single_copy_genes)
 
@@ -301,7 +302,7 @@ class Markers(object):
         list_mask = np.fromfile(msa_mask, dtype='S1') == b'1'
 
         output_seqs, pruned_seqs = dict(), dict()
-        for seq_id, seq in tqdm_log(aligned_genomes.items(), unit='alignment'):
+        for seq_id, seq in tqdm_log(aligned_genomes.items(), unit='sequence'):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:
                 raise MSAMaskLengthMismatch(

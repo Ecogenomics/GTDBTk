@@ -171,5 +171,5 @@ class PfamSearch(object):
 
         if n_skipped.value > 0:
             genome_s = 'genome' if n_skipped.value == 1 else 'genomes'
-            self.logger.warning(f'Pfam skipped {n_skipped.value} {genome_s} '
+            self.logger.warning(f'Pfam skipped {n_skipped.value:,} {genome_s} '
                                 f'due to pre-existing data, see warnings.log')
