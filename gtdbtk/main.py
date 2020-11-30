@@ -19,8 +19,8 @@ import logging
 import os
 import shutil
 import subprocess
-import tempfile
 import sys
+import tempfile
 from typing import Dict, Tuple
 
 from tqdm import tqdm
@@ -541,14 +541,16 @@ class OptionsParser(object):
                                        os.path.basename(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix))))
                 symlink_f(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table',
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix)  + '-table')))
+                                       os.path.basename(
+                                           PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
             elif options.suffix == 'ar122':
                 symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
                                        os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))))
                 symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table',
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix)  + '-table')))
+                                       os.path.basename(
+                                           PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
             else:
                 raise GenomeMarkerSetUnknown(
                     'There was an error determining the marker set.')
@@ -592,10 +594,10 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-
         ani_rep = ANIRep(options.cpus)
         ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
-                    options.mash_k, options.mash_v, options.mash_s, options.min_af ,options.import_msh,options.export_msh)
+                    options.mash_k, options.mash_v, options.mash_s, options.min_af, options.import_msh,
+                    options.export_msh)
 
         self.logger.info('Done.')
 
