@@ -256,8 +256,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">ani_rep</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
                       <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mash</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_k</span> <span class="n">MASH_K</span><span class="p">]</span>
                       <span class="p">[</span><span class="o">--</span><span class="n">mash_s</span> <span class="n">MASH_S</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_d</span> <span class="n">MASH_D</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_v</span> <span class="n">MASH_V</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">mash_db</span> <span class="n">MASH_DB</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="mutually exclusive required arguments">
@@ -300,6 +300,9 @@
 <dt><kbd>--mash_v</kbd></dt>
 <dd><p>maximum p-value to keep [0-1]</p>
 <p>Default: 1.0</p>
+</dd>
+<dt><kbd>--mash_db</kbd></dt>
+<dd><p>path to save/read (if exists) the Mash reference sketch database (.msh)</p>
 </dd>
 </dl>
 </div>
@@ -403,7 +406,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks
+        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks
 
     </p>
   </div>

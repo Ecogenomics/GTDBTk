@@ -247,7 +247,7 @@
 </style>
 <div class="section" id="commands-identify">
 <span id="identify"></span><h1>identify<a class="headerlink" href="#commands-identify" title="Permalink to this headline">¶</a></h1>
-<p>Identify marker genes in genome(s).</p>
+<p>Identify marker genes in genome(s). The following heuristic is used to establish the translation table used by Prodigal: use table 11 unless the coding density using table 4 is 5% higher than when using table 11 and the coding density under table 4 is &gt;70%. Distinguishing between tables 4 and 25 is challenging so GTDB-Tk does not attempt to distinguish between these two tables. If you know the correct translation table for your genomes this can be provided to GTDB-Tk in the <cite>–batchfile</cite>.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">identify</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
@@ -373,7 +373,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks
+        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks
 
     </p>
   </div>

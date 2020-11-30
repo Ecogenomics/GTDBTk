@@ -9,7 +9,7 @@ Arguments
 ---------
 
 .. argparse::
-   :module: gtdbtk.argparse
+   :module: gtdbtk.cli
    :func: get_main_parser
    :prog: gtdbtk
    :path: identify

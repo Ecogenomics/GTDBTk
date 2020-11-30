@@ -291,8 +291,8 @@ The location of genomes can also be specified using a batch file with the <code 
                           <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">force</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">force</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="mutually exclusive required arguments">
@@ -344,6 +344,10 @@ The location of genomes can also be specified using a batch file with the <code 
 </dd>
 <dt><kbd>-r, --recalculate_red</kbd></dt>
 <dd><p>recalculate RED values based on the reference tree and all added user genomes</p>
+</dd>
+<dt><kbd>--min_af</kbd></dt>
+<dd><p>minimum alignment fraction to consider closest genome</p>
+<p>Default: 0.65</p>
 </dd>
 <dt><kbd>--debug</kbd></dt>
 <dd><p>create intermediate files for debugging purposes</p>
@@ -419,7 +423,7 @@ Placing genomes |##################################################| 3/3 (100.00
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks
+        &copy; Copyright 2020, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks
 
     </p>
   </div>
