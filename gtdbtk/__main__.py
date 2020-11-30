@@ -69,9 +69,12 @@ def main():
         print_help()
         sys.exit(0)
     elif sys.argv[1] in {'-v', '--v', '-version', '--version'}:
-        print("gtdbtk: version %s %s %s" % (__version__,
-                                            __copyright__,
-                                            __author__))
+        print(f"gtdbtk: version {__version__} {__copyright__} {__author__}")
+
+        # Warn the user they are not using the latest version (if possible)
+        latest_ver = get_gtdbtk_latest_version()
+        if latest_ver and latest_ver != __version__:
+            print(f'Note: There is a newer version of GTDB-Tk available: v{latest_ver}')
         sys.exit(0)
     elif sys.argv[1] in {'-h', '--h', '-help', '--help'}:
         print_help()
@@ -84,12 +87,6 @@ def main():
                  "gtdbtk.log", "GTDB-Tk", __version__, False,
                  hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
-
-    # Warn the user they are not using the latest version (if possible)
-    latest_ver = get_gtdbtk_latest_version()
-
-    if latest_ver and latest_ver != __version__:
-        logger.warning(f'There is a newer version of GTDB-Tk available: v{latest_ver}')
 
     # -------------------------------------------------
     # do what we came here to do
