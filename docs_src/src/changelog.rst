@@ -16,7 +16,7 @@ Change log
 * The :ref:`commands/check_install` command now also checks that all third party binaries can be found on the system path.
 * The ``align`` step is now approximately 10x faster.
 * (`#289 <https://github.com/Ecogenomics/GTDBTk/issues/289>`_) Added ``--min_af`` to ``classify`` and ``classify_wf`` which allows the user to specify the minimum alignment fraction for FastANI.
-* Added the ``--import_msh`` and ``--export_msh`` commands to re-use a pre-generated GTDB-Tk Mash database in ``ani_rep``.
+* Added the ``--mash_db`` command to re-use the GTDB-Tk Mash reference database in ``ani_rep``.
 
 
 1.3.0

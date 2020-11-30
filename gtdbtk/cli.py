@@ -242,14 +242,9 @@ def __mash_v(group):
     group.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1]')
 
 
-def __mash_import(group):
-    group.add_argument('--import_msh', default=None, type=str,
-                       help='path to pre-computed Mash sketch database')
-
-
-def __mash_export(group):
-    group.add_argument('--export_msh', default=None, type=str,
-                       help='path to save the pre-computed Mash sketch database (.msh)')
+def __mash_db(group):
+    group.add_argument('--mash_db', default=None, type=str,
+                       help='path to save/read (if exists) the Mash reference sketch database (.msh)')
 
 
 def __min_af(group):
@@ -457,9 +452,6 @@ def get_main_parser():
         with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
             __batchfile(grp)
-        with mutex_group(parser, required=True) as grp:
-            __mash_import(grp)
-            __mash_export(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional Mash arguments') as grp:
@@ -468,6 +460,7 @@ def get_main_parser():
             __mash_s(grp)
             __mash_d(grp)
             __mash_v(grp)
+            __mash_db(grp)
         with arg_group(parser, 'optional FastANI arguments') as grp:
             __min_af(grp)
         with arg_group(parser, 'optional arguments') as grp:

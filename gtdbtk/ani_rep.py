@@ -59,7 +59,7 @@ class ANIRep(object):
                 ref_genomes[accession] = os.path.join(FASTANI_GENOMES, f_name)
         return ref_genomes
 
-    def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af,import_msh,export_msh):
+    def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af, mash_db):
         """Runs the pipeline.
 
         Parameters
@@ -82,10 +82,8 @@ class ANIRep(object):
             maximum number of non-redundant hashes
         min_af : float
             alignment fraction to consider closest genome
-        import_msh : str
-            The path to the pre-computed Mash sketch database.
-        export_msh : str
-            The directory to write the Mash sketch database to.
+        mash_db : Optional[str]
+            The path to read/write the pre-computed Mash reference sketch database.
         """
         self.check_dependencies(no_mash)
 
@@ -100,7 +98,7 @@ class ANIRep(object):
 
             mash = Mash(self.cpus, dir_mash, prefix)
             self.logger.info(f'Using Mash version {mash.version()}')
-            mash_results = mash.run(genomes, ref_genomes, max_d, mash_k, mash_v, mash_s,import_msh,export_msh)
+            mash_results = mash.run(genomes, ref_genomes, max_d, mash_k, mash_v, mash_s, mash_db)
             for qry_gid, ref_hits in mash_results.items():
                 d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
 

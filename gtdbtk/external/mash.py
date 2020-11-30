@@ -4,7 +4,7 @@ import re
 import subprocess
 import tempfile
 from collections import defaultdict
-
+from typing import Tuple, Dict
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import tqdm_log
@@ -44,7 +44,7 @@ class Mash(object):
         except Exception:
             return 'unknown'
 
-    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s, import_msh, export_msh):
+    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s, mash_db) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
         """Run Mash on a set of reference and query genomes.
 
         Parameters
@@ -61,19 +61,15 @@ class Mash(object):
             Maximum p-value to report.
         mash_s: int
             Maximum number of non-redundant hashes.
-        import_msh : str
-            The path to the pre-computed Mash sketch database.
-        export_msh : str
-            The directory to write the Mash sketch database to.
-
+        mash_db : Optional[str]
+            The path to read/write the pre-computed Mash reference sketch database.
 
         Returns
         -------
-        dict[str, dict[str, tuple[float, float, int, int]]]
-            dict[query_id][ref_id] = (dist, p_val, shared_numerator, shared_denominator)
+        dict[query_id][ref_id] = (dist, p_val, shared_numerator, shared_denominator)
         """
         qry_sketch = QrySketchFile(qry, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
-        ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s, import_msh, export_msh)
+        ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s, mash_db)
 
         # Generate an output file comparing the distances between these genomes.
         mash_dists = DistanceFile(qry_sketch, ref_sketch, self.out_dir, self.prefix,
@@ -136,13 +132,12 @@ class DistanceFile(object):
         if proc.returncode != 0:
             raise GTDBTkExit(f'Error running Mash dist: {proc.stderr.read()}')
 
-    def read(self):
+    def read(self) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
         """Reads the results of the distance file.
 
         Returns
         -------
-        dict[str, dict[str, tuple[float, float, int, int]]]
-            dict[query_id][ref_id] = (dist, p_val, shared_numerator, shared_denominator)
+        dict[query_id][ref_id] = (dist, p_val, shared_numerator, shared_denominator)
         """
         out = defaultdict(dict)
         with open(self.path, 'r') as fh:
@@ -265,7 +260,7 @@ class QrySketchFile(SketchFile):
 class RefSketchFile(SketchFile):
     name = 'gtdb_ref_sketch.msh'
 
-    def __init__(self, genomes, root, prefix, cpus, k, s, import_msh=None, export_msh=None):
+    def __init__(self, genomes, root, prefix, cpus, k, s, mash_db=None):
         """Create a query file for a given set of genomes.
 
         Parameters
@@ -282,21 +277,17 @@ class RefSketchFile(SketchFile):
             The k-mer size.
         s : int
             Maximum number of non-redundant hashes.
-        import_msh : str
-            The path to the pre-computed Mash sketch database.
-        export_msh : str
-            The directory to write the Mash sketch database to.
+        mash_db : Optional[str]
+            The path to read/write the pre-computed Mash reference sketch database.
         """
-        if export_msh is not None:
-            export_msh = export_msh.rstrip('\\')
+        if mash_db is not None:
+            export_msh = mash_db.rstrip('\\')
             if not export_msh.endswith(".msh"):
                 export_msh = export_msh + ".msh"
             if os.path.isdir(export_msh):
                 raise GTDBTkExit(f"{export_msh} is a directory")
             make_sure_path_exists(os.path.dirname(export_msh))
             path = export_msh
-        elif import_msh is not None:
-            path = import_msh
         else:
             path = os.path.join(root, f'{prefix}.{self.name}')
 
