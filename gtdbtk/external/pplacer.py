@@ -183,7 +183,7 @@ class Pplacer(object):
                                 re.search(r'\((\d+)\/(\d+)\)', state).group(2))
                         n_placed += 1
                         p_bar.set_description_str(desc=f'Step 9 of {len(states)}: placing '
-                                                  f'genome {n_placed} of {n_total} '
+                                                  f'genome {n_placed:,} of {n_total:,} '
                                                   f'({n_placed / n_total:.2%})')
 
                     # Display the output for the current state.

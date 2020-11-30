@@ -118,13 +118,13 @@ class Classify(object):
             if marker_set_id == 'bac120' and mem_total < 145:
                 self.logger.warning(f'pplacer requires ~152 GB of RAM to fully '
                                     f'load the bacterial tree into memory. '
-                                    f'However, {mem_total}GB was detected. '
+                                    f'However, {mem_total:,}GB was detected. '
                                     f'This may affect pplacer performance, '
                                     f'or fail if there is insufficient scratch space.')
             elif marker_set_id == 'ar122' and mem_total < 6:
                 self.logger.warning(f'pplacer requires ~8.2 GB of RAM to fully '
                                     f'load the archaeal tree into memory. '
-                                    f'However, {mem_total}GB was detected. '
+                                    f'However, {mem_total:,}GB was detected. '
                                     f'This may affect pplacer performance, '
                                     f'or fail if there is insufficient scratch space.')
 
@@ -156,21 +156,21 @@ class Classify(object):
         if marker_set_id == 'bac120':
             if levelopt is None:
                 self.logger.log(Config.LOG_TASK,
-                                f'Placing {num_genomes} bacterial genomes '
+                                f'Placing {num_genomes:,} bacterial genomes '
                                 f'into reference tree with pplacer using '
                                 f'{self.pplacer_cpus} CPUs (be patient).')
                 pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
                                                Config.PPLACER_BAC120_REF_PKG)
             elif levelopt == 'high':
                 self.logger.log(Config.LOG_TASK,
-                                f'Placing {num_genomes} bacterial genomes '
+                                f'Placing {num_genomes:,} bacterial genomes '
                                 f'into high reference tree with pplacer using '
                                 f'{self.pplacer_cpus} CPUs (be patient).')
                 pplacer_ref_pkg = os.path.join(Config.HIGH_PPLACER_DIR,
                                                Config.HIGH_PPLACER_REF_PKG)
             elif levelopt == 'low':
                 self.logger.log(Config.LOG_TASK,
-                                f'Placing {num_genomes} bacterial genomes '
+                                f'Placing {num_genomes:,} bacterial genomes '
                                 f'into low reference tree {tree_iter} with '
                                 f'pplacer using {self.pplacer_cpus} CPUs '
                                 f'(be patient).')
@@ -178,7 +178,7 @@ class Classify(object):
                                                Config.LOW_PPLACER_REF_PKG.format(iter=tree_iter))
         elif marker_set_id == 'ar122':
             self.logger.log(Config.LOG_TASK,
-                            f'Placing {num_genomes} archaeal genomes into '
+                            f'Placing {num_genomes:,} archaeal genomes into '
                             f'reference tree with pplacer using '
                             f'{self.pplacer_cpus} CPUs (be patient).')
             pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
