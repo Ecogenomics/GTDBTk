@@ -20,11 +20,9 @@ import multiprocessing as mp
 import os
 import subprocess
 
-from tqdm import tqdm
-
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.io.marker.tophit import TopHitTigrFile
-from gtdbtk.tools import sha256, file_has_checksum
+from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 
 class TigrfamSearch(object):
@@ -145,9 +143,7 @@ class TigrfamSearch(object):
 
     def _writerThread(self, numDataItems, writerQueue):
         """Store or write results of worker threads in a single thread."""
-        bar_fmt = '==> Processed {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=numDataItems, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(total=numDataItems, unit='genome') as p_bar:
             for _ in iter(writerQueue.get, None):
                 p_bar.update()
 
@@ -205,5 +201,5 @@ class TigrfamSearch(object):
 
         if n_skipped.value > 0:
             genome_s = 'genome' if n_skipped.value == 1 else 'genomes'
-            self.logger.warning(f'TIGRFAM skipped {n_skipped.value} {genome_s} '
+            self.logger.warning(f'TIGRFAM skipped {n_skipped.value:,} {genome_s} '
                                 f'due to pre-existing data, see warnings.log')

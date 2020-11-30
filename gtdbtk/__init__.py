@@ -15,18 +15,18 @@
 #                                                                             #
 ###############################################################################
 
-__author__ = 'Pierre-Alain Chaumeil and Donovan Parks'
+__author__ = 'Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks'
 __author_email__ = 'p.chaumeil@uq.edu.au'
 __copyright__ = 'Copyright 2017'
 __credits__ = ['Pierre Chaumeil']
 __description__ = 'A toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes.'
 __email__ = 'uqpchaum@uq.edu.au'
 __license__ = 'GPL3'
-__maintainer__ = 'Pierre-Alain Chaumeil, Aaron Mussig, and Donovan Parks'
+__maintainer__ = 'Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks'
 __maintainer_email__ = 'donovan.parks@gmail.com'
 __name__ = 'gtdbtk'
 __python_requires__ = '>=3.6'
 __status__ = 'Production'
 __title__ = 'GTDB-Tk'
 __url__ = 'https://github.com/Ecogenomics/GTDBTk'
-__version__ = '1.3.0'
+__version__ = '1.4.0'

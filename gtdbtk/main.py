@@ -20,7 +20,10 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from typing import Dict, Tuple
+
+from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.ani_rep import ANIRep
@@ -37,6 +40,8 @@ from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
+from gtdbtk.io.batchfile import Batchfile
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.reroot_tree import RerootTree
@@ -64,12 +69,11 @@ class OptionsParser(object):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
         pkg_ver = float(Config.VERSION_DATA.replace('r', ''))
         min_ver = float(Config.MIN_REF_DATA_VERSION.replace('r', ''))
-        self.logger.info('Using GTDB-Tk reference data version {}: {}'
-                         .format(Config.VERSION_DATA, Config.GENERIC_PATH))
+        self.logger.info(f'Using GTDB-Tk reference data version '
+                         f'{Config.VERSION_DATA}: {Config.GENERIC_PATH}')
         if pkg_ver < min_ver:
-            self.logger.warning(colour('You are not using the reference data '
-                                       'intended for this release: {}'
-                                       .format(Config.MIN_REF_DATA_VERSION),
+            self.logger.warning(colour(f'You are not using the reference data '
+                                       f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
                                        ['bright'], fg='yellow'))
 
     def _verify_genome_id(self, genome_id):
@@ -93,10 +97,10 @@ class OptionsParser(object):
 
         invalid_chars = set('()[],;=')
         if any((c in invalid_chars) for c in genome_id):
-            self.logger.error('Invalid genome ID: %s' % genome_id)
-            self.logger.error(
-                'The following characters are invalid: %s' % ' '.join(invalid_chars))
-            raise GenomeNameInvalid('Invalid genome ID: {}'.format(genome_id))
+            self.logger.error(f'Invalid genome ID: {genome_id}')
+            self.logger.error(f'The following characters are invalid: '
+                              f'{" ".join(invalid_chars)}')
+            raise GenomeNameInvalid(f'Invalid genome ID: {genome_id}')
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -125,42 +129,12 @@ class OptionsParser(object):
                     genomic_files[genome_id] = os.path.join(genome_dir, f)
 
         elif batchfile:
-            with open(batchfile, "r") as fh:
-                for line_no, line in enumerate(fh):
-                    line_split = line.strip().split("\t")
-                    if line_split[0] == '':
-                        continue  # blank line
+            batchfile_fh = Batchfile(batchfile)
+            genomic_files, tln_tables = batchfile_fh.genome_path, batchfile_fh.genome_tln
 
-                    if len(line_split) not in {2, 3}:
-                        raise GTDBTkExit('Batch file must contain either 2 '
-                                         'columns (detect translation table), '
-                                         'or 3 (specify translation table).')
-
-                    if len(line_split) == 2:
-                        genome_file, genome_id = line_split
-                    elif len(line_split) == 3:
-                        genome_file, genome_id, tln_table = line_split
-                        if tln_table not in {'4', '11'}:
-                            raise GTDBTkExit('Specified translation table must '
-                                             'be either 4, or 11.')
-                        tln_tables[genome_id] = int(tln_table)
-
-                    self._verify_genome_id(genome_id)
-
-                    if genome_file is None or genome_file == '':
-                        raise GTDBTkExit(
-                            'Missing genome file on line %d.' % (line_no + 1))
-                    elif genome_id is None or genome_id == '':
-                        raise GTDBTkExit(
-                            'Missing genome ID on line %d.' % (line_no + 1))
-                    elif genome_id in genomic_files:
-                        raise GTDBTkExit(
-                            'Genome ID %s appears multiple times.' % genome_id)
-                    if genome_file in genomic_files.values():
-                        self.logger.warning(
-                            'Genome file appears multiple times: %s' % genome_file)
-
-                    genomic_files[genome_id] = genome_file
+        # Check that all of the genome IDs are valid.
+        for genome_key in genomic_files:
+            self._verify_genome_id(genome_key)
 
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
@@ -200,37 +174,6 @@ class OptionsParser(object):
                              f'rename them. See gtdb.warnings.log.')
 
         return genomic_files, tln_tables
-
-    def _marker_set_id(self, bac120_ms, ar122_ms, rps23_ms):
-        """Get unique identifier for marker set.
-
-        Parameters
-        ----------
-        bac120_ms : bool
-        ar122_ms : bool
-        rps23_ms : bool
-
-        Returns
-        -------
-        str
-            The unique identifier for the marker set.
-
-        Raises
-        ------
-        GenomeMarkerSetUnknown
-            If the marker set is unknown.
-        """
-
-        if bac120_ms:
-            marker_set_id = "bac120"
-        elif ar122_ms:
-            marker_set_id = "ar122"
-        elif rps23_ms:
-            marker_set_id = "rps23"
-        else:
-            self.logger.error('No marker set specified.')
-            raise GenomeMarkerSetUnknown('No marker set specified.')
-        return marker_set_id
 
     def _read_taxonomy_files(self, options) -> Dict[str, Tuple[str, str, str, str, str, str, str]]:
         """Read and merge taxonomy files."""
@@ -302,8 +245,9 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes, tln_tables = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes, tln_tables = self._genomes_to_process(options.genome_dir,
+                                                       options.batchfile,
+                                                       options.extension)
         self.genomes_to_process = genomes
 
         markers = Markers(options.cpus)
@@ -311,7 +255,8 @@ class OptionsParser(object):
                          tln_tables,
                          options.out_dir,
                          options.prefix,
-                         options.force)
+                         options.force,
+                         options.write_single_copy_genes)
 
         self.logger.info('Done.')
 
@@ -413,46 +358,65 @@ class OptionsParser(object):
             If the test fails.
         """
 
-        make_sure_path_exists(options.out_dir)
+        # Use a temporary directory if none is supplied.
+        if options.out_dir:
+            out_dir_fh = None
+            make_sure_path_exists(options.out_dir)
+        else:
+            out_dir_fh = tempfile.TemporaryDirectory(prefix='gtdbtk_tmp_')
+            options.out_dir = out_dir_fh.name
+            self.logger.info('Using a temporary directory as out_dir was not specified.')
 
-        output_dir = os.path.join(options.out_dir, 'output')
-        genome_test_dir = os.path.join(options.out_dir, 'genomes')
-        if os.path.exists(genome_test_dir):
-            self.logger.error(
-                'Test directory {} already exists'.format(genome_test_dir))
-            self.logger.error('Test must be run in a new directory.')
-            sys.exit(1)
+        try:
+            output_dir = os.path.join(options.out_dir, 'output')
+            genome_test_dir = os.path.join(options.out_dir, 'genomes')
+            if os.path.exists(genome_test_dir):
+                self.logger.error(f'Test directory {genome_test_dir} already exists.')
+                self.logger.error('Test must be run in a new directory.')
+                sys.exit(1)
 
-        current_path = os.path.dirname(os.path.realpath(__file__))
-        input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
+            current_path = os.path.dirname(os.path.realpath(__file__))
+            input_dir = os.path.join(current_path, 'tests', 'data', 'genomes')
 
-        shutil.copytree(input_dir, genome_test_dir)
+            shutil.copytree(input_dir, genome_test_dir)
 
-        args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
-                '--out_dir', output_dir, '--cpus', str(options.cpus)]
-        self.logger.info('Command: {}'.format(' '.join(args)))
+            args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
+                    '--out_dir', output_dir, '--cpus', str(options.cpus)]
+            self.logger.info('Command: {}'.format(' '.join(args)))
 
-        path_stdout = os.path.join(options.out_dir, 'test_execution.log')
-        with open(path_stdout, 'w') as fh_stdout:
-            proc = subprocess.Popen(args, stdout=fh_stdout,
-                                    stderr=subprocess.PIPE)
-            proc.communicate()
+            # Pipe the output and write to disk.
+            path_stdout = os.path.join(options.out_dir, 'test_execution.log')
+            with subprocess.Popen(args, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE, encoding='utf-8') as proc:
+                with open(path_stdout, 'w') as fh_stdout:
+                    bar_fmt = ' <TEST OUTPUT> '.center(22) + '{desc}'
+                    with tqdm(bar_format=bar_fmt, leave=False) as p_bar:
+                        while True:
+                            line = proc.stdout.readline()
+                            if not line:
+                                break
+                            fh_stdout.write(f'{line}')
+                            p_bar.set_description_str(line.strip())
+                proc.wait()
+                exit_code = proc.returncode
 
-        summary_file = os.path.join(
-            output_dir, PATH_AR122_SUMMARY_OUT.format(prefix='gtdbtk'))
+            summary_fh = ClassifySummaryFileAR122(output_dir, 'gtdbtk')
 
-        if proc.returncode != 0:
-            self.logger.error('The test returned a non-zero exit code.')
-            self.logger.error('A detailed summary of the execution log can be '
-                              'found here: {}'.format(path_stdout))
-            self.logger.error('The test has failed.')
-            sys.exit(1)
-        if not os.path.exists(summary_file):
-            self.logger.error("{} is missing.".format(summary_file))
-            self.logger.error('A detailed summary of the execution log can be '
-                              'found here: {}'.format(path_stdout))
-            self.logger.error('The test has failed.')
-            sys.exit(1)
+            if exit_code != 0:
+                self.logger.error('The test returned a non-zero exit code.')
+                self.logger.error('A detailed summary of the execution log can be '
+                                  'found here: {}'.format(path_stdout))
+                self.logger.error('The test has failed.')
+                sys.exit(1)
+            if not os.path.exists(summary_fh.path):
+                self.logger.error(f"{summary_fh.path} is missing.")
+                self.logger.error('A detailed summary of the execution log can be '
+                                  'found here: {}'.format(path_stdout))
+                self.logger.error('The test has failed.')
+                sys.exit(1)
+        finally:
+            if out_dir_fh:
+                out_dir_fh.cleanup()
 
         self.logger.info('Test has successfully finished.')
         return True
@@ -475,10 +439,11 @@ class OptionsParser(object):
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
 
-        genomes, _ = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                              options.batchfile,
+                                              options.extension)
 
-        classify = Classify(options.cpus, options.pplacer_cpus)
+        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
         classify.run(genomes,
                      options.align_dir,
                      options.out_dir,
@@ -576,14 +541,16 @@ class OptionsParser(object):
                                        os.path.basename(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix))))
                 symlink_f(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table',
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix)  + '-table')))
+                                       os.path.basename(
+                                           PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
             elif options.suffix == 'ar122':
                 symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
                                        os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))))
                 symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table',
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix)  + '-table')))
+                                       os.path.basename(
+                                           PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
             else:
                 raise GenomeMarkerSetUnknown(
                     'There was an error determining the marker set.')
@@ -623,12 +590,13 @@ class OptionsParser(object):
         """
         make_sure_path_exists(options.out_dir)
 
-        genomes, _ = self._genomes_to_process(
-            options.genome_dir, options.batchfile, options.extension)
+        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                              options.batchfile,
+                                              options.extension)
 
         ani_rep = ANIRep(options.cpus)
         ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
-                    options.mash_k, options.mash_v, options.mash_s, options.min_af)
+                    options.mash_k, options.mash_v, options.mash_s, options.min_af, options.mash_db)
 
         self.logger.info('Done.')
 
@@ -646,7 +614,7 @@ class OptionsParser(object):
             raise GTDBTkExit('Python 2 is no longer supported.')
 
         # Correct user paths
-        if hasattr(options, 'out_dir'):
+        if hasattr(options, 'out_dir') and options.out_dir:
             options.out_dir = os.path.expanduser(options.out_dir)
 
         # Assert that the number of CPUs is a positive integer.
@@ -659,6 +627,7 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
+            options.write_single_copy_genes = False
             self.identify(options)
 
             options.identify_dir = options.out_dir
@@ -731,8 +700,10 @@ class OptionsParser(object):
                                     ' supported, overriding value to False.')
             options.split_tree = False
 
-            check_dependencies(
-                ['prodigal', 'hmmalign', 'pplacer', 'guppy', 'fastANI'])
+            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
+                                'fastANI'])
+
+            options.write_single_copy_genes = False
             self.identify(options)
 
             options.identify_dir = options.out_dir

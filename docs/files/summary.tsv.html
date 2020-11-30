@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>summary.tsv &mdash; GTDB-Tk 1.3.0 documentation</title>
+  <title>summary.tsv &mdash; GTDB-Tk 1.4.0 documentation</title>
   
 
   
@@ -83,7 +83,7 @@
             
             
               <div class="version">
-                1.3.0
+                1.4.0
               </div>
             
           
@@ -274,7 +274,7 @@
 <li><p>classification_method:        indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome’s position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.</p></li>
 <li><p>note: provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination is made and indicates if the placement of the genome in the reference tree and closest reference according to ANI/AF are the same (congruent) or different (incongruent).</p></li>
 <li><p>other_related_references: lists up to the 100 closest reference genomes based on ANI. ANI calculations are only performed between a query genome and reference genomes in the same genus.</p></li>
-<li><p>aa_percent: indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid).</p></li>
+<li><p>msa_percent: indicates the percentage of the MSA spanned by the genome (i.e. percentage of columns with an amino acid).</p></li>
 <li><p>red_value: indicates, when required, the relative evolutionary divergence (RED) for a query genome. RED is not calculated when a query genome can be classified based on ANI.</p></li>
 <li><p>warnings: indicates unusual characteristics of the query genome that may impact the taxonomic assignment.</p></li>
 </ul>

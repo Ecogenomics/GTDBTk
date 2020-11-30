@@ -19,16 +19,14 @@
 import logging
 import multiprocessing as mp
 import os
-import shutil
 import subprocess
 import tempfile
-
-from tqdm import tqdm
 
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.tools import tqdm_log
 
 
 class HmmAligner(object):
@@ -59,9 +57,18 @@ class HmmAligner(object):
         self.bac120_markers = bac120_markers
         self.ar122_markers = ar122_markers
 
+        self.marker_path_prefix = {"PFAM": os.path.join(self.pfam_hmm_dir,
+                                                        'individual_hmms'),
+                                   "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmm_dir),
+                                                           'individual_hmms')}
+
+        self.ar122_marker_sizes = None
+        self.bac120_marker_sizes = None
+
         self.version = self.get_version()
 
-    def get_version(self):
+    @staticmethod
+    def get_version():
         """ get HMMER version."""
         try:
             env = os.environ.copy()
@@ -76,6 +83,19 @@ class HmmAligner(object):
             return "(version unavailable)"
         except:
             return "(version unavailable)"
+
+    def _get_hmm_sizes(self):
+        ar122, bac120 = dict(), dict()
+        for marker_d, out_d in ((self.ar122_markers, ar122),
+                                (self.bac120_markers, bac120)):
+            for marker_type in ('PFAM', 'TIGRFAM'):
+                for marker_name in marker_d[marker_type]:
+                    marker_path = os.path.join(self.marker_path_prefix[marker_type], marker_name)
+                    marker_name_strip = marker_name.replace('.HMM', '').replace('.hmm', '')
+                    out_d[marker_name_strip] = self._get_hmm_size(marker_path)
+        self.ar122_marker_sizes = ar122
+        self.bac120_marker_sizes = bac120
+        return
 
     def align_marker_set(self, db_genome_ids, marker_set_id):
         """Threaded alignment using hmmalign for a given set of genomes.
@@ -92,6 +112,10 @@ class HmmAligner(object):
         dict
             A dictionary of genome_ids -> aligned sequence.
         """
+
+        # Initialise some values for faster processing.
+        self._get_hmm_sizes()
+
         q_worker = mp.Queue()
         q_writer = mp.Queue()
 
@@ -166,9 +190,7 @@ class HmmAligner(object):
         n_genomes : int
             The total number of genomes to be processed.
         """
-        bar_fmt = '==> Aligned {n_fmt}/{total_fmt} ({percentage:.0f}%) ' \
-                  'genomes [{rate_fmt}, ETA {remaining}]'
-        with tqdm(total=n_genomes, bar_format=bar_fmt, mininterval=1, smoothing=0.1) as p_bar:
+        with tqdm_log(total=n_genomes, unit='genome') as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 
@@ -188,8 +210,10 @@ class HmmAligner(object):
 
         if marker_set_id == 'bac120':
             copy_number_file = CopyNumberFileBAC120('/dev/null', None)
+            marker_size_d = self.bac120_marker_sizes
         elif marker_set_id == 'ar122':
             copy_number_file = CopyNumberFileAR122('/dev/null', None)
+            marker_size_d = self.ar122_marker_sizes
         else:
             raise GTDBTkException('Unknown marker set.')
 
@@ -226,23 +250,21 @@ class HmmAligner(object):
         for marker_id, marker_path in marker_dict_original.items():
             hit = single_copy_hits.get(marker_id)
             if hit:
-                # print(marker_id)
                 gene_dict[marker_id] = {"marker_path": marker_path,
                                         "gene": hit['hit'].gene_id,
                                         "gene_seq": hit['seq'],
                                         "bitscore": hit['hit'].bit_score}
             else:
-                hmm_len = self._get_hmm_size(marker_path)
-                result_align[marker_id] = '-' * hmm_len
+                result_align[marker_id] = '-' * marker_size_d[marker_id]
 
         # Align the markers.
-        result_align.update(self._run_align(gene_dict, db_genome_id))
+        result_align.update(self._run_align(gene_dict))
 
         # we concatenate the aligned markers together and associate them with
         # the genome.
         return ''.join([x[1] for x in sorted(result_align.items())])
 
-    def _run_align(self, marker_dict, genome):
+    def _run_align(self, marker_dict):
         """
         Run hmmalign for a set of genes for a specific genome. This is run in a temp folder.
         :param marker_dict: list of markers that need to be aligned
@@ -252,32 +274,31 @@ class HmmAligner(object):
         List of tuple to be inserted in aligned_markers table
         """
         result_genomes_dict = {}
-        hmmalign_dir = tempfile.mkdtemp()
-        input_count = 0
-        for markerid, marker_info in marker_dict.items():
-            hmmalign_gene_input = os.path.join(
-                hmmalign_dir, "input_gene{0}.fa".format(input_count))
-            input_count += 1
-            with open(hmmalign_gene_input, 'w') as out_fh:
-                out_fh.write(">{0}\n".format(marker_info.get("gene")))
-                out_fh.write("{0}".format(marker_info.get("gene_seq")))
-            proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
-                "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, encoding='utf-8')
-            stdout, stderr = proc.communicate()
+        with tempfile.TemporaryDirectory(prefix='gtdbtk_tmp_') as dir_tmp:
+            input_count = 0
+            for markerid, marker_info in marker_dict.items():
+                hmmalign_gene_input = os.path.join(dir_tmp,
+                                                   f'input_gene{input_count}.fa')
+                input_count += 1
+                with open(hmmalign_gene_input, 'w') as out_fh:
+                    out_fh.write(">{0}\n".format(marker_info.get("gene")))
+                    out_fh.write("{0}".format(marker_info.get("gene_seq")))
+                proc = subprocess.Popen(["hmmalign", "--outformat", "Pfam", marker_info.get(
+                    "marker_path"), hmmalign_gene_input], stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, encoding='utf-8')
+                stdout, stderr = proc.communicate()
 
-            for line in stderr.splitlines():
-                print(line)
+                for line in stderr.splitlines():
+                    print(line)
 
-            result = self._get_aligned_marker(
-                marker_info.get("gene"), stdout)
-            if len(result) < 1:
-                return "TODO"
+                result = self._get_aligned_marker(
+                    marker_info.get("gene"), stdout)
+                if len(result) < 1:
+                    return "TODO"
 
-            result_genomes_dict[markerid] = result
+                result_genomes_dict[markerid] = result
 
-            input_count += 1
-        shutil.rmtree(hmmalign_dir)
+                input_count += 1
         return result_genomes_dict
 
     def _get_hmm_size(self, path):
@@ -303,8 +324,7 @@ class HmmAligner(object):
             if splitline[0] == hit_name.split(" ", 1)[0]:
                 rsplitline = line.rsplit(" ", 1)
                 hit_seq = rsplitline[-1]
-                continue
-            if line[0:len("#=GC RF")] == "#=GC RF":
+            elif line[0:len("#=GC RF")] == "#=GC RF":
                 rsplitline = line.rsplit(" ", 1)
                 mask_seq = rsplitline[-1]
 
@@ -314,9 +334,5 @@ class HmmAligner(object):
         if hit_seq is None:
             return None
 
-        aligned_marker = ""
-        for pos in range(0, len(mask_seq)):
-            if mask_seq[pos] != 'x':
-                continue
-            aligned_marker += hit_seq[pos]
+        aligned_marker = ''.join([h for h, m in zip(hit_seq, mask_seq) if m == 'x'])
         return aligned_marker

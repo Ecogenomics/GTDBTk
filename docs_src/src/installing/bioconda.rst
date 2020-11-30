@@ -32,6 +32,21 @@ Step 3: Download and alias the GTDB-Tk reference data
 GTDB-Tk requires an environment variable named ``GTDBTK_DATA_PATH`` to be set to the directory
 containing the unarchived :ref:`installing#gtdbtk-reference-data`.
 
+Automatically
+^^^^^^^^^^^^^
+
+The conda package is bundled with a script ``download-db.sh`` `(located here) <https://github.com/bioconda/bioconda-recipes/blob/master/recipes/gtdbtk/download-db.sh>`_
+that will automatically download, and extract the GTDB-Tk reference data. The script will be on the system path so simply run:
+
+.. code-block:: bash
+
+    download-db.sh
+
+
+
+Manually
+^^^^^^^^
+
 You can automatically alias ``GTDBTK_DATA_PATH`` whenever the environment is activated by editing ``{gtdbtk environment path}/etc/conda/activate.d/gtdbtk.sh``, e.g.:
 
 .. code-block:: bash

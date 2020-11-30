@@ -59,7 +59,7 @@ RUN python -m pip install --upgrade pip && \
     python -m pip install dendropy>=4.1.0 && \
     python -m pip install numpy>=1.9.0 && \
     python -m pip install tqdm>=4.31.0 && \
-    python -m pip install gtdbtk==1.3.0
+    python -m pip install gtdbtk==1.4.0
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------- SET THE ENTRYPOINT ---------------------------- #

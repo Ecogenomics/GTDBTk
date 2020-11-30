@@ -147,3 +147,9 @@ class GTDBTkDataPathUndefined(GTDBTkException):
 
     def __init__(self, message=''):
         GTDBTkException.__init__(self, message)
+
+class GTDBTkArgsParsingConflict(GTDBTkException):
+    """ Thrown when the arguments are conflicting and or missing.  """
+
+    def __init__(self, message=''):
+        GTDBTkException.__init__(self, message)

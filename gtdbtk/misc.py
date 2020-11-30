@@ -21,6 +21,7 @@ from shutil import copyfile
 
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.common import make_sure_path_exists
+from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import GTDBTkException, GTDBTkExit
@@ -128,11 +129,28 @@ class Misc(object):
             True if the installation is complete, False otherwise.
         """
 
+        # Check that all programs are on the system path.
+        self.logger.info(f'Checking that all third-party software are on the system path:')
+        names = {'prodigal', 'hmmsearch', 'fastANI', 'mash', 'pplacer', 'guppy',
+                 'FastTree', 'FastTreeMP', 'hmmalign'}
+        for name in sorted(names):
+            on_path = False
+            try:
+                on_path = on_path or check_dependencies([name], exit_on_fail=False)
+            except:
+                pass
+            if on_path:
+                self.logger.info("         |-- {:16} {}".format(
+                    name, colour('OK', ['bright'], fg='green')))
+            else:
+                self.logger.info("         |-- {:16} {}".format(
+                    name, colour('NOT FOUND', ['bright'], fg='yellow')))
+
         # Assume this was successful unless otherwise observed.
         ok = True
 
         # Compute the hash for each directory
-        self.logger.info('Checking {}'.format(Config.GENERIC_PATH))
+        self.logger.info(f'Checking integrity of reference package: {Config.GENERIC_PATH}')
         for obj_path, expected_hash in Config.REF_HASHES.items():
             base_name = obj_path[:-1] if obj_path.endswith('/') else obj_path
             base_name = base_name.split('/')[-1]

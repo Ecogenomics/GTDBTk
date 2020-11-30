@@ -21,6 +21,9 @@ import os
 import re
 import sys
 
+from tqdm import tqdm
+
+from gtdbtk.config.config import LOG_TASK
 from .common import make_sure_path_exists
 
 
@@ -82,7 +85,7 @@ def colour(to_fmt, attr=None, fg=None, bg=None):
 def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
     """Setup loggers.
 
-    Two logger are setup which both print to the stdout and a 
+    Two logger are setup which both print to the stdout and a
     log file when the log_dir is not None. The first logger is
     named 'timestamp' and provides a timestamp with each call,
     while the other is named 'no_timestamp' and does not prepend
@@ -120,8 +123,13 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
         err_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
                                     format(colour('ERROR:', ['bright'], 'red')),
                                     datefmt="%Y-%m-%d %H:%M:%S")
+        task_fmt = logging.Formatter(fmt="[%(asctime)s] {} %(message)s".
+                                     format(colour('TASK:', ['bright'])),
+                                     datefmt="%Y-%m-%d %H:%M:%S")
 
         def format(self, record):
+            if record.levelno == LOG_TASK:
+                return self.task_fmt.format(record)
             if record.levelno >= logging.ERROR:
                 return self.err_fmt.format(record)
             elif record.levelno >= logging.WARNING:
@@ -139,9 +147,33 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
         fmt = logging.Formatter(fmt="[%(asctime)s] %(levelname)s: %(message)s",
                                 datefmt="%Y-%m-%d %H:%M:%S")
 
+        default_fmt = logging.Formatter(fmt="[%(asctime)s] INFO: %(message)s",
+                                        datefmt="%Y-%m-%d %H:%M:%S")
+        debug_fmt = logging.Formatter(fmt="[%(asctime)s] DEBUG: %(message)s",
+                                      datefmt="%Y-%m-%d %H:%M:%S")
+        info_fmt = logging.Formatter(fmt="[%(asctime)s] INFO: %(message)s",
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+        warn_fmt = logging.Formatter(fmt="[%(asctime)s] WARNING: %(message)s",
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+        err_fmt = logging.Formatter(fmt="[%(asctime)s] ERROR: %(message)s",
+                                    datefmt="%Y-%m-%d %H:%M:%S")
+        task_fmt = logging.Formatter(fmt="[%(asctime)s] TASK: %(message)s",
+                                     datefmt="%Y-%m-%d %H:%M:%S")
+
         def format(self, record):
             record.msg = self.ansi_escape.sub('', record.msg)
-            return self.fmt.format(record)
+            if record.levelno == LOG_TASK:
+                return self.task_fmt.format(record)
+            if record.levelno >= logging.ERROR:
+                return self.err_fmt.format(record)
+            elif record.levelno >= logging.WARNING:
+                return self.warn_fmt.format(record)
+            elif record.levelno >= logging.INFO:
+                return self.info_fmt.format(record)
+            elif record.levelno >= logging.DEBUG:
+                return self.debug_fmt.format(record)
+            else:
+                return self.default_fmt.format(record)
 
     # setup general properties of loggers
     timestamp_logger = logging.getLogger('timestamp')
@@ -153,12 +185,15 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
     warning_logger = logging.getLogger('warnings')
     warning_logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
+    # Pass through tqdm before writing to stdout to fix line return issues.
+    tqdm_stream = TqdmStream()
+
     # setup logging to console
-    timestamp_stream_logger = logging.StreamHandler(sys.stdout)
+    timestamp_stream_logger = logging.StreamHandler(tqdm_stream)
     timestamp_stream_logger.setFormatter(SpecialFormatter())
     timestamp_logger.addHandler(timestamp_stream_logger)
 
-    no_timestamp_stream_logger = logging.StreamHandler(sys.stdout)
+    no_timestamp_stream_logger = logging.StreamHandler(tqdm_stream)
     no_timestamp_stream_logger.setFormatter(None)
     no_timestamp_logger.addHandler(no_timestamp_stream_logger)
 
@@ -193,3 +228,24 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
     else:
         prog_name = base_name
     timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')
+
+
+class TqdmStream(object):
+    """Stream handler for tqdm and logging. Fixes line return issues.
+
+    References
+    ----------
+        https://github.com/tqdm/tqdm/issues/313
+    """
+
+    def __init__(self):
+        tqdm(disable=True, total=0)  # initialise internal lock
+
+    @classmethod
+    def write(cls, msg):
+        tqdm.write(msg, end='')
+
+    # is this required?
+    # @classmethod
+    # def flush(_):
+    #   pass
