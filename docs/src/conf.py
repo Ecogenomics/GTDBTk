@@ -81,7 +81,7 @@ html_context = {
     'display_github': True,
     'github_user': 'Ecogenomics',
     'github_repo': 'GTDBTk',
-    'github_version': 'master/docs_src/src/'
+    'github_version': 'master/docs/src/'
      }
 
 html_js_files = [
