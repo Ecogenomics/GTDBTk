@@ -1,8 +1,10 @@
 # How to build and deploy the Docker image:
-# sudo docker build --no-cache -t ecogenomic/gtdbtk:latest -t ecogenomic/gtdbtk:1.3.0 .
-# sudo docker push ecogenomic/gtdbtk:latest && sudo docker push ecogenomic/gtdbtk:1.3.0
+# docker build --build-arg VER=1.2.3 --no-cache -t ecogenomic/gtdbtk:latest -t ecogenomic/gtdbtk:1.2.3 .
+# docker push ecogenomic/gtdbtk:latest && sudo docker push ecogenomic/gtdbtk:1.2.3
 
 FROM ubuntu:18.04
+
+ARG VER
 
 # ---------------------------------------------------------------------------- #
 # --------------------- INSTALL HMMER, PYTHON3, FASTTREE---------------------- #
@@ -59,7 +61,7 @@ RUN python -m pip install --upgrade pip && \
     python -m pip install dendropy>=4.1.0 && \
     python -m pip install numpy>=1.9.0 && \
     python -m pip install tqdm>=4.31.0 && \
-    python -m pip install gtdbtk==1.4.0
+    python -m pip install gtdbtk==${VER}
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------- SET THE ENTRYPOINT ---------------------------- #
