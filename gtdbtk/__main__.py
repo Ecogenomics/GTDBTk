@@ -83,7 +83,7 @@ def main():
         args = get_main_parser().parse_args()
 
     # setup logger
-    logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
+    logger_setup(args.out_dir if hasattr(args, 'out_dir') and args.out_dir else None,
                  "gtdbtk.log", "GTDB-Tk", __version__, False,
                  hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')

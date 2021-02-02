@@ -36,21 +36,23 @@ def __batchfile(group):
 
 
 def __archaea(group):
-    group.add_argument('--archaea', action='store_true', help='process archaeal genomes')
+    group.add_argument('--archaea', action='store_true', default=False,
+                       help='process archaeal genomes')
 
 
 def __bacteria(group):
-    group.add_argument('--bacteria', action='store_true', help='process bacterial genomes')
+    group.add_argument('--bacteria', action='store_true', default=False,
+                       help='process bacterial genomes')
 
 
 def __outgroup_taxon(group, required):
-    group.add_argument('--outgroup_taxon', required=required,
+    group.add_argument('--outgroup_taxon', type=str, default=None, required=required,
                        help="taxon to use as outgroup (e.g., "
                             "``p__Patescibacteria`` or ``p__Altarchaeota``)")
 
 
 def __out_dir(group, required):
-    group.add_argument('--out_dir', required=required,
+    group.add_argument('--out_dir', type=str, default=None, required=required,
                        help="directory to output files")
 
 
@@ -166,63 +168,63 @@ def __pplacer_cpus(group):
 
 
 def __scratch_dir(group):
-    group.add_argument('--scratch_dir', help='Reduce pplacer memory usage by writing to disk (slower).')
+    group.add_argument('--scratch_dir', type=str, default=None,
+                       help='Reduce pplacer memory usage by writing to disk (slower).')
 
 
 def __recalculate_red(group):
-    group.add_argument('-r', '--recalculate_red', action='store_true',
+    group.add_argument('-r', '--recalculate_red', default=False, action='store_true',
                        help='recalculate RED values based on the reference tree and all added user genomes')
 
 
 def __split_tree(group):
-    group.add_argument('-s', '--split_tree', action='store_true',
+    group.add_argument('-s', '--split_tree', default=False, action='store_true',
                        help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
 
 
 def __identify_dir(group, required):
-    group.add_argument('--identify_dir', required=required,
+    group.add_argument('--identify_dir', type=str, default=None, required=required,
                        help="output directory of 'identify' command")
 
 
 def __skip_trimming(group):
-    group.add_argument('--skip_trimming', action="store_true", default=False,
+    group.add_argument('--skip_trimming', default=False, action="store_true",
                        help='skip the trimming step and return the full MSAs')
 
 
 def __msa_file(group, required):
-    group.add_argument('--msa_file', required=required,
+    group.add_argument('--msa_file', type=str, default=None, required=required,
                        help="multiple sequence alignment in FASTA format")
 
 
 def __align_dir(group, required):
-    group.add_argument('--align_dir', required=required,
+    group.add_argument('--align_dir', type=str, default=None, required=required,
                        help="output directory of 'align' command")
 
 
 def __input_tree(group, required):
-    group.add_argument('--input_tree', required=required, type=str,
+    group.add_argument('--input_tree', type=str, default=None, required=required,
                        help="path to the unrooted tree in Newick format")
 
 
 def __input_tree__rooted(group, required):
-    group.add_argument('--input_tree', required=required, type=str,
+    group.add_argument('--input_tree', type=str, default=None, required=required,
                        help="rooted input tree with labelled ingroup taxon")
 
 
 def __output_tree(group, required):
-    group.add_argument('--output_tree', required=required, type=str,
-                       help='path to output the'
-                            ' tree')
+    group.add_argument('--output_tree', type=str, default=None, required=required,
+                       help='path to output the tree')
 
 
 def __ingroup_taxon(group, required):
-    group.add_argument('--ingroup_taxon', required=required,
+    group.add_argument('--ingroup_taxon', type=str, default=None, required=required,
                        help="labelled ingroup taxon to use as root for "
                             "establishing RED values (e.g., c__Bacilli or f__Lactobacillaceae")
 
 
 def __no_mash(group):
-    group.add_argument('--no_mash', action='store_const', const=True, default=False,
+    group.add_argument('--no_mash', default=False, action='store_true',
                        help='skip pre-filtering of genomes using Mash')
 
 
@@ -248,22 +250,22 @@ def __mash_db(group):
 
 
 def __min_af(group):
-    group.add_argument('--min_af', default=AF_THRESHOLD, type=float,
+    group.add_argument('--min_af', type=float, default=AF_THRESHOLD,
                        help='minimum alignment fraction to consider closest genome')
 
 
 def __untrimmed_msa(group, required):
-    group.add_argument('--untrimmed_msa', required=required,
+    group.add_argument('--untrimmed_msa', type=str, default=None, required=required,
                        help="path to the untrimmed MSA file")
 
 
 def __output(group, required):
-    group.add_argument('--output', required=required,
+    group.add_argument('--output', type=str, default=None, required=required,
                        help='output file')
 
 
 def __mask_file(group):
-    group.add_argument('--mask_file',
+    group.add_argument('--mask_file', type=str, default=None,
                        help="path to a custom mask file for trimming the MSA")
 
 
@@ -279,7 +281,7 @@ def __domain(group, required):
 
 
 def __write_single_copy_genes(group):
-    group.add_argument('--write_single_copy_genes', action='store_const', const=True, default=False,
+    group.add_argument('--write_single_copy_genes', default=False, action='store_true',
                        help='output unaligned single-copy marker genes')
 
 
