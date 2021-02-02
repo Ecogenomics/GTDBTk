@@ -23,7 +23,9 @@ RUN apt-get update -y -m && \
                                                python3-setuptools \
                                                python3-wheel && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    ln -s /usr/bin/fasttree /usr/bin/FastTree && \
+    ln -s /usr/bin/fasttreeMP /usr/bin/FastTreeMP
 
 # ---------------------------------------------------------------------------- #
 # ------------------------------ ALIAS PYTHON3  ------------------------------ #
@@ -58,9 +60,6 @@ ENV GTDBTK_DATA_PATH="/refdata/"
 # --------------------------- INSTALL PIP PACKAGES --------------------------- #
 # ---------------------------------------------------------------------------- #
 RUN python -m pip install --upgrade pip && \
-    python -m pip install dendropy>=4.1.0 && \
-    python -m pip install numpy>=1.9.0 && \
-    python -m pip install tqdm>=4.31.0 && \
     python -m pip install gtdbtk==${VER}
 
 # ---------------------------------------------------------------------------- #
