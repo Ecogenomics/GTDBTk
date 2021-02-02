@@ -54,13 +54,13 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=Config.AF_THRESHOLD):
+    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
 
         self.taxonomy_file = Config.TAXONOMY_FILE
-        self.af_threshold = af_threshold
+        self.af_threshold = af_threshold if af_threshold else Config.AF_THRESHOLD
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']

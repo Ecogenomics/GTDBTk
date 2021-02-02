@@ -57,7 +57,7 @@ def __out_dir(group, required):
 
 
 def __extension(group):
-    group.add_argument('-x', '--extension', default='fna',
+    group.add_argument('-x', '--extension', type=str, default='fna',
                        help='extension of files to process, ``gz`` = gzipped')
 
 
@@ -67,7 +67,7 @@ def __skip_gtdb_refs(group):
 
 
 def __taxa_filter(group):
-    group.add_argument('--taxa_filter',
+    group.add_argument('--taxa_filter', type=str, default=None,
                        help=('filter GTDB genomes to taxa (comma separated) within '
                              + 'specific taxonomic groups (e.g.: ``d__Bacteria`` '
                              + 'or ``p__Proteobacteria,p__Actinobacteria``)'))
@@ -119,28 +119,28 @@ def __rnd_seed(group):
 
 
 def __no_support(group):
-    group.add_argument('--no_support', action="store_true",
+    group.add_argument('--no_support', action="store_true", default=False,
                        help="do not compute local support values using the Shimodaira-Hasegawa test")
 
 
 def __gamma(group):
-    group.add_argument('--gamma', action="store_true",
+    group.add_argument('--gamma', action="store_true", default=False,
                        help="rescale branch lengths to optimize the Gamma20 likelihood")
 
 
 def __gtdbtk_classification_file(group):
-    group.add_argument('--gtdbtk_classification_file',
+    group.add_argument('--gtdbtk_classification_file', type=str, default=None,
                        help="file with GTDB-Tk classifications produced by the `classify` command")
 
 
 def __custom_taxonomy_file(group):
-    group.add_argument('--custom_taxonomy_file',
+    group.add_argument('--custom_taxonomy_file', type=str, default=None,
                        help="file indicating custom taxonomy strings for user "
                             "genomes, that should contain any genomes belonging to the outgroup")
 
 
 def __prefix(group):
-    group.add_argument('--prefix', default='gtdbtk', type=str,
+    group.add_argument('--prefix', type=str, default='gtdbtk',
                        help='prefix for all output files')
 
 
@@ -149,7 +149,7 @@ def __cpus(group):
 
 
 def __force(group):
-    group.add_argument('--force', action='store_const', const=True, default=False,
+    group.add_argument('--force', action='store_true', default=False,
                        help='continue processing if an error occurs on a single genome')
 
 

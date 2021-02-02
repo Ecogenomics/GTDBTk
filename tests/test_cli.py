@@ -59,11 +59,13 @@ class TestCli(unittest.TestCase):
         self.options.max_consensus = None
         self.options.min_perc_aa = 50
         self.options.rnd_seed = 42
+        self.options.outgroup_taxon = None
 
         # classify options
         self.options.scratch_dir = None
         self.options.keep_ref_red = None
         self.options.pplacer_cpus = None
+        self.options.min_af = None
 
         # infer options
         self.options.prot_model = 'WAG'
