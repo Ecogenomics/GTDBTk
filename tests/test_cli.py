@@ -59,11 +59,13 @@ class TestCli(unittest.TestCase):
         self.options.max_consensus = None
         self.options.min_perc_aa = 50
         self.options.rnd_seed = 42
+        self.options.outgroup_taxon = None
 
         # classify options
         self.options.scratch_dir = None
         self.options.keep_ref_red = None
         self.options.pplacer_cpus = None
+        self.options.min_af = None
 
         # infer options
         self.options.prot_model = 'WAG'
@@ -132,7 +134,7 @@ class TestCli(unittest.TestCase):
         summary_fh = ClassifySummaryFileAR122(classify_options.out_dir, classify_options.prefix)
         summary_fh.read()
         self.assertEqual(
-            'd__Archaea;p__Euryarchaeota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__Methanobrevibacter ruminantium',
+            'd__Archaea;p__Methanobacteriota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__Methanobrevibacter ruminantium',
             summary_fh.rows['genome_1'].classification)
         self.assertEqual(
             'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365',
@@ -208,7 +210,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEquals(len(infos), 19)
+        self.assertEqual(len(infos), 20)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_classify_wf(self):
@@ -239,7 +241,7 @@ class TestCli(unittest.TestCase):
             lines = f.read().splitlines()
             last_line = lines[-1]
         infos = last_line.split('\t')
-        self.assertEqual(len(infos), 19)
+        self.assertEqual(len(infos), 20)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
     def test_infer(self):

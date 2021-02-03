@@ -287,7 +287,7 @@ if __name__ == "__main__":
     else:
         args = parser.parse_args()
 
-        logger_setup(args.out_dir if hasattr(args, 'out_dir') else None,
+        logger_setup(args.out_dir if hasattr(args, 'out_dir') and args.out_dir else None,
                      "gtdbtk.log", 'GTDB to NCBI majority vote', __version__, False,
                      hasattr(args, 'debug') and args.debug)
         logger = logging.getLogger('timestamp')

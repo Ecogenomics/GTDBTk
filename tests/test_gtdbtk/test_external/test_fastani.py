@@ -18,16 +18,16 @@ import os
 import shutil
 import tempfile
 import unittest
-
+import json
 from gtdbtk.external.fastani import FastANI
-
+import gtdbtk.config.config as Config
 
 class TestFastANI(unittest.TestCase):
 
     def setUp(self):
         self.dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         self.cpus = 1
-        self.genome_root = '/srv/db/gtdbtk/official/release89/fastani/database'
+        self.genome_root = Config.FASTANI_GENOMES
 
     def tearDown(self):
         shutil.rmtree(self.dir_tmp)
@@ -57,8 +57,11 @@ class TestFastANI(unittest.TestCase):
 
         result = fa.run(d_compare, d_paths)
 
-        expected = {'a': {'x': {'ani': 82.5201, 'af': 0.57}}, 'b': {'x': {'ani': 84.5846, 'af': 0.55}}}
-        self.assertEqual(result, expected)
+        expected = {'a': {'x': {'ani': 82.5201, 'af': 0.57},
+                          'y': {'ani': 74.5154, 'af': 0.0}},
+                    'b': {'x': {'ani': 84.5846, 'af': 0.55}},
+                    'c': {'z': {'ani': 74.4978, 'af': 0.01}}}
+        self.assertEqual(json.dumps(result, sort_keys=True), json.dumps(expected, sort_keys=True))
 
     def test_parse_output_file(self):
         fa = FastANI(self.cpus, force_single=True)

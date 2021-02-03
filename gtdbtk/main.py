@@ -272,9 +272,6 @@ class OptionsParser(object):
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
 
-        if not hasattr(options, 'outgroup_taxon'):
-            options.outgroup_taxon = None
-
         markers = Markers(options.cpus, options.debug)
         markers.align(options.identify_dir,
                       options.skip_gtdb_refs,
@@ -289,7 +286,7 @@ class OptionsParser(object):
                       options.min_perc_taxa,
                       options.out_dir,
                       options.prefix,
-                      options.outgroup_taxon,
+                      options.outgroup_taxon if hasattr(options, 'outgroup_taxon') else None,
                       self.genomes_to_process)
 
         self.logger.info('Done.')
@@ -429,10 +426,6 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
-
-        # See ticket #255... perhaps an upstream version/OS issue?
-        if not hasattr(options, 'pplacer_cpus'):
-            options.pplacer_cpus = None
 
         check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
@@ -695,7 +688,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'classify_wf':
 
             # TODO: Remove this block once the split_tree function is implemented.
-            if hasattr(options, 'split_tree'):
+            if hasattr(options, 'split_tree') and options.split_tree:
                 self.logger.warning('The split tree option is not yet '
                                     ' supported, overriding value to False.')
             options.split_tree = False
@@ -719,6 +712,8 @@ class OptionsParser(object):
             options.max_consensus = None
             options.rnd_seed = None
             options.skip_trimming = False
+            options.scratch_dir = None
+            options.recalculate_red = False
 
             self.align(options)
 
@@ -732,7 +727,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'classify':
 
             # TODO: Remove this block once the split_tree function is implemented.
-            if hasattr(options, 'split_tree'):
+            if hasattr(options, 'split_tree') and options.split_tree:
                 self.logger.warning('The split tree option is not yet '
                                     ' supported, overriding value to False.')
             options.split_tree = False
