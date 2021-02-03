@@ -286,7 +286,7 @@ class OptionsParser(object):
                       options.min_perc_taxa,
                       options.out_dir,
                       options.prefix,
-                      options.outgroup_taxon,
+                      options.outgroup_taxon if hasattr(options, 'outgroup_taxon') else None,
                       self.genomes_to_process)
 
         self.logger.info('Done.')

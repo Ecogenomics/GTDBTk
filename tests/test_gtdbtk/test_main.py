@@ -25,7 +25,8 @@ import unittest
 from gtdbtk.biolib_lite.exceptions import *
 from gtdbtk.exceptions import *
 from gtdbtk.main import OptionsParser
-
+import gtdbtk.config.config as Config
+from gtdbtk.tools import sha256
 
 class TestOptionsParser(unittest.TestCase):
 
@@ -285,17 +286,7 @@ class TestOptionsParser(unittest.TestCase):
         """ Test that the expected result is returned when running trim_msa with archaeal reference_mask """
         path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
         path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
-
-        msa_str = str()
-        while len(msa_str) < 32675:
-            msa_str += 'ALGPVW'
-        msa_str = msa_str[0:32675]
-
-        with open(path_untrimmed_msa, 'w') as f:
-            f.write('>genome_1\n')
-            f.write('%s\n' % msa_str)
-            f.write('>genome_2\n')
-            f.write('%s\n' % msa_str[::-1])
+        shutil.copyfile(Config.CONCAT_AR122, path_untrimmed_msa)
 
         options = argparse.ArgumentParser()
         # Required arguments
@@ -307,32 +298,16 @@ class TestOptionsParser(unittest.TestCase):
 
         self.options_parser.trim_msa(options)
 
-        results = dict()
-        with open(path_output, 'r') as f:
-            re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
-            for gid, seq in re_hits:
-                results[gid] = hashlib.sha256(seq.encode('utf-8')).hexdigest()
+        actual = sha256(path_output)
+        expected = '1146351be59ae8d27668256c5b2c425a6f38c37c'
 
-        expected = {'genome_1': '4975c04d640415de4c715552f6f6b460a8996226239440faa6539ac777622515',
-                    'genome_2': '7b53881aecb13bbe54612962e22736db7ab83271ffe4685d63c16e962e3561d9'}
-
-        self.assertDictEqual(results, expected)
+        self.assertEqual(actual, expected)
 
     def test_trim_msa__reference_mask_bac(self):
         """ Test that the expected result is returned when running trim_msa with bacterial reference_mask """
         path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
         path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
-
-        msa_str = str()
-        while len(msa_str) < 41155:
-            msa_str += 'ALGPVW'
-        msa_str = msa_str[0:41155]
-
-        with open(path_untrimmed_msa, 'w') as f:
-            f.write('>genome_1\n')
-            f.write('%s\n' % msa_str)
-            f.write('>genome_2\n')
-            f.write('%s\n' % msa_str[::-1])
+        shutil.copyfile(Config.CONCAT_BAC120, path_untrimmed_msa)
 
         options = argparse.ArgumentParser()
         # Required arguments
@@ -344,16 +319,10 @@ class TestOptionsParser(unittest.TestCase):
 
         self.options_parser.trim_msa(options)
 
-        results = dict()
-        with open(path_output, 'r') as f:
-            re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
-            for gid, seq in re_hits:
-                results[gid] = hashlib.sha256(seq.encode('utf-8')).hexdigest()
+        actual = sha256(path_output)
+        expected = 'ae6e24e89540fed03b81436147f99bcd120d059a'
 
-        expected = {'genome_1': '32798bdc3245b2ac5ecd8a15ea2cfb21011b22b6021baa51066864b1c02d72b4',
-                    'genome_2': '0b63d416c72e9641011f80fcf64fa41eb3f0e8e85dbaa4bd8feba12cf3b64c62'}
-
-        self.assertDictEqual(results, expected)
+        self.assertEqual(actual, expected)
 
     def test_export_msa__arc(self):
         """ Test that the untrimmed archaeal MSA is exported correctly """
@@ -367,7 +336,7 @@ class TestOptionsParser(unittest.TestCase):
 
         with open(path_out, 'rb') as f:
             out_hash = hashlib.sha256(f.read()).hexdigest()
-        self.assertEqual(out_hash, 'e84edf65511002b73f110ff44c9acee3ae44220448dfc971a2778d43c966bbba')
+        self.assertEqual(out_hash, '8706b42a3f4b2445273058e7e876f0d8332bd8dec95c0fc8bc024d76a5a5aade')
 
     def test_export_msa__bac(self):
         """ Test that the untrimmed bacterial MSA is exported correctly """
@@ -381,4 +350,4 @@ class TestOptionsParser(unittest.TestCase):
 
         with open(path_out, 'rb') as f:
             out_hash = hashlib.sha256(f.read()).hexdigest()
-        self.assertEqual(out_hash, '5e37bc123819061490681068b49450fc43587d09b87df90ef62452bd73f961cc')
+        self.assertEqual(out_hash, '3c5dfa4dc5ef943459e6d0ed4da1e5a5858332c824739630beffb57fab303486')
