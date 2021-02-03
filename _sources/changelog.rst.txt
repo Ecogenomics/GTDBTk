@@ -2,6 +2,14 @@
 Change log
 ==========
 
+1.4.1
+-----
+
+* Updated GitHub CI/CD to trigger docker build / tag version on release.
+* (`#255 <https://github.com/Ecogenomics/GTDBTk/issues/255>`_) (`#297 <https://github.com/Ecogenomics/GTDBTk/issues/297>`_)
+  Fixed ``'Namespace' object has no attribute`` errors by adding default arguments to argparse.
+
+
 1.4.0
 -----
 
