@@ -33,6 +33,7 @@ class Prodigal(object):
 
     def __init__(self,
                  threads,
+                 failed_genomes_file,
                  marker_gene_dir,
                  protein_file_suffix,
                  nt_gene_file_suffix,
@@ -42,6 +43,7 @@ class Prodigal(object):
 
         self.logger = logging.getLogger('timestamp')
         self.warnings = logging.getLogger('warnings')
+        self.fails = open(failed_genomes_file,'w')
 
         self.threads = threads
 
@@ -238,13 +240,17 @@ class Prodigal(object):
                                   f'been excluded from analysis due to Prodigal '
                                   f'failing to call any genes:')
 
+
             # If there are few low-quality genomes just output to console.
             if len(lq_gids) > 10:
                 for lq_gid in lq_gids:
                     self.warnings.info(lq_gid)
+                    self.fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
             else:
                 for lq_gid in lq_gids:
-                    self.logger.warning(f'Skipping: {lq_gid}')
+                    self.logger.warning(f'Skipping: ')
                     self.warnings.info(lq_gid)
+                    self.fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
 
+        self.fails.close()
         return result_dict

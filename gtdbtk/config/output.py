@@ -8,6 +8,7 @@ DIR_IDENTIFY_FASTA = join(DIR_IDENTIFY_INTERMEDIATE, 'single_copy_fasta')
 PATH_BAC120_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.bac120.markers_summary.tsv')
 PATH_AR122_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.ar122.markers_summary.tsv')
 PATH_TLN_TABLE_SUMMARY = join(DIR_IDENTIFY, '{prefix}.translation_table_summary.tsv')
+PATH_FAILS = join(DIR_IDENTIFY,'{prefix}.failed_genomes.tsv')
 
 # Command: identify -> marker genes
 GENOME_FILE_SUFFIX = "_genomic.fna"
@@ -91,3 +92,4 @@ DIR_ANI_REP_INT_MASH = join(DIR_ANI_REP_INT, 'mash')
 
 # General files
 PATH_WARNINGS = '{prefix}.warnings.log'
+
