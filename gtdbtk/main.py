@@ -712,8 +712,6 @@ class OptionsParser(object):
             options.max_consensus = None
             options.rnd_seed = None
             options.skip_trimming = False
-            options.scratch_dir = None
-            options.recalculate_red = False
 
             self.align(options)
 
