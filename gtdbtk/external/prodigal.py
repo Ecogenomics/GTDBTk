@@ -184,6 +184,7 @@ class Prodigal(object):
         for _ in range(self.threads):
             worker_queue.put(None)
 
+        worker_proc = []
         try:
             manager = mp.Manager()
             out_dict = manager.dict()
@@ -248,7 +249,7 @@ class Prodigal(object):
                     self.fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
             else:
                 for lq_gid in lq_gids:
-                    self.logger.warning(f'Skipping: ')
+                    self.logger.warning(f'Skipping: {lq_gid}')
                     self.warnings.info(lq_gid)
                     self.fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
 
