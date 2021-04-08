@@ -43,7 +43,7 @@ class Prodigal(object):
 
         self.logger = logging.getLogger('timestamp')
         self.warnings = logging.getLogger('warnings')
-        self.fails = open(failed_genomes_file,'w')
+        self.failed_genomes_file = failed_genomes_file
 
         self.threads = threads
 
@@ -227,6 +227,7 @@ class Prodigal(object):
         # Report on any genomes which failed to have any genes called
         result_dict = dict()
         lq_gids = list()
+        fails = open(self.failed_genomes_file,'w')
         for gid, gid_dict in out_dict.items():
             if os.path.getsize(gid_dict['aa_gene_path']) <= 1:
                 lq_gids.append(gid)
@@ -246,12 +247,12 @@ class Prodigal(object):
             if len(lq_gids) > 10:
                 for lq_gid in lq_gids:
                     self.warnings.info(lq_gid)
-                    self.fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
+                    fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
             else:
                 for lq_gid in lq_gids:
                     self.logger.warning(f'Skipping: {lq_gid}')
                     self.warnings.info(lq_gid)
-                    self.fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
+                    fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
 
-        self.fails.close()
+        fails.close()
         return result_dict

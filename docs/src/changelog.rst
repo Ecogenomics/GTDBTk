@@ -2,6 +2,13 @@
 Change log
 ==========
 
+1.4.2
+-----
+
+* (`#311 <https://github.com/Ecogenomics/GTDBTk/issues/311>`_) Fixed --scratch_dir not working in v 1.4.1 for classify_wf
+* (`#312 <https://github.com/Ecogenomics/GTDBTk/issues/311>`_) Automatic drop of genome leads to error in downstream modules of classify_wf
+
+
 1.4.1
 -----
 

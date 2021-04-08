@@ -55,6 +55,8 @@ class Markers(object):
         self.cpus = cpus
         self.debug = debug
         self.marker_gene_dir = None
+        self.failed_genomes = None
+
 
         self.genome_file_suffix = GENOME_FILE_SUFFIX
         self.protein_file_suffix = PROTEIN_FILE_SUFFIX
