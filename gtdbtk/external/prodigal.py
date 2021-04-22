@@ -212,12 +212,12 @@ class Prodigal(object):
 
             writer_queue.put(None)
             writer_proc.join()
-        except Exception:
+        except Exception as e:
             for p in worker_proc:
                 p.terminate()
             if writer_proc:
                 writer_proc.terminate()
-            raise ProdigalException('An exception was caught while running Prodigal.')
+            raise ProdigalException(f'An exception was caught while running Prodigal: {e}')
 
         # Report if any genomes were skipped due to having already been processed.
         if n_skipped.value > 0:
