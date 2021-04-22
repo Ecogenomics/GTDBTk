@@ -142,7 +142,7 @@ Note that different versions of the GTDB release data may not run on all version
      - N/A
    * - R95
      - 1.3.0
-     - N/A
+     - 1.4.2
    * - R89
      - 0.3.0
      - 0.1.2
