@@ -217,8 +217,8 @@ REF_HASHES = {PPLACER_DIR: '4d931b5109a240602f55228029b87ee768da8141',
               MSA_FOLDER: 'b426865245c39ee9f01b0392fb8f7867a9f76f0a',
               METADATA_DIR: '7640aed96fdb13707a2b79b746a94335faabd6df',
               TAX_FOLDER: '4a7a1e4047c088e92dee9740206499cdb7e5beca',
-              FASTANI_DIR: '6a3555bb61d9cc3163c26e65772b96b8f58a2d84',
-              RED_DIR: '6f661eef8e172a8a7e78af2a74fe4d079a3f5b0f'}
+              FASTANI_DIR: '70439cf088d0fa0fdbb4f47b4a6b47e199912139',
+              RED_DIR: 'ad6a184150e7b6e58547912660a17999fadcfbff'}
 
 # Config values for checking GTDB-Tk on startup.
 GTDBTK_VER_CHECK = True
