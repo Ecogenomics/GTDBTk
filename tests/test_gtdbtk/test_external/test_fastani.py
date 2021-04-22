@@ -48,12 +48,12 @@ class TestFastANI(unittest.TestCase):
         d_compare = {'a': {'x', 'y'},
                      'b': {'x'},
                      'c': {'z'}}
-        d_paths = {'a': os.path.join(self.genome_root, 'GCA_001873845.1_genomic.fna.gz'),
-                   'b': os.path.join(self.genome_root, 'GCA_002083985.1_genomic.fna.gz'),
-                   'c': os.path.join(self.genome_root, 'GCF_000185805.1_genomic.fna.gz'),
-                   'x': os.path.join(self.genome_root, 'GCA_002841105.1_genomic.fna.gz'),
-                   'y': os.path.join(self.genome_root, 'GCA_000402295.1_genomic.fna.gz'),
-                   'z': os.path.join(self.genome_root, 'GCA_002011165.1_genomic.fna.gz')}
+        d_paths = {'a': os.path.join(self.genome_root,'GCA/001/873/845', 'GCA_001873845.1_genomic.fna.gz'),
+                   'b': os.path.join(self.genome_root,'GCA/002/083/985', 'GCA_002083985.1_genomic.fna.gz'),
+                   'c': os.path.join(self.genome_root,'GCF/000/185/805', 'GCF_000185805.1_genomic.fna.gz'),
+                   'x': os.path.join(self.genome_root,'GCA/002/841/105', 'GCA_002841105.1_genomic.fna.gz'),
+                   'y': os.path.join(self.genome_root,'GCA/000/402/295', 'GCA_000402295.1_genomic.fna.gz'),
+                   'z': os.path.join(self.genome_root,'GCA/002/011/165', 'GCA_002011165.1_genomic.fna.gz')}
 
         result = fa.run(d_compare, d_paths)
 

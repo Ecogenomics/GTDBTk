@@ -200,6 +200,7 @@ PPLACER_RPS23_REF_PKG = f"gtdb_{VERSION_DATA}_rps23.refpkg"
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
+FASTANI_GENOME_LIST = os.path.join(FASTANI_DIR, "genome_paths.tsv")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
 
 # MRCA RED VALUE

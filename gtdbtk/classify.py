@@ -101,6 +101,26 @@ class Classify(object):
                 results[gid] = float(infos[2])
         return results
 
+    def parse_leaf_to_dir_path(self,genome_id):
+        """ Convert a genome id to a path.
+         i.e GCA_123456789.0 would be converted to GCA/123/456/789/
+
+        Parameters
+        ----------
+        genome_id: str
+            NCBI genome id GCF/GCA_xxxxxxxxx
+        :return: str
+            path to the genome id path
+        """
+        try:
+            genome_path = '/'.join([genome_id[0:3],genome_id[4:7],
+                                    genome_id[7:10],genome_id[10:13]])
+            return genome_path
+        except IndexError:
+            logger = logging.getLogger('timestamp')
+            logger.error('Specified path could not be created for reference genome: ' + genome_id)
+            raise GTDBTkExit('Specified path could not be created for reference genome: ' + genome_id)
+
     def place_genomes(self,
                       user_msa_file,
                       marker_set_id,
@@ -1655,7 +1675,9 @@ class Classify(object):
                 if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
                     shortleaf = leafnode.taxon.label[3:]
                 ref_path = os.path.join(
-                    Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)
+                    Config.FASTANI_GENOMES,
+                    self.parse_leaf_to_dir_path(shortleaf),
+                    shortleaf + Config.FASTANI_GENOMES_EXT)
                 if not os.path.isfile(ref_path):
                     raise GTDBTkExit(f'Reference genome missing from FastANI database: {ref_path}')
 
