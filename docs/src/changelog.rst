@@ -2,6 +2,13 @@
 Change log
 ==========
 
+1.5.0
+-----
+
+* (`#311 <https://github.com/Ecogenomics/GTDBTk/issues/311>`_) Updated GTDB-Tk to support R202.
+  See https://ecogenomics.github.io/GTDBTk/installing/index.html#gtdb-tk-reference-data for instructions on downloading R202.
+
+
 1.4.2
 -----
 
