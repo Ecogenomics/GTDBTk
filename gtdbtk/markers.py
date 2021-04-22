@@ -423,8 +423,11 @@ class Markers(object):
 
         # read genomes that failed identify steps to skip them
         failed_genomes_file = os.path.join(os.path.join(identify_dir,os.path.basename(PATH_FAILS.format(prefix=prefix))))
-        with open(failed_genomes_file) as fgf:
-            failed_genomes = [row.split()[0] for row in fgf]
+        if os.path.isfile(failed_genomes_file):
+            with open(failed_genomes_file) as fgf:
+                failed_genomes = [row.split()[0] for row in fgf]
+        else:
+            failed_genomes = list()
 
         # If the user is re-running this step, check if the identify step is consistent.
         genomic_files = self._path_to_identify_data(identify_dir, identify_dir != out_dir)
