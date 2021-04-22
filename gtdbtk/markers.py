@@ -512,18 +512,6 @@ class Markers(object):
             # Generate the user MSA.
             user_msa = align.align_marker_set(cur_genome_files, marker_info_file, copy_number_f, self.cpus)
 
-            # self.logger.log(Config.LOG_TASK, f'Aligning {len(cur_genome_files):,} {domain_str} genomes.')
-            # hmm_aligner = HmmAligner(self.cpus,
-            #                          self.pfam_top_hit_suffix,
-            #                          self.tigrfam_top_hit_suffix,
-            #                          self.protein_file_suffix,
-            #                          self.pfam_hmm_dir,
-            #                          self.tigrfam_hmms,
-            #                          Config.BAC120_MARKERS,
-            #                          Config.AR122_MARKERS)
-            # user_msa = hmm_aligner.align_marker_set(cur_genome_files,
-            #                                         marker_set_id)
-
             # Write the individual marker alignments to disk
             if self.debug:
                 self._write_individual_markers(
