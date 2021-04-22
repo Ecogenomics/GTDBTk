@@ -132,21 +132,21 @@ class Classify(object):
         """Place genomes into reference tree using pplacer."""
 
         # Warn if the memory is insufficient
+        mem_warning = 'pplacer requires ~{req_gb} GB of RAM to fully load the ' \
+                      '{domain} tree into memory. However, {cur_gb:,} GB was ' \
+                      'detected. This may affect pplacer performance, or fail' \
+                      ' if there is insufficient swap space.'
         mem_gb = get_memory_gb()
         if mem_gb is not None:
             mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and mem_total < 145:
-                self.logger.warning(f'pplacer requires ~152 GB of RAM to fully '
-                                    f'load the bacterial tree into memory. '
-                                    f'However, {mem_total:,}GB was detected. '
-                                    f'This may affect pplacer performance, '
-                                    f'or fail if there is insufficient scratch space.')
-            elif marker_set_id == 'ar122' and mem_total < 6:
-                self.logger.warning(f'pplacer requires ~8.2 GB of RAM to fully '
-                                    f'load the archaeal tree into memory. '
-                                    f'However, {mem_total:,}GB was detected. '
-                                    f'This may affect pplacer performance, '
-                                    f'or fail if there is insufficient scratch space.')
+            if marker_set_id == 'bac120' and mem_total < Config.PPLACER_MIN_RAM_BAC:
+                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC,
+                                                       domain='bacterial',
+                                                       cur_gb=mem_total))
+            elif marker_set_id == 'ar122' and mem_total < Config.PPLACER_MIN_RAM_ARC:
+                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_ARC,
+                                                       domain='archaeal',
+                                                       cur_gb=mem_total))
 
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):

@@ -196,6 +196,8 @@ MASK_RPS23 = f"gtdb_{VERSION_DATA}_rps23.mask"
 PPLACER_BAC120_REF_PKG = f"gtdb_{VERSION_DATA}_bac120.refpkg"
 PPLACER_AR122_REF_PKG = f"gtdb_{VERSION_DATA}_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = f"gtdb_{VERSION_DATA}_rps23.refpkg"
+PPLACER_MIN_RAM_BAC = 204
+PPLACER_MIN_RAM_ARC = 13
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
@@ -208,13 +210,13 @@ MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")
 MRCA_RED_AR122 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_ar122.tsv")
 
 # Hashing information for validating the reference package.
-REF_HASHES = {PPLACER_DIR: 'f41cfe0284ebaca4485b42e054936190c6a88bd1',
-              MASK_DIR: '63551a43333bc6cbc9abf139ce881847ca19240b',
-              MARKER_DIR: 'a325720422d8348d7a934143cc86112b6c92ac98',
-              RADII_DIR: '1092727925f38a8a2b3f4fb40e3316c0083671f5',
-              MSA_FOLDER: 'cf91d712c733e7e2535a41e6153c12b3c37d1ede',
-              METADATA_DIR: 'e003b4d5d48302e85c536751f663a70447de83d4',
-              TAX_FOLDER: '30c5970b2eaf5df654b2e01bfa39265302c0be89',
+REF_HASHES = {PPLACER_DIR: '4d931b5109a240602f55228029b87ee768da8141',
+              MASK_DIR: '36d6ac371d247b2b952523b9798e78908ea323fa',
+              MARKER_DIR: '2ba5ae35fb272462663651d18fd9e523317e48cd',
+              RADII_DIR: '9f9a2e21e27b9049044d04d731795499414a365c',
+              MSA_FOLDER: 'b426865245c39ee9f01b0392fb8f7867a9f76f0a',
+              METADATA_DIR: '7640aed96fdb13707a2b79b746a94335faabd6df',
+              TAX_FOLDER: '4a7a1e4047c088e92dee9740206499cdb7e5beca',
               FASTANI_DIR: '6a3555bb61d9cc3163c26e65772b96b8f58a2d84',
               RED_DIR: '6f661eef8e172a8a7e78af2a74fe4d079a3f5b0f'}
 
