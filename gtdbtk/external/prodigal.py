@@ -185,6 +185,7 @@ class Prodigal(object):
             worker_queue.put(None)
 
         worker_proc = []
+        writer_proc = None
         try:
             manager = mp.Manager()
             out_dict = manager.dict()
@@ -214,8 +215,8 @@ class Prodigal(object):
         except Exception:
             for p in worker_proc:
                 p.terminate()
-
-            writer_proc.terminate()
+            if writer_proc:
+                writer_proc.terminate()
             raise ProdigalException('An exception was caught while running Prodigal.')
 
         # Report if any genomes were skipped due to having already been processed.
