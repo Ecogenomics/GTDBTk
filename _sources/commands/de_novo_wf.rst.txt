@@ -68,8 +68,8 @@ Input
 
 .. code-block:: bash
 
-    gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Undinarchaeota --ar122_ms --out_dir de_novo_wf --cpus 3
+    gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Undinarchaeota --archaea --out_dir de_novo_wf --cpus 3
     
-    gtdbtk de_novo_wf --genome_dir ./genomes --bac120_ms --outgroup_taxon p__Chloroflexota --taxa_filter p__Firmicutes --out_dir de_novo_output
+    gtdbtk de_novo_wf --genome_dir ./genomes --bacteria --outgroup_taxon p__Chloroflexota --taxa_filter p__Firmicutes --out_dir de_novo_output
     
 
