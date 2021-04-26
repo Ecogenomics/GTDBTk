@@ -21,7 +21,7 @@ except KeyError:
 If the reference package sub-folders still exist in GTDBTK_DATA_PATH, then there
 is no need to edit the variables below.
 """
-MIN_REF_DATA_VERSION = 'r95'
+MIN_REF_DATA_VERSION = 'r202'
 
 MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
 MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
@@ -83,8 +83,8 @@ RED_MIN_SUPPORT = 0.0
 RED_MIN_CHILDREN = 2
 
 # Marker information
-BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm",
-                           "PF01025.14.hmm", "PF02576.12.hmm", "PF03726.9.hmm"],
+BAC120_MARKERS = {"PFAM": ["PF00380.20.hmm", "PF00410.20.hmm", "PF00466.21.hmm",
+                           "PF01025.20.hmm", "PF02576.18.hmm", "PF03726.15.hmm"],
                   "TIGRFAM": ["TIGR00006.HMM", "TIGR00019.HMM", "TIGR00020.HMM",
                               "TIGR00029.HMM", "TIGR00043.HMM", "TIGR00054.HMM",
                               "TIGR00059.HMM", "TIGR00061.HMM", "TIGR00064.HMM",
@@ -124,18 +124,18 @@ BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm",
                               "TIGR03625.HMM", "TIGR03632.HMM", "TIGR03654.HMM",
                               "TIGR03723.HMM", "TIGR03725.HMM", "TIGR03953.HMM"]}
 
-AR122_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm",
-                          "PF01092.14.hmm", "PF01000.21.hmm", "PF00368.13.hmm",
-                          "PF00827.12.hmm", "PF01269.12.hmm", "PF00466.15.hmm",
-                          "PF01015.13.hmm", "PF13685.1.hmm", "PF02978.14.hmm",
-                          "PF04919.7.hmm", "PF01984.15.hmm", "PF04104.9.hmm",
-                          "PF00410.14.hmm", "PF01798.13.hmm", "PF01864.12.hmm",
-                          "PF01990.12.hmm", "PF07541.7.hmm", "PF04019.7.hmm",
-                          "PF00900.15.hmm", "PF01090.14.hmm", "PF02006.11.hmm",
-                          "PF01157.13.hmm", "PF01191.14.hmm", "PF01866.12.hmm",
-                          "PF01198.14.hmm", "PF01496.14.hmm", "PF00687.16.hmm",
-                          "PF03874.11.hmm", "PF01194.12.hmm", "PF01200.13.hmm",
-                          "PF13656.1.hmm", "PF01280.15.hmm"],
+AR122_MARKERS = {"PFAM": ["PF01868.17.hmm", "PF01282.20.hmm", "PF01655.19.hmm",
+                          "PF01092.20.hmm", "PF01000.27.hmm", "PF00368.19.hmm",
+                          "PF00827.18.hmm", "PF01269.18.hmm", "PF00466.21.hmm",
+                          "PF01015.19.hmm", "PF13685.7.hmm", "PF02978.20.hmm",
+                          "PF04919.13.hmm", "PF01984.21.hmm", "PF04104.15.hmm",
+                          "PF00410.20.hmm", "PF01798.19.hmm", "PF01864.18.hmm",
+                          "PF01990.18.hmm", "PF07541.13.hmm", "PF04019.13.hmm",
+                          "PF00900.21.hmm", "PF01090.20.hmm", "PF02006.17.hmm",
+                          "PF01157.19.hmm", "PF01191.20.hmm", "PF01866.18.hmm",
+                          "PF01198.20.hmm", "PF01496.20.hmm", "PF00687.22.hmm",
+                          "PF03874.17.hmm", "PF01194.18.hmm", "PF01200.19.hmm",
+                          "PF13656.7.hmm", "PF01280.21.hmm"],
                  "TIGRFAM": ["TIGR00468.HMM", "TIGR01060.HMM", "TIGR03627.HMM",
                              "TIGR01020.HMM", "TIGR02258.HMM", "TIGR00293.HMM",
                              "TIGR00389.HMM", "TIGR01012.HMM", "TIGR00490.HMM",
@@ -196,10 +196,13 @@ MASK_RPS23 = f"gtdb_{VERSION_DATA}_rps23.mask"
 PPLACER_BAC120_REF_PKG = f"gtdb_{VERSION_DATA}_bac120.refpkg"
 PPLACER_AR122_REF_PKG = f"gtdb_{VERSION_DATA}_ar122.refpkg"
 PPLACER_RPS23_REF_PKG = f"gtdb_{VERSION_DATA}_rps23.refpkg"
+PPLACER_MIN_RAM_BAC = 204
+PPLACER_MIN_RAM_ARC = 13
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
+FASTANI_GENOME_LIST = os.path.join(FASTANI_DIR, "genome_paths.tsv")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
 
 # MRCA RED VALUE
@@ -207,15 +210,15 @@ MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")
 MRCA_RED_AR122 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_ar122.tsv")
 
 # Hashing information for validating the reference package.
-REF_HASHES = {PPLACER_DIR: 'f41cfe0284ebaca4485b42e054936190c6a88bd1',
-              MASK_DIR: '63551a43333bc6cbc9abf139ce881847ca19240b',
-              MARKER_DIR: 'a325720422d8348d7a934143cc86112b6c92ac98',
-              RADII_DIR: '1092727925f38a8a2b3f4fb40e3316c0083671f5',
-              MSA_FOLDER: 'cf91d712c733e7e2535a41e6153c12b3c37d1ede',
-              METADATA_DIR: 'e003b4d5d48302e85c536751f663a70447de83d4',
-              TAX_FOLDER: '30c5970b2eaf5df654b2e01bfa39265302c0be89',
-              FASTANI_DIR: '6a3555bb61d9cc3163c26e65772b96b8f58a2d84',
-              RED_DIR: '6f661eef8e172a8a7e78af2a74fe4d079a3f5b0f'}
+REF_HASHES = {PPLACER_DIR: '4d931b5109a240602f55228029b87ee768da8141',
+              MASK_DIR: '36d6ac371d247b2b952523b9798e78908ea323fa',
+              MARKER_DIR: '2ba5ae35fb272462663651d18fd9e523317e48cd',
+              RADII_DIR: '9f9a2e21e27b9049044d04d731795499414a365c',
+              MSA_FOLDER: 'b426865245c39ee9f01b0392fb8f7867a9f76f0a',
+              METADATA_DIR: '7640aed96fdb13707a2b79b746a94335faabd6df',
+              TAX_FOLDER: '4a7a1e4047c088e92dee9740206499cdb7e5beca',
+              FASTANI_DIR: '70439cf088d0fa0fdbb4f47b4a6b47e199912139',
+              RED_DIR: 'ad6a184150e7b6e58547912660a17999fadcfbff'}
 
 # Config values for checking GTDB-Tk on startup.
 GTDBTK_VER_CHECK = True

@@ -33,6 +33,7 @@ class Prodigal(object):
 
     def __init__(self,
                  threads,
+                 failed_genomes_file,
                  marker_gene_dir,
                  protein_file_suffix,
                  nt_gene_file_suffix,
@@ -42,6 +43,7 @@ class Prodigal(object):
 
         self.logger = logging.getLogger('timestamp')
         self.warnings = logging.getLogger('warnings')
+        self.failed_genomes_file = failed_genomes_file
 
         self.threads = threads
 
@@ -182,6 +184,8 @@ class Prodigal(object):
         for _ in range(self.threads):
             worker_queue.put(None)
 
+        worker_proc = []
+        writer_proc = None
         try:
             manager = mp.Manager()
             out_dict = manager.dict()
@@ -208,12 +212,12 @@ class Prodigal(object):
 
             writer_queue.put(None)
             writer_proc.join()
-        except Exception:
+        except Exception as e:
             for p in worker_proc:
                 p.terminate()
-
-            writer_proc.terminate()
-            raise ProdigalException('An exception was caught while running Prodigal.')
+            if writer_proc:
+                writer_proc.terminate()
+            raise ProdigalException(f'An exception was caught while running Prodigal: {e}')
 
         # Report if any genomes were skipped due to having already been processed.
         if n_skipped.value > 0:
@@ -224,6 +228,7 @@ class Prodigal(object):
         # Report on any genomes which failed to have any genes called
         result_dict = dict()
         lq_gids = list()
+        fails = open(self.failed_genomes_file,'w')
         for gid, gid_dict in out_dict.items():
             if os.path.getsize(gid_dict['aa_gene_path']) <= 1:
                 lq_gids.append(gid)
@@ -238,13 +243,17 @@ class Prodigal(object):
                                   f'been excluded from analysis due to Prodigal '
                                   f'failing to call any genes:')
 
+
             # If there are few low-quality genomes just output to console.
             if len(lq_gids) > 10:
                 for lq_gid in lq_gids:
                     self.warnings.info(lq_gid)
+                    fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
             else:
                 for lq_gid in lq_gids:
                     self.logger.warning(f'Skipping: {lq_gid}')
                     self.warnings.info(lq_gid)
+                    fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
 
+        fails.close()
         return result_dict

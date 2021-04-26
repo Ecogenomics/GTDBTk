@@ -5,8 +5,9 @@ from collections import defaultdict
 from gtdbtk.biolib_lite.common import canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
-from gtdbtk.config.config import (FASTANI_GENOMES,
+from gtdbtk.config.config import (FASTANI_DIR,
                                   FASTANI_GENOMES_EXT,
+                                  FASTANI_GENOME_LIST,
                                   TAXONOMY_FILE,
                                   AF_THRESHOLD)
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
@@ -53,10 +54,12 @@ class ANIRep(object):
             Dict[genome_id] = fasta_path
         """
         ref_genomes = dict()
-        for f_name in os.listdir(FASTANI_GENOMES):
-            if f_name.endswith(FASTANI_GENOMES_EXT):
-                accession = f_name.split(FASTANI_GENOMES_EXT)[0]
-                ref_genomes[accession] = os.path.join(FASTANI_GENOMES, f_name)
+        with open(FASTANI_GENOME_LIST) as g_path_file:
+            for line in g_path_file:
+                (full_name, path) = line.strip().split()
+                if full_name.endswith(FASTANI_GENOMES_EXT):
+                    accession = full_name.split(FASTANI_GENOMES_EXT)[0]
+                ref_genomes[accession] = os.path.join(FASTANI_DIR, path, full_name)
         return ref_genomes
 
     def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af, mash_db):

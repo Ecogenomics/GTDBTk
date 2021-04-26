@@ -55,6 +55,8 @@ class Markers(object):
         self.cpus = cpus
         self.debug = debug
         self.marker_gene_dir = None
+        self.failed_genomes = None
+
 
         self.genome_file_suffix = GENOME_FILE_SUFFIX
         self.protein_file_suffix = PROTEIN_FILE_SUFFIX
@@ -110,6 +112,8 @@ class Markers(object):
                   os.path.join(outdir, os.path.basename(PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))))
         symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
                   os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
+        symlink_f(PATH_FAILS.format(prefix=prefix),
+                  os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix))))
 
         # Write the single copy AR122/BAC120 FASTA files to disk.
         if write_single_copy_genes:
@@ -176,7 +180,9 @@ class Markers(object):
                          f'{self.cpus} threads.')
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
+        self.failed_genomes = os.path.join(out_dir, PATH_FAILS.format(prefix=prefix))
         prodigal = Prodigal(self.cpus,
+                            self.failed_genomes,
                             self.marker_gene_dir,
                             self.protein_file_suffix,
                             self.nt_gene_file_suffix,
@@ -415,15 +421,24 @@ class Markers(object):
               genomes_to_process=None):
         """Align marker genes in genomes."""
 
+        # read genomes that failed identify steps to skip them
+        failed_genomes_file = os.path.join(os.path.join(identify_dir,os.path.basename(PATH_FAILS.format(prefix=prefix))))
+        if os.path.isfile(failed_genomes_file):
+            with open(failed_genomes_file) as fgf:
+                failed_genomes = [row.split()[0] for row in fgf]
+        else:
+            failed_genomes = list()
+
         # If the user is re-running this step, check if the identify step is consistent.
         genomic_files = self._path_to_identify_data(identify_dir, identify_dir != out_dir)
         if genomes_to_process is not None and len(genomic_files) != len(genomes_to_process):
-            self.logger.error('{} are not present in the input list of genome to process.'.format(
-                list(set(genomic_files.keys()) - set(genomes_to_process.keys()))))
-            raise InconsistentGenomeBatch(
-                'You are attempting to run GTDB-Tk on a non-empty directory that contains extra '
-                'genomes not present in your initial identify directory. Remove them, or run '
-                'GTDB-Tk on a new directory.')
+            if list(set(genomic_files.keys()) - set(genomes_to_process.keys())).sort() != failed_genomes.sort():
+                self.logger.error('{} are not present in the input list of genome to process.'.format(
+                    list(set(genomic_files.keys()) - set(genomes_to_process.keys()))))
+                raise InconsistentGenomeBatch(
+                    'You are attempting to run GTDB-Tk on a non-empty directory that contains extra '
+                    'genomes not present in your initial identify directory. Remove them, or run '
+                    'GTDB-Tk on a new directory.')
 
         # If this is being run as a part of classify_wf, copy the required files.
         if identify_dir != out_dir:
@@ -499,18 +514,6 @@ class Markers(object):
 
             # Generate the user MSA.
             user_msa = align.align_marker_set(cur_genome_files, marker_info_file, copy_number_f, self.cpus)
-
-            # self.logger.log(Config.LOG_TASK, f'Aligning {len(cur_genome_files):,} {domain_str} genomes.')
-            # hmm_aligner = HmmAligner(self.cpus,
-            #                          self.pfam_top_hit_suffix,
-            #                          self.tigrfam_top_hit_suffix,
-            #                          self.protein_file_suffix,
-            #                          self.pfam_hmm_dir,
-            #                          self.tigrfam_hmms,
-            #                          Config.BAC120_MARKERS,
-            #                          Config.AR122_MARKERS)
-            # user_msa = hmm_aligner.align_marker_set(cur_genome_files,
-            #                                         marker_set_id)
 
             # Write the individual marker alignments to disk
             if self.debug:

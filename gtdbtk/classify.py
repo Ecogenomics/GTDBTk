@@ -101,6 +101,26 @@ class Classify(object):
                 results[gid] = float(infos[2])
         return results
 
+    def parse_leaf_to_dir_path(self,genome_id):
+        """ Convert a genome id to a path.
+         i.e GCA_123456789.0 would be converted to GCA/123/456/789/
+
+        Parameters
+        ----------
+        genome_id: str
+            NCBI genome id GCF/GCA_xxxxxxxxx
+        :return: str
+            path to the genome id path
+        """
+        try:
+            genome_path = '/'.join([genome_id[0:3],genome_id[4:7],
+                                    genome_id[7:10],genome_id[10:13]])
+            return genome_path
+        except IndexError:
+            logger = logging.getLogger('timestamp')
+            logger.error('Specified path could not be created for reference genome: ' + genome_id)
+            raise GTDBTkExit('Specified path could not be created for reference genome: ' + genome_id)
+
     def place_genomes(self,
                       user_msa_file,
                       marker_set_id,
@@ -112,21 +132,21 @@ class Classify(object):
         """Place genomes into reference tree using pplacer."""
 
         # Warn if the memory is insufficient
+        mem_warning = 'pplacer requires ~{req_gb} GB of RAM to fully load the ' \
+                      '{domain} tree into memory. However, {cur_gb:,} GB was ' \
+                      'detected. This may affect pplacer performance, or fail' \
+                      ' if there is insufficient swap space.'
         mem_gb = get_memory_gb()
         if mem_gb is not None:
             mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and mem_total < 145:
-                self.logger.warning(f'pplacer requires ~152 GB of RAM to fully '
-                                    f'load the bacterial tree into memory. '
-                                    f'However, {mem_total:,}GB was detected. '
-                                    f'This may affect pplacer performance, '
-                                    f'or fail if there is insufficient scratch space.')
-            elif marker_set_id == 'ar122' and mem_total < 6:
-                self.logger.warning(f'pplacer requires ~8.2 GB of RAM to fully '
-                                    f'load the archaeal tree into memory. '
-                                    f'However, {mem_total:,}GB was detected. '
-                                    f'This may affect pplacer performance, '
-                                    f'or fail if there is insufficient scratch space.')
+            if marker_set_id == 'bac120' and mem_total < Config.PPLACER_MIN_RAM_BAC:
+                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC,
+                                                       domain='bacterial',
+                                                       cur_gb=mem_total))
+            elif marker_set_id == 'ar122' and mem_total < Config.PPLACER_MIN_RAM_ARC:
+                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_ARC,
+                                                       domain='archaeal',
+                                                       cur_gb=mem_total))
 
         # rename user MSA file for compatibility with pplacer
         if not user_msa_file.endswith('.fasta'):
@@ -1655,7 +1675,9 @@ class Classify(object):
                 if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
                     shortleaf = leafnode.taxon.label[3:]
                 ref_path = os.path.join(
-                    Config.FASTANI_GENOMES, shortleaf + Config.FASTANI_GENOMES_EXT)
+                    Config.FASTANI_GENOMES,
+                    self.parse_leaf_to_dir_path(shortleaf),
+                    shortleaf + Config.FASTANI_GENOMES_EXT)
                 if not os.path.isfile(ref_path):
                     raise GTDBTkExit(f'Reference genome missing from FastANI database: {ref_path}')
 
