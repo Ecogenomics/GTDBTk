@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Installing GTDB-Tk &mdash; GTDB-Tk 1.4.1 documentation</title>
+  <title>Installing GTDB-Tk &mdash; GTDB-Tk 1.5.0 documentation</title>
   
 
   
@@ -86,7 +86,7 @@
             
             
               <div class="version">
-                1.4.1
+                1.5.0
               </div>
             
           
@@ -265,12 +265,12 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Archaea</p></td>
-<td><p>~8 GB</p></td>
+<td><p>~13 GB</p></td>
 <td><p>~27 GB</p></td>
 <td><p>~1 hour / 1,000 genomes &#64; 64 CPUs</p></td>
 </tr>
 <tr class="row-odd"><td><p>Bacteria</p></td>
-<td><p>~150 GB</p></td>
+<td><p>~204 GB</p></td>
 <td><p>~27 GB</p></td>
 <td><p>~1 hour / 1,000 genomes &#64; 64 CPUs</p></td>
 </tr>
@@ -365,7 +365,8 @@ See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="st
 <div class="section" id="gtdb-tk-reference-data">
 <span id="installing-gtdbtk-reference-data"></span><h2>GTDB-Tk reference data<a class="headerlink" href="#gtdb-tk-reference-data" title="Permalink to this headline">¶</a></h2>
 <p>GTDB-Tk requires ~27G of external data that needs to be downloaded and unarchived:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
+wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz  <span class="o">(</span>or, mirror<span class="o">)</span>
 tar xvzf gtdbtk_r95_data.tar.gz
 </pre></div>
 </div>
@@ -383,23 +384,27 @@ tar xvzf gtdbtk_r95_data.tar.gz
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>R95</p></td>
-<td><p>1.3.0</p></td>
+<tr class="row-even"><td><p>R202</p></td>
+<td><p>1.5.0</p></td>
 <td><p>N/A</p></td>
 </tr>
-<tr class="row-odd"><td><p>R89</p></td>
+<tr class="row-odd"><td><p>R95</p></td>
+<td><p>1.3.0</p></td>
+<td><p>1.4.2</p></td>
+</tr>
+<tr class="row-even"><td><p>R89</p></td>
 <td><p>0.3.0</p></td>
 <td><p>0.1.2</p></td>
 </tr>
-<tr class="row-even"><td><p>R86.2</p></td>
+<tr class="row-odd"><td><p>R86.2</p></td>
 <td><p>0.2.1</p></td>
 <td><p>0.2.2</p></td>
 </tr>
-<tr class="row-odd"><td><p>R86</p></td>
+<tr class="row-even"><td><p>R86</p></td>
 <td><p>0.1.0</p></td>
 <td><p>0.1.6</p></td>
 </tr>
-<tr class="row-even"><td><p>R83</p></td>
+<tr class="row-odd"><td><p>R83</p></td>
 <td><p>0.0.6</p></td>
 <td><p>0.0.7</p></td>
 </tr>

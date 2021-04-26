@@ -2,6 +2,20 @@
 Change log
 ==========
 
+1.5.0
+-----
+
+* (`#311 <https://github.com/Ecogenomics/GTDBTk/issues/311>`_) Updated GTDB-Tk to support R202.
+  See https://ecogenomics.github.io/GTDBTk/installing/index.html#gtdb-tk-reference-data for instructions on downloading R202.
+
+
+1.4.2
+-----
+
+* (`#311 <https://github.com/Ecogenomics/GTDBTk/issues/311>`_) Fixed --scratch_dir not working in v 1.4.1 for classify_wf
+* (`#312 <https://github.com/Ecogenomics/GTDBTk/issues/311>`_) Automatic drop of genome leads to error in downstream modules of classify_wf
+
+
 1.4.1
 -----
 
