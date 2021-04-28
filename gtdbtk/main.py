@@ -620,6 +620,10 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
+            if options.skip_gtdb_refs and options.custom_taxonomy_file is None:
+                raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
+                                 "'--custom_taxonomy_file' to be included to the command line.")
+
             options.write_single_copy_genes = False
             self.identify(options)
 
