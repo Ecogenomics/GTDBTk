@@ -70,6 +70,21 @@ Input
 
     gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Undinarchaeota --archaea --out_dir de_novo_wf --cpus 3
     
-    gtdbtk de_novo_wf --genome_dir ./genomes --bacteria --outgroup_taxon p__Chloroflexota --taxa_filter p__Firmicutes --out_dir de_novo_output
-    
+    gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Chloroflexota --bacteria  --taxa_filter p__Firmicutes --out_dir de_novo_output
 
+    #Skip GTDB reference genomes ( requires --custom_taxonomy_file for outgrouping)
+    gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Customphylum --bacteria --custom_taxonomy_file custom_taxonomy.tsv --out_dir de_novo_output
+
+    #Use a subset of GTDB reference genomes (p__Firmicutes) and outgroup on a custom Phylum (p__Customphylum)
+    gtdbtk de_novo_wf --genome_dir genomes/ --taxa_filter p__Firmicutes --outgroup_taxon p__Customphylum --bacteria --custom_taxonomy_file custom_taxonomy.tsv --out_dir de_novo_output
+
+Custom Taxonomy Format
+^^^^^^^^^^^^^^^^^^^^^^
+The custom taxonomy file is a Tab-delimited file with the first column listing user genomes (i.e Fasta filename without the extension)
+and the second column listing the standardized 7-rank taxonomy.
+
+.. code-block:: bash
+    #For genome_1.fna, genome_2.fna and genome_3.fna
+    genome_1    d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Enterobacteriaceae;g__Salmonella;s__Salmonella enterica
+    genome_2    d__Bacteria;p__Actinobacteriota;c__Actinomycetia;o__Mycobacteriales;f__Mycobacteriaceae;g__Mycobacterium;s__Mycobacterium tuberculosis
+    genome_3    d__Bacteria;p__Firmicutes;c__Bacilli;o__Lactobacillales;f__Streptococcaceae;g__Streptococcus;s__Streptococcus pyogenes
