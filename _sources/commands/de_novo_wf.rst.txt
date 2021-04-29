@@ -84,6 +84,7 @@ The custom taxonomy file is a Tab-delimited file with the first column listing u
 and the second column listing the standardized 7-rank taxonomy.
 
 .. code-block:: bash
+
     #For genome_1.fna, genome_2.fna and genome_3.fna
     genome_1    d__Bacteria;p__Proteobacteria;c__Gammaproteobacteria;o__Enterobacterales;f__Enterobacteriaceae;g__Salmonella;s__Salmonella enterica
     genome_2    d__Bacteria;p__Actinobacteriota;c__Actinomycetia;o__Mycobacteriales;f__Mycobacteriaceae;g__Mycobacterium;s__Mycobacterium tuberculosis
