@@ -135,6 +135,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#custom-taxonomy-format">Custom Taxonomy Format</a></li>
 </ul>
 </li>
 </ul>
@@ -415,9 +416,20 @@ Identical to the classify workflow, the location of genomes can also be specifie
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Undinarchaeota --archaea --out_dir de_novo_wf --cpus <span class="m">3</span>
 
-gtdbtk de_novo_wf --genome_dir ./genomes --bacteria --outgroup_taxon p__Chloroflexota --taxa_filter p__Firmicutes --out_dir de_novo_output
+gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Chloroflexota --bacteria  --taxa_filter p__Firmicutes --out_dir de_novo_output
+
+<span class="c1">#Skip GTDB reference genomes ( requires --custom_taxonomy_file for outgrouping)</span>
+gtdbtk de_novo_wf --genome_dir genomes/ --outgroup_taxon p__Customphylum --bacteria --custom_taxonomy_file custom_taxonomy.tsv --out_dir de_novo_output
+
+<span class="c1">#Use a subset of GTDB reference genomes (p__Firmicutes) and outgroup on a custom Phylum (p__Customphylum)</span>
+gtdbtk de_novo_wf --genome_dir genomes/ --taxa_filter p__Firmicutes --outgroup_taxon p__Customphylum --bacteria --custom_taxonomy_file custom_taxonomy.tsv --out_dir de_novo_output
 </pre></div>
 </div>
+</div>
+<div class="section" id="custom-taxonomy-format">
+<h3>Custom Taxonomy Format<a class="headerlink" href="#custom-taxonomy-format" title="Permalink to this headline">¶</a></h3>
+<p>The custom taxonomy file is a Tab-delimited file with the first column listing user genomes (i.e Fasta filename without the extension)
+and the second column listing the standardized 7-rank taxonomy.</p>
 </div>
 </div>
 </div>
