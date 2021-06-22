@@ -76,7 +76,7 @@ class OptionsParser(object):
                                        f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
                                        ['bright'], fg='yellow'))
 
-    def _verify_genome_id(self, genome_id):
+    def _verify_genome_id(self, genome_id: str) -> bool:
         """Ensure genome ID will be valid in Newick tree.
 
         Parameters
@@ -95,12 +95,19 @@ class OptionsParser(object):
             If the genome identifier contains illegal characters.
         """
 
-        invalid_chars = set('()[],;=')
+        invalid_chars = set('()[],;= ')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error(f'Invalid genome ID: {genome_id}')
             self.logger.error(f'The following characters are invalid: '
                               f'{" ".join(invalid_chars)}')
             raise GenomeNameInvalid(f'Invalid genome ID: {genome_id}')
+        return True
+
+    @staticmethod
+    def _verify_file_path(file_path: str) -> bool:
+        if ' ' in file_path:
+            raise GTDBTkExit(f'The genome path contains a space, this is '
+                             f'unsupported by downstream applications: {file_path}')
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -135,6 +142,10 @@ class OptionsParser(object):
         # Check that all of the genome IDs are valid.
         for genome_key in genomic_files:
             self._verify_genome_id(genome_key)
+
+        # Check that there are no illegal characters in the file path
+        for file_path in genomic_files.values():
+            self._verify_file_path(file_path)
 
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
