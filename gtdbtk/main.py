@@ -91,16 +91,20 @@ class OptionsParser(object):
 
         Raises
         ------
-        GenomeNameInvalid
+        GTDBTkExit
             If the genome identifier contains illegal characters.
         """
-
-        invalid_chars = set('()[],;= ')
+        if genome_id is None or not isinstance(genome_id, str):
+            raise GTDBTkExit(f'The genome name is not a valid string: {genome_id}')
+        if len(genome_id) == 0:
+            raise GTDBTkExit('Genome name cannot be blank, check for input files '
+                             'without a name, or empty columns in the batchfile.')
+        invalid_chars = frozenset('()[],;= ')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error(f'Invalid genome ID: {genome_id}')
             self.logger.error(f'The following characters are invalid: '
                               f'{" ".join(invalid_chars)}')
-            raise GenomeNameInvalid(f'Invalid genome ID: {genome_id}')
+            raise GTDBTkExit(f'Invalid genome ID: {genome_id}')
         return True
 
     @staticmethod

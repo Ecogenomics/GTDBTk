@@ -6,7 +6,7 @@ Change log
 -----
 
 * (`#327 <https://github.com/Ecogenomics/GTDBTk/issues/327>`_) Disallow spaces in genome names/file paths due to downstream application issues.
-
+* (`#326 <https://github.com/Ecogenomics/GTDBTk/issues/326>`_) Disallow genome names that are blank.
 
 1.5.0
 -----
