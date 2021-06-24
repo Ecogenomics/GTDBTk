@@ -76,7 +76,7 @@ class OptionsParser(object):
                                        f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
                                        ['bright'], fg='yellow'))
 
-    def _verify_genome_id(self, genome_id):
+    def _verify_genome_id(self, genome_id: str) -> bool:
         """Ensure genome ID will be valid in Newick tree.
 
         Parameters
@@ -91,16 +91,27 @@ class OptionsParser(object):
 
         Raises
         ------
-        GenomeNameInvalid
+        GTDBTkExit
             If the genome identifier contains illegal characters.
         """
-
-        invalid_chars = set('()[],;=')
+        if genome_id is None or not isinstance(genome_id, str):
+            raise GTDBTkExit(f'The genome name is not a valid string: {genome_id}')
+        if len(genome_id) == 0:
+            raise GTDBTkExit('Genome name cannot be blank, check for input files '
+                             'without a name, or empty columns in the batchfile.')
+        invalid_chars = frozenset('()[],;= ')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error(f'Invalid genome ID: {genome_id}')
             self.logger.error(f'The following characters are invalid: '
                               f'{" ".join(invalid_chars)}')
-            raise GenomeNameInvalid(f'Invalid genome ID: {genome_id}')
+            raise GTDBTkExit(f'Invalid genome ID: {genome_id}')
+        return True
+
+    @staticmethod
+    def _verify_file_path(file_path: str) -> bool:
+        if ' ' in file_path:
+            raise GTDBTkExit(f'The genome path contains a space, this is '
+                             f'unsupported by downstream applications: {file_path}')
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -135,6 +146,10 @@ class OptionsParser(object):
         # Check that all of the genome IDs are valid.
         for genome_key in genomic_files:
             self._verify_genome_id(genome_key)
+
+        # Check that there are no illegal characters in the file path
+        for file_path in genomic_files.values():
+            self._verify_file_path(file_path)
 
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
@@ -619,6 +634,10 @@ class OptionsParser(object):
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
+
+            if options.skip_gtdb_refs and options.custom_taxonomy_file is None:
+                raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
+                                 "'--custom_taxonomy_file' to be included to the command line.")
 
             options.write_single_copy_genes = False
             self.identify(options)
