@@ -233,7 +233,7 @@ class Prodigal(object):
         if len(lq_gids) > 0:
             self.logger.warning(f'Skipping {len(lq_gids)} of {len(genomic_files)} '
                                 f'genomes as no genes were called by Prodigal. '
-                                f'Check the genome quality (see gtdb.warnings.log).')
+                                f'Check the genome quality (see gtdbtk.warnings.log).')
             self.warnings.warning(f'The following {len(lq_gids)} genomes have '
                                   f'been excluded from analysis due to Prodigal '
                                   f'failing to call any genes:')

@@ -241,7 +241,7 @@ class Markers(object):
         if len(lq_gids) > 0 and warn:
             self.logger.warning(f'Excluding {len(lq_gids)} genomes '
                                 f'in the identify directory which have no genes '
-                                f'called (see gtdb.warnings.log)')
+                                f'called (see gtdbtk.warnings.log)')
             self.warnings.warning(f'Excluding the following {len(lq_gids)} genomes '
                                   f'which were found in the identify directory '
                                   f'with no genes called.')

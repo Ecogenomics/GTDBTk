@@ -151,7 +151,7 @@ class OptionsParser(object):
             for g_path, g_gid in invalid_paths:
                 self.warnings.info(f'{g_gid}\t{g_path}')
             raise GTDBTkExit(f'There are {len(invalid_paths)} paths in the '
-                             f'batchfile which do not exist, see gtdb.warnings.log')
+                             f'batchfile which do not exist, see gtdbtk.warnings.log')
 
         if len(genomic_files) == 0:
             if genome_dir:
