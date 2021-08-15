@@ -2,6 +2,12 @@
 Change log
 ==========
 
+1.x.x
+-----
+
+* (`#337 <https://github.com/Ecogenomics/GTDBTk/issues/337>`_) Set minimum `tqdm` version to `4.35.0`
+
+
 1.5.1
 -----
 
