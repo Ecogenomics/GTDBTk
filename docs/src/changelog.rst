@@ -6,6 +6,7 @@ Change log
 -----
 
 * (`#337 <https://github.com/Ecogenomics/GTDBTk/issues/337>`_) Set minimum `tqdm` version to `4.35.0`
+* (`#335 <https://github.com/Ecogenomics/GTDBTk/pull/335>`_) Fixed typo in output log messages (@fplaza)
 
 
 1.5.1
