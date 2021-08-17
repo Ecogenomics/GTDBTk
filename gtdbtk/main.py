@@ -452,14 +452,14 @@ class OptionsParser(object):
                                               options.extension)
 
         classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
-        classify.run(genomes,
-                     options.align_dir,
-                     options.out_dir,
-                     options.prefix,
-                     options.scratch_dir,
-                     options.recalculate_red,
-                     options.debug,
-                     options.split_tree)
+        classify.run(genomes=genomes,
+                     align_dir=options.align_dir,
+                     out_dir=options.out_dir,
+                     prefix=options.prefix,
+                     scratch_dir=options.scratch_dir,
+                     debugopt=options.debug,
+                     splittreeopt=options.split_tree,
+                     recalculate_red=False)
 
         self.logger.info('Done.')
 
@@ -749,8 +749,8 @@ class OptionsParser(object):
                                     ' supported, overriding value to False.')
             options.split_tree = False
 
-            if options.recalculate_red and options.split_tree:
-                raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
+            # if options.recalculate_red and options.split_tree:
+            #     raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
             self.classify(options)
         elif options.subparser_name == 'root':
             self.root(options)
