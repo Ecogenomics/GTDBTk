@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify &mdash; GTDB-Tk 1.5.1 documentation</title>
+  <title>classify &mdash; GTDB-Tk 1.6.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.6.0
               </div>
             
           
@@ -112,13 +112,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installing/index.html">Installing GTDB-Tk</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Running GTDB-Tk</span></p>
+<p class="caption" role="heading"><span class="caption-text">Running GTDB-Tk</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Commands</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="align.html">align</a></li>
@@ -153,7 +153,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../files/index.html">Files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples/classify_wf.html">Example</a></li>
 </ul>
-<p class="caption"><span class="caption-text">About</span></p>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -261,8 +261,8 @@
                        <span class="o">--</span><span class="n">align_dir</span> <span class="n">ALIGN_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="mutually exclusive required arguments">
@@ -307,9 +307,6 @@
 </dd>
 <dt><kbd>--scratch_dir</kbd></dt>
 <dd><p>Reduce pplacer memory usage by writing to disk (slower).</p>
-</dd>
-<dt><kbd>-r, --recalculate_red</kbd></dt>
-<dd><p>recalculate RED values based on the reference tree and all added user genomes</p>
 </dd>
 <dt><kbd>--min_af</kbd></dt>
 <dd><p>minimum alignment fraction to consider closest genome</p>
