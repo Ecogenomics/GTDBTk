@@ -25,10 +25,12 @@ __email__ = 'donovan.parks@gmail.com'
 import logging
 import re
 from collections import defaultdict
+from typing import Dict, List
 
 import dendropy
 
 from gtdbtk.biolib_lite.common import canonical_gid, is_float
+from gtdbtk.exceptions import GTDBTkExit
 
 """
 To do:
@@ -791,14 +793,14 @@ class Taxonomy(object):
 
         return taxonomy
 
-    def read(self, taxonomy_file, canonical_ids=False):
+    def read(self, taxonomy_file: str, canonical_ids: bool = False) -> Dict[str, List[str]]:
         """Read Greengenes-style taxonomy file.
 
         Expected format is:
             <id>\t<taxonomy string>
 
         where the taxonomy string has the formats:
-            d__; c__; o__; f__; g__; s__
+            d__; p__; c__; o__; f__; g__; s__
 
         Parameters
         ----------
@@ -806,11 +808,6 @@ class Taxonomy(object):
             Path to a Greengenes-style taxonomy file.
         canonical_ids : bool
             True if to use the canonical ID format, False otherwise.
-
-        Returns
-        -------
-        dict[str, tuple[str, str, str, str, str, str, str]]
-            d[unique_id] -> [d__<taxon>, ..., s__<taxon>]
         """
 
         try:
@@ -818,6 +815,10 @@ class Taxonomy(object):
             with open(taxonomy_file, 'r') as f:
                 for row, line in enumerate(f.readlines()):
                     line_split = line.split('\t')
+
+                    if len(line_split) != 2:
+                        raise GTDBTkExit(f'Not a tab-separated line: {line}')
+
                     unique_id = line_split[0]
                     if canonical_ids:
                         unique_id = canonical_gid(unique_id)

@@ -29,7 +29,7 @@ import os
 from .exceptions import BioLibFileNotFound, BioLibDirNotFound, BioLibIOException
 
 
-def canonical_gid(gid):
+def canonical_gid(gid: str) -> str:
     """Get canonical form of NCBI genome accession.
     
     Example:
