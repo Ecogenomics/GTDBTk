@@ -29,7 +29,7 @@ from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
-from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch, InconsistentGenomeBatch
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch, InconsistentGenomeBatch, GTDBTkExit
 from gtdbtk.external.pfam_search import PfamSearch
 from gtdbtk.external.prodigal import Prodigal
 from gtdbtk.external.tigrfam_search import TigrfamSearch
@@ -459,6 +459,10 @@ class Markers(object):
 
         # Determine what domain each genome belongs to.
         bac_gids, ar_gids, _bac_ar_diff = self.genome_domain(identify_dir, prefix)
+        if len(bac_gids) + len(ar_gids) == 0:
+            raise GTDBTkExit(f'Unable to assign a domain to any genomes, '
+                             f'please check the identify marker summary file, '
+                             f'and verify genome quality.')
 
         # # Create a temporary directory that will be used to generate each of the alignments.
         # with tempfile.TemporaryDirectory(prefix='gtdbtk_tmp_') as dir_tmp_arc, \
@@ -514,6 +518,9 @@ class Markers(object):
 
             # Generate the user MSA.
             user_msa = align.align_marker_set(cur_genome_files, marker_info_file, copy_number_f, self.cpus)
+            if len(user_msa) == 0:
+                self.logger.warning(f'Identified {len(user_msa):,} single copy {domain_str} hits.')
+                continue
 
             # Write the individual marker alignments to disk
             if self.debug:
