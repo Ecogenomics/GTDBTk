@@ -4,7 +4,9 @@ Change log
 
 1.6.1
 -----
+
 * (`#336 <https://github.com/Ecogenomics/GTDBTk/issues/336>`_) Warn the user if they have provided an incorrectly formatted taxonomy file.
+* (`#348 <https://github.com/Ecogenomics/GTDBTk/issues/348>`_) Gracefully exit the program if no single copy hits could be identified.
 
 1.6.0
 -----
