@@ -5,7 +5,7 @@ de_novo_wf
 
 For arguments and output files, see each of the individual steps:
 
-* :ref:`commands/infer`
+* :ref:`commands/identify`
 * :ref:`commands/align`
 * :ref:`commands/infer`
 * :ref:`commands/root`
