@@ -44,6 +44,8 @@ from gtdbtk.io.batchfile import Batchfile
 from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
+from gtdbtk.model.enum import Domain
+from gtdbtk.pipeline.export_msa import export_msa
 from gtdbtk.reroot_tree import RerootTree
 from gtdbtk.tools import symlink_f, get_reference_ids
 
@@ -490,9 +492,22 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
-        misc = Misc()
-        misc.export_msa(options.domain, options.output)
+        # Get and validate the domain
+        user_domain = getattr(options, 'domain', None)
+        if user_domain == 'arc':
+            domain = Domain.ARCHAEA
+        elif user_domain == 'bac':
+            domain = Domain.BACTERIA
+        else:
+            raise GTDBTkExit(f'Unknown domain: {options.domain}')
 
+        # Get and validate the path
+        user_output = getattr(options, 'output', None)
+        if not user_output:
+            raise GTDBTkExit(f'You must specify a valid path: "{user_output}"')
+
+        # Export the MSA
+        export_msa(domain=domain, output_file=user_output)
         self.logger.info('Done.')
 
     def root(self, options):

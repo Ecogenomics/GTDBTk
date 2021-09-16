@@ -17,10 +17,8 @@
 
 import logging
 import os
-from shutil import copyfile
 
 import gtdbtk.config.config as Config
-from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.seq_io import read_fasta
@@ -68,23 +66,6 @@ class Misc(object):
                 aligned_seq = ''.join([v[i] for i in range(0, len(maskstr)) if maskstr[i] == '1'])
                 fasta_outstr = ">%s\n%s\n" % (k, aligned_seq)
                 outfwriter.write(fasta_outstr)
-
-    def export_msa(self, domain, output_file):
-        """Export the MSA to a file, create the path if it doesn't exist.
-
-        Parameters
-        ----------
-        domain : str
-            The domain used to determine the marker set.
-        output_file : str
-            The path where the MSA should be exported.
-        """
-        file_to_export = Config.CONCAT_BAC120
-        if domain == 'arc':
-            file_to_export = Config.CONCAT_AR122
-
-        make_sure_path_exists(os.path.dirname(output_file))
-        copyfile(file_to_export, output_file)
 
     def checkfile(self, file_path, file_name):
         """Check that a file exists, output the result to the logger.

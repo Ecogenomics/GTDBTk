@@ -16,6 +16,7 @@
 ###############################################################################
 
 import os
+from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.config.output import PATH_TLN_TABLE_SUMMARY
@@ -24,11 +25,12 @@ from gtdbtk.exceptions import GTDBTkExit
 
 class TlnTableSummaryFile(object):
     """Records the translation table for one or more genomes."""
+    __slots__ = ('path', 'genomes')
 
     def __init__(self, out_dir: str, prefix: str):
         """Configure paths and initialise storage dictionary."""
-        self.path = os.path.join(out_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
-        self.genomes = dict()
+        self.path: str = os.path.join(out_dir, PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))
+        self.genomes: Dict[str, int] = dict()
 
     def add_genome(self, genome_id: str, tln_table: int):
         """Record a translation table for a genome."""
