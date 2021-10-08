@@ -1,7 +1,9 @@
 import argparse
 from contextlib import contextmanager
+import tempfile
 
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
+from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.config.config import AF_THRESHOLD
 
 
@@ -23,7 +25,9 @@ def mutex_group(parser, required):
 def arg_group(parser, name):
     yield parser.add_argument_group(name)
 
-
+def __temp_dir(group):
+    group.add_argument('--tmpdir', action=ChangeTempAction, default=tempfile.gettempdir(), help="specify alternative directory for temporary files")
+    
 def __genome_dir(group):
     group.add_argument('--genome_dir', help="directory containing genome files in FASTA format")
 
@@ -320,6 +324,7 @@ def get_main_parser():
             __prefix(grp)
             __cpus(grp)
             __force(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -341,6 +346,7 @@ def get_main_parser():
             # __recalculate_red(grp)
             # __split_tree(grp)
             __min_af(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -357,6 +363,7 @@ def get_main_parser():
             __cpus(grp)
             __force(grp)
             __write_single_copy_genes(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -376,6 +383,7 @@ def get_main_parser():
             __rnd_seed(grp)
             __prefix(grp)
             __cpus(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
         with mutex_group(parser, required=False) as grp:
@@ -393,6 +401,7 @@ def get_main_parser():
             __gamma(grp)
             __prefix(grp)
             __cpus(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -413,6 +422,7 @@ def get_main_parser():
             # __split_tree(grp)
             # __recalculate_red(grp)
             __min_af(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -425,6 +435,7 @@ def get_main_parser():
         with arg_group(parser, 'optional arguments') as grp:
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -436,6 +447,7 @@ def get_main_parser():
         with arg_group(parser, 'optional arguments') as grp:
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -446,6 +458,7 @@ def get_main_parser():
             __ingroup_taxon(grp, required=True)
             __output_tree(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -469,6 +482,7 @@ def get_main_parser():
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -477,6 +491,7 @@ def get_main_parser():
         with arg_group(parser, 'optional arguments') as grp:
             __out_dir(grp, required=False)
             __cpus(grp)
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -489,6 +504,7 @@ def get_main_parser():
             __mask_file(grp)
             __reference_mask(grp)
         with arg_group(parser, 'optional arguments') as grp:
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -498,6 +514,7 @@ def get_main_parser():
             __domain(grp, required=True)
             __output(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
@@ -505,6 +522,7 @@ def get_main_parser():
     with subparser(sub_parsers, 'check_install', 'Verify third party programs and '
                                                  'GTDB reference package.') as parser:
         with arg_group(parser, 'optional arguments') as grp:
+            __temp_dir(grp)
             __debug(grp)
             __help(grp)
 
