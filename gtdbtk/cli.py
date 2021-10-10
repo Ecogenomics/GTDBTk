@@ -136,7 +136,8 @@ def __gtdbtk_classification_file(group):
 def __custom_taxonomy_file(group):
     group.add_argument('--custom_taxonomy_file', type=str, default=None,
                        help="file indicating custom taxonomy strings for user "
-                            "genomes, that should contain any genomes belonging to the outgroup")
+                            "genomes, that should contain any genomes belonging to the outgroup. "
+                            "Format: GENOME_ID<TAB>d__;p__;c__;o__;f__;g__;s__")
 
 
 def __prefix(group):
