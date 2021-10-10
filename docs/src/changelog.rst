@@ -7,6 +7,8 @@ Change log
 
 * (`#336 <https://github.com/Ecogenomics/GTDBTk/issues/336>`_) Warn the user if they have provided an incorrectly formatted taxonomy file.
 * (`#348 <https://github.com/Ecogenomics/GTDBTk/issues/348>`_) Gracefully exit the program if no single copy hits could be identified.
+* (`#351 <https://github.com/Ecogenomics/GTDBTk/issues/351>`_) Fixed an issue where GTDB-Tk would crash if spaces were present in the reference data path.
+
 
 1.6.0
 -----

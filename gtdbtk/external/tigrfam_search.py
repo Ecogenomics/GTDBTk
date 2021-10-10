@@ -122,12 +122,14 @@ class TigrfamSearch(object):
                     n_skipped.value += 1
 
             else:
-                cmd = 'hmmsearch -o %s --tblout %s --noali --notextw --cut_nc --cpu %d %s %s' % (hmmsearch_out,
-                                                                                                 output_hit_file,
-                                                                                                 self.cpus_per_genome,
-                                                                                                 self.tigrfam_hmms,
-                                                                                                 gene_file)
-                os.system(cmd)
+                args = ['hmmsearch', '-o', hmmsearch_out, '--tblout', output_hit_file,
+                        '--noali', '--notextw', '--cut_nc', '--cpu',
+                        str(self.cpus_per_genome), self.tigrfam_hmms, gene_file]
+                p = subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf-8')
+                stdout, stderr = p.communicate()
+
+                if p.returncode != 0:
+                    raise GTDBTkExit(f'Non-zero exit code returned when running hmsearch: {stdout}')
 
                 # calculate checksum
                 for out_file in [output_hit_file, hmmsearch_out]:
