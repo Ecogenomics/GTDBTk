@@ -38,7 +38,7 @@ Hardware requirements
      - ~27 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~204 GB
+     - ~215 GB
      - ~27 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
 
@@ -66,7 +66,7 @@ GTDB-Tk is designed for Python >=3.6 and requires the following libraries, which
      - >= 1.9.0
      - Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: `0.1038/s41586-020-2649-2 <https://doi.org/10.1038/s41586-020-2649-2>`_
    * - `tqdm <https://github.com/tqdm/tqdm>`_
-     - >= 4.31.0
+     - >= 4.35.0
      - DOI: `10.5281/zenodo.595120 <https://doi.org/10.5281/zenodo.595120>`_
 
 
@@ -139,7 +139,7 @@ Note that different versions of the GTDB release data may not run on all version
      - Maximum version
    * - R202
      - 1.5.0
-     - N/A
+     - Current
    * - R95
      - 1.3.0
      - 1.4.2
