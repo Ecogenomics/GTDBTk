@@ -1,46 +1,23 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>ani_rep &mdash; GTDB-Tk 1.6.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
+  <title>ani_rep &mdash; GTDB-Tk 1.7.0 documentation</title>
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/commands/ani_rep.html" />
-
-  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script src="../_static/custom.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-84847737-2"></script>
     <script>
@@ -63,36 +40,17 @@
  
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html">
-          
-
-          
-            
             <img src="../_static/GTDBTk.svg" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.6.0
+                1.7.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -100,18 +58,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
@@ -161,75 +108,31 @@
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">GTDB-Tk</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content style-external-links">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="index.html">Commands</a> &raquo;</li>
-        
       <li>ani_rep</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/commands/ani_rep.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -254,20 +157,21 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="ani-rep">
-<span id="commands-ani-rep"></span><h1>ani_rep<a class="headerlink" href="#ani-rep" title="Permalink to this headline">¶</a></h1>
+<section id="ani-rep">
+<span id="commands-ani-rep"></span><h1>ani_rep<a class="headerlink" href="#ani-rep" title="Permalink to this headline"></a></h1>
 <p>Compute the ANI of input genomes to all GTDB-Tk representative genomes.</p>
-<div class="section" id="arguments">
-<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline"></a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">ani_rep</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
                       <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mash</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_k</span> <span class="n">MASH_K</span><span class="p">]</span>
                       <span class="p">[</span><span class="o">--</span><span class="n">mash_s</span> <span class="n">MASH_S</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_d</span> <span class="n">MASH_D</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_v</span> <span class="n">MASH_V</span><span class="p">]</span>
                       <span class="p">[</span><span class="o">--</span><span class="n">mash_db</span> <span class="n">MASH_DB</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="mutually exclusive required arguments">
-<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
+<section id="mutually exclusive required arguments">
+<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline"></a></h3>
 <dl class="option-list">
 <dt><kbd>--genome_dir</kbd></dt>
 <dd><p>directory containing genome files in FASTA format</p>
@@ -276,17 +180,17 @@
 <dd><p>path to file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table [optional])</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="required named arguments">
+<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline"></a></h3>
 <dl class="option-list">
 <dt><kbd>--out_dir</kbd></dt>
 <dd><p>directory to output files</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="optional Mash arguments">
-<h3>optional Mash arguments<a class="headerlink" href="#optional Mash arguments" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="optional Mash arguments">
+<h3>optional Mash arguments<a class="headerlink" href="#optional Mash arguments" title="Permalink to this headline"></a></h3>
 <dl class="option-list">
 <dt><kbd>--no_mash</kbd></dt>
 <dd><p>skip pre-filtering of genomes using Mash</p>
@@ -311,18 +215,18 @@
 <dd><p>path to save/read (if exists) the Mash reference sketch database (.msh)</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="optional FastANI arguments">
-<h3>optional FastANI arguments<a class="headerlink" href="#optional FastANI arguments" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="optional FastANI arguments">
+<h3>optional FastANI arguments<a class="headerlink" href="#optional FastANI arguments" title="Permalink to this headline"></a></h3>
 <dl class="option-list">
 <dt><kbd>--min_af</kbd></dt>
 <dd><p>minimum alignment fraction to consider closest genome</p>
 <p>Default: 0.65</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline"></a></h3>
 <dl class="option-list">
 <dt><kbd>-x, --extension</kbd></dt>
 <dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
@@ -336,14 +240,18 @@
 <dd><p>number of CPUs to use</p>
 <p>Default: 1</p>
 </dd>
+<dt><kbd>--tmpdir</kbd></dt>
+<dd><p>specify alternative directory for temporary files</p>
+<p>Default: “/tmp”</p>
+</dd>
 <dt><kbd>--debug</kbd></dt>
 <dd><p>create intermediate files for debugging purposes</p>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="files-output">
-<h2>Files output<a class="headerlink" href="#files-output" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="files-output">
+<h2>Files output<a class="headerlink" href="#files-output" title="Permalink to this headline"></a></h2>
 <ul>
 <li><p><a class="reference internal" href="../files/ani_closest.tsv.html#files-ani-closest-tsv"><span class="std std-ref">[prefix].ani_closest.tsv</span></a></p></li>
 <li><p><a class="reference internal" href="../files/ani_summary.tsv.html#files-ani-summary-tsv"><span class="std std-ref">[prefix].ani_summary.tsv</span></a></p></li>
@@ -360,17 +268,17 @@
 </div></blockquote>
 </li>
 </ul>
-</div>
-<div class="section" id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="input">
-<h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline"></a></h2>
+<section id="input">
+<h3>Input<a class="headerlink" href="#input" title="Permalink to this headline"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk ani_rep --genome_dir genomes/ --out_dir ani_rep/ --cpus <span class="m">70</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="output">
-<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="output">
+<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline"></a></h3>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2020-04-13 10:51:58] INFO: GTDB-Tk v1.1.0
 [2020-04-13 10:51:58] INFO: gtdbtk ani_rep --genome_dir genomes/ --out_dir ani_rep/ --cpus 70
 [2020-04-13 10:51:58] INFO: Using GTDB-Tk reference data version r89: /release89
@@ -387,56 +295,39 @@
 [2020-04-13 10:53:23] INFO: Done.
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="check_install.html" class="btn btn-neutral float-right" title="check_install" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="align.html" class="btn btn-neutral float-left" title="align" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="check_install.html" class="btn btn-neutral float-right" title="check_install" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
-
-    </p>
+    <p>&#169; Copyright 2021, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

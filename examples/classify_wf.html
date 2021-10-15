@@ -1,36 +1,16 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Example &mdash; GTDB-Tk 1.6.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
+  <title>Example &mdash; GTDB-Tk 1.7.0 documentation</title>
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/examples/classify_wf.html" />
-
-  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
@@ -39,10 +19,7 @@
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script src="../_static/custom.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-84847737-2"></script>
     <script>
@@ -65,36 +42,17 @@
  
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html">
-          
-
-          
-            
             <img src="../_static/GTDBTk.svg" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.6.0
+                1.7.0
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -102,18 +60,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
@@ -147,73 +94,30 @@
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">GTDB-Tk</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content style-external-links">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Example</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/examples/classify_wf.ipynb" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   
 <style>
 /* CSS for nbsphinx extension */
@@ -484,12 +388,12 @@ div.rendered_html tbody tr:hover {
     text-align: unset;
 }
 </style>
-<div class="section" id="Example">
-<h1>Example<a class="headerlink" href="#Example" title="Permalink to this headline">¶</a></h1>
+<section id="Example">
+<h1>Example<a class="headerlink" href="#Example" title="Permalink to this headline"></a></h1>
 <p>This jupyter notebook demonstrates how to run the <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> command on a set of test genomes.</p>
 <p>For a full list of commands see: * <code class="docutils literal notranslate"><span class="pre">gtdbtk</span> <span class="pre">-h</span></code>, or * <a class="reference external" href="https://ecogenomics.github.io/GTDBTk/commands/">GTDB-Tk commands</a></p>
-<div class="section" id="Step-1:-Obtaining-data">
-<h2>Step 1: Obtaining data<a class="headerlink" href="#Step-1:-Obtaining-data" title="Permalink to this headline">¶</a></h2>
+<section id="Step-1:-Obtaining-data">
+<h2>Step 1: Obtaining data<a class="headerlink" href="#Step-1:-Obtaining-data" title="Permalink to this headline"></a></h2>
 <p>This example will use the following two genomes that we will refer to as: * Genome A: <code class="docutils literal notranslate"><span class="pre">GCF_003947435.1</span></code> [<a class="reference external" href="https://gtdb.ecogenomic.org/genomes?gid=GCF_003947435.1">GTDB</a> / <a class="reference external" href="https://www.ncbi.nlm.nih.gov/assembly/GCF_003947435.1/">NCBI</a>] * Genome B: <code class="docutils literal notranslate"><span class="pre">GCA_002011125.1</span></code> [<a class="reference external" href="https://gtdb.ecogenomic.org/genomes?gid=GCA_002011125.1">GTDB</a> / <a class="reference external" href="https://www.ncbi.nlm.nih.gov/assembly/GCA_002011125.1/">NCBI</a>]</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -506,9 +410,9 @@ wget -q https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/011/125/GCA_002011125.1
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="Step-2:-Gene-calling-(identify)">
-<h2>Step 2: Gene calling (identify)<a class="headerlink" href="#Step-2:-Gene-calling-(identify)" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="Step-2:-Gene-calling-(identify)">
+<h2>Step 2: Gene calling (identify)<a class="headerlink" href="#Step-2:-Gene-calling-(identify)" title="Permalink to this headline"></a></h2>
 <p>Note that the workflow can be run as a single command <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code>, however, each step will be run individually in this notebook. It can sometimes be useful to run the steps individually when processing large pipelines.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -557,8 +461,8 @@ total 1464
 [2020-08-03 11:04:03] <span class="ansi-bold">INFO:</span> Done.
 </pre></div></div>
 </div>
-<div class="section" id="Results">
-<h3>Results<a class="headerlink" href="#Results" title="Permalink to this headline">¶</a></h3>
+<section id="Results">
+<h3>Results<a class="headerlink" href="#Results" title="Permalink to this headline"></a></h3>
 <p>The called genes and marker information can be found under each genomes respeective intermediate files directory, as shown below.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
@@ -605,10 +509,10 @@ genome_a.fna    109     3       0       10      PF00368.13,PF00410.14,PF00466.15
 genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15,PF00687.16,PF00827.12,PF00900.15,PF01000.21,PF01015.13,PF01090.14,PF01092.14,PF01157.13,PF01191.14,PF01194.12,PF01198.14,PF01200.13,PF01269.12,PF01280.15,PF01282.14,PF01655.13,PF01798.13,PF01864.12,PF01866.12,PF01868.11,PF01984.15,PF01990.12,PF02006.11,PF02978.14,PF03874.11,PF04019.7,PF04104.9,PF04919.7,PF07541.7,PF13656.1,TIGR00021,TIGR00037,TIGR00042,TIGR00064,TIGR00111,TIGR00134,TIGR00240,TIGR00264,TIGR00270,TIGR00279,TIGR00283,TIGR00291,TIGR00293,TIGR00307,TIGR00308,TIGR00323,TIGR00324,TIGR00335,TIGR00336,TIGR00337,TIGR00373,TIGR00389,TIGR00392,TIGR00398,TIGR00405,TIGR00408,TIGR00422,TIGR00425,TIGR00432,TIGR00442,TIGR00448,TIGR00456,TIGR00458,TIGR00463,TIGR00468,TIGR00471,TIGR00490,TIGR00491,TIGR00501,TIGR00521,TIGR00522,TIGR00549,TIGR00658,TIGR00670,TIGR00729,TIGR00936,TIGR00982,TIGR01008,TIGR01012,TIGR01018,TIGR01020,TIGR01025,TIGR01028,TIGR01038,TIGR01046,TIGR01052,TIGR01060,TIGR01077,TIGR01080,TIGR01309,TIGR01952,TIGR02076,TIGR02153,TIGR02236,TIGR02258,TIGR02338,TIGR02389,TIGR02390,TIGR02651,TIGR03626,TIGR03628,TIGR03629,TIGR03636,TIGR03653,TIGR03665,TIGR03670,TIGR03671,TIGR03672,TIGR03673,TIGR03674,TIGR03677,TIGR03680,TIGR03683,TIGR03684,TIGR03722 PF01496.14,PF13685.1            TIGR01213,TIGR03627
 </pre></div></div>
 </div>
-</div>
-</div>
-<div class="section" id="Step-3:-Aligning-genomes-(align)">
-<h2>Step 3: Aligning genomes (align)<a class="headerlink" href="#Step-3:-Aligning-genomes-(align)" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="Step-3:-Aligning-genomes-(align)">
+<h2>Step 3: Aligning genomes (align)<a class="headerlink" href="#Step-3:-Aligning-genomes-(align)" title="Permalink to this headline"></a></h2>
 <p>The align step will align all identified markers, determine the most likely domain and output a concatenated MSA.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
@@ -640,8 +544,8 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 [2020-08-03 11:04:09] <span class="ansi-bold">INFO:</span> Done.
 </pre></div></div>
 </div>
-<div class="section" id="id1">
-<h3>Results<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<section id="id1">
+<h3>Results<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h3>
 <p>It is important to pay attention to the output, if a genome had a low number of markers identified it will be excluded from the analysis at this step. A warning will appear if that is the case.</p>
 <p>Depending on the domain, a prefixed file of either <code class="docutils literal notranslate"><span class="pre">ar122</span></code> or <code class="docutils literal notranslate"><span class="pre">bac120</span></code> will appear containing the MSA of the user genomes and the GTDB genomes, or just the user genomes (<code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.msa.fasta</span></code> and <code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.user_msa.fasta</span></code> respectively.)</p>
 <div class="nbinput docutils container">
@@ -663,10 +567,10 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 <span style="color: rgb(0,255,255)">gtdbtk.ar122.msa.fasta</span>     gtdbtk.warnings.log
 </pre></div></div>
 </div>
-</div>
-</div>
-<div class="section" id="Step-4:-Classifying-genomes-(classify)">
-<h2>Step 4: Classifying genomes (classify)<a class="headerlink" href="#Step-4:-Classifying-genomes-(classify)" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="Step-4:-Classifying-genomes-(classify)">
+<h2>Step 4: Classifying genomes (classify)<a class="headerlink" href="#Step-4:-Classifying-genomes-(classify)" title="Permalink to this headline"></a></h2>
 <p>The classify step will place the genomes into a reference tree, then determine their most likely classification.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
@@ -696,8 +600,8 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 [2020-08-03 11:05:24] <span class="ansi-bold">INFO:</span> Done.
 </pre></div></div>
 </div>
-<div class="section" id="id2">
-<h3>Results<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<section id="id2">
+<h3>Results<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h3>
 <p>The two main files output (one again, depending on their domain) are the summary file, and the reference tree containing those genomes (<code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.summary.tsv</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.classify.tree</span></code> respectively). Classification of the genomes are present in the summary file.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
@@ -717,56 +621,39 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 <span style="color: rgb(0,255,255)">gtdbtk.ar122.classify.tree</span>  gtdbtk.log
 </pre></div></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../changelog.html" class="btn btn-neutral float-right" title="Change log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../files/user_query_sketch.msh.html" class="btn btn-neutral float-left" title="user_query_sketch.msh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../changelog.html" class="btn btn-neutral float-right" title="Change log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2021, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
-
-    </p>
+    <p>&#169; Copyright 2021, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
