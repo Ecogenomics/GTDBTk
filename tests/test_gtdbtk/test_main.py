@@ -15,9 +15,7 @@
 #                                                                             #
 ###############################################################################
 import argparse
-import hashlib
 import os
-import re
 import shutil
 import tempfile
 import unittest
@@ -25,8 +23,7 @@ import unittest
 from gtdbtk.biolib_lite.exceptions import *
 from gtdbtk.exceptions import *
 from gtdbtk.main import OptionsParser
-import gtdbtk.config.config as Config
-from gtdbtk.tools import sha256
+
 
 class TestOptionsParser(unittest.TestCase):
 
@@ -45,7 +42,7 @@ class TestOptionsParser(unittest.TestCase):
     def test__verify_genome_id__invalid(self):
         """ Test that invalid genome ids throw an exception. """
         for c in list('()[],;='):
-            self.assertRaises(GenomeNameInvalid, self.options_parser._verify_genome_id, 'genome%s1' % c)
+            self.assertRaises(GTDBTkExit, self.options_parser._verify_genome_id, 'genome%s1' % c)
 
     def test__genomes_to_process__genome_dir__valid(self):
         """ Test that the expected results are returned when using genome_dir. """
@@ -246,108 +243,3 @@ class TestOptionsParser(unittest.TestCase):
         options = argparse.ArgumentParser()
         options.input_tree = os.path.join(tempfile.gettempdir(), 'non-existent-tree.tree')
         self.assertRaises(BioLibFileNotFound, self.options_parser.decorate, options)
-
-    def test_trim_msa__mask_file(self):
-        """ Test that the expected result is returned when running trim_msa with mask_file """
-        path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
-        path_mask_file = os.path.join(self.dir_tmp, 'mask_file.txt')
-        path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
-
-        with open(path_untrimmed_msa, 'w') as f:
-            f.write('>genome_1\n')
-            f.write('ALGPVW\n')
-            f.write('>genome_2\n')
-            f.write('WVPGLA\n')
-
-        with open(path_mask_file, 'w') as f:
-            f.write('010010\n')
-
-        options = argparse.ArgumentParser()
-        # Required arguments
-        options.untrimmed_msa = path_untrimmed_msa
-        options.output = path_output
-        # Mutex arguments
-        options.mask_file = path_mask_file
-        options.reference_mask = None
-
-        self.options_parser.trim_msa(options)
-
-        results = dict()
-        with open(path_output, 'r') as f:
-            re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
-            for gid, seq in re_hits:
-                results[gid] = seq
-
-        expected = {'genome_1': 'LV', 'genome_2': 'VL'}
-
-        self.assertDictEqual(results, expected)
-
-    def test_trim_msa__reference_mask_arc(self):
-        """ Test that the expected result is returned when running trim_msa with archaeal reference_mask """
-        path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
-        path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
-        shutil.copyfile(Config.CONCAT_AR122, path_untrimmed_msa)
-
-        options = argparse.ArgumentParser()
-        # Required arguments
-        options.untrimmed_msa = path_untrimmed_msa
-        options.output = path_output
-        # Mutex arguments
-        options.mask_file = None
-        options.reference_mask = 'arc'
-
-        self.options_parser.trim_msa(options)
-
-        actual = sha256(path_output)
-        expected = '1146351be59ae8d27668256c5b2c425a6f38c37c'
-
-        self.assertEqual(actual, expected)
-
-    def test_trim_msa__reference_mask_bac(self):
-        """ Test that the expected result is returned when running trim_msa with bacterial reference_mask """
-        path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
-        path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
-        shutil.copyfile(Config.CONCAT_BAC120, path_untrimmed_msa)
-
-        options = argparse.ArgumentParser()
-        # Required arguments
-        options.untrimmed_msa = path_untrimmed_msa
-        options.output = path_output
-        # Mutex arguments
-        options.mask_file = None
-        options.reference_mask = 'bac'
-
-        self.options_parser.trim_msa(options)
-
-        actual = sha256(path_output)
-        expected = 'ae6e24e89540fed03b81436147f99bcd120d059a'
-
-        self.assertEqual(actual, expected)
-
-    def test_export_msa__arc(self):
-        """ Test that the untrimmed archaeal MSA is exported correctly """
-        path_out = os.path.join(self.dir_tmp, 'output.fasta')
-
-        options = argparse.ArgumentParser()
-        options.domain = 'arc'
-        options.output = path_out
-
-        self.options_parser.export_msa(options)
-
-        with open(path_out, 'rb') as f:
-            out_hash = hashlib.sha256(f.read()).hexdigest()
-        self.assertEqual(out_hash, '8706b42a3f4b2445273058e7e876f0d8332bd8dec95c0fc8bc024d76a5a5aade')
-
-    def test_export_msa__bac(self):
-        """ Test that the untrimmed bacterial MSA is exported correctly """
-        path_out = os.path.join(self.dir_tmp, 'output.fasta')
-
-        options = argparse.ArgumentParser()
-        options.domain = 'bac'
-        options.output = path_out
-
-        self.options_parser.export_msa(options)
-
-        with open(path_out, 'rb') as f:
-            out_hash = hashlib.sha256(f.read()).hexdigest()
-        self.assertEqual(out_hash, '3c5dfa4dc5ef943459e6d0ed4da1e5a5858332c824739630beffb57fab303486')

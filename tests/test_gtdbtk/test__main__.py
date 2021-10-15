@@ -15,18 +15,22 @@
 #                                                                             #
 ###############################################################################
 import os
+import random
 import subprocess
 import tempfile
 import unittest
 
-from gtdbtk.config.config import CONCAT_AR122
+from gtdbtk.config.config import CONCAT_AR122, CONCAT_BAC120, MASK_AR122, MASK_DIR, MASK_BAC120
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
+from gtdbtk.tools import sha256
 
 
 class TestMain(unittest.TestCase):
     """Used to test the CLI. Currently just checks all exit codes."""
 
     genome_dir = 'gtdbtk/tests/data/genomes/'
-    cpus = '64'
+    genome_dir_gz = 'tests/data/genomes_gz/'
+    cpus = '30'
 
     def setUp(self):
         """Create a new temporary directory for each method."""
@@ -40,9 +44,21 @@ class TestMain(unittest.TestCase):
     def test_classify_wf(self):
         args = ['python', '-m', 'gtdbtk', 'classify_wf', '--genome_dir',
                 self.genome_dir, '--out_dir', self.dir_tmp, '--cpus', self.cpus]
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
-        stdout, stderr = proc.communicate()
-        self.assertEqual(proc.returncode, 0)
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
+
+        classify_file = ClassifySummaryFileAR122(out_dir=self.dir_tmp, prefix='gtdbtk')
+        classify_file.read()
+
+        expected = {
+            'genome_1': 'd__Archaea;p__Methanobacteriota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__Methanobrevibacter ruminantium',
+            'genome_2': 'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365',
+            'genome_3': 'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365'
+        }
+        actual = {k: v.classification for k, v in classify_file.rows.items()}
+        self.assertDictEqual(expected, actual)
+
 
     def test_de_novo_wf(self):
         args = ['python', '-m', 'gtdbtk', 'de_novo_wf', '--archaea', '--genome_dir',
@@ -55,6 +71,15 @@ class TestMain(unittest.TestCase):
     def test_identify(self):
         """Duplicated in classify"""
         pass
+
+    def test_identify_gzipped_genomes(self):
+        """Gene calling results should match if genomes are gzipped."""
+        args = ['python', '-m', 'gtdbtk', 'identify', '--genome_dir',
+                self.genome_dir_gz, '--out_dir', self.dir_tmp, '--cpus', self.cpus,
+                '--extension', 'gz']
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
 
     def test_align(self):
         """Duplicated in classify"""
@@ -157,12 +182,128 @@ class TestMain(unittest.TestCase):
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
 
-    def test_export_msa(self):
-        path_out = os.path.join(self.dir_tmp, 'msa.faa')
-        args = ['python', '-m', 'gtdbtk', 'export_msa', '--domain', 'bac', '--output', path_out]
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
-        stdout, stderr = proc.communicate()
-        self.assertEqual(proc.returncode, 0)
+    def test_trim_msa_reference_mask_arc(self):
+        with open(os.path.join(MASK_DIR, MASK_AR122), 'r') as f:
+            mask = [x == '1' for x in f.read().strip()]
+
+        path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
+        path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
+
+        choices = 'ARNDCQEGHILKMFPSTWYV-'
+        expected = list()
+        with open(path_untrimmed_msa, 'w') as f:
+            f.write('>test123\n')
+            for cur_char in mask:
+                choice = random.choice(choices)
+                if cur_char:
+                    expected.append(choice)
+                f.write(choice)
+
+        args = ['python', '-m', 'gtdbtk', 'trim_msa', '--untrimmed_msa', path_untrimmed_msa,
+                '--reference_mask', 'arc', '--output', path_output]
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
+
+        results = dict()
+        with open(path_output, 'r') as f:
+            import re
+            re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
+            for gid, seq in re_hits:
+                results[gid] = seq
+
+        expected = {'test123': ''.join(expected)}
+
+        self.assertDictEqual(results, expected)
+
+    def test_trim_msa_reference_mask_bac(self):
+        with open(os.path.join(MASK_DIR, MASK_BAC120), 'r') as f:
+            mask = [x == '1' for x in f.read().strip()]
+
+        path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
+        path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
+
+        choices = 'ARNDCQEGHILKMFPSTWYV-'
+        expected = list()
+        with open(path_untrimmed_msa, 'w') as f:
+            f.write('>test123\n')
+            for cur_char in mask:
+                choice = random.choice(choices)
+                if cur_char:
+                    expected.append(choice)
+                f.write(choice)
+
+        args = ['python', '-m', 'gtdbtk', 'trim_msa', '--untrimmed_msa', path_untrimmed_msa,
+                '--reference_mask', 'bac', '--output', path_output]
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
+
+        results = dict()
+        with open(path_output, 'r') as f:
+            import re
+            re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
+            for gid, seq in re_hits:
+                results[gid] = seq
+
+        expected = {'test123': ''.join(expected)}
+
+        self.assertDictEqual(results, expected)
+
+    def test_trim_msa_mask_file(self):
+        path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
+        path_mask_file = os.path.join(self.dir_tmp, 'mask_file.txt')
+        path_output = os.path.join(self.dir_tmp, 'trimmed_msa.fasta')
+
+        with open(path_untrimmed_msa, 'w') as f:
+            f.write('>genome_1\n')
+            f.write('ALGPVW\n')
+            f.write('>genome_2\n')
+            f.write('WVPGLA\n')
+
+        with open(path_mask_file, 'w') as f:
+            f.write('010010\n')
+
+        args = ['python', '-m', 'gtdbtk', 'trim_msa', '--untrimmed_msa', path_untrimmed_msa,
+                '--mask_file', path_mask_file, '--output', path_output]
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
+
+        results = dict()
+        with open(path_output, 'r') as f:
+            import re
+            re_hits = re.findall(r'>(.+)\n(.+)\n', f.read())
+            for gid, seq in re_hits:
+                results[gid] = seq
+
+        expected = {'genome_1': 'LV', 'genome_2': 'VL'}
+
+        self.assertDictEqual(results, expected)
+
+    def test_export_msa_arc(self):
+        """Test that the MSA can be exported when using the CLI."""
+        path_output = os.path.join(self.dir_tmp, 'msa.faa')
+        args = ['python', '-m', 'gtdbtk', 'export_msa', '--domain', 'arc', '--output', path_output]
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
+
+        test_hash = sha256(path_output)
+        true_hash = sha256(CONCAT_AR122)
+        self.assertEqual(test_hash, true_hash)
+
+    def test_export_msa_bac(self):
+        """Test that the MSA can be exported when using the CLI."""
+        path_output = os.path.join(self.dir_tmp, 'msa.faa')
+        args = ['python', '-m', 'gtdbtk', 'export_msa', '--domain', 'bac', '--output', path_output]
+        p = subprocess.Popen(args)
+        p.wait()
+        self.assertEqual(p.returncode, 0)
+
+        test_hash = sha256(path_output)
+        true_hash = sha256(CONCAT_BAC120)
+        self.assertEqual(test_hash, true_hash)
 
     def test_test(self):
         args = ['python', '-m', 'gtdbtk', 'test', '--out_dir', self.dir_tmp, '--cpus', self.cpus]
