@@ -289,6 +289,7 @@ class Decorate(object):
 
             parent = parent.parent_node
 
+        print(leaf_taxa)
         ordered_taxa = leaf_taxa[::-1]
 
         # fill in missing ranks

@@ -687,11 +687,11 @@ class OptionsParser(object):
 
         elif options.subparser_name == 'classify_wf':
 
-            # TODO: Remove this block once the split_tree function is implemented.
-            if hasattr(options, 'split_tree') and options.split_tree:
-                self.logger.warning('The split tree option is not yet '
-                                    ' supported, overriding value to False.')
-            options.split_tree = False
+            # # TODO: Remove this block once the split_tree function is implemented.
+            # if hasattr(options, 'split_tree') and options.split_tree:
+            #     self.logger.warning('The split tree option is not yet '
+            #                         ' supported, overriding value to False.')
+            # options.split_tree = False
 
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
@@ -725,10 +725,10 @@ class OptionsParser(object):
         elif options.subparser_name == 'classify':
 
             # TODO: Remove this block once the split_tree function is implemented.
-            if hasattr(options, 'split_tree') and options.split_tree:
-                self.logger.warning('The split tree option is not yet '
-                                    ' supported, overriding value to False.')
-            options.split_tree = False
+            # if hasattr(options, 'split_tree') and options.split_tree:
+            #     self.logger.warning('The split tree option is not yet '
+            #                         ' supported, overriding value to False.')
+            # options.split_tree = False
 
             if options.recalculate_red and options.split_tree:
                 raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')

@@ -51,6 +51,8 @@ PATH_AR122_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.red_dictio
 PATH_BAC120_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.classification_pplacer.tsv')
 PATH_BAC120_HIGH_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.high.classification_pplacer.tsv')
 PATH_BAC120_LOW_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.low.classification_pplacer_tree_{iter}.tsv')
+PATH_BAC120_TREE_MAPPING = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.tree.mapping.tsv')
+
 
 
 PATH_AR122_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.classification_pplacer.tsv')

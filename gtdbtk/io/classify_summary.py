@@ -160,3 +160,5 @@ class ClassifySummaryFileBAC120(ClassifySummaryFile):
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
         super().__init__(path, 'bac120')
+
+
