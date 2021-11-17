@@ -1892,7 +1892,6 @@ class Classify(object):
         closest_rank = None
 
         for child_taxon in reversed(child_taxons):
-            # if lower rank is c__Nitropiria
             child_taxon_rank = child_taxon[:3]
             if child_taxon == child_taxons[0]:
                 if (abs(current_rel_list - red_bac_dict.get(child_taxon_rank)) < abs(
