@@ -40,7 +40,8 @@ from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.io.classify_summary import ClassifySummaryFileAR122, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
-from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR122
+from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR122, \
+    PplacerLowClassifyFileBAC120
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.io.red_dict import REDDictFileAR122, REDDictFileBAC120
 from gtdbtk.io.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
@@ -85,8 +86,11 @@ class Classify(object):
             self.pplacer_cpus = 64
 
         self.species_radius = self.parse_radius_file()
-
         self.reference_ids = get_reference_ids()
+
+        # rank_of_interest determine the rank in the tree_mapping file for
+        # lower classification
+        self.rank_of_interest = "o__"
 
 
 
@@ -242,9 +246,10 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG line
-        # if levelopt == 'low':
-        pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
-                    user_msa_file, pplacer_out, pplacer_mmap_file)
+        run_pplacer = True
+        if run_pplacer:
+            pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
+                        user_msa_file, pplacer_out, pplacer_mmap_file)
 
         # extract tree
         tree_file = None
@@ -413,7 +418,8 @@ class Classify(object):
                         tree_mapping_dict[k] = v
                         tree_mapping_dict_reverse.setdefault(v, []).append(k)
 
-                sorted_high_taxonomy, len_sorted_genomes = self._map_high_taxonomy(
+                splitter = Split(self.order_rank,self.gtdb_taxonomy,self.reference_ids)
+                sorted_high_taxonomy, len_sorted_genomes = splitter.map_high_taxonomy(
                     high_classification, tree_mapping_dict, summary_file)
                 self.logger.info(f"{len_sorted_genomes} out of {num_genomes} have an order assignments. Those genomes "
                                  f"will be reclassified.")
@@ -426,6 +432,7 @@ class Classify(object):
                         scratch_dir, out_dir)
                     mrca_lowtree = self._assign_mrca_red(
                         low_classify_tree, marker_set_id, 'low', tree_iter)
+                    pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix,tree_iter)
                     pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
                                                                        marker_set_id, user_msa_file, mrca_lowtree)
 
@@ -765,8 +772,9 @@ class Classify(object):
             notes = []
 
             standardised_red_tax = standardise_taxonomy(';'.join(red_taxonomy))
-            v = high_classification.get(leaf.taxon.label)
+
             if order_in_spe_tree and 'o__;' in standardised_red_tax:
+                v = high_classification.get(leaf.taxon.label)
                 tk_tax_red_without_order = truncate_taxonomy(v.get('tk_tax_red'), 'o__')
                 summary_row = ClassifySummaryFileRow()
                 summary_row.gid = leaf.taxon.label
@@ -777,18 +785,19 @@ class Classify(object):
                     'Genome not classified with order in species tree, reverse to backbone tree classification.')
 
                 #### Test 1.2
-            elif self.check_common_rank_btwn_tax(standardised_red_tax,v,'f__'):
-                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, v)
+            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,high_classification.get(leaf.taxon.label),'f__'):
+                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, high_classification)
                 notes.append('Genome has conflicting families between trees, reverse to backbone tree classification.')
-            elif self.check_common_rank_btwn_tax(standardised_red_tax,v,'o__'):
-                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, v)
+            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,high_classification.get(leaf.taxon.label),'o__'):
+                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, high_classification)
                 notes.append('Genome has conflicting orders between trees, reverse to backbone tree classification.')
-            elif self.check_common_rank_btwn_tax(standardised_red_tax,v,'c__'):
-                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax,leaf,v)
+            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,high_classification.get(leaf.taxon.label),'c__'):
+                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax,leaf,high_classification)
                 notes.append('Genome has conflicting classes between trees, reverse to backbone tree classification.')
 
             elif order_in_spe_tree and red_taxonomy[
                 self.order_rank.index(self.rank_of_interest)] not in order_in_spe_tree:
+                v = high_classification.get(leaf.taxon.label)
                 tk_tax_red_without_order = truncate_taxonomy(v.get('tk_tax_red'), 'o__')
                 summary_row = ClassifySummaryFileRow()
                 summary_row.gid = leaf.taxon.label
@@ -846,7 +855,8 @@ class Classify(object):
                         '{}\t{}\t{}\tred_classification\n'.format(leaf.taxon.label, high_classification.get(
                             leaf.taxon.label).get('tk_tax_red'), summary_row.classification))
 
-    def generate_summary_row_reverse_to_backbone(self,standardised_red_tax, leaf, taxonomy_infos):
+    def generate_summary_row_reverse_to_backbone(self,standardised_red_tax, leaf, high_classification):
+        taxonomy_infos = high_classification.get(leaf.taxon.label)
         common_ranks = [z for z in standardised_red_tax.split(';') if
                         len(z) > 3 and z in taxonomy_infos.get('tk_tax_red').split(';')]
         combined_ranks = standardise_taxonomy(';'.join(common_ranks), 'bac120')

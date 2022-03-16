@@ -25,6 +25,7 @@ from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.io.classify_summary import ClassifySummaryFileRow
+from gtdbtk.io.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
 from gtdbtk.tools import TreeTraversal, standardise_taxonomy
 
 
@@ -63,8 +64,7 @@ class Split(object):
         make_sure_path_exists(out_root)
 
         if marker_set_id == 'bac120':
-            out_pplacer = os.path.join(
-                out_dir, PATH_BAC120_HIGH_PPLACER_CLASS.format(prefix=prefix))
+            out_pplacer = PplacerHighClassifyFile(out_dir,prefix)
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -72,146 +72,151 @@ class Split(object):
         red_bac_dict = Config.RED_DIST_BAC_DICT
 
         # We get the pplacer taxonomy for comparison
-        count = 0
-        with open(out_pplacer, 'w') as pplaceout:
-            user_genome_ids = set(read_fasta(user_msa_file).keys())
-            pplaceout.write(
-                'genome\tgtdb_taxonomy\tpplacer_taxonomy\tis_on_terminal_branch\tred_value\n')
-            for leaf in tree.leaf_node_iter():
-                is_on_terminal_branch = False
-                terminal_branch_test = False
-                term_branch_taxonomy = ''
-                if leaf.taxon.label in user_genome_ids:
-                    count += 1
-                    taxa = []
-                    cur_node = leaf
-                    current_rel_dist = 1.0
-                    # every user genomes has a RED value of one assigned to it
-                    while cur_node.parent_node:
-                        # we go up the tree from the user genome
-                        if hasattr(cur_node, 'rel_dist') and current_rel_dist == 1.0 and cur_node.rel_dist < 1.0:
-                            # if the parent node of the current genome has a red distance,
-                            # it means it is part of the reference tree
-                            # we store the first RED value encountered in the
-                            # tree
-                            current_rel_dist = cur_node.rel_dist
-                        if cur_node.is_internal():
-                            # We check if the genome is place on a terminal
-                            # branch
+        user_genome_ids = set(read_fasta(user_msa_file).keys())
+        for leaf in tree.leaf_node_iter():
 
-                            if not terminal_branch_test:
-                                child_genomes = [nd.taxon.label for nd in cur_node.leaf_nodes(
-                                ) if nd.taxon.label not in user_genome_ids]
-                                if len(child_genomes) == 1:
-                                    is_on_terminal_branch = True
-                                    term_branch_taxonomy = self.gtdb_taxonomy.get(
-                                        child_genomes[0])
-                                    terminal_branch_test = True
-                                if len(child_genomes) > 1:
-                                    terminal_branch_test = True
-                        # While going up the tree we store of taxonomy
-                        # information
-                        _support, taxon, _aux_info = parse_label(
-                            cur_node.label)
-                        if taxon:
-                            for t in taxon.split(';')[::-1]:
-                                taxa.append(t.strip())
-                        cur_node = cur_node.parent_node
+            is_on_terminal_branch = False
+            terminal_branch_test = False
+            term_branch_taxonomy = ''
+            if leaf.taxon.label in user_genome_ids:
+                pplacer_row = PplacerHighClassifyRow()
+                taxa = []
+                cur_node = leaf
+                current_rel_dist = 1.0
+                # every user genomes has a RED value of one assigned to it
+                while cur_node.parent_node:
+                    # we go up the tree from the user genome
+                    if hasattr(cur_node, 'rel_dist') and current_rel_dist == 1.0 and cur_node.rel_dist < 1.0:
+                        # if the parent node of the current genome has a red distance,
+                        # it means it is part of the reference tree
+                        # we store the first RED value encountered in the
+                        # tree
+                        current_rel_dist = cur_node.rel_dist
+                    if cur_node.is_internal():
+                        # We check if the genome is place on a terminal
+                        # branch
 
-                    taxa_str = ';'.join(taxa[::-1])
+                        if not terminal_branch_test:
+                            child_genomes = [nd.taxon.label for nd in cur_node.leaf_nodes(
+                            ) if nd.taxon.label not in user_genome_ids]
+                            if len(child_genomes) == 1:
+                                is_on_terminal_branch = True
+                                term_branch_taxonomy = self.gtdb_taxonomy.get(
+                                    child_genomes[0])
+                                terminal_branch_test = True
+                            if len(child_genomes) > 1:
+                                terminal_branch_test = True
+                    # While going up the tree we store of taxonomy
+                    # information
+                    _support, taxon, _aux_info = parse_label(
+                        cur_node.label)
+                    if taxon:
+                        for t in taxon.split(';')[::-1]:
+                            taxa.append(t.strip())
+                    cur_node = cur_node.parent_node
 
-                    pplacer_tax = str(taxa_str)
-                    taxa_str_terminal = ''
+                taxa_str = ';'.join(taxa[::-1])
 
-                    if is_on_terminal_branch:
-                        # some rank may be missing from going up the tree.
-                        # if the genome is on a terminal branch,
-                        # we can select the taxonomy from the reference leaf to get the low level of the taxonomy
-                        # we select down to genus
-                        if len(taxa) > 1:
-                            tax_of_leaf = term_branch_taxonomy[term_branch_taxonomy.index(
-                                taxa_str.split(';')[-1]) + 1:-1]
-                        else:
-                            tax_of_leaf = term_branch_taxonomy[1:-1]
-                            taxa_str = 'd__Bacteria'
+                pplacer_tax = str(taxa_str)
 
-                        taxa_str_terminal = self._classify_on_terminal_branch(
-                            tax_of_leaf, current_rel_dist, taxa_str.split(';')[-1][0:3], term_branch_taxonomy,
-                            red_bac_dict)
+                taxa_str_terminal,taxa_str_red = '',''
 
-                    cur_node = leaf
-                    parent_taxon_node = cur_node.parent_node
+                if is_on_terminal_branch:
+                    # some rank may be missing from going up the tree.
+                    # if the genome is on a terminal branch,
+                    # we can select the taxonomy from the reference leaf to get the low level of the taxonomy
+                    # we select down to genus
+                    if len(taxa) > 1:
+                        tax_of_leaf = term_branch_taxonomy[term_branch_taxonomy.index(
+                            taxa_str.split(';')[-1]) + 1:-1]
+                    else:
+                        tax_of_leaf = term_branch_taxonomy[1:-1]
+                        taxa_str = 'd__Bacteria'
+
+                    taxa_str_terminal = self._classify_on_terminal_branch(
+                        tax_of_leaf, current_rel_dist, taxa_str.split(';')[-1][0:3], term_branch_taxonomy,
+                        red_bac_dict)
+
+                cur_node = leaf
+                parent_taxon_node = cur_node.parent_node
+                _support, parent_taxon, _aux_info = parse_label(
+                    parent_taxon_node.label)
+
+                while parent_taxon_node is not None and not parent_taxon:
+                    parent_taxon_node = parent_taxon_node.parent_node
                     _support, parent_taxon, _aux_info = parse_label(
                         parent_taxon_node.label)
 
-                    while parent_taxon_node is not None and not parent_taxon:
-                        parent_taxon_node = parent_taxon_node.parent_node
-                        _support, parent_taxon, _aux_info = parse_label(
-                            parent_taxon_node.label)
+                # is the node represent multiple ranks, we select the lowest one
+                # i.e. if node is p__A;c__B;o__C we pick o__
+                parent_rank = parent_taxon.split(";")[-1]
 
-                    # is the node represent multiple ranks, we select the lowest one
-                    # i.e. if node is p__A;c__B;o__C we pick o__
-                    parent_rank = parent_taxon.split(";")[-1]
+                if parent_rank[0:3] != 'g__':
+                    node_in_ref_tree = cur_node
+                    while len([childnd.taxon.label.replace("'", '') for childnd in node_in_ref_tree.leaf_iter(
+                    ) if childnd.taxon.label in self.reference_ids]) == 0:
+                        node_in_ref_tree = node_in_ref_tree.parent_node
+                    # we select a node of the reference tree
 
-                    if parent_rank[0:3] != 'g__':
-                        node_in_ref_tree = cur_node
-                        while len([childnd.taxon.label.replace("'", '') for childnd in node_in_ref_tree.leaf_iter(
-                        ) if childnd.taxon.label in self.reference_ids]) == 0:
-                            node_in_ref_tree = node_in_ref_tree.parent_node
-                        # we select a node of the reference tree
+                    # we select the child rank (if parent_rank = 'c__'
+                    # child rank will be 'o__)'
+                    child_rk = self.order_rank[self.order_rank.index(
+                        parent_rank[0:3]) + 1]
 
-                        # we select the child rank (if parent_rank = 'c__'
-                        # child rank will be 'o__)'
-                        child_rk = self.order_rank[self.order_rank.index(
-                            parent_rank[0:3]) + 1]
+                    # get all reference genomes under the current node
+                    list_subnode = [childnd.taxon.label.replace("'", '') for childnd in
+                                    node_in_ref_tree.leaf_iter()
+                                    if childnd.taxon.label in self.reference_ids]
 
-                        # get all reference genomes under the current node
-                        list_subnode = [childnd.taxon.label.replace("'", '') for childnd in
-                                        node_in_ref_tree.leaf_iter()
-                                        if childnd.taxon.label in self.reference_ids]
+                    # get all names for the child rank
+                    list_ranks = [self.gtdb_taxonomy.get(name)[self.order_rank.index(child_rk)]
+                                  for name in list_subnode]
 
-                        # get all names for the child rank
-                        list_ranks = [self.gtdb_taxonomy.get(name)[self.order_rank.index(child_rk)]
-                                      for name in list_subnode]
+                    # if there is just one rank name
+                    if len(set(list_ranks)) == 1:
+                        child_taxons = []
+                        child_rel_dist = None
+                        for subranknd in node_in_ref_tree.preorder_iter():
+                            _support, subranknd_taxon, _aux_info = parse_label(
+                                subranknd.label)
+                            if subranknd.is_internal() and subranknd_taxon is not None and subranknd_taxon.startswith(
+                                    child_rk):
+                                child_taxons = subranknd_taxon.split(
+                                    ";")
+                                child_taxon_node = subranknd
+                                child_rel_dist = child_taxon_node.rel_dist
+                                break
 
-                        # if there is just one rank name
-                        if len(set(list_ranks)) == 1:
-                            child_taxons = []
-                            child_rel_dist = None
-                            for subranknd in node_in_ref_tree.preorder_iter():
-                                _support, subranknd_taxon, _aux_info = parse_label(
-                                    subranknd.label)
-                                if subranknd.is_internal() and subranknd_taxon is not None and subranknd_taxon.startswith(
-                                        child_rk):
-                                    child_taxons = subranknd_taxon.split(
-                                        ";")
-                                    child_taxon_node = subranknd
-                                    child_rel_dist = child_taxon_node.rel_dist
-                                    break
+                        taxa_str_red, taxa_str_terminal = self._classify_on_internal_branch(leaf.taxon.label,
+                                                                                            child_taxons,
+                                                                                            current_rel_dist,
+                                                                                            child_rel_dist,
+                                                                                            node_in_ref_tree,
+                                                                                            parent_rank, child_rk,
+                                                                                            taxa_str,
+                                                                                            taxa_str_terminal,
+                                                                                            is_on_terminal_branch,
+                                                                                            red_bac_dict)
+                    else:
+                        taxa_str_red = taxa_str
 
-                            taxa_str_red, taxa_str_terminal = self._classify_on_internal_branch(leaf.taxon.label,
-                                                                                                child_taxons,
-                                                                                                current_rel_dist,
-                                                                                                child_rel_dist,
-                                                                                                node_in_ref_tree,
-                                                                                                parent_rank, child_rk,
-                                                                                                taxa_str,
-                                                                                                taxa_str_terminal,
-                                                                                                is_on_terminal_branch,
-                                                                                                red_bac_dict)
-                        else:
-                            taxa_str_red = taxa_str
 
-                    results[leaf.taxon.label] = {"tk_tax_red": standardise_taxonomy(taxa_str_red, 'bac120'),
-                                                 "tk_tax_terminal": standardise_taxonomy(taxa_str_terminal,
-                                                                                         'bac120'),
-                                                 "pplacer_tax": standardise_taxonomy(pplacer_tax, 'bac120'),
-                                                 'rel_dist': current_rel_dist}
+                results[leaf.taxon.label] = {"tk_tax_red": standardise_taxonomy(taxa_str_red, 'bac120'),
+                                             "tk_tax_terminal": standardise_taxonomy(taxa_str_terminal,
+                                                                                     'bac120'),
+                                             "pplacer_tax": standardise_taxonomy(pplacer_tax, 'bac120'),
+                                             'rel_dist': current_rel_dist}
 
-                    pplaceout.write('{}\t{}\t{}\t{}\t{}\n'.format(leaf.taxon.label,
-                                                                  standardise_taxonomy(taxa_str_red, 'bac120'),
-                                                                  standardise_taxonomy(pplacer_tax, 'bac120'),
-                                                                  is_on_terminal_branch, current_rel_dist))
+                pplacer_row.gid = leaf.taxon.label
+                pplacer_row.gtdb_taxonomy_red = standardise_taxonomy(taxa_str_red, 'bac120')
+                pplacer_row.gtdb_taxonomy_terminal = standardise_taxonomy(taxa_str_terminal, 'bac120')
+                pplacer_row.pplacer_taxonomy = standardise_taxonomy(pplacer_tax, 'bac120')
+                pplacer_row.is_terminal = is_on_terminal_branch
+                pplacer_row.red = current_rel_dist
+
+                out_pplacer.add_row(pplacer_row)
+
+        out_pplacer.write()
         return results
 
     def _classify_on_internal_branch(self, leaf, child_taxons, current_rel_list, child_rel_dist, node_in_ref_tree,
@@ -334,7 +339,7 @@ class Split(object):
 
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
-    def _map_high_taxonomy(self, high_classification, mapping_dict, summary_file):
+    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file):
         mapped_rank = {}
         counter = 0
         for k, v in high_classification.items():
