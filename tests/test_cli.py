@@ -25,9 +25,7 @@ import unittest
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.config.output import *
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
 from gtdbtk.main import OptionsParser
-from tests.common import *
 
 
 class TestCli(unittest.TestCase):
@@ -78,6 +76,10 @@ class TestCli(unittest.TestCase):
         # self.generic_out_path = 'tests/data/results'
         self.generic_out_path = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
 
+    def tearDown(self):
+        shutil.rmtree(self.generic_out_path)
+
+
     def test_identify(self):
         tmp_folder = ''.join(random.choice(
             string.ascii_uppercase + string.digits) for _ in range(10))
@@ -119,29 +121,6 @@ class TestCli(unittest.TestCase):
         self.assertTrue(len(last_line) < 5500)
         self.assertTrue('-' in last_line)
         self.assertFalse(any(char.isdigit() for char in last_line))
-
-    def test_classify(self):
-        tmp_folder = ''.join(random.choice(
-            string.ascii_uppercase + string.digits) for _ in range(10))
-        classify_options = self.options
-        classify_options.genome_dir = self.genome_dir
-        classify_options.align_dir = self.align_dir_reference
-        classify_options.out_dir = os.path.join(
-            self.generic_out_path, tmp_folder, 'classify')
-        classify_options.recalculate_red = False
-        classify_options.split_tree = False
-        self.optionparser.classify(classify_options)
-        summary_fh = ClassifySummaryFileAR122(classify_options.out_dir, classify_options.prefix)
-        summary_fh.read()
-        self.assertEqual(
-            'd__Archaea;p__Methanobacteriota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__Methanobrevibacter ruminantium',
-            summary_fh.rows['genome_1'].classification)
-        self.assertEqual(
-            'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365',
-            summary_fh.rows['genome_2'].classification)
-        self.assertEqual(
-            'd__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__VadinCA11 sp002498365',
-            summary_fh.rows['genome_3'].classification)
 
     def test_identify_align(self):
         tmp_folder = ''.join(random.choice(
@@ -282,35 +261,6 @@ class TestCli(unittest.TestCase):
         self.optionparser.align(de_novo_wf_options)
         self.optionparser.infer(de_novo_wf_options)
 
-    def test_identify_gzipped_genomes(self):
-        """ Test that gene calling is successful when using gzipped genomes """
-        options = argparse.ArgumentParser()
-        options.genome_dir = 'tests/data/genomes_gz/'
-        options.cpus = 5
-        options.batchfile = None
-        options.extension = 'fna.gz'
-        options.write_single_copy_genes = False
-        options.prefix = 'gtdbtk'
-        options.force = None
-        options.genes = False
-        options.out_dir = self.generic_out_path
-        self.optionparser.identify(options)
-
-        self.assertTrue(are_files_equal(
-            os.path.join(self.identify_dir_reference, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
-            os.path.join(self.generic_out_path, PATH_BAC120_MARKER_SUMMARY.format(prefix='gtdbtk')),
-            ignore_order=True))
-
-        self.assertTrue(are_files_equal(
-            os.path.join(self.identify_dir_reference, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
-            os.path.join(self.generic_out_path, PATH_AR122_MARKER_SUMMARY.format(prefix='gtdbtk')),
-            ignore_order=True))
-
-        self.assertTrue(
-            are_files_equal(os.path.join(self.identify_dir_reference, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
-                            os.path.join(self.generic_out_path, PATH_TLN_TABLE_SUMMARY.format(prefix='gtdbtk')),
-                            ignore_order=True))
-
     def test_root(self):
         """Test that rooting is successful when called through the CLI"""
         options = argparse.ArgumentParser()
@@ -321,9 +271,6 @@ class TestCli(unittest.TestCase):
         options.gtdbtk_classification_file = None
         self.optionparser.root(options)
         self.assertTrue(os.path.isfile(options.output_tree))
-
-    def tearDown(self):
-        shutil.rmtree(self.generic_out_path)
 
 
 if __name__ == '__main__':

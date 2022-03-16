@@ -2,6 +2,28 @@
 Change log
 ==========
 
+1.7.0
+-----
+
+* (`#336 <https://github.com/Ecogenomics/GTDBTk/issues/336>`_) Warn the user if they have provided an incorrectly formatted taxonomy file.
+* (`#348 <https://github.com/Ecogenomics/GTDBTk/issues/348>`_) Gracefully exit the program if no single copy hits could be identified.
+* (`#351 <https://github.com/Ecogenomics/GTDBTk/issues/351>`_) Fixed an issue where GTDB-Tk would crash if spaces were present in the reference data path.
+* (`#354 <https://github.com/Ecogenomics/GTDBTk/pull/354>`_) Added optional ``--tmpdir`` argument to set temporary directory (thanks `tr11-sanger <https://github.com/tr11-sanger>`_!).
+
+
+1.6.0
+-----
+
+* (`#337 <https://github.com/Ecogenomics/GTDBTk/issues/337>`_) Set minimum `tqdm` version to `4.35.0`
+* (`#335 <https://github.com/Ecogenomics/GTDBTk/pull/335>`_) Fixed typo in output log messages (@fplaza)
+* Removed the option to re-calculate RED values (`--recalculate_red`)
+
+1.5.1
+-----
+
+* (`#327 <https://github.com/Ecogenomics/GTDBTk/issues/327>`_) Disallow spaces in genome names/file paths due to downstream application issues.
+* (`#326 <https://github.com/Ecogenomics/GTDBTk/issues/326>`_) Disallow genome names that are blank.
+
 1.5.0
 -----
 

@@ -16,6 +16,7 @@
 ###############################################################################
 
 import os
+from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.config.output import PATH_AR122_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS, PATH_BAC120_HIGH_PPLACER_CLASS, \
@@ -27,8 +28,8 @@ class PplacerClassifyFile(object):
     """Store the pplacer classifications."""
 
     def __init__(self, path: str):
-        self.path = path
-        self.data = dict()
+        self.path: str = path
+        self.data: Dict[str, str] = dict()
 
     def add_genome(self, gid: str, tax_str: str):
         """Adds the pplacer classification of a given genome."""

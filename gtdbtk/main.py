@@ -44,6 +44,8 @@ from gtdbtk.io.batchfile import Batchfile
 from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
+from gtdbtk.model.enum import Domain
+from gtdbtk.pipeline.export_msa import export_msa
 from gtdbtk.reroot_tree import RerootTree
 from gtdbtk.tools import symlink_f, get_reference_ids
 
@@ -76,7 +78,7 @@ class OptionsParser(object):
                                        f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
                                        ['bright'], fg='yellow'))
 
-    def _verify_genome_id(self, genome_id):
+    def _verify_genome_id(self, genome_id: str) -> bool:
         """Ensure genome ID will be valid in Newick tree.
 
         Parameters
@@ -91,16 +93,27 @@ class OptionsParser(object):
 
         Raises
         ------
-        GenomeNameInvalid
+        GTDBTkExit
             If the genome identifier contains illegal characters.
         """
-
-        invalid_chars = set('()[],;=')
+        if genome_id is None or not isinstance(genome_id, str):
+            raise GTDBTkExit(f'The genome name is not a valid string: {genome_id}')
+        if len(genome_id) == 0:
+            raise GTDBTkExit('Genome name cannot be blank, check for input files '
+                             'without a name, or empty columns in the batchfile.')
+        invalid_chars = frozenset('()[],;= ')
         if any((c in invalid_chars) for c in genome_id):
             self.logger.error(f'Invalid genome ID: {genome_id}')
             self.logger.error(f'The following characters are invalid: '
                               f'{" ".join(invalid_chars)}')
-            raise GenomeNameInvalid(f'Invalid genome ID: {genome_id}')
+            raise GTDBTkExit(f'Invalid genome ID: {genome_id}')
+        return True
+
+    @staticmethod
+    def _verify_file_path(file_path: str) -> bool:
+        if ' ' in file_path:
+            raise GTDBTkExit(f'The genome path contains a space, this is '
+                             f'unsupported by downstream applications: {file_path}')
         return True
 
     def _genomes_to_process(self, genome_dir, batchfile, extension):
@@ -136,6 +149,10 @@ class OptionsParser(object):
         for genome_key in genomic_files:
             self._verify_genome_id(genome_key)
 
+        # Check that there are no illegal characters in the file path
+        for file_path in genomic_files.values():
+            self._verify_file_path(file_path)
+
         # Check that the prefix is valid and the path exists
         invalid_paths = list()
         for genome_key, genome_path in genomic_files.items():
@@ -151,7 +168,7 @@ class OptionsParser(object):
             for g_path, g_gid in invalid_paths:
                 self.warnings.info(f'{g_gid}\t{g_path}')
             raise GTDBTkExit(f'There are {len(invalid_paths)} paths in the '
-                             f'batchfile which do not exist, see gtdb.warnings.log')
+                             f'batchfile which do not exist, see gtdbtk.warnings.log')
 
         if len(genomic_files) == 0:
             if genome_dir:
@@ -437,14 +454,14 @@ class OptionsParser(object):
                                               options.extension)
 
         classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
-        classify.run(genomes,
-                     options.align_dir,
-                     options.out_dir,
-                     options.prefix,
-                     options.scratch_dir,
-                     options.recalculate_red,
-                     options.debug,
-                     options.split_tree)
+        classify.run(genomes=genomes,
+                     align_dir=options.align_dir,
+                     out_dir=options.out_dir,
+                     prefix=options.prefix,
+                     scratch_dir=options.scratch_dir,
+                     debugopt=options.debug,
+                     splittreeopt=options.split_tree,
+                     recalculate_red=False)
 
         self.logger.info('Done.')
 
@@ -475,9 +492,22 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
-        misc = Misc()
-        misc.export_msa(options.domain, options.output)
+        # Get and validate the domain
+        user_domain = getattr(options, 'domain', None)
+        if user_domain == 'arc':
+            domain = Domain.ARCHAEA
+        elif user_domain == 'bac':
+            domain = Domain.BACTERIA
+        else:
+            raise GTDBTkExit(f'Unknown domain: {options.domain}')
 
+        # Get and validate the path
+        user_output = getattr(options, 'output', None)
+        if not user_output:
+            raise GTDBTkExit(f'You must specify a valid path: "{user_output}"')
+
+        # Export the MSA
+        export_msa(domain=domain, output_file=user_output)
         self.logger.info('Done.')
 
     def root(self, options):
@@ -620,6 +650,10 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
 
+            if options.skip_gtdb_refs and options.custom_taxonomy_file is None:
+                raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
+                                 "'--custom_taxonomy_file' to be included to the command line.")
+
             options.write_single_copy_genes = False
             self.identify(options)
 
@@ -730,8 +764,8 @@ class OptionsParser(object):
             #                         ' supported, overriding value to False.')
             # options.split_tree = False
 
-            if options.recalculate_red and options.split_tree:
-                raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
+            # if options.recalculate_red and options.split_tree:
+            #     raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
             self.classify(options)
         elif options.subparser_name == 'root':
             self.root(options)
