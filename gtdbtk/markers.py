@@ -150,7 +150,7 @@ class Markers(object):
                         with open(marker_path, 'w') as fh:
                             fh.write('\n'.join(to_write))
 
-    def identify(self, genomes, tln_tables, out_dir, prefix, force, write_single_copy_genes):
+    def identify(self, genomes, tln_tables, out_dir, prefix, force,genes, write_single_copy_genes):
         """Identify marker genes in genomes.
 
         Parameters
@@ -165,6 +165,8 @@ class Markers(object):
             Prefix to append to generated files.
         force : bool
             Overwrite any existing files.
+        genes : bool
+            True if the supplied genomes are called genes, False otherwise.
         write_single_copy_genes : bool
             Write unique AR122/BAC120 marker files to disk.
 
@@ -181,15 +183,30 @@ class Markers(object):
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
         self.failed_genomes = os.path.join(out_dir, PATH_FAILS.format(prefix=prefix))
-        prodigal = Prodigal(self.cpus,
+
+        if not genes:
+            self.logger.info("Running Prodigal to identify genes.")
+            prodigal = Prodigal(self.cpus,
                             self.failed_genomes,
                             self.marker_gene_dir,
                             self.protein_file_suffix,
                             self.nt_gene_file_suffix,
                             self.gff_file_suffix,
                             force)
-        self.logger.log(Config.LOG_TASK, f'Running Prodigal {prodigal.version} to identify genes.')
-        genome_dictionary = prodigal.run(genomes, tln_tables)
+            self.logger.log(Config.LOG_TASK, f'Running Prodigal {prodigal.version} to identify genes.')
+            genome_dictionary = prodigal.run(genomes, tln_tables)
+
+        else:
+            self.logger.info('Using supplied genomes as called genes, skipping Prodigal.')
+            genome_dictionary = dict()
+            for gid, gpath in genomes.items():
+                genome_dictionary[gid] = {'aa_gene_path': gpath,
+                                          'translation_table_path': None,
+                                          'nt_gene_path': None,
+                                          'best_translation_table': 'user_supplied',
+                                          'gff_path': None}
+
+
 
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.log(Config.LOG_TASK, 'Identifying TIGRFAM protein families.')
@@ -560,8 +577,7 @@ class Markers(object):
                 filtered_user_genomes = set(
                     pruned_seqs).intersection(user_msa)
                 if len(filtered_user_genomes):
-                    self.logger.info('Filtered genomes include {:.} user submitted genomes.'.format(len(
-                        filtered_user_genomes)))
+                    self.logger.info(f'Filtered genomes include {len(filtered_user_genomes)} user submitted genomes.')
             else:
                 self.logger.log(Config.LOG_TASK,
                     f'Masking columns of {domain_str} multiple sequence alignment using canonical mask.')

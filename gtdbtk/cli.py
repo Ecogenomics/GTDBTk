@@ -1,4 +1,5 @@
 import argparse
+import tempfile
 from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
@@ -28,6 +29,10 @@ def arg_group(parser, name):
 def __temp_dir(group):
     group.add_argument('--tmpdir', action=ChangeTempAction, default=tempfile.gettempdir(),
                        help="specify alternative directory for temporary files")
+
+def __genes(group):
+    group.add_argument('--genes', action='store_true', default=False,
+                        help='indicates input are called genes (skip gene calling)')
 
 
 def __genome_dir(group):
@@ -325,6 +330,7 @@ def get_main_parser():
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
             __prefix(grp)
+            __genes(grp)
             __cpus(grp)
             __force(grp)
             __temp_dir(grp)
@@ -342,6 +348,7 @@ def get_main_parser():
             __extension(grp)
             __min_perc_aa(grp)
             __prefix(grp)
+            __genes(grp)
             __cpus(grp)
             __pplacer_cpus(grp)
             __force(grp)
@@ -363,6 +370,7 @@ def get_main_parser():
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)
+            __genes(grp)
             __cpus(grp)
             __force(grp)
             __write_single_copy_genes(grp)

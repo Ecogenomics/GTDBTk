@@ -273,6 +273,7 @@ class OptionsParser(object):
                          options.out_dir,
                          options.prefix,
                          options.force,
+                         options.genes,
                          options.write_single_copy_genes)
 
         self.logger.info('Done.')
