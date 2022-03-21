@@ -31,6 +31,7 @@ class PplacerClassifyFile(object):
         self.path: str = path
         self.data: Dict[str, str] = dict()
 
+
     def add_genome(self, gid: str, tax_str: str):
         """Adds the pplacer classification of a given genome."""
         if gid in self.data:
@@ -40,9 +41,10 @@ class PplacerClassifyFile(object):
     def write(self):
         """Write the file to disk."""
         make_sure_path_exists(os.path.dirname(self.path))
-        with open(self.path, 'w') as fh:
-            for gid, tax_str in sorted(self.data.items()):
-                fh.write(f'{gid}\t{tax_str}\n')
+        if len(self.data) > 0 :
+            with open(self.path, 'w') as fh:
+                for gid, tax_str in sorted(self.data.items()):
+                    fh.write(f'{gid}\t{tax_str}\n')
 
 
 class PplacerClassifyFileAR122(PplacerClassifyFile):

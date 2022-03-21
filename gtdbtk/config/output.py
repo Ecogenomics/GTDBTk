@@ -44,6 +44,8 @@ PATH_AR122_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar122.summary.tsv')
 PATH_HIGH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.high.bac120.classify.tree')
 PATH_LOW_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree.{iter}.tree')
 PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
+PATH_AR122_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.ar122.disappearing_genomes.tsv')
+PATH_BAC120_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.bac120.disappearing_genomes.tsv')
 
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')

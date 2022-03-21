@@ -44,6 +44,7 @@ from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerC
     PplacerLowClassifyFileBAC120
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.io.red_dict import REDDictFileAR122, REDDictFileBAC120
+from gtdbtk.io.missing_genomes import DisappearingGenomesFileAR122, DisappearingGenomesFileBAC120
 from gtdbtk.io.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
@@ -188,6 +189,7 @@ class Classify(object):
                                 f'{self.pplacer_cpus} CPUs (be patient).')
                 pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
                                                Config.PPLACER_BAC120_REF_PKG)
+
             elif levelopt == 'high':
                 self.logger.log(Config.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
@@ -309,7 +311,7 @@ class Classify(object):
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        return tree_file
+        return tree_file,num_genomes
 
     def _parse_red_dict(self, red_dist_dict):
         results = {}
@@ -351,6 +353,7 @@ class Classify(object):
         """Classify genomes based on position in reference tree."""
 
         _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
+        disappearing_genomes = []
 
         for marker_set_id in ('ar122', 'bac120'):
 
@@ -361,6 +364,7 @@ class Classify(object):
                                              PATH_AR122_USER_MSA.format(prefix=prefix))
                 summary_file = ClassifySummaryFileAR122(out_dir, prefix)
                 red_dict_file = REDDictFileAR122(out_dir, prefix)
+                disappearing_genomes_file = DisappearingGenomesFileAR122(out_dir, prefix)
                 pplacer_classify_file = PplacerClassifyFileAR122(out_dir, prefix)
             elif marker_set_id == 'bac120':
                 marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
@@ -369,6 +373,7 @@ class Classify(object):
                                              PATH_BAC120_USER_MSA.format(prefix=prefix))
                 summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
                 red_dict_file = REDDictFileBAC120(out_dir, prefix)
+                disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
                 pplacer_classify_file = PplacerClassifyFileBAC120(out_dir, prefix)
                 if splittreeopt:
                     tree_mapping_file = GenomeMappingFile(out_dir, prefix)
@@ -391,10 +396,12 @@ class Classify(object):
 
             msa_dict = read_fasta(user_msa_file)
 
+
+
             if splittreeopt is True and marker_set_id == 'bac120':
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                 # run pplacer to place bins in reference genome tree
-                num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
+                genomes_to_process=[seq_id for seq_id, _seq in read_seq(user_msa_file)]
                 debug_file, conflict_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, splittreeopt)
 
@@ -410,6 +417,11 @@ class Classify(object):
                 high_classification = splitter.get_high_pplacer_taxonomy(
                     out_dir, marker_set_id, prefix, user_msa_file, tree)
 
+                disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in high_classification]
+                if disappearing_genomes:
+                    for disappearing_genome in disappearing_genomes:
+                        disappearing_genomes_file.add_genome(disappearing_genome,'Backbone')
+
                 tree_mapping_dict = {}
                 tree_mapping_dict_reverse = {}
                 with open(Config.LOW_TREE_MAPPING_FILE) as ltmf:
@@ -421,7 +433,7 @@ class Classify(object):
                 splitter = Split(self.order_rank,self.gtdb_taxonomy,self.reference_ids)
                 sorted_high_taxonomy, len_sorted_genomes = splitter.map_high_taxonomy(
                     high_classification, tree_mapping_dict, summary_file)
-                self.logger.info(f"{len_sorted_genomes} out of {num_genomes} have an order assignments. Those genomes "
+                self.logger.info(f"{len_sorted_genomes} out of {len(genomes_to_process)} have an order assignments. Those genomes "
                                  f"will be reclassified.")
 
                 for idx, tree_iter in enumerate(
@@ -430,11 +442,22 @@ class Classify(object):
                     low_classify_tree, submsa_file_path = self._place_in_low_tree(
                         tree_iter, len(sorted_high_taxonomy), idx + 1, listg, msa_dict, marker_set_id, prefix,
                         scratch_dir, out_dir)
+                    genomes_to_process = [seq_id for seq_id, _seq in read_seq(submsa_file_path)]
                     mrca_lowtree = self._assign_mrca_red(
                         low_classify_tree, marker_set_id, 'low', tree_iter)
                     pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix,tree_iter)
                     pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
                                                                        marker_set_id, user_msa_file, mrca_lowtree)
+                    disappearing_genomes = [seq_id for seq_id in genomes_to_process if
+                                            seq_id not in pplacer_taxonomy_dict]
+                    if disappearing_genomes:
+                        self.logger.warning(f"{len(disappearing_genomes)} out of {len(genomes_to_process)} have not been"
+                                            f" properly placed by pplacer. This is a known issue with pplacer but we do "
+                                            f"not have a solution currently. Those missing genomes are written to "
+                                            f"the {disappearing_genomes_file.file_name} file. We recommend rerunning "
+                                            f"those genomes through GTDB-Tk to 'fix' the problem.")
+                        for disappearing_genome in disappearing_genomes:
+                            disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
                     self._parse_tree(mrca_lowtree, genomes, msa_dict,
                                      percent_multihit_dict, tln_table_summary_file.genomes,
@@ -457,6 +480,8 @@ class Classify(object):
                                                    prefix,
                                                    scratch_dir)
 
+                genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+
                 # get taxonomic classification of each user genome
                 debug_file, conflict_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, splittreeopt)
@@ -472,6 +497,9 @@ class Classify(object):
                                                                    marker_set_id,
                                                                    user_msa_file,
                                                                    tree_to_process)
+
+                disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
+
 
                 self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
                                  tln_table_summary_file.genomes,
@@ -489,13 +517,21 @@ class Classify(object):
                 else:
                     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
+                if disappearing_genomes:
+                    for disappearing_genome in disappearing_genomes:
+                        disappearing_genomes_file.add_genome(disappearing_genome,'N/A')
+
+
                 if debugopt:
                     debug_file.close()
+
+
 
             if splittreeopt and marker_set_id == 'bac120':
                 tree_mapping_file.write()
 
             # Write the summary file to disk.
+            disappearing_genomes_file.write()
             summary_file.write()
 
     def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, splittreeopt=None):
