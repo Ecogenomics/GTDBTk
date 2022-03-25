@@ -4,7 +4,7 @@
 summary.tsv
 ===========
 
-Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar122.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
+Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summary.tsv and \<prefix>.ar53.summary.tsv for bacterial and archaeal genomes, respectively. These are tab separated files with the following columns:
 
 * user_genome: Unique identifier of query genome taken from the FASTA file of the genome.
 * classification: GTDB taxonomy string inferred by the GTDB-Tk. An unassigned species (i.e., ``s__``) indicates that the query genome is either i) placed outside a named genus or ii) the ANI to the closest intra-genus reference genome with an AF >=0.65 is not within the species-specific ANI circumscription radius.

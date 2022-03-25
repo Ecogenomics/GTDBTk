@@ -19,7 +19,7 @@ import os
 from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import PATH_AR122_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS, PATH_BAC120_HIGH_PPLACER_CLASS, \
+from gtdbtk.config.output import PATH_AR53_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS, PATH_BAC120_HIGH_PPLACER_CLASS, \
     PATH_BAC120_LOW_PPLACER_CLASS
 from gtdbtk.exceptions import GTDBTkExit
 
@@ -47,11 +47,11 @@ class PplacerClassifyFile(object):
                     fh.write(f'{gid}\t{tax_str}\n')
 
 
-class PplacerClassifyFileAR122(PplacerClassifyFile):
-    """Store the pplacer classifications for the AR122 marker set."""
+class PplacerClassifyFileAR53(PplacerClassifyFile):
+    """Store the pplacer classifications for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
+        path = os.path.join(out_dir, PATH_AR53_PPLACER_CLASS.format(prefix=prefix))
         super().__init__(path)
 
 

@@ -20,8 +20,8 @@ import shutil
 import tempfile
 import unittest
 
-from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR122_MARKER_SUMMARY
-from gtdbtk.io.marker.copy_number import CopyNumberFile, CopyNumberFileAR122, CopyNumberFileBAC120
+from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY
+from gtdbtk.io.marker.copy_number import CopyNumberFile, CopyNumberFileAR53, CopyNumberFileBAC120
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
 
 
@@ -195,22 +195,22 @@ class TestCopyNumberFile(unittest.TestCase):
         self.assertDictEqual(genome_2_truth, test_cn.genomes['genome_2'])
 
 
-class TestCopyNumberFileAR122(unittest.TestCase):
+class TestCopyNumberFileAR53(unittest.TestCase):
 
     def setUp(self):
         self.dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
-        self.cn = CopyNumberFileAR122(self.dir_tmp, 'tst')
+        self.cn = CopyNumberFileAR53(self.dir_tmp, 'tst')
 
     def tearDown(self):
         self.cn = None
         shutil.rmtree(self.dir_tmp)
 
     def test___init__(self):
-        path = os.path.join(self.dir_tmp, PATH_AR122_MARKER_SUMMARY.format(prefix='tst'))
+        path = os.path.join(self.dir_tmp, PATH_AR53_MARKER_SUMMARY.format(prefix='tst'))
         self.assertEqual(path, self.cn.path)
-        self.assertEqual('ar122', self.cn.marker_set)
+        self.assertEqual('ar53', self.cn.marker_set)
         self.assertDictEqual({}, self.cn.genomes)
-        self.assertEqual(122, len(self.cn.marker_names))
+        self.assertEqual(53, len(self.cn.marker_names))
 
 
 class TestCopyNumberFileBAC120(unittest.TestCase):

@@ -18,7 +18,7 @@
 import logging
 import os
 
-from gtdbtk.config.output import PATH_AR122_SUMMARY_OUT, PATH_BAC120_SUMMARY_OUT
+from gtdbtk.config.output import PATH_AR53_SUMMARY_OUT, PATH_BAC120_SUMMARY_OUT
 from gtdbtk.exceptions import GTDBTkExit
 
 
@@ -146,12 +146,12 @@ class ClassifySummaryFile(object):
                 self.add_row(row)
 
 
-class ClassifySummaryFileAR122(ClassifySummaryFile):
-    """Store classify summary information for AR122 markers."""
+class ClassifySummaryFileAR53(ClassifySummaryFile):
+    """Store classify summary information for AR53 markers."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_SUMMARY_OUT.format(prefix=prefix))
-        super().__init__(path, 'ar122')
+        path = os.path.join(out_dir, PATH_AR53_SUMMARY_OUT.format(prefix=prefix))
+        super().__init__(path, 'ar53')
 
 
 class ClassifySummaryFileBAC120(ClassifySummaryFile):

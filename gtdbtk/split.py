@@ -50,7 +50,7 @@ class Split(object):
         ----------
         out_dir : output directory
         prefix : desired prefix for output files
-        marker_set_id : bacterial or archaeal id (bac120 or ar122)
+        marker_set_id : bacterial or archaeal id (bac120 or ar53)
         user_msa_file : msa file listing all user genomes for a certain domain
         tree : pplacer tree including the user genomes
 

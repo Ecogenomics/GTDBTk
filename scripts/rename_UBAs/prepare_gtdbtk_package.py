@@ -182,7 +182,7 @@ class OptionsParser(object):
                 copyfile(genome, os.path.join(
                     fastani_dir, filenamef + "_genomic.fna"))
 
-        for dom in ['bac120', 'ar122']:
+        for dom in ['bac120', 'ar53']:
             # MSA renaming
             msadir = os.path.join(dirout, dom, 'msa')
             if not os.path.exists(msadir):

@@ -26,7 +26,7 @@ import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
-from gtdbtk.io.pplacer_classification import PplacerClassifyFileAR122
+from gtdbtk.io.pplacer_classification import PplacerClassifyFileAR53
 
 
 class TestClassify(unittest.TestCase):
@@ -37,7 +37,7 @@ class TestClassify(unittest.TestCase):
         self.prefix = 'gtdbtk'
         self.pplacer_dir_reference = 'tests/data/pplacer_dir_reference'
         self.aln_dir_ref = 'tests/data/align_dir_reference/align'
-        self.user_msa_file = os.path.join(self.aln_dir_ref, 'gtdbtk.ar122.user_msa.fasta')
+        self.user_msa_file = os.path.join(self.aln_dir_ref, 'gtdbtk.ar53.user_msa.fasta')
         self.taxonomy_file = Config.TAXONOMY_FILE
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
@@ -55,14 +55,14 @@ class TestClassify(unittest.TestCase):
         # Test that the correct domain is returned.
         self.assertEqual(self.classify.standardise_taxonomy('p__P;c__C;o__O;f__F;g__G;s__S', 'bac120'),
                          'd__Bacteria;p__P;c__C;o__O;f__F;g__G;s__S')
-        self.assertEqual(self.classify.standardise_taxonomy('p__P;c__C;o__O;f__F;g__G;s__S', 'ar122'),
+        self.assertEqual(self.classify.standardise_taxonomy('p__P;c__C;o__O;f__F;g__G;s__S', 'ar53'),
                          'd__Archaea;p__P;c__C;o__O;f__F;g__G;s__S')
 
         # Remove ranks and check
         rank_order = {'p': 0, 'c': 1, 'o': 2, 'f': 3, 'g': 4, 's': 5}
         rank_lst = ['p__P', 'c__C', 'o__O', 'f__F', 'g__G', 's__S']
         ranks = {'p': 'P', 'c': 'C', 'o': 'O', 'f': 'F', 'g': 'G', 's': 'S'}
-        dom_info = {'d__Bacteria': 'bac120', 'd__Archaea': 'ar122'}
+        dom_info = {'d__Bacteria': 'bac120', 'd__Archaea': 'ar53'}
 
         for k in range(1, len(ranks) - 1):
             for cur_domain in ('d__Bacteria', 'd__Archaea'):
@@ -87,15 +87,15 @@ class TestClassify(unittest.TestCase):
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
         tree = dendropy.Tree.get_from_path(os.path.join(os.getcwd(), self.pplacer_dir_reference,
-                                                        'gtdbtk.ar122.classify.tree'),
+                                                        'gtdbtk.ar53.classify.tree'),
                                            schema='newick',
                                            rooting='force-rooted',
                                            preserve_underscores=True)
-        pplacer_classify_file = PplacerClassifyFileAR122(self.out_dir, self.prefix)
-        self.classify._get_pplacer_taxonomy(pplacer_classify_file, 'ar122', self.user_msa_file, tree)
+        pplacer_classify_file = PplacerClassifyFileAR53(self.out_dir, self.prefix)
+        self.classify._get_pplacer_taxonomy(pplacer_classify_file, 'ar53', self.user_msa_file, tree)
         results = {}
 
-        with open(os.path.join(self.out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=self.prefix)), 'r') as f:
+        with open(os.path.join(self.out_dir, PATH_AR53_PPLACER_CLASS.format(prefix=self.prefix)), 'r') as f:
             for line in f:
                 infos = line.strip().split('\t')
                 results[infos[0]] = infos[1]
@@ -108,7 +108,7 @@ class TestClassify(unittest.TestCase):
 
     def test_place_genomes(self):
         tree_file = self.classify.place_genomes(
-            self.user_msa_file, 'ar122', self.out_dir, self.prefix)
+            self.user_msa_file, 'ar53', self.out_dir, self.prefix)
         with open(tree_file, 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
@@ -128,7 +128,7 @@ class TestClassify(unittest.TestCase):
 
     def test_calculate_red_distances(self):
         tree = os.path.join(self.pplacer_dir_reference,
-                            'gtdbtk.ar122.classify.tree')
+                            'gtdbtk.ar53.classify.tree')
         result_tree = self.classify._calculate_red_distances(
             tree, self.out_dir)
         egs2 = [eg.length for eg in result_tree.postorder_edge_iter()

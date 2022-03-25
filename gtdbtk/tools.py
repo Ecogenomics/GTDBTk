@@ -71,7 +71,7 @@ def standardise_taxonomy(taxstring, marker_set=None):
         if marker_set == 'bac120':
             if not taxlist or taxlist[0] !='d__Bacteria' :
                 taxlist.insert(0, 'd__Bacteria')
-        if marker_set == 'ar122':
+        if marker_set == 'ar53':
             if not taxlist or taxlist[0] !='d__Archaea' :
                 taxlist.insert(0, 'd__Archaea')
         taxlist.extend(order_rank[len(taxlist):])

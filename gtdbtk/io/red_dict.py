@@ -20,7 +20,7 @@ from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.config.config import RED_DIST_ARC_DICT, RED_DIST_BAC_DICT
-from gtdbtk.config.output import PATH_AR122_RED_DICT, PATH_BAC120_RED_DICT
+from gtdbtk.config.output import PATH_AR53_RED_DICT, PATH_BAC120_RED_DICT
 
 
 class REDDictFile(object):
@@ -41,11 +41,11 @@ class REDDictFile(object):
             fh.write(f'Genus\t{self.data["g__"]}\n')
 
 
-class REDDictFileAR122(REDDictFile):
-    """Store the RED dictionary for the AR122 marker set."""
+class REDDictFileAR53(REDDictFile):
+    """Store the RED dictionary for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_RED_DICT.format(prefix=prefix))
+        path = os.path.join(out_dir, PATH_AR53_RED_DICT.format(prefix=prefix))
         super().__init__(path, RED_DIST_ARC_DICT)
 
 

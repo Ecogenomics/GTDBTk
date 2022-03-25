@@ -125,7 +125,7 @@ BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm",
                               "TIGR03625.HMM", "TIGR03632.HMM", "TIGR03654.HMM",
                               "TIGR03723.HMM", "TIGR03725.HMM", "TIGR03953.HMM"]}
 
-# AR122_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm",
+# AR53_MARKERS = {"PFAM": ["PF01868.11.hmm", "PF01282.14.hmm", "PF01655.13.hmm",
 #                           "PF01092.14.hmm", "PF01000.21.hmm", "PF00368.13.hmm",
 #                           "PF00827.12.hmm", "PF01269.12.hmm", "PF00466.15.hmm",
 #                           "PF01015.13.hmm", "PF13685.1.hmm", "PF02978.14.hmm",
@@ -210,8 +210,8 @@ BAC120_MARKERS = {"PFAM": ["PF00380.14.hmm", "PF00410.14.hmm", "PF00466.15.hmm",
 #                               "TIGR03723.HMM", "TIGR03725.HMM", "TIGR03953.HMM"]}
 #
 #
-# #New Version of AR122_MARKERS
-# AR122_MARKERS = {"PFAM": ["PF01868.17.hmm", "PF01282.20.hmm", "PF01655.19.hmm",
+# #New Version of AR53_MARKERS
+# AR53_MARKERS = {"PFAM": ["PF01868.17.hmm", "PF01282.20.hmm", "PF01655.19.hmm",
 #                           "PF01092.20.hmm", "PF01000.27.hmm", "PF00368.19.hmm",
 #                           "PF00827.18.hmm", "PF01269.18.hmm", "PF00466.21.hmm",
 #                           "PF01015.19.hmm", "PF13685.7.hmm", "PF02978.20.hmm",

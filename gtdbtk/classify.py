@@ -38,13 +38,13 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR122, ClassifySummaryFileBAC120, ClassifySummaryFileRow
-from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
-from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR122, \
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
+from gtdbtk.io.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
+from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR53, \
     PplacerLowClassifyFileBAC120
 from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
-from gtdbtk.io.red_dict import REDDictFileAR122, REDDictFileBAC120
-from gtdbtk.io.missing_genomes import DisappearingGenomesFileAR122, DisappearingGenomesFileBAC120
+from gtdbtk.io.red_dict import REDDictFileAR53, REDDictFileBAC120
+from gtdbtk.io.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
 from gtdbtk.io.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
@@ -150,7 +150,7 @@ class Classify(object):
                 self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC,
                                                        domain='bacterial',
                                                        cur_gb=mem_total))
-            elif marker_set_id == 'ar122' and mem_total < Config.PPLACER_MIN_RAM_ARC:
+            elif marker_set_id == 'ar53' and mem_total < Config.PPLACER_MIN_RAM_ARC:
                 self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_ARC,
                                                        domain='archaeal',
                                                        cur_gb=mem_total))
@@ -159,8 +159,8 @@ class Classify(object):
         if not user_msa_file.endswith('.fasta'):
             if marker_set_id == 'bac120':
                 t = PATH_BAC120_USER_MSA.format(prefix=prefix)
-            elif marker_set_id == 'ar122':
-                t = PATH_AR122_USER_MSA.format(prefix=prefix)
+            elif marker_set_id == 'ar53':
+                t = PATH_AR53_USER_MSA.format(prefix=prefix)
             else:
                 raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
@@ -205,13 +205,13 @@ class Classify(object):
                                 f'(be patient).')
                 pplacer_ref_pkg = os.path.join(Config.LOW_PPLACER_DIR,
                                                Config.LOW_PPLACER_REF_PKG.format(iter=tree_iter))
-        elif marker_set_id == 'ar122':
+        elif marker_set_id == 'ar53':
             self.logger.log(Config.LOG_TASK,
                             f'Placing {num_genomes:,} archaeal genomes into '
                             f'reference tree with pplacer using '
                             f'{self.pplacer_cpus} CPUs (be patient).')
             pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
-                                           Config.PPLACER_AR122_REF_PKG)
+                                           Config.PPLACER_AR53_REF_PKG)
         else:
             raise GenomeMarkerSetUnknown(f'Unknown marker set: {marker_set_id}')
 
@@ -237,9 +237,9 @@ class Classify(object):
                     out_dir, PATH_LOW_BAC120_PPLACER_OUT.format(iter=tree_iter))
                 pplacer_json_out = os.path.join(
                     out_dir, PATH_LOW_BAC120_PPLACER_JSON.format(iter=tree_iter))
-        elif marker_set_id == 'ar122':
-            pplacer_out = os.path.join(out_dir, PATH_AR122_PPLACER_OUT)
-            pplacer_json_out = os.path.join(out_dir, PATH_AR122_PPLACER_JSON)
+        elif marker_set_id == 'ar53':
+            pplacer_out = os.path.join(out_dir, PATH_AR53_PPLACER_OUT)
+            pplacer_json_out = os.path.join(out_dir, PATH_AR53_PPLACER_JSON)
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -265,9 +265,9 @@ class Classify(object):
             elif levelopt == 'low':
                 tree_file = os.path.join(
                     out_dir, PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))
-        elif marker_set_id == 'ar122':
+        elif marker_set_id == 'ar53':
             tree_file = os.path.join(
-                out_dir, PATH_AR122_TREE_FILE.format(prefix=prefix))
+                out_dir, PATH_AR53_TREE_FILE.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -285,9 +285,9 @@ class Classify(object):
             symlink_f(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter),
                       os.path.join(out_dir,
                                    os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))))
-        elif marker_set_id == 'ar122':
-            symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+        elif marker_set_id == 'ar53':
+            symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -304,9 +304,9 @@ class Classify(object):
                 symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
                           os.path.join(out_dir, os.path.basename(
                               PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
-        elif marker_set_id == 'ar122':
-            symlink_f(PATH_AR122_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_AR122_TREE_FILE.format(prefix=prefix))))
+        elif marker_set_id == 'ar53':
+            symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
+                      os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
@@ -355,17 +355,17 @@ class Classify(object):
         _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
         disappearing_genomes = []
 
-        for marker_set_id in ('ar122', 'bac120'):
+        for marker_set_id in ('ar53', 'bac120'):
 
-            if marker_set_id == 'ar122':
-                marker_summary_fh = CopyNumberFileAR122(align_dir, prefix)
+            if marker_set_id == 'ar53':
+                marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                 marker_summary_fh.read()
                 user_msa_file = os.path.join(align_dir,
-                                             PATH_AR122_USER_MSA.format(prefix=prefix))
-                summary_file = ClassifySummaryFileAR122(out_dir, prefix)
-                red_dict_file = REDDictFileAR122(out_dir, prefix)
-                disappearing_genomes_file = DisappearingGenomesFileAR122(out_dir, prefix)
-                pplacer_classify_file = PplacerClassifyFileAR122(out_dir, prefix)
+                                             PATH_AR53_USER_MSA.format(prefix=prefix))
+                summary_file = ClassifySummaryFileAR53(out_dir, prefix)
+                red_dict_file = REDDictFileAR53(out_dir, prefix)
+                disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
+                pplacer_classify_file = PplacerClassifyFileAR53(out_dir, prefix)
             elif marker_set_id == 'bac120':
                 marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                 marker_summary_fh.read()
@@ -511,9 +511,9 @@ class Classify(object):
                 if marker_set_id == 'bac120':
                     symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                elif marker_set_id == 'ar122':
-                    symlink_f(PATH_AR122_SUMMARY_OUT.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_AR122_SUMMARY_OUT.format(prefix=prefix))))
+                elif marker_set_id == 'ar53':
+                    symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
                 else:
                     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
@@ -863,7 +863,7 @@ class Classify(object):
             if summary_row.gid in bac_ar_diff:
                 notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(summary_row.gid).get('bac120'),
-                    bac_ar_diff.get(summary_row.gid).get('ar122')))
+                    bac_ar_diff.get(summary_row.gid).get('ar53')))
 
             if len(notes) > 0:
                 summary_row.warnings = ';'.join(notes)
@@ -970,7 +970,7 @@ class Classify(object):
         Parameters
         ----------
         input_tree : pplacer tree
-        marker_set_id : bacterial or archeal id (bac120 or ar122)
+        marker_set_id : bacterial or archeal id (bac120 or ar53)
 
         Returns
         -------
@@ -993,8 +993,8 @@ class Classify(object):
             red_file = Config.HIGH_RED_FILE
         elif levelopt == 'low':
             red_file = Config.LOW_RED_FILE.format(iter=tree_iter)
-        if marker_set_id == 'ar122':
-            red_file = Config.MRCA_RED_AR122
+        if marker_set_id == 'ar53':
+            red_file = Config.MRCA_RED_AR53
 
         # create map from leave labels to tree nodes
         leaf_node_map = {}
@@ -1072,7 +1072,7 @@ class Classify(object):
         Parameters
         ----------
         pplacer_classify_file : output file object to write
-        marker_set_id : bacterial or archaeal id (bac120 or ar122)
+        marker_set_id : bacterial or archaeal id (bac120 or ar53)
         user_msa_file : msa file listing all user genomes for a certain domain
         tree : pplacer tree including the user genomes
 
@@ -1171,7 +1171,7 @@ class Classify(object):
             if userleaf.taxon.label in bac_ar_diff:
                 notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(userleaf.taxon.label).get('bac120'),
-                    bac_ar_diff.get(userleaf.taxon.label).get('ar122')))
+                    bac_ar_diff.get(userleaf.taxon.label).get('ar53')))
 
             if potential_nodes.get("pplacer_g"):
                 pplacer_leafnode = potential_nodes.get("pplacer_g").taxon.label

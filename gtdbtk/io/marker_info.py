@@ -18,8 +18,8 @@
 import os
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.config import AR122_MARKERS, BAC120_MARKERS, TIGRFAM_HMMS, PFAM_HMM_DIR
-from gtdbtk.config.output import PATH_AR122_MARKER_INFO, PATH_BAC120_MARKER_INFO
+from gtdbtk.config.config import AR53_MARKERS, BAC120_MARKERS, TIGRFAM_HMMS, PFAM_HMM_DIR
+from gtdbtk.config.output import PATH_AR53_MARKER_INFO, PATH_BAC120_MARKER_INFO
 
 
 class MarkerInfoFile(object):
@@ -66,12 +66,12 @@ class MarkerInfoFile(object):
                 fh.write('\t'.join(row) + '\n')
 
 
-class MarkerInfoFileAR122(MarkerInfoFile):
-    """Marker information for the AR122 marker set."""
+class MarkerInfoFileAR53(MarkerInfoFile):
+    """Marker information for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_MARKER_INFO.format(prefix=prefix))
-        super().__init__(path, AR122_MARKERS)
+        path = os.path.join(out_dir, PATH_AR53_MARKER_INFO.format(prefix=prefix))
+        super().__init__(path, AR53_MARKERS)
 
 
 class MarkerInfoFileBAC120(MarkerInfoFile):

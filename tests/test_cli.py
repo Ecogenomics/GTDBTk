@@ -89,15 +89,15 @@ class TestCli(unittest.TestCase):
             self.generic_out_path, tmp_folder, 'identify')
         self.optionparser.identify(identify_options)
 
-        ar122_marker_path = os.path.join(self.options.out_dir,
-                                         PATH_AR122_MARKER_SUMMARY.format(prefix=self.options.prefix))
+        ar53_marker_path = os.path.join(self.options.out_dir,
+                                         PATH_AR53_MARKER_SUMMARY.format(prefix=self.options.prefix))
 
         self.assertTrue(os.path.isfile(
             os.path.join(self.options.out_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=self.options.prefix))))
-        self.assertTrue(os.path.isfile(ar122_marker_path))
+        self.assertTrue(os.path.isfile(ar53_marker_path))
 
         results = {}
-        with open(ar122_marker_path, 'r') as f:
+        with open(ar53_marker_path, 'r') as f:
             f.readline()
             for line in f:
                 infos = line.split('\t', 1)
@@ -112,7 +112,7 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        path_user_msa = os.path.join(align_options.out_dir, PATH_AR122_USER_MSA.format(prefix=align_options.prefix))
+        path_user_msa = os.path.join(align_options.out_dir, PATH_AR53_USER_MSA.format(prefix=align_options.prefix))
         self.assertTrue(os.path.isfile(path_user_msa))
         with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
@@ -138,7 +138,7 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        path_user_msa = os.path.join(align_options.out_dir, PATH_AR122_USER_MSA.format(prefix=align_options.prefix))
+        path_user_msa = os.path.join(align_options.out_dir, PATH_AR53_USER_MSA.format(prefix=align_options.prefix))
         self.assertTrue(os.path.isfile(path_user_msa))
         with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
@@ -164,7 +164,7 @@ class TestCli(unittest.TestCase):
         align_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'align')
         self.optionparser.align(align_options)
-        path_user_msa = os.path.join(align_options.out_dir, PATH_AR122_USER_MSA.format(prefix=align_options.prefix))
+        path_user_msa = os.path.join(align_options.out_dir, PATH_AR53_USER_MSA.format(prefix=align_options.prefix))
         self.assertTrue(os.path.isfile(path_user_msa))
         with open(path_user_msa, 'r') as f:
             lines = f.read().splitlines()
@@ -183,7 +183,7 @@ class TestCli(unittest.TestCase):
         classify_options.recalculate_red = False
         self.optionparser.classify(classify_options)
         summary_out = os.path.join(classify_options.out_dir,
-                                   PATH_AR122_SUMMARY_OUT.format(prefix=classify_options.prefix))
+                                   PATH_AR53_SUMMARY_OUT.format(prefix=classify_options.prefix))
         self.assertTrue(summary_out)
         with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
@@ -214,7 +214,7 @@ class TestCli(unittest.TestCase):
         self.optionparser.align(classify_wf_options)
         self.optionparser.classify(classify_wf_options)
         summary_out = os.path.join(classify_wf_options.out_dir,
-                                   PATH_AR122_SUMMARY_OUT.format(prefix=classify_wf_options.prefix))
+                                   PATH_AR53_SUMMARY_OUT.format(prefix=classify_wf_options.prefix))
         self.assertTrue(os.path.isfile(summary_out))
         with open(summary_out, 'r') as f:
             lines = f.read().splitlines()
@@ -227,7 +227,7 @@ class TestCli(unittest.TestCase):
         tmp_folder = ''.join(random.choice(
             string.ascii_uppercase + string.digits) for _ in range(10))
         infer_options = self.options
-        path_user_msa = PATH_AR122_USER_MSA.format(prefix=self.options.prefix)
+        path_user_msa = PATH_AR53_USER_MSA.format(prefix=self.options.prefix)
         infer_options.msa_file = os.path.join(self.align_dir_reference, path_user_msa)
         infer_options.out_dir = os.path.join(self.generic_out_path, tmp_folder, 'infer')
         infer_options.gamma = False
@@ -250,7 +250,7 @@ class TestCli(unittest.TestCase):
             string.ascii_uppercase + string.digits) for _ in range(10))
         de_novo_wf_options = self.options
         de_novo_wf_options.genome_dir = self.genome_dir
-        de_novo_wf_options.suffix = ".ar122"
+        de_novo_wf_options.suffix = ".ar53"
         de_novo_wf_options.gamma = False
         de_novo_wf_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'de_novo_wf')
@@ -264,7 +264,7 @@ class TestCli(unittest.TestCase):
     def test_root(self):
         """Test that rooting is successful when called through the CLI"""
         options = argparse.ArgumentParser()
-        options.input_tree = 'tests/data/pplacer_dir_reference/gtdbtk.ar122.classify.tree'
+        options.input_tree = 'tests/data/pplacer_dir_reference/gtdbtk.ar53.classify.tree'
         options.outgroup_taxon = 'p__Altarchaeota'
         options.output_tree = os.path.join(self.generic_out_path, 'test.rooted.tree')
         options.custom_taxonomy_file = None

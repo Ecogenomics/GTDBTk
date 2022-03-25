@@ -49,7 +49,7 @@ class Misc(object):
         if maskid == 'bac' and mask_type == 'reference':
             mask = os.path.join(Config.MASK_DIR, Config.MASK_BAC120)
         elif maskid == 'arc' and mask_type == 'reference':
-            mask = os.path.join(Config.MASK_DIR, Config.MASK_AR122)
+            mask = os.path.join(Config.MASK_DIR, Config.MASK_AR53)
         elif mask_type == 'file':
             mask = maskid
         else:

@@ -19,7 +19,7 @@ import os
 from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import PATH_AR122_DISAPPEARING_GENOMES, PATH_BAC120_DISAPPEARING_GENOMES
+from gtdbtk.config.output import PATH_AR53_DISAPPEARING_GENOMES, PATH_BAC120_DISAPPEARING_GENOMES
 from gtdbtk.exceptions import GTDBTkExit
 
 
@@ -47,11 +47,11 @@ class DisappearingGenomesFile(object):
                 fh.write(f'{seqid}\t{self.domain}\t{infos}\n')
 
 
-class DisappearingGenomesFileAR122(DisappearingGenomesFile):
-    """Store the RED dictionary for the AR122 marker set."""
+class DisappearingGenomesFileAR53(DisappearingGenomesFile):
+    """Store the RED dictionary for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_DISAPPEARING_GENOMES.format(prefix=prefix))
+        path = os.path.join(out_dir, PATH_AR53_DISAPPEARING_GENOMES.format(prefix=prefix))
         super().__init__(path,'archaea')
 
 

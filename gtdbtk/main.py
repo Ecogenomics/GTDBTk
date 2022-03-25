@@ -41,7 +41,7 @@ from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.io.batchfile import Batchfile
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR53
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain
@@ -415,7 +415,7 @@ class OptionsParser(object):
                 proc.wait()
                 exit_code = proc.returncode
 
-            summary_fh = ClassifySummaryFileAR122(output_dir, 'gtdbtk')
+            summary_fh = ClassifySummaryFileAR53(output_dir, 'gtdbtk')
 
             if exit_code != 0:
                 self.logger.error('The test returned a non-zero exit code.')
@@ -567,14 +567,14 @@ class OptionsParser(object):
                           os.path.join(options.out_dir,
                                        os.path.basename(
                                            PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
-            elif options.suffix == 'ar122':
-                symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix),
+            elif options.suffix == 'ar53':
+                symlink_f(PATH_AR53_DECORATED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))))
-                symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table',
+                                       os.path.basename(PATH_AR53_DECORATED_TREE.format(prefix=options.prefix))))
+                symlink_f(PATH_AR53_DECORATED_TREE.format(prefix=options.prefix) + '-table',
                           os.path.join(options.out_dir,
                                        os.path.basename(
-                                           PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
+                                           PATH_AR53_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
             else:
                 raise GenomeMarkerSetUnknown(
                     'There was an error determining the marker set.')
@@ -665,15 +665,15 @@ class OptionsParser(object):
             if options.bacteria:
                 options.suffix = "bac120"
             else:
-                options.suffix = "ar122"
+                options.suffix = "ar53"
 
             if options.skip_gtdb_refs:
                 if options.suffix == 'bac120':
                     options.msa_file = os.path.join(
                         options.out_dir, PATH_BAC120_USER_MSA.format(prefix=options.prefix))
-                elif options.suffix == 'ar122':
+                elif options.suffix == 'ar53':
                     options.msa_file = os.path.join(
-                        options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
+                        options.out_dir, PATH_AR53_USER_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error(
                         'There was an error determining the marker set.')
@@ -683,9 +683,9 @@ class OptionsParser(object):
                 if options.suffix == 'bac120':
                     options.msa_file = os.path.join(
                         options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
-                elif options.suffix == 'ar122':
+                elif options.suffix == 'ar53':
                     options.msa_file = os.path.join(
-                        options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
+                        options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix))
                 else:
                     self.logger.error(
                         'There was an error determining the marker set.')
@@ -699,11 +699,11 @@ class OptionsParser(object):
                                                   PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
                                                    PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
-            elif options.suffix == 'ar122':
+            elif options.suffix == 'ar53':
                 options.input_tree = os.path.join(options.out_dir,
-                                                  PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
+                                                  PATH_AR53_UNROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
-                                                   PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                                                   PATH_AR53_ROOTED_TREE.format(prefix=options.prefix))
 
             self.root(options)
 
@@ -712,11 +712,11 @@ class OptionsParser(object):
                                                   PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
                                                    PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix))
-            elif options.suffix == 'ar122':
+            elif options.suffix == 'ar53':
                 options.input_tree = os.path.join(options.out_dir,
-                                                  PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                                                  PATH_AR53_ROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
-                                                   PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))
+                                                   PATH_AR53_DECORATED_TREE.format(prefix=options.prefix))
 
             self.decorate(options)
 
