@@ -311,7 +311,7 @@ class Classify(object):
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        return tree_file,num_genomes
+        return tree_file
 
     def _parse_red_dict(self, red_dist_dict):
         results = {}

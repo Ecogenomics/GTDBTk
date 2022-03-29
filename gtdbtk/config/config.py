@@ -45,7 +45,7 @@ LOW_RED_DIR = os.path.join(LOW_SPLIT_DIR, 'red')
 
 LOW_TREE_MAPPING_FILE = os.path.join(LOW_SPLIT_DIR, 'tree_mapping.tsv')
 
-HIGH_PPLACER_REF_PKG = 'gtdbtk_package_high_level'
+HIGH_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
 HIGH_RED_FILE = os.path.join(HIGH_RED_DIR, 'high_red_value.tsv')
 LOW_PPLACER_REF_PKG = os.path.join(LOW_PPLACER_DIR, 'gtdbtk.package.{iter}.refpkg')
 LOW_RED_FILE = os.path.join(LOW_RED_DIR, 'red_value_{iter}.tsv')
@@ -302,8 +302,8 @@ MASK_RPS23 = f"gtdb_{VERSION_DATA}_rps23.mask"
 PPLACER_BAC120_REF_PKG = f"gtdb_{VERSION_DATA}_bac120.refpkg"
 PPLACER_AR53_REF_PKG = f"gtdb_{VERSION_DATA}_ar53.refpkg"
 PPLACER_RPS23_REF_PKG = f"gtdb_{VERSION_DATA}_rps23.refpkg"
-PPLACER_MIN_RAM_BAC = 215
-PPLACER_MIN_RAM_ARC = 13
+PPLACER_MIN_RAM_BAC = 320
+PPLACER_MIN_RAM_ARC = 40
 
 # Fastani configuration
 FASTANI_SPECIES_THRESHOLD = 95.0
