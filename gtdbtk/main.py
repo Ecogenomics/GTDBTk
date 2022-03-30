@@ -461,7 +461,7 @@ class OptionsParser(object):
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
-                     splittreeopt=options.split_tree,
+                     fulltreeopt=options.full_tree,
                      recalculate_red=False)
 
         self.logger.info('Done.')

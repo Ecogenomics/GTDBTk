@@ -329,7 +329,7 @@ class Markers(object):
             list_seq = np.fromiter(seq, dtype='S1')
             if list_mask.shape[0] != list_seq.shape[0]:
                 raise MSAMaskLengthMismatch(
-                    'Mask and alignment length do not match.')
+                    f'Mask ({list_mask.shape[0]}) and alignment ({list_seq.shape[0]}) length do not match.')
 
             list_masked_seq = list_seq[list_mask]
 

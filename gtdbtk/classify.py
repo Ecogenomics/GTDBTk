@@ -349,7 +349,7 @@ class Classify(object):
             scratch_dir=None,
             recalculate_red=None,
             debugopt=False,
-            splittreeopt=False):
+            fulltreeopt=False):
         """Classify genomes based on position in reference tree."""
 
         _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
@@ -375,7 +375,7 @@ class Classify(object):
                 red_dict_file = REDDictFileBAC120(out_dir, prefix)
                 disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
                 pplacer_classify_file = PplacerClassifyFileBAC120(out_dir, prefix)
-                if splittreeopt:
+                if not fulltreeopt:
                     tree_mapping_file = GenomeMappingFile(out_dir, prefix)
             else:
                 raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
@@ -398,12 +398,12 @@ class Classify(object):
 
 
 
-            if splittreeopt is True and marker_set_id == 'bac120':
+            if not fulltreeopt and marker_set_id == 'bac120':
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                 # run pplacer to place bins in reference genome tree
                 genomes_to_process=[seq_id for seq_id, _seq in read_seq(user_msa_file)]
                 debug_file, conflict_file = self._generate_summary_file(
-                    marker_set_id, prefix, out_dir, debugopt, splittreeopt)
+                    marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
 
                 high_classify_tree = self.place_genomes(user_msa_file,
                                                         marker_set_id,
@@ -484,7 +484,7 @@ class Classify(object):
 
                 # get taxonomic classification of each user genome
                 debug_file, conflict_file = self._generate_summary_file(
-                    marker_set_id, prefix, out_dir, debugopt, splittreeopt)
+                    marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
 
                 if recalculate_red:
                     tree_to_process = self._calculate_red_distances(
@@ -527,14 +527,14 @@ class Classify(object):
 
 
 
-            if splittreeopt and marker_set_id == 'bac120':
+            if not fulltreeopt and marker_set_id == 'bac120':
                 tree_mapping_file.write()
 
             # Write the summary file to disk.
             disappearing_genomes_file.write()
             summary_file.write()
 
-    def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, splittreeopt=None):
+    def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):
         debug_file = None
         conflict_summary = None
 
@@ -543,7 +543,7 @@ class Classify(object):
                 out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
             debug_file.write(
                 "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
-        if splittreeopt:
+        if not fulltreeopt:
             conflict_summary = open(os.path.join(
                 out_dir, PATH_BAC120_CONFLICT.format(prefix=prefix)), 'w')
             conflict_summary.write(

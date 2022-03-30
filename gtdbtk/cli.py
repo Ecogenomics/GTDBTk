@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD
+from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC
 
 
 @contextmanager
@@ -189,9 +189,10 @@ def __recalculate_red(group):
                        help='recalculate RED values based on the reference tree and all added user genomes')
 
 
-def __split_tree(group):
-    group.add_argument('-s', '--split_tree', default=False, action='store_true',
-                       help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
+def __full_tree(group):
+    group.add_argument('-f', '--full_tree', default=False, action='store_true',
+                       help='Use the unsplit bacterial tree for the classify step. This is the original GTDB-Tk '
+                            f'approach and it requires more than {PPLACER_MIN_RAM_BAC} GB of RAM to fully load the tree.')
 
 
 def __identify_dir(group, required):
@@ -354,7 +355,7 @@ def get_main_parser():
             __force(grp)
             __scratch_dir(grp)
             #__recalculate_red(grp)
-            __split_tree(grp)
+            __full_tree(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)
@@ -430,7 +431,7 @@ def get_main_parser():
             __cpus(grp)
             __pplacer_cpus(grp)
             __scratch_dir(grp)
-            __split_tree(grp)
+            __full_tree(grp)
             #__recalculate_red(grp)
             __min_af(grp)
             __temp_dir(grp)
