@@ -21,6 +21,7 @@ from collections import defaultdict
 from shutil import copy
 from typing import Dict, Tuple, Optional
 
+import gzip
 import numpy as np
 
 import gtdbtk.config.config as Config
@@ -106,12 +107,12 @@ class Markers(object):
         tln_summary_file.write()
 
         # Create a symlink to store the summary files in the root.
-        symlink_f(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
-                  os.path.join(outdir, os.path.basename(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))))
-        symlink_f(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix),
-                  os.path.join(outdir, os.path.basename(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix))))
-        symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
-                  os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
+        # symlink_f(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
+        #           os.path.join(outdir, os.path.basename(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))))
+        # symlink_f(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix),
+        #           os.path.join(outdir, os.path.basename(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix))))
+        # symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
+        #           os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
         symlink_f(PATH_FAILS.format(prefix=prefix),
                   os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix))))
 
@@ -349,17 +350,27 @@ class Markers(object):
 
         return output_seqs, pruned_seqs
 
-    def _write_msa(self, seqs, output_file, gtdb_taxonomy):
+    def _write_msa(self, seqs, output_file, gtdb_taxonomy,zip_output=False):
         """Write sequences to FASTA file."""
 
-        with open(output_file, 'w') as fout:
-            for genome_id, alignment in sorted(seqs.items()):
-                if genome_id in gtdb_taxonomy:
-                    fout.write('>%s %s\n' %
-                               (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
-                else:
-                    fout.write('>%s\n' % genome_id)
-                fout.write('%s\n' % alignment)
+        if zip_output:
+            output_file_gz = output_file + '.gz'
+            with gzip.open(output_file_gz, 'w') as fgz:
+                for genome_id, alignment in sorted(seqs.items()):
+                    if genome_id in gtdb_taxonomy:
+                        fgz.write(f">{genome_id} {';'.join(gtdb_taxonomy[genome_id])}\n".encode())
+                    else:
+                        fgz.write(f">{genome_id}\n".encode())
+                    fgz.write(f'{alignment}\n'.encode())
+        else:
+            with open(output_file, 'w') as fout:
+                for genome_id, alignment in sorted(seqs.items()):
+                    if genome_id in gtdb_taxonomy:
+                        fout.write('>%s %s\n' %
+                                   (genome_id, ';'.join(gtdb_taxonomy[genome_id])))
+                    else:
+                        fout.write('>%s\n' % genome_id)
+                    fout.write('%s\n' % alignment)
 
     def genome_domain(self, identity_dir, prefix):
         """Determine domain of User genomes based on identified marker genes."""
@@ -439,7 +450,7 @@ class Markers(object):
         """Align marker genes in genomes."""
 
         # read genomes that failed identify steps to skip them
-        failed_genomes_file = os.path.join(os.path.join(identify_dir,os.path.basename(PATH_FAILS.format(prefix=prefix))))
+        failed_genomes_file = os.path.join(os.path.join(identify_dir,PATH_FAILS.format(prefix=prefix)))
         if os.path.isfile(failed_genomes_file):
             with open(failed_genomes_file) as fgf:
                 failed_genomes = [row.split()[0] for row in fgf]
@@ -610,7 +621,7 @@ class Markers(object):
             if not skip_gtdb_refs:
                 self.logger.info(f'Creating concatenated alignment for {len(trimmed_seqs):,} '
                                  f'{domain_str} GTDB and user genomes.')
-                self._write_msa(trimmed_seqs, marker_msa_path, gtdb_taxonomy)
+                self._write_msa(trimmed_seqs, marker_msa_path, gtdb_taxonomy,zip_output=True)
 
             trimmed_user_msa = {k: v for k, v in trimmed_seqs.items()
                                 if k in user_msa}
@@ -618,31 +629,31 @@ class Markers(object):
                 self.logger.info(f'Creating concatenated alignment for {len(trimmed_user_msa):,} '
                                  f'{domain_str} user genomes.')
                 self._write_msa(trimmed_user_msa,
-                                marker_user_msa_path, gtdb_taxonomy)
+                                marker_user_msa_path, gtdb_taxonomy,zip_output=True)
             else:
                 self.logger.info(f'All {domain_str} user genomes have been filtered out.')
 
             # Create symlinks to the summary files
-            if marker_set_id == 'bac120':
-                symlink_f(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))))
-                if len(trimmed_user_msa) > 0:
-                    symlink_f(PATH_BAC120_USER_MSA.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_BAC120_USER_MSA.format(prefix=prefix))))
-                if not skip_gtdb_refs:
-                    symlink_f(PATH_BAC120_MSA.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_BAC120_MSA.format(prefix=prefix))))
-            elif marker_set_id == 'ar53':
-                symlink_f(PATH_AR53_FILTERED_GENOMES.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_AR53_FILTERED_GENOMES.format(prefix=prefix))))
-                if len(trimmed_user_msa) > 0:
-                    symlink_f(PATH_AR53_USER_MSA.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_AR53_USER_MSA.format(prefix=prefix))))
-                if not skip_gtdb_refs:
-                    symlink_f(PATH_AR53_MSA.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_AR53_MSA.format(prefix=prefix))))
-            else:
-                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
+            # if marker_set_id == 'bac120':
+            #     symlink_f(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix),
+            #               os.path.join(out_dir, os.path.basename(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))))
+            #     if len(trimmed_user_msa) > 0:
+            #         symlink_f(PATH_BAC120_USER_MSA.format(prefix=prefix),
+            #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_USER_MSA.format(prefix=prefix))))
+            #     if not skip_gtdb_refs:
+            #         symlink_f(PATH_BAC120_MSA.format(prefix=prefix),
+            #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_MSA.format(prefix=prefix))))
+            # elif marker_set_id == 'ar53':
+            #     symlink_f(PATH_AR53_FILTERED_GENOMES.format(prefix=prefix),
+            #               os.path.join(out_dir, os.path.basename(PATH_AR53_FILTERED_GENOMES.format(prefix=prefix))))
+            #     if len(trimmed_user_msa) > 0:
+            #         symlink_f(PATH_AR53_USER_MSA.format(prefix=prefix),
+            #                   os.path.join(out_dir, os.path.basename(PATH_AR53_USER_MSA.format(prefix=prefix))))
+            #     if not skip_gtdb_refs:
+            #         symlink_f(PATH_AR53_MSA.format(prefix=prefix),
+            #                   os.path.join(out_dir, os.path.basename(PATH_AR53_MSA.format(prefix=prefix))))
+            # else:
+            #     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
     def _write_individual_markers(self, user_msa, marker_set_id, marker_list, out_dir, prefix):
         marker_dir = join(out_dir, DIR_ALIGN_MARKERS)

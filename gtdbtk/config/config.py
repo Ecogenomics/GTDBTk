@@ -281,7 +281,7 @@ AR_MARKER_COUNT = 53
 BAC_MARKER_COUNT = 120
 
 # Information about alignment Fraction to resolve fastANI results
-AF_THRESHOLD = 0.65
+AF_THRESHOLD = 0.5
 
 # MSA file names
 CONCAT_BAC120 = os.path.join(MSA_FOLDER, f"gtdb_{VERSION_DATA}_bac120.faa")
@@ -316,15 +316,15 @@ MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")
 MRCA_RED_AR53 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_ar53.tsv")
 
 # Hashing information for validating the reference package.
-REF_HASHES = {PPLACER_DIR: '4d931b5109a240602f55228029b87ee768da8141',
-              MASK_DIR: '36d6ac371d247b2b952523b9798e78908ea323fa',
-              MARKER_DIR: '2ba5ae35fb272462663651d18fd9e523317e48cd',
-              RADII_DIR: '9f9a2e21e27b9049044d04d731795499414a365c',
-              MSA_FOLDER: 'b426865245c39ee9f01b0392fb8f7867a9f76f0a',
-              METADATA_DIR: '7640aed96fdb13707a2b79b746a94335faabd6df',
-              TAX_FOLDER: '4a7a1e4047c088e92dee9740206499cdb7e5beca',
-              FASTANI_DIR: '70439cf088d0fa0fdbb4f47b4a6b47e199912139',
-              RED_DIR: 'ad6a184150e7b6e58547912660a17999fadcfbff'}
+REF_HASHES = {PPLACER_DIR: '20903925a856a58b102a7b0ce160c5cbd2cf675b',
+              MASK_DIR: '50e414a9de18170e8cb97f990f89ff60a0fe29d5',
+              MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
+              RADII_DIR: '8fd13b1c5d7a7b073ba96fb628581613b293a374',
+              MSA_FOLDER: '4bd032c90d5e5f0cbc96338445721a317f7d90b4',
+              METADATA_DIR: '9772fbeac1311b31e10293fa610eb33aa1ec8e15',
+              TAX_FOLDER: '6fb0233b05633242369b40c026fd1ee53e266afa',
+              FASTANI_DIR: '973c456c02f55bb82908a6811c7076e207e9b206',
+              RED_DIR: '7b8b67b3157204b470c9eb809d3c39c4effffabc'}
 
 # Config values for checking GTDB-Tk on startup.
 GTDBTK_VER_CHECK = True

@@ -176,7 +176,7 @@ def __help(group):
 
 def __pplacer_cpus(group):
     group.add_argument('--pplacer_cpus', type=int, default=None,
-                       help='use ``pplacer_cpus`` during placement (default: ``cpus``)')
+                       help='number of CPUs to use during pplacer placement')
 
 
 def __scratch_dir(group):
@@ -264,12 +264,16 @@ def __mash_db(group):
 
 def __min_af(group):
     group.add_argument('--min_af', type=float, default=AF_THRESHOLD,
-                       help='minimum alignment fraction to consider closest genome')
+                       help='minimum alignment fraction to assign genome to a species cluster')
 
 
 def __untrimmed_msa(group, required):
     group.add_argument('--untrimmed_msa', type=str, default=None, required=required,
                        help="path to the untrimmed MSA file")
+
+def __keep_intermediates(group):
+    group.add_argument('--keep_intermediates', default=False, action='store_true',
+                       help='keep intermediate files in the final directory')
 
 
 def __output(group, required):
@@ -335,6 +339,7 @@ def get_main_parser():
             __cpus(grp)
             __force(grp)
             __temp_dir(grp)
+            __keep_intermediates(grp)
             __debug(grp)
             __help(grp)
 
@@ -346,6 +351,7 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
             __prefix(grp)
@@ -355,7 +361,7 @@ def get_main_parser():
             __force(grp)
             __scratch_dir(grp)
             #__recalculate_red(grp)
-            __full_tree(grp)
+            __keep_intermediates(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)

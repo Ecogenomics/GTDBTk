@@ -156,7 +156,7 @@ class Classify(object):
                                                        cur_gb=mem_total))
 
         # rename user MSA file for compatibility with pplacer
-        if not user_msa_file.endswith('.fasta'):
+        if not user_msa_file.endswith('.fasta') and not user_msa_file.endswith('.gz'):
             if marker_set_id == 'bac120':
                 t = PATH_BAC120_USER_MSA.format(prefix=prefix)
             elif marker_set_id == 'ar53':
@@ -193,14 +193,14 @@ class Classify(object):
             elif levelopt == 'high':
                 self.logger.log(Config.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
-                                f'into high reference tree with pplacer using '
+                                f'into backbone reference tree with pplacer using '
                                 f'{self.pplacer_cpus} CPUs (be patient).')
                 pplacer_ref_pkg = os.path.join(Config.HIGH_PPLACER_DIR,
                                                Config.HIGH_PPLACER_REF_PKG)
             elif levelopt == 'low':
                 self.logger.log(Config.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
-                                f'into low reference tree {tree_iter} ({idx_tree}/{number_low_trees}) with '
+                                f'into order-level reference tree {tree_iter} ({idx_tree}/{number_low_trees}) with '
                                 f'pplacer using {self.pplacer_cpus} CPUs '
                                 f'(be patient).')
                 pplacer_ref_pkg = os.path.join(Config.LOW_PPLACER_DIR,
@@ -275,41 +275,41 @@ class Classify(object):
         pplacer.tog(pplacer_json_out, tree_file)
 
         # Symlink to the tree summary file
-        if marker_set_id == 'bac120' and levelopt is None:
-            symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
-        elif levelopt == 'high':
-            symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
-        elif levelopt == 'low':
-            symlink_f(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter),
-                      os.path.join(out_dir,
-                                   os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))))
-        elif marker_set_id == 'ar53':
-            symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
+        # if marker_set_id == 'bac120' and levelopt is None:
+        #     symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+        # elif levelopt == 'high':
+        #     symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
+        # elif levelopt == 'low':
+        #     symlink_f(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter),
+        #               os.path.join(out_dir,
+        #                            os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))))
+        # elif marker_set_id == 'ar53':
+        #     symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
+        # else:
+        #     self.logger.error('There was an error determining the marker set.')
+        #     raise GenomeMarkerSetUnknown
 
         # Symlink to the tree summary file
-        if marker_set_id == 'bac120':
-            if levelopt is None:
-                symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
-            elif levelopt == 'high':
-                symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
-            elif levelopt == 'low':
-                symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(
-                              PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
-        elif marker_set_id == 'ar53':
-            symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
-                      os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
-        else:
-            self.logger.error('There was an error determining the marker set.')
-            raise GenomeMarkerSetUnknown
+        # if marker_set_id == 'bac120':
+        #     if levelopt is None:
+        #         symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
+        #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
+        #     elif levelopt == 'high':
+        #         symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
+        #                   os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
+        #     elif levelopt == 'low':
+        #         symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
+        #                   os.path.join(out_dir, os.path.basename(
+        #                       PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
+        # elif marker_set_id == 'ar53':
+        #     symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
+        # else:
+        #     self.logger.error('There was an error determining the marker set.')
+        #     raise GenomeMarkerSetUnknown
 
         return tree_file
 
@@ -360,8 +360,13 @@ class Classify(object):
             if marker_set_id == 'ar53':
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                 marker_summary_fh.read()
-                user_msa_file = os.path.join(align_dir,
-                                             PATH_AR53_USER_MSA.format(prefix=prefix))
+                if os.path.isfile(os.path.join(align_dir,
+                                             PATH_AR53_USER_MSA.format(prefix=prefix))):
+                    user_msa_file = os.path.join(align_dir,
+                                                 PATH_AR53_USER_MSA.format(prefix=prefix))
+                else:
+                    user_msa_file = os.path.join(align_dir,
+                                                 PATH_AR53_USER_MSA.format(prefix=prefix)+'.gz')
                 summary_file = ClassifySummaryFileAR53(out_dir, prefix)
                 red_dict_file = REDDictFileAR53(out_dir, prefix)
                 disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
@@ -369,8 +374,13 @@ class Classify(object):
             elif marker_set_id == 'bac120':
                 marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                 marker_summary_fh.read()
-                user_msa_file = os.path.join(align_dir,
-                                             PATH_BAC120_USER_MSA.format(prefix=prefix))
+                if os.path.isfile(os.path.join(align_dir,
+                                             PATH_BAC120_USER_MSA.format(prefix=prefix))):
+                    user_msa_file = os.path.join(align_dir,
+                                                 PATH_BAC120_USER_MSA.format(prefix=prefix))
+                else:
+                    user_msa_file = os.path.join(align_dir,
+                                                 PATH_BAC120_USER_MSA.format(prefix=prefix)+'.gz')
                 summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
                 red_dict_file = REDDictFileBAC120(out_dir, prefix)
                 disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
@@ -395,8 +405,6 @@ class Classify(object):
             tln_table_summary_file.read()
 
             msa_dict = read_fasta(user_msa_file)
-
-
 
             if not fulltreeopt and marker_set_id == 'bac120':
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
@@ -531,7 +539,8 @@ class Classify(object):
                 tree_mapping_file.write()
 
             # Write the summary file to disk.
-            disappearing_genomes_file.write()
+            if disappearing_genomes_file.data:
+                disappearing_genomes_file.write()
             summary_file.write()
 
     def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):

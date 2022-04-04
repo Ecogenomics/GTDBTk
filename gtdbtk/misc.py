@@ -18,10 +18,13 @@
 import logging
 import os
 
+import shutil
+
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.seq_io import read_fasta
+from gtdbtk.config.output import DIR_CLASSIFY_INTERMEDIATE, DIR_ALIGN_INTERMEDIATE, DIR_IDENTIFY_INTERMEDIATE
 from gtdbtk.exceptions import GTDBTkException, GTDBTkExit
 from gtdbtk.tools import sha1_dir
 
@@ -100,6 +103,37 @@ class Misc(object):
             self.logger.warning("Check folder {} ({}): {}".format(
                 folder_name, folder_path, colour('MISSING', ['bright'], fg='red')))
             return False
+
+    def remove_intermediate_files(self,output_dir,wf_name):
+        """Remove intermediate files.
+
+        Parameters
+        ----------
+        output_dir : str
+            The path to the output directory.
+        wf_name : str
+            The name of the workflow to delete intermediate files.
+        """
+        self.logger.info('Removing intermediate files.')
+        #Remove identify step intermediate files
+        intermediate_identify = os.path.join(output_dir, DIR_IDENTIFY_INTERMEDIATE)
+        if os.path.exists(intermediate_identify) and os.path.isdir(intermediate_identify):
+            shutil.rmtree(intermediate_identify)
+        #Remove align step intermediate files
+        intermediate_align = os.path.join(output_dir, DIR_ALIGN_INTERMEDIATE)
+        if os.path.exists(intermediate_align) and os.path.isdir(intermediate_align):
+            shutil.rmtree(intermediate_align)
+        if wf_name == 'classify_wf':
+            #Remove classify step intermediate files
+            intermediate_classify = os.path.join(output_dir, DIR_CLASSIFY_INTERMEDIATE)
+            if os.path.exists(intermediate_classify) and os.path.isdir(intermediate_classify):
+                shutil.rmtree(intermediate_classify)
+        elif wf_name == 'de_novo_wf':
+            #Remove classify step intermediate files
+            intermediate_infer = os.path.join(output_dir, DIR_ALIGN_INTERMEDIATE)
+            if os.path.exists(intermediate_infer) and os.path.isdir(intermediate_infer):
+                shutil.rmtree(intermediate_infer)
+        self.logger.info('Intermediate files removed.')
 
     def check_install(self):
         """Check that all reference files exist.

@@ -624,6 +624,18 @@ class OptionsParser(object):
 
         self.logger.info('Done.')
 
+    def remove_intermediate_files(self,out_dir,workflow_name):
+        """Remove intermediate files from the output directory.
+        Parameters
+        ----------
+            out_dir : str
+                The output directory.
+        """
+
+        misc = Misc()
+        misc.remove_intermediate_files(out_dir,workflow_name)
+        self.logger.info('Done.')
+
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)
 
@@ -669,11 +681,22 @@ class OptionsParser(object):
 
             if options.skip_gtdb_refs:
                 if options.suffix == 'bac120':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_BAC120_USER_MSA.format(prefix=options.prefix))
+                    if os.path.isfile(os.path.join(options.out_dir,
+                                                   PATH_BAC120_USER_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_BAC120_USER_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_BAC120_USER_MSA.format(prefix=options.prefix) + '.gz')
+
                 elif options.suffix == 'ar53':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_AR53_USER_MSA.format(prefix=options.prefix))
+                    if os.path.isfile(os.path.join(options.out_dir,
+                                                   PATH_AR53_USER_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_AR53_USER_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_AR53_USER_MSA.format(prefix=options.prefix) + '.gz')
                 else:
                     self.logger.error(
                         'There was an error determining the marker set.')
@@ -681,11 +704,21 @@ class OptionsParser(object):
                         'Unknown marker set: {}'.format(options.suffix))
             else:
                 if options.suffix == 'bac120':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
+                    if os.path.isfile(os.path.join(
+                        options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix) + '.gz')
                 elif options.suffix == 'ar53':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix))
+                    if os.path.isfile(os.path.join(
+                        options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix) + '.gz')
                 else:
                     self.logger.error(
                         'There was an error determining the marker set.')
@@ -720,13 +753,10 @@ class OptionsParser(object):
 
             self.decorate(options)
 
-        elif options.subparser_name == 'classify_wf':
+            if not options.keep_intermediates:
+                self.remove_intermediate_files(options.out_dir,'de_novo_wf')
 
-            # # TODO: Remove this block once the split_tree function is implemented.
-            # if hasattr(options, 'split_tree') and options.split_tree:
-            #     self.logger.warning('The split tree option is not yet '
-            #                         ' supported, overriding value to False.')
-            # options.split_tree = False
+        elif options.subparser_name == 'classify_wf':
 
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
@@ -751,6 +781,9 @@ class OptionsParser(object):
             self.align(options)
 
             self.classify(options)
+            if not options.keep_intermediates:
+                self.remove_intermediate_files(options.out_dir,'classify_wf')
+
         elif options.subparser_name == 'identify':
             self.identify(options)
         elif options.subparser_name == 'align':
