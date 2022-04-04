@@ -27,6 +27,7 @@ To use the full bacterial reference tree in the classification step, use the `-f
 - To reduce the size of the output directory, 
   - all intermediate_results folders ( in _identify,align,classify,infer_) are **now removed** after the end of the `classify_wf` and `de_novo_wf` pipelines. To keep intermediates files use the flag `--keep-intermediates`.
   - all msa output from the align step are now automatically archived (_.gz)_.
+- The summary files and failed genomes files are now the only files linked in the root directory of `classify_wf`. 
 
 
 ## Documentation
