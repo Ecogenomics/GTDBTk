@@ -17,15 +17,16 @@ Notifications about GTDB-Tk releases will be available through the GTDB Twitter 
 Please post questions and issues related to GTDB-Tk on the Issues section of the GitHub repository. Questions related to the [GTDB](https://gtdb.ecogenomic.org/) should be sent to the [GTDB team](https://gtdb.ecogenomic.org/about).
 
 ## New Features
-GTDB-Tk v2.0.1+ includes the following new features:
-- Classification is done by default using a divide-and-conquer strategy to systematically reduce the size of the reference tree and associated memory requirements. 
-When runnning with R07-RS207, GTDB-Tk requieres **320GB** or RAM when running pplacer with the full bacterial tree. The divide and conquer approach reduve this requirement to around **20GB** of RAM.
-**This is now the default option strategy in GTDB-Tk.**
-- To use the full reference tree in the classification step, use the `-f,--full-tree` option.
-- Use of a refined set of 53 archaeal-specific marker genes based on a recent published analysis of archaeal markers.
+GTDB-Tk v2.0.1 includes the following new features:
+- Classification is done by default using a **divide-and-conquer** strategy to systematically reduce the size of the reference tree and associated memory requirements. 
+When running with R07-RS207, GTDB-Tk requires **320GB** of RAM for the pplacer step with the full bacterial tree.
+The divide-and-conquer approach reduces this requirement to around **20GB** of RAM.  
+**This is now the default approach in GTDB-Tk.**  
+To use the full bacterial reference tree in the classification step, use the `-f,--full-tree` flag.
+- Archaeal classification now uses a refined set of 53 archaeal-specific marker genes based on a recent published analysis of archaeal markers (similar to GTDB R07-RS207).
 - To reduce the size of the output directory, 
   - all intermediate_results folders ( in _identify,align,classify,infer_) are **now removed** after the end of the `classify_wf` and `de_novo_wf` pipelines. To keep intermediates files use the flag `--keep-intermediates`.
-  - all msa output from the align step are now automatically archived.
+  - all msa output from the align step are now automatically archived (_.gz)_.
 
 
 ## Documentation
