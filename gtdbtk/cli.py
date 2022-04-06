@@ -30,13 +30,15 @@ def __temp_dir(group):
     group.add_argument('--tmpdir', action=ChangeTempAction, default=tempfile.gettempdir(),
                        help="specify alternative directory for temporary files")
 
+
 def __genes(group):
     group.add_argument('--genes', action='store_true', default=False,
-                        help='indicates input are called genes (skip gene calling)')
+                       help='indicates input files contain called genes (skip gene calling)')
 
 
 def __genome_dir(group):
-    group.add_argument('--genome_dir', help="directory containing genome files in FASTA format")
+    group.add_argument(
+        '--genome_dir', help="directory containing genome files in FASTA format")
 
 
 def __batchfile(group):
@@ -157,7 +159,8 @@ def __prefix(group):
 
 
 def __cpus(group):
-    group.add_argument('--cpus', default=1, type=int, help='number of CPUs to use')
+    group.add_argument('--cpus', default=1, type=int,
+                       help='number of CPUs to use')
 
 
 def __force(group):
@@ -181,7 +184,7 @@ def __pplacer_cpus(group):
 
 def __scratch_dir(group):
     group.add_argument('--scratch_dir', type=str, default=None,
-                       help='Reduce pplacer memory usage by writing to disk (slower).')
+                       help='reduce pplacer memory usage by writing to disk (slower).')
 
 
 def __recalculate_red(group):
@@ -191,8 +194,8 @@ def __recalculate_red(group):
 
 def __full_tree(group):
     group.add_argument('-f', '--full_tree', default=False, action='store_true',
-                       help='Use the unsplit bacterial tree for the classify step. This is the original GTDB-Tk '
-                            f'approach and it requires more than {PPLACER_MIN_RAM_BAC} GB of RAM to fully load the tree.')
+                       help='use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk '
+                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC} GB of RAM to load the reference tree')
 
 
 def __identify_dir(group, required):
@@ -242,19 +245,23 @@ def __no_mash(group):
 
 
 def __mash_k(group):
-    group.add_argument('--mash_k', default=16, type=int, help='k-mer size [1-32]')
+    group.add_argument('--mash_k', default=16, type=int,
+                       help='k-mer size [1-32]')
 
 
 def __mash_s(group):
-    group.add_argument('--mash_s', default=5000, type=int, help='maximum number of non-redundant hashes')
+    group.add_argument('--mash_s', default=5000, type=int,
+                       help='maximum number of non-redundant hashes')
 
 
 def __mash_d(group):
-    group.add_argument('--mash_d', default=0.1, type=float, help='maximum distance to keep [0-1]')
+    group.add_argument('--mash_d', default=0.1, type=float,
+                       help='maximum distance to keep [0-1]')
 
 
 def __mash_v(group):
-    group.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1]')
+    group.add_argument('--mash_v', default=1.0, type=float,
+                       help='maximum p-value to keep [0-1]')
 
 
 def __mash_db(group):
@@ -270,6 +277,7 @@ def __min_af(group):
 def __untrimmed_msa(group, required):
     group.add_argument('--untrimmed_msa', type=str, default=None, required=required,
                        help="path to the untrimmed MSA file")
+
 
 def __keep_intermediates(group):
     group.add_argument('--keep_intermediates', default=False, action='store_true',
@@ -304,7 +312,8 @@ def __write_single_copy_genes(group):
 
 def get_main_parser():
     # Setup the main, and sub parsers.
-    main_parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
+    main_parser = argparse.ArgumentParser(
+        prog='gtdbtk', add_help=False, conflict_handler='resolve')
     sub_parsers = main_parser.add_subparsers(help="--", dest='subparser_name')
 
     # de novo workflow.
@@ -360,7 +369,7 @@ def get_main_parser():
             __pplacer_cpus(grp)
             __force(grp)
             __scratch_dir(grp)
-            #__recalculate_red(grp)
+            # __recalculate_red(grp)
             __keep_intermediates(grp)
             __min_af(grp)
             __temp_dir(grp)
@@ -438,7 +447,7 @@ def get_main_parser():
             __pplacer_cpus(grp)
             __scratch_dir(grp)
             __full_tree(grp)
-            #__recalculate_red(grp)
+            # __recalculate_red(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)

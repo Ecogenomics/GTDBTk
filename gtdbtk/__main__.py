@@ -52,11 +52,11 @@ def print_help():
     ani_rep       -> Calculates ANI to GTDB representative genomes
     trim_msa      -> Trim an untrimmed MSA file based on a mask
     export_msa    -> Export the untrimmed archaeal or bacterial MSA file
-    remove_labels -> Remove labels (bootstrap values, node labels) from an Newick tree. 
+    remove_labels -> Remove labels (bootstrap values, node labels) from an Newick tree
 
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
-    check_install -> Verify third party programs and GTDB reference package.
+    check_install -> Verify third party programs and GTDB reference package
 
   Use: gtdbtk <command> -h for command specific help
     ''' % __version__)
