@@ -524,6 +524,16 @@ def get_main_parser():
             __debug(grp)
             __help(grp)
 
+    # Remove labels
+    with subparser(sub_parsers, 'remove_labels', 'Remove labels (bootstrap values, node labels) from an Newick tree to '
+                                                 'to improve compatibility with tree viewers') as parser:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
+            __debug(grp)
+            __help(grp)
+
     # Export MSA.
     with subparser(sub_parsers, 'export_msa', 'Export the untrimmed archaeal or bacterial MSA file.') as parser:
         with arg_group(parser, 'required named arguments') as grp:

@@ -624,6 +624,21 @@ class OptionsParser(object):
 
         self.logger.info('Done.')
 
+    def remove_labels(self, options):
+        """Remove labels from tree.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        check_file_exists(options.input_tree)
+
+        r = Misc()
+        r.remove_labels(options.input_tree, options.output_tree)
+        self.logger.info('Done.')
+
     def remove_intermediate_files(self,out_dir,workflow_name):
         """Remove intermediate files from the output directory.
         Parameters
@@ -809,6 +824,8 @@ class OptionsParser(object):
             self.infer_ranks(options)
         elif options.subparser_name == 'ani_rep':
             self.ani_rep(options)
+        elif options.subparser_name == 'remove_labels':
+            self.remove_labels(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':

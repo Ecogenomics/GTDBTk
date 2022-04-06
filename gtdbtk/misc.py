@@ -20,6 +20,8 @@ import os
 
 import shutil
 
+import dendropy
+
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
@@ -103,6 +105,29 @@ class Misc(object):
             self.logger.warning("Check folder {} ({}): {}".format(
                 folder_name, folder_path, colour('MISSING', ['bright'], fg='red')))
             return False
+
+    def remove_labels(self, input_file, output_file):
+        """Remove labels from a Newick Tree.
+
+        Parameters
+        ----------
+        input_file : str
+            The path to the input Newick tree.
+        output_file : str
+            The path to the output Newick tree.
+        """
+
+        self.logger.info("Removing labels from tree {}".format(input_file))
+        intree= dendropy.Tree.get_from_path(input_file,
+                                           schema='newick',
+                                           rooting='force-rooted',
+                                           preserve_underscores=True)
+
+        for node in intree.internal_nodes():
+            node.label = None
+
+        intree.write_to_path(output_file, schema='newick', suppress_rooting=True)
+
 
     def remove_intermediate_files(self,output_dir,wf_name):
         """Remove intermediate files.

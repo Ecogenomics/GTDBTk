@@ -192,6 +192,15 @@ class TestCli(unittest.TestCase):
         self.assertEqual(len(infos), 20)
         self.assertTrue(infos[1].startswith('d__Archaea'))
 
+        self.assertTrue(os.path.isdir(os.path.join(classify_options.out_dir, DIR_IDENTIFY_INTERMEDIATE)))
+        self.assertTrue(os.path.isdir(os.path.join(classify_options.out_dir, DIR_ALIGN_INTERMEDIATE)))
+        self.assertTrue(os.path.isdir(os.path.join(classify_options.out_dir, DIR_CLASSIFY_INTERMEDIATE)))
+        self.optionparser.remove_intermediate_files(classify_options.out_dir,'classify_wf')
+        self.assertFalse(os.path.exists(os.path.join(classify_options.out_dir, DIR_IDENTIFY_INTERMEDIATE)))
+        self.assertFalse(os.path.exists(os.path.join(classify_options.out_dir, DIR_ALIGN_INTERMEDIATE)))
+        self.assertFalse(os.path.exists(os.path.join(classify_options.out_dir, DIR_CLASSIFY_INTERMEDIATE)))
+
+
     def test_classify_wf(self):
         tmp_folder = ''.join(random.choice(
             string.ascii_uppercase + string.digits) for _ in range(10))
@@ -265,7 +274,7 @@ class TestCli(unittest.TestCase):
         """Test that rooting is successful when called through the CLI"""
         options = argparse.ArgumentParser()
         options.input_tree = 'tests/data/pplacer_dir_reference/gtdbtk.ar53.classify.tree'
-        options.outgroup_taxon = 'p__Altarchaeota'
+        options.outgroup_taxon = 'p__Altiarchaeota'
         options.output_tree = os.path.join(self.generic_out_path, 'test.rooted.tree')
         options.custom_taxonomy_file = None
         options.gtdbtk_classification_file = None
