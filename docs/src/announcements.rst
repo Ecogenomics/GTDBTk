@@ -7,7 +7,7 @@ GTDB R207 available
 
 *April xx, 2022*
 
-* GTDB Release 202 is now available and will be used from version ``2.0.1`` and up.
+* GTDB Release 202 is now available and will be used from version ``2.0.0`` and up.
 * This version of GTDB-Tk requires a new version of the GTDB-Tk reference package
   `gtdbtk_r207_data.tar.gz <https://data.ace.uq.edu.au/public/gtdb/data/releases/release207/207.0/auxillary_files>`_.
 
