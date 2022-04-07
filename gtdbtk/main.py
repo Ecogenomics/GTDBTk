@@ -396,7 +396,7 @@ class OptionsParser(object):
             shutil.copytree(input_dir, genome_test_dir)
 
             args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
-                    '--out_dir', output_dir, '--cpus', str(options.cpus)]
+                    '--out_dir', output_dir, '--cpus', str(options.cpus), '-f']
             self.logger.info('Command: {}'.format(' '.join(args)))
 
             # Pipe the output and write to disk.
@@ -463,6 +463,10 @@ class OptionsParser(object):
                      debugopt=options.debug,
                      fulltreeopt=options.full_tree,
                      recalculate_red=False)
+
+        self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
+                         'designations. New designations should be based on one or more de novo trees, an '
+                         'example of which can be produced by Tk in de novo mode.')
 
         self.logger.info('Done.')
 
@@ -622,6 +626,20 @@ class OptionsParser(object):
         ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
                     options.mash_k, options.mash_v, options.mash_s, options.min_af, options.mash_db)
 
+        self.logger.info('Done.')
+
+    def convert_to_itol(self, options):
+        """Convert Tree to iTOL format.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        check_file_exists(options.input_tree)
+
+        r = Misc()
+        r.convert_to_itol(options.input_tree, options.output_tree)
         self.logger.info('Done.')
 
     def remove_labels(self, options):
@@ -826,6 +844,8 @@ class OptionsParser(object):
             self.ani_rep(options)
         elif options.subparser_name == 'remove_labels':
             self.remove_labels(options)
+        elif options.subparser_name == 'convert_to_itol':
+            self.convert_to_itol(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':

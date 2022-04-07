@@ -25,6 +25,7 @@ import dendropy
 import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
+from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.output import DIR_CLASSIFY_INTERMEDIATE, DIR_ALIGN_INTERMEDIATE, DIR_IDENTIFY_INTERMEDIATE
 from gtdbtk.exceptions import GTDBTkException, GTDBTkExit
@@ -126,7 +127,36 @@ class Misc(object):
         for node in intree.internal_nodes():
             node.label = None
 
-        intree.write_to_path(output_file, schema='newick', suppress_rooting=True)
+        intree.write_to_path(output_file, schema='newick', suppress_rooting=True,unquoted_underscores=True)
+
+
+    def convert_to_itol(self, input_file, output_file):
+        """Remove labels from a Newick Tree.
+
+        Parameters
+        ----------
+        input_file : str
+            The path to the input Newick tree.
+        output_file : str
+            The path to the output Newick tree.
+        """
+
+        self.logger.info("Convert GTDB-Tk tree to iTOL format")
+        intree= dendropy.Tree.get_from_path(input_file,
+                                           schema='newick',
+                                           rooting='force-rooted',
+                                           preserve_underscores=True)
+
+        for node in intree.internal_nodes():
+            if node.label:
+                bootstrap,label,_aux = parse_label(node.label)
+                if label:
+                    label = label.replace('; ',';').replace(';','|').replace("'","").lstrip('')
+                node.label = label
+                if node.edge.length:
+                    node.edge.length = f'{node.edge.length}[{bootstrap}]'
+
+        intree.write_to_path(output_file, schema='newick', suppress_rooting=True,unquoted_underscores=True)
 
 
     def remove_intermediate_files(self,output_dir,wf_name):

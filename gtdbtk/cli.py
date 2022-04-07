@@ -535,7 +535,16 @@ def get_main_parser():
 
     # Remove labels
     with subparser(sub_parsers, 'remove_labels', 'Remove labels (bootstrap values, node labels) from an Newick tree to '
-                                                 'to improve compatibility with tree viewers') as parser:
+                                                 'to improve compatibility with tree viewers.') as parser:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
+            __debug(grp)
+            __help(grp)
+
+    # Remove labels
+    with subparser(sub_parsers, 'convert_to_itol', 'Reformat the GTDB-Tk tree to be iTOL compatible.') as parser:
         with arg_group(parser, 'required named arguments') as grp:
             __input_tree(grp, required=True)
             __output_tree(grp, required=True)
