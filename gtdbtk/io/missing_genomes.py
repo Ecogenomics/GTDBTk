@@ -19,39 +19,45 @@ import os
 from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.config import RED_DIST_ARC_DICT, RED_DIST_BAC_DICT
-from gtdbtk.config.output import PATH_AR53_RED_DICT, PATH_BAC120_RED_DICT
+from gtdbtk.config.output import PATH_AR53_DISAPPEARING_GENOMES, PATH_BAC120_DISAPPEARING_GENOMES
+from gtdbtk.exceptions import GTDBTkExit
 
 
-class REDDictFile(object):
+class DisappearingGenomesFile(object):
     """Store the GTDB-Tk RED dictionary."""
 
-    def __init__(self, path: str, red_dict: Dict[str, float]):
-        self.path = path
-        self.data = red_dict
+    def __init__(self, path: str,domain: str):
+        self.path: str = path
+        self.domain: str = domain
+        self.data: Dict[str, str] = dict()
+        self.file_name: str = os.path.basename(path)
+
+    def add_genome(self, gid: str, tree_index: str):
+        """PlAdds the pplacer classification of a given genome."""
+        if gid in self.data:
+            raise GTDBTkExit(f'Warning! Attempting to add duplicate genome: {gid}')
+        self.data[gid] = tree_index
 
     def write(self):
         """Write the file to disk, note that domain is omitted."""
         make_sure_path_exists(os.path.dirname(self.path))
         with open(self.path, 'w') as fh:
-            fh.write(f'Phylum\t{self.data["p__"]}\n')
-            fh.write(f'Class\t{self.data["c__"]}\n')
-            fh.write(f'Order\t{self.data["o__"]}\n')
-            fh.write(f'Family\t{self.data["f__"]}\n')
-            fh.write(f'Genus\t{self.data["g__"]}\n')
+            fh.write(f'genome_id\tdomain\ttree_index\n')
+            for seqid, infos in self.data.items():
+                fh.write(f'{seqid}\t{self.domain}\t{infos}\n')
 
 
-class REDDictFileAR53(REDDictFile):
+class DisappearingGenomesFileAR53(DisappearingGenomesFile):
     """Store the RED dictionary for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR53_RED_DICT.format(prefix=prefix))
-        super().__init__(path, RED_DIST_ARC_DICT)
+        path = os.path.join(out_dir, PATH_AR53_DISAPPEARING_GENOMES.format(prefix=prefix))
+        super().__init__(path,'archaea')
 
 
-class REDDictFileBAC120(REDDictFile):
+class DisappearingGenomesFileBAC120(DisappearingGenomesFile):
     """Store the RED dictionary for the BAC120 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
-        super().__init__(path, RED_DIST_BAC_DICT)
+        path = os.path.join(out_dir, PATH_BAC120_DISAPPEARING_GENOMES.format(prefix=prefix))
+        super().__init__(path,'bacteria')

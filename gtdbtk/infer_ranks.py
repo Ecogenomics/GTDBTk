@@ -25,7 +25,7 @@ from gtdbtk.config.config import (TAXONOMY_FILE,
                                   RED_DIST_BAC_DICT,
                                   RED_DIST_ARC_DICT,
                                   MRCA_RED_BAC120,
-                                  MRCA_RED_AR122,
+                                  MRCA_RED_AR53,
                                   RED_INTERVAL)
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.relative_distance import RelativeDistance
@@ -102,7 +102,7 @@ class InferRanks(object):
 
         red_file = MRCA_RED_BAC120
         if ingroup_domain == 'd__Archaea':
-            red_file = MRCA_RED_AR122
+            red_file = MRCA_RED_AR53
 
         # create map from leave labels to tree nodes
         leaf_node_map = {}

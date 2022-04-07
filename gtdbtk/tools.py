@@ -16,7 +16,7 @@ import gtdbtk.config.config as Config
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 from gtdbtk.exceptions import GTDBTkExit
 
-
+order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
 ##################################################
 ############MISC UTILITIES########################
 ##################################################
@@ -41,6 +41,42 @@ def get_reference_ids():
             elif raw_id[0:3] in ['RS_', 'GB_']:
                 results.add(raw_id[3:])
     return frozenset(results)
+
+def truncate_taxonomy(taxonomy, rank):
+    taxonomy_list = taxonomy.split(';')
+    taxonomy_list = taxonomy_list[0:order_rank.index(rank)]
+    taxonomy = standardise_taxonomy(';'.join(taxonomy_list), 'bac120')
+    return taxonomy
+
+def standardise_taxonomy(taxstring, marker_set=None):
+        """Create a 7 rank taxonomy string from an incomplete taxonomy string
+
+        Parameters
+        ----------
+        taxstring : str
+            incomplete taxonomy string
+        marker_set : str
+            The marker set to use.
+
+        Returns
+        -------
+        string
+            7 rank taxonomy string.
+        """
+        # return taxstring
+
+        taxlist = taxstring.split(";")
+        while '' in taxlist:
+            taxlist.remove('')
+        if marker_set == 'bac120':
+            if not taxlist or taxlist[0] !='d__Bacteria' :
+                taxlist.insert(0, 'd__Bacteria')
+        if marker_set == 'ar53':
+            if not taxlist or taxlist[0] !='d__Archaea' :
+                taxlist.insert(0, 'd__Archaea')
+        taxlist.extend(order_rank[len(taxlist):])
+        new_taxstring = ";".join(taxlist)
+        return new_taxstring
 
 
 def add_ncbi_prefix(refname):

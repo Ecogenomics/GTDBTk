@@ -8,7 +8,7 @@ Classify workflow
 
 For arguments and output files, see each of the individual steps:
 
-* :ref:`commands/infer`
+* :ref:`commands/identify`
 * :ref:`commands/align`
 * :ref:`commands/classify`
 
@@ -16,7 +16,7 @@ The classify workflow consists of three steps: ``identify``, ``align``, and ``cl
 
 The ``identify`` step calls genes using `Prodigal <http://compbio.ornl.gov/prodigal/>`_,
 and uses HMM models and the `HMMER <http://hmmer.org/>`_ package to identify the
-120 bacterial and 122 archaeal marker genes used for phylogenetic inference
+120 bacterial and 53 archaeal marker genes used for phylogenetic inference
 (`Parks et al., 2018 <https://www.ncbi.nlm.nih.gov/pubmed/30148503>`_). Multiple
 sequence alignments (MSA) are obtained by aligning marker genes to their respective HMM model.
 

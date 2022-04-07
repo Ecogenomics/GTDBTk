@@ -59,7 +59,7 @@ class ReferenceFileMalformed(GTDBTkException):
 
 
 class GenomeMarkerSetUnknown(GTDBTkException):
-    """ Thrown when the genome marker set is unknown (i.e. not ar122, or bac120). """
+    """ Thrown when the genome marker set is unknown (i.e. not ar53, or bac120). """
 
     def __init__(self, message=''):
         GTDBTkException.__init__(self, message)

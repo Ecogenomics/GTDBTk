@@ -40,8 +40,8 @@ from collections import defaultdict, Counter
 import dendropy
 
 from gtdbtk.biolib_lite.logger import colour, logger_setup
-from gtdbtk.config.output import PATH_BAC120_TREE_FILE, PATH_AR122_TREE_FILE, PATH_BAC120_SUMMARY_OUT, \
-    PATH_AR122_SUMMARY_OUT
+from gtdbtk.config.output import PATH_BAC120_TREE_FILE, PATH_AR53_TREE_FILE, PATH_BAC120_SUMMARY_OUT, \
+    PATH_AR53_SUMMARY_OUT
 from gtdbtk.exceptions import GTDBTkExit
 
 
@@ -72,19 +72,19 @@ class Translate(object):
 
         return ncbi_rep_ids
 
-    def run(self, gtdbtk_output_dir, ar122_metadata_file, bac120_metadata_file,
+    def run(self, gtdbtk_output_dir, ar53_metadata_file, bac120_metadata_file,
             output_file, gtdbtk_prefix):
         """Translate GTDB to NCBI classification via majority vote."""
 
         # Set the output directories
-        if not (ar122_metadata_file or bac120_metadata_file):
-            raise GTDBTkExit('You must specify at least one of --ar122_metadata_file or --bac120_metadata_file')
+        if not (ar53_metadata_file or bac120_metadata_file):
+            raise GTDBTkExit('You must specify at least one of --ar53_metadata_file or --bac120_metadata_file')
         ar_summary = os.path.join(gtdbtk_output_dir,
-                                  PATH_AR122_SUMMARY_OUT.format(prefix=gtdbtk_prefix)) \
-            if ar122_metadata_file else None
+                                  PATH_AR53_SUMMARY_OUT.format(prefix=gtdbtk_prefix)) \
+            if ar53_metadata_file else None
         ar_tree = os.path.join(gtdbtk_output_dir,
-                               PATH_AR122_TREE_FILE.format(prefix=gtdbtk_prefix)) \
-            if ar122_metadata_file else None
+                               PATH_AR53_TREE_FILE.format(prefix=gtdbtk_prefix)) \
+            if ar53_metadata_file else None
         bac_summary = os.path.join(gtdbtk_output_dir,
                                    PATH_BAC120_SUMMARY_OUT.format(prefix=gtdbtk_prefix)) \
             if bac120_metadata_file else None
@@ -101,7 +101,7 @@ class Translate(object):
         ncbi_taxa = {}
         ncbi_lineages = {}
         gtdb_sp_clusters = defaultdict(set)
-        for domain, metadata_file in [('archaeal', ar122_metadata_file),
+        for domain, metadata_file in [('archaeal', ar53_metadata_file),
                                       ('bacterial', bac120_metadata_file)]:
             # Only process those domains which have been provided as an input.
             if metadata_file is None:
@@ -249,13 +249,13 @@ if __name__ == "__main__":
         The output file to write the translated taxonomy.
 
   {colour('At least one argument is required from:', ['underscore'])}
-    {colour('--ar122_metadata_file', ['bright'])}
+    {colour('--ar53_metadata_file', ['bright'])}
         The archaeal GTDB metadata file (if processing archaeal genomes).
     {colour('--bac120_metadata_file', ['bright'])}
         The bacterial GTDB metadata file (if processing bacterial genomes).
 
     NOTE: Metadata files are available for download from the GTDB repository
-          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/ar122_metadata.tsv
+          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/ar53_metadata.tsv
           https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/bac120_metadata.tsv
 
   {colour('Optional arguments:', ['underscore'])}
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--gtdbtk_output_dir', required=True,
                         help='The output directory produced by the GTDB-Tk classify workflow.')
-    parser.add_argument('--ar122_metadata_file', required=False, default=None,
+    parser.add_argument('--ar53_metadata_file', required=False, default=None,
                         help='The archaeal GTDB metadata file (if processing archaeal genomes).')
     parser.add_argument('--bac120_metadata_file', required=False, default=None,
                         help='The bacterial GTDB metadata file (if processing bacterial genomes).')
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     try:
         p = Translate()
         p.run(args.gtdbtk_output_dir,
-              args.ar122_metadata_file,
+              args.ar53_metadata_file,
               args.bac120_metadata_file,
               args.output_file,
               args.gtdbtk_prefix)

@@ -21,8 +21,8 @@ from typing import Set, Dict, List, Union
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.seq_io import read_fasta
-from gtdbtk.config.config import BAC120_MARKERS, AR122_MARKERS
-from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR122_MARKER_SUMMARY
+from gtdbtk.config.config import BAC120_MARKERS, AR53_MARKERS
+from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
 
@@ -154,12 +154,12 @@ class CopyNumberFile(object):
                     raise GTDBTkExit(f'The marker file is inconsistent: {self.path}')
 
 
-class CopyNumberFileAR122(CopyNumberFile):
-    """Store hmm copy number information for AR122 markers."""
+class CopyNumberFileAR53(CopyNumberFile):
+    """Store hmm copy number information for AR53 markers."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_MARKER_SUMMARY.format(prefix=prefix))
-        super().__init__(path, 'ar122', AR122_MARKERS)
+        path = os.path.join(out_dir, PATH_AR53_MARKER_SUMMARY.format(prefix=prefix))
+        super().__init__(path, 'ar53', AR53_MARKERS)
 
 
 class CopyNumberFileBAC120(CopyNumberFile):

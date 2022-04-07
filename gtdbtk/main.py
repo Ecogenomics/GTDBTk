@@ -41,7 +41,7 @@ from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.io.batchfile import Batchfile
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR53
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain
@@ -273,6 +273,7 @@ class OptionsParser(object):
                          options.out_dir,
                          options.prefix,
                          options.force,
+                         options.genes,
                          options.write_single_copy_genes)
 
         self.logger.info('Done.')
@@ -395,7 +396,7 @@ class OptionsParser(object):
             shutil.copytree(input_dir, genome_test_dir)
 
             args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
-                    '--out_dir', output_dir, '--cpus', str(options.cpus)]
+                    '--out_dir', output_dir, '--cpus', str(options.cpus), '-f']
             self.logger.info('Command: {}'.format(' '.join(args)))
 
             # Pipe the output and write to disk.
@@ -414,7 +415,7 @@ class OptionsParser(object):
                 proc.wait()
                 exit_code = proc.returncode
 
-            summary_fh = ClassifySummaryFileAR122(output_dir, 'gtdbtk')
+            summary_fh = ClassifySummaryFileAR53(output_dir, 'gtdbtk')
 
             if exit_code != 0:
                 self.logger.error('The test returned a non-zero exit code.')
@@ -460,8 +461,12 @@ class OptionsParser(object):
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
-                     splittreeopt=options.split_tree,
+                     fulltreeopt=options.full_tree,
                      recalculate_red=False)
+
+        self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
+                         'designations. New designations should be based on one or more de novo trees, an '
+                         'example of which can be produced by Tk in de novo mode.')
 
         self.logger.info('Done.')
 
@@ -566,14 +571,14 @@ class OptionsParser(object):
                           os.path.join(options.out_dir,
                                        os.path.basename(
                                            PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
-            elif options.suffix == 'ar122':
-                symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix),
+            elif options.suffix == 'ar53':
+                symlink_f(PATH_AR53_DECORATED_TREE.format(prefix=options.prefix),
                           os.path.join(options.out_dir,
-                                       os.path.basename(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))))
-                symlink_f(PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table',
+                                       os.path.basename(PATH_AR53_DECORATED_TREE.format(prefix=options.prefix))))
+                symlink_f(PATH_AR53_DECORATED_TREE.format(prefix=options.prefix) + '-table',
                           os.path.join(options.out_dir,
                                        os.path.basename(
-                                           PATH_AR122_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
+                                           PATH_AR53_DECORATED_TREE.format(prefix=options.prefix) + '-table')))
             else:
                 raise GenomeMarkerSetUnknown(
                     'There was an error determining the marker set.')
@@ -623,6 +628,47 @@ class OptionsParser(object):
 
         self.logger.info('Done.')
 
+    def convert_to_itol(self, options):
+        """Convert Tree to iTOL format.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        check_file_exists(options.input_tree)
+
+        r = Misc()
+        r.convert_to_itol(options.input_tree, options.output_tree)
+        self.logger.info('Done.')
+
+    def remove_labels(self, options):
+        """Remove labels from tree.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        check_file_exists(options.input_tree)
+
+        r = Misc()
+        r.remove_labels(options.input_tree, options.output_tree)
+        self.logger.info('Done.')
+
+    def remove_intermediate_files(self,out_dir,workflow_name):
+        """Remove intermediate files from the output directory.
+        Parameters
+        ----------
+            out_dir : str
+                The output directory.
+        """
+
+        misc = Misc()
+        misc.remove_intermediate_files(out_dir,workflow_name)
+        self.logger.info('Done.')
+
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)
 
@@ -664,15 +710,26 @@ class OptionsParser(object):
             if options.bacteria:
                 options.suffix = "bac120"
             else:
-                options.suffix = "ar122"
+                options.suffix = "ar53"
 
             if options.skip_gtdb_refs:
                 if options.suffix == 'bac120':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_BAC120_USER_MSA.format(prefix=options.prefix))
-                elif options.suffix == 'ar122':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_AR122_USER_MSA.format(prefix=options.prefix))
+                    if os.path.isfile(os.path.join(options.out_dir,
+                                                   PATH_BAC120_USER_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_BAC120_USER_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_BAC120_USER_MSA.format(prefix=options.prefix) + '.gz')
+
+                elif options.suffix == 'ar53':
+                    if os.path.isfile(os.path.join(options.out_dir,
+                                                   PATH_AR53_USER_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_AR53_USER_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(options.out_dir,
+                                                     PATH_AR53_USER_MSA.format(prefix=options.prefix) + '.gz')
                 else:
                     self.logger.error(
                         'There was an error determining the marker set.')
@@ -680,11 +737,21 @@ class OptionsParser(object):
                         'Unknown marker set: {}'.format(options.suffix))
             else:
                 if options.suffix == 'bac120':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
-                elif options.suffix == 'ar122':
-                    options.msa_file = os.path.join(
-                        options.out_dir, PATH_AR122_MSA.format(prefix=options.prefix))
+                    if os.path.isfile(os.path.join(
+                        options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_BAC120_MSA.format(prefix=options.prefix) + '.gz')
+                elif options.suffix == 'ar53':
+                    if os.path.isfile(os.path.join(
+                        options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix))):
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix))
+                    else:
+                        options.msa_file = os.path.join(
+                            options.out_dir, PATH_AR53_MSA.format(prefix=options.prefix) + '.gz')
                 else:
                     self.logger.error(
                         'There was an error determining the marker set.')
@@ -698,11 +765,11 @@ class OptionsParser(object):
                                                   PATH_BAC120_UNROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
                                                    PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
-            elif options.suffix == 'ar122':
+            elif options.suffix == 'ar53':
                 options.input_tree = os.path.join(options.out_dir,
-                                                  PATH_AR122_UNROOTED_TREE.format(prefix=options.prefix))
+                                                  PATH_AR53_UNROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
-                                                   PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                                                   PATH_AR53_ROOTED_TREE.format(prefix=options.prefix))
 
             self.root(options)
 
@@ -711,21 +778,18 @@ class OptionsParser(object):
                                                   PATH_BAC120_ROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
                                                    PATH_BAC120_DECORATED_TREE.format(prefix=options.prefix))
-            elif options.suffix == 'ar122':
+            elif options.suffix == 'ar53':
                 options.input_tree = os.path.join(options.out_dir,
-                                                  PATH_AR122_ROOTED_TREE.format(prefix=options.prefix))
+                                                  PATH_AR53_ROOTED_TREE.format(prefix=options.prefix))
                 options.output_tree = os.path.join(options.out_dir,
-                                                   PATH_AR122_DECORATED_TREE.format(prefix=options.prefix))
+                                                   PATH_AR53_DECORATED_TREE.format(prefix=options.prefix))
 
             self.decorate(options)
 
-        elif options.subparser_name == 'classify_wf':
+            if not options.keep_intermediates:
+                self.remove_intermediate_files(options.out_dir,'de_novo_wf')
 
-            # TODO: Remove this block once the split_tree function is implemented.
-            if hasattr(options, 'split_tree') and options.split_tree:
-                self.logger.warning('The split tree option is not yet '
-                                    ' supported, overriding value to False.')
-            options.split_tree = False
+        elif options.subparser_name == 'classify_wf':
 
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
@@ -750,6 +814,9 @@ class OptionsParser(object):
             self.align(options)
 
             self.classify(options)
+            if not options.keep_intermediates:
+                self.remove_intermediate_files(options.out_dir,'classify_wf')
+
         elif options.subparser_name == 'identify':
             self.identify(options)
         elif options.subparser_name == 'align':
@@ -759,10 +826,10 @@ class OptionsParser(object):
         elif options.subparser_name == 'classify':
 
             # TODO: Remove this block once the split_tree function is implemented.
-            if hasattr(options, 'split_tree') and options.split_tree:
-                self.logger.warning('The split tree option is not yet '
-                                    ' supported, overriding value to False.')
-            options.split_tree = False
+            # if hasattr(options, 'split_tree') and options.split_tree:
+            #     self.logger.warning('The split tree option is not yet '
+            #                         ' supported, overriding value to False.')
+            # options.split_tree = False
 
             # if options.recalculate_red and options.split_tree:
             #     raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
@@ -775,6 +842,10 @@ class OptionsParser(object):
             self.infer_ranks(options)
         elif options.subparser_name == 'ani_rep':
             self.ani_rep(options)
+        elif options.subparser_name == 'remove_labels':
+            self.remove_labels(options)
+        elif options.subparser_name == 'convert_to_itol':
+            self.convert_to_itol(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':

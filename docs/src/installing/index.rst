@@ -34,12 +34,12 @@ Hardware requirements
      - Storage
      - Time
    * - Archaea
-     - ~13 GB
-     - ~27 GB
+     - ~34 GB
+     - ~65 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~215 GB
-     - ~27 GB
+     - ~320 GB ( 20GB for divide-and-conquer)
+     - ~65 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
 
 .. note::

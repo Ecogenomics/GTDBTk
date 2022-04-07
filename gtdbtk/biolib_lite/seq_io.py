@@ -122,15 +122,19 @@ def read_fasta_seq(fasta_file, keep_annotation=False):
 
     try:
         open_file = open
+        mode = 'r'
         if fasta_file.endswith('.gz'):
             open_file = gzip.open
+            mode = 'rb'
 
         seq_id = None
         annotation = None
         seq = None
-        with open_file(fasta_file, 'r') as f:
+        with open_file(fasta_file, mode) as f:
 
             for line in f.readlines():
+                if isinstance(line, bytes):
+                    line = line.decode()
                 # skip blank lines
                 if not line.strip():
                     continue

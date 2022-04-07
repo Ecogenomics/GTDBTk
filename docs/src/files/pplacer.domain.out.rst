@@ -16,7 +16,7 @@ Example
 
 .. code-block:: text
     
-    Running pplacer v1.1.alpha19-0-g807f6f3 analysis on align_output/align/gtdbtk.ar122.user_msa.fasta...
+    Running pplacer v1.1.alpha19-0-g807f6f3 analysis on align_output/align/gtdbtk.ar53.user_msa.fasta...
     Didn't find any reference sequences in given alignment file. Using supplied reference alignment.
     Pre-masking sequences... sequence length cut from 5124 to 5114.
     Determining figs... figs disabled.
