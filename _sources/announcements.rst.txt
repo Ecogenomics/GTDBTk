@@ -5,7 +5,7 @@ Announcements
 GTDB R207 available
 ------------------
 
-*April xx, 2022*
+*April 8, 2022*
 
 * GTDB Release 202 is now available and will be used from version ``2.0.0`` and up.
 * This version of GTDB-Tk requires a new version of the GTDB-Tk reference package
