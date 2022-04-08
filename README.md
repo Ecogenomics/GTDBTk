@@ -12,7 +12,7 @@
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes based on the Genome Database Taxonomy ([GTDB](https://gtdb.ecogenomic.org/)). It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-Notifications about GTDB-Tk releases will be available through the [GTDB Twitter] (https://twitter.com/ace_gtdb) account and the [GTDB Announcements Forum](https://forum.gtdb.ecogenomic.org/c/announcements/10).
+Notifications about GTDB-Tk releases will be available through the [GTDB Twitter](https://twitter.com/ace_gtdb) account and the [GTDB Announcements Forum](https://forum.gtdb.ecogenomic.org/c/announcements/10).
 
 Please post questions and issues related to GTDB-Tk on the Issues section of the GitHub repository. Questions related to the [GTDB](https://gtdb.ecogenomic.org/) can be posted on the [GTDB Forum](https://forum.gtdb.ecogenomic.org/) or sent to the [GTDB team](https://gtdb.ecogenomic.org/about).
 
