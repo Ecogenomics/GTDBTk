@@ -4,7 +4,7 @@ markers_summary.tsv
 ===================
 
 A summary of unique, duplicated, and missing markers within the 120 bacterial marker set, 
-or the 122 archaeal marker set for each submitted genome.
+or the 53 archaeal marker set for each submitted genome.
 
 For each genome:
 

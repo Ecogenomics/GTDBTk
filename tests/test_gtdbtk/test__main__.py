@@ -20,8 +20,8 @@ import subprocess
 import tempfile
 import unittest
 
-from gtdbtk.config.config import CONCAT_AR122, CONCAT_BAC120, MASK_AR122, MASK_DIR, MASK_BAC120
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR122
+from gtdbtk.config.config import CONCAT_AR53, CONCAT_BAC120, MASK_AR53, MASK_DIR, MASK_BAC120
+from gtdbtk.io.classify_summary import ClassifySummaryFileAR53
 from gtdbtk.tools import sha256
 
 
@@ -48,7 +48,7 @@ class TestMain(unittest.TestCase):
         p.wait()
         self.assertEqual(p.returncode, 0)
 
-        classify_file = ClassifySummaryFileAR122(out_dir=self.dir_tmp, prefix='gtdbtk')
+        classify_file = ClassifySummaryFileAR53(out_dir=self.dir_tmp, prefix='gtdbtk')
         classify_file.read()
 
         expected = {
@@ -131,7 +131,7 @@ class TestMain(unittest.TestCase):
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
 
-        msa_file = os.path.join(align_dir, 'align', 'gtdbtk.ar122.msa.fasta')
+        msa_file = os.path.join(align_dir, 'align', 'gtdbtk.ar53.msa.fasta')
         infer_dir = os.path.join(self.dir_tmp, 'infer')
         args = ['python', '-m', 'gtdbtk', 'infer', '--msa_file',
                 msa_file, '--out_dir', infer_dir, '--cpus', self.cpus]
@@ -176,14 +176,14 @@ class TestMain(unittest.TestCase):
 
     def test_trim_msa(self):
         path_out = os.path.join(self.dir_tmp, 'msa.faa')
-        args = ['python', '-m', 'gtdbtk', 'trim_msa', '--untrimmed_msa', CONCAT_AR122,
+        args = ['python', '-m', 'gtdbtk', 'trim_msa', '--untrimmed_msa', CONCAT_AR53,
                 '--output', path_out, '--reference_mask', 'arc']
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
 
     def test_trim_msa_reference_mask_arc(self):
-        with open(os.path.join(MASK_DIR, MASK_AR122), 'r') as f:
+        with open(os.path.join(MASK_DIR, MASK_AR53), 'r') as f:
             mask = [x == '1' for x in f.read().strip()]
 
         path_untrimmed_msa = os.path.join(self.dir_tmp, 'untrimmed_msa.fasta')
@@ -290,7 +290,7 @@ class TestMain(unittest.TestCase):
         self.assertEqual(p.returncode, 0)
 
         test_hash = sha256(path_output)
-        true_hash = sha256(CONCAT_AR122)
+        true_hash = sha256(CONCAT_AR53)
         self.assertEqual(test_hash, true_hash)
 
     def test_export_msa_bac(self):

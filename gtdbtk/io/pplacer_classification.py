@@ -19,7 +19,8 @@ import os
 from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import PATH_AR122_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS
+from gtdbtk.config.output import PATH_AR53_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS, PATH_BAC120_HIGH_PPLACER_CLASS, \
+    PATH_BAC120_LOW_PPLACER_CLASS
 from gtdbtk.exceptions import GTDBTkExit
 
 
@@ -30,6 +31,7 @@ class PplacerClassifyFile(object):
         self.path: str = path
         self.data: Dict[str, str] = dict()
 
+
     def add_genome(self, gid: str, tax_str: str):
         """Adds the pplacer classification of a given genome."""
         if gid in self.data:
@@ -39,16 +41,17 @@ class PplacerClassifyFile(object):
     def write(self):
         """Write the file to disk."""
         make_sure_path_exists(os.path.dirname(self.path))
-        with open(self.path, 'w') as fh:
-            for gid, tax_str in sorted(self.data.items()):
-                fh.write(f'{gid}\t{tax_str}\n')
+        if len(self.data) > 0 :
+            with open(self.path, 'w') as fh:
+                for gid, tax_str in sorted(self.data.items()):
+                    fh.write(f'{gid}\t{tax_str}\n')
 
 
-class PplacerClassifyFileAR122(PplacerClassifyFile):
-    """Store the pplacer classifications for the AR122 marker set."""
+class PplacerClassifyFileAR53(PplacerClassifyFile):
+    """Store the pplacer classifications for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
-        path = os.path.join(out_dir, PATH_AR122_PPLACER_CLASS.format(prefix=prefix))
+        path = os.path.join(out_dir, PATH_AR53_PPLACER_CLASS.format(prefix=prefix))
         super().__init__(path)
 
 
@@ -58,3 +61,67 @@ class PplacerClassifyFileBAC120(PplacerClassifyFile):
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_PPLACER_CLASS.format(prefix=prefix))
         super().__init__(path)
+
+class PplacerLowClassifyFileBAC120(PplacerClassifyFile):
+    """Store the pplacer classifications for the BAC120 marker set."""
+
+    def __init__(self, out_dir: str, prefix: str,iter:str):
+        path = os.path.join(out_dir, PATH_BAC120_LOW_PPLACER_CLASS.format(prefix=prefix,iter=iter))
+        super().__init__(path)
+
+
+class PplacerHighClassifyRow(object):
+    """Initialise the row, default all of the values to None."""
+
+    def __init__(self):
+        self.gid = None
+        self.gtdb_taxonomy_red = None
+        self.gtdb_taxonomy_terminal = None
+        self.pplacer_taxonomy = None
+        self.is_terminal = None
+        self.red = None
+
+
+class PplacerHighClassifyFile(object):
+    """Store the pplacer classifications."""
+
+    def __init__(self,out_dir: str,prefix: str):
+        self.path = os.path.join(out_dir, PATH_BAC120_HIGH_PPLACER_CLASS.format(prefix=prefix))
+        self.rows = dict()  # keyed by user_genome
+        self.none_value = 'N/A'
+
+    def add_row(self, row: PplacerHighClassifyRow):
+        if row.gid in self.rows:
+            raise GTDBTkExit(f'Attempting to add duplicate row: {row.gid}')
+        self.rows[row.gid] = row
+
+    @staticmethod
+    def get_col_order(row: PplacerHighClassifyRow = None):
+        """Return the column order that will be written. If a row is provided
+        then format the row in that specific order."""
+        if row is None:
+            row = PplacerHighClassifyRow()
+        mapping = [('user_genome', row.gid),
+                   ('gtdb_taxonomy_red', row.gtdb_taxonomy_red),
+                   ('gtdb_taxonomy_terminal', row.gtdb_taxonomy_terminal),
+                   ('pplacer_taxonomy', row.pplacer_taxonomy),
+                   ('is_terminal', row.is_terminal),
+                   ('red', row.red)]
+        cols, data = list(), list()
+        for col_name, col_val in mapping:
+            cols.append(col_name)
+            data.append(col_val)
+        return cols, data
+
+
+    def write(self):
+        """Write the file to disk."""
+        make_sure_path_exists(os.path.dirname(self.path))
+        cols = ['gid','gtdb_taxonomy','pplacer_taxonomy','is_terminal','red']
+        with open(self.path, 'w') as fh:
+            fh.write('\t'.join(self.get_col_order()[0]) + '\n')
+            for gid, row in sorted(self.rows.items()):
+                buf = list()
+                for data in self.get_col_order(row)[1]:
+                    buf.append(self.none_value if data is None else str(data))
+                fh.write('\t'.join(buf) + '\n')

@@ -48,14 +48,17 @@ def print_help():
     decorate -> Decorate tree with GTDB taxonomy
 
   Tools:
-    infer_ranks -> Establish taxonomic ranks of internal nodes using RED
-    ani_rep     -> Calculates ANI to GTDB representative genomes
-    trim_msa    -> Trim an untrimmed MSA file based on a mask
-    export_msa  -> Export the untrimmed archaeal or bacterial MSA file
+    infer_ranks     -> Establish taxonomic ranks of internal nodes using RED
+    ani_rep         -> Calculates ANI to GTDB representative genomes
+    trim_msa        -> Trim an untrimmed MSA file based on a mask
+    export_msa      -> Export the untrimmed archaeal or bacterial MSA file
+    remove_labels   -> Remove labels (bootstrap values, node labels) from an Newick tree
+    convert_to_itol -> Convert a GTDB-Tk Newick tree to an iTOL tree
+ 
 
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
-    check_install -> Verify third party programs and GTDB reference package.
+    check_install -> Verify third party programs and GTDB reference package
 
   Use: gtdbtk <command> -h for command specific help
     ''' % __version__)

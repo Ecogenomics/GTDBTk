@@ -15,9 +15,12 @@
 #                                                                             #
 ###############################################################################
 
+import gzip
 import logging
 import os
+import shutil
 import subprocess
+import tempfile
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.execute import check_dependencies
@@ -103,16 +106,28 @@ class FastTree(object):
 
         args.append('-log')
         args.append(tree_log)
-        args.append(msa_file)
 
         self.logger.info('Inferring FastTree ({}) using a maximum of {} CPUs.'.format(
             ', '.join(model_out), cpus))
 
-        with open(output_tree, 'w') as f_out_tree:
-            with open(fasttree_log, 'w') as f_out_err:
-                proc = subprocess.Popen(
-                    args, stdout=f_out_tree, stderr=f_out_err, env=env)
-                proc.communicate()
+        # Use a temporary directory if the input file is gzipped
+        with tempfile.TemporaryDirectory(prefix='gtdbtk_') as tmp_dir:
+
+            # Uncompress the archive if it's compressed
+            if msa_file.endswith('.gz'):
+                msa_path = os.path.join(tmp_dir, os.path.basename(msa_file[0:-3]))
+                with gzip.open(msa_file, 'rb') as f_in:
+                    with open(msa_path, 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+            else:
+                msa_path = msa_file
+            args.append(msa_path)
+
+            with open(output_tree, 'w') as f_out_tree:
+                with open(fasttree_log, 'w') as f_out_err:
+                    proc = subprocess.Popen(
+                        args, stdout=f_out_tree, stderr=f_out_err, env=env)
+                    proc.communicate()
 
         # Validate results
         if proc.returncode != 0:

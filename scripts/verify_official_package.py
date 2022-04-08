@@ -70,7 +70,7 @@ class PackageChecker(object):
 
         # Archaeal genome MSA is untrimmed
         ar_msa_file = glob.glob(os.path.join(
-            self.pack_dir, 'msa/*ar122.faa'))[0]
+            self.pack_dir, 'msa/*ar53.faa'))[0]
         ar_msa = read_fasta(ar_msa_file)
         first_seq = ar_msa.get(list(ar_msa.keys())[0])
         if len(first_seq) != 32675:
@@ -95,7 +95,7 @@ class PackageChecker(object):
 
         # Archaeal MASK is same length as the untrimmed archaeal genomes
         ar_mask_file = glob.glob(os.path.join(
-            self.pack_dir, 'masks/*ar122.mask'))[0]
+            self.pack_dir, 'masks/*ar53.mask'))[0]
         ar_mask = ''
         with open(ar_mask_file) as amf:
             ar_mask = amf.readline()
@@ -105,7 +105,7 @@ class PackageChecker(object):
         # Archaeal Pplacer MSA should have the same number of genomes as the
         # Archaeal untrimmed MSA
         ar_pplacer_msa_file = glob.glob(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_msa_r95.faa'))[0]
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar53.refpkg', 'ar53_msa_r95.faa'))[0]
         ar_pplacer_msa = read_fasta(ar_pplacer_msa_file)
         if len(ar_pplacer_msa) != len(ar_msa):
             print('ERROR: len(ar_pplacer_msa) != len(ar_msa)')
@@ -140,7 +140,7 @@ class PackageChecker(object):
         # Archaeal Tree should have the same number of leaves than nomber of
         # genomes in the MSA
         arc_tree = dendropy.Tree.get_from_path(os.path.join(
-            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar122.refpkg', 'ar122_' + version + '_unroot.pplacer.tree'),
+            self.pack_dir, 'pplacer', 'gtdb_' + version + '_ar53.refpkg', 'ar53_' + version + '_unroot.pplacer.tree'),
             schema='newick',
             rooting='force-rooted',
             preserve_underscores=True)
@@ -164,7 +164,7 @@ class PackageChecker(object):
             print('len(list_leaves): {}'.format(len(list_leaves)))
             print('len(bac_pplacer_msa): {}'.format(len(bac_pplacer_msa)))
 
-        # Taxonomy file should have as many genomes as bac120 and ar122 MSA
+        # Taxonomy file should have as many genomes as bac120 and ar53 MSA
         # combined
         tax_file = os.path.join(
             self.pack_dir, 'taxonomy', 'gtdb_taxonomy.tsv')
@@ -178,7 +178,7 @@ class PackageChecker(object):
             print('len(tax_dict): {}'.format(len(tax_dict)))
             print('len(ar_msa) + len(bac_msa): {}'.format(len(ar_msa) + len(bac_msa)))
 
-        # Radii file should have as many genomes as bac120 and ar122 MSA
+        # Radii file should have as many genomes as bac120 and ar53 MSA
         # combined
         radii_file = os.path.join(
             self.pack_dir, 'radii', 'gtdb_radii.tsv')
@@ -204,7 +204,7 @@ class PackageChecker(object):
 
         print('\n\nVERSION: {}'.format(version))
         print('Length trimmed bac120 MSA: {}'.format(len(bac_pplacer_msa.get(list(bac_pplacer_msa.keys())[0]))))
-        print('Length trimmed ar122 MSA: {}'.format(len(ar_pplacer_msa.get(list(ar_pplacer_msa.keys())[0]))))
+        print('Length trimmed ar53 MSA: {}'.format(len(ar_pplacer_msa.get(list(ar_pplacer_msa.keys())[0]))))
         print('')
         print('Number of genomes in fastani/database: {}'.format(len(list_genomes)))
         print('Number of genomes in radii file: {}'.format(len(radii_dict)))

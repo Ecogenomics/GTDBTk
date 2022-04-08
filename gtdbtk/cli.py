@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD
+from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC
 
 
 @contextmanager
@@ -31,8 +31,14 @@ def __temp_dir(group):
                        help="specify alternative directory for temporary files")
 
 
+def __genes(group):
+    group.add_argument('--genes', action='store_true', default=False,
+                       help='indicates input files contain called genes (skip gene calling)')
+
+
 def __genome_dir(group):
-    group.add_argument('--genome_dir', help="directory containing genome files in FASTA format")
+    group.add_argument(
+        '--genome_dir', help="directory containing genome files in FASTA format")
 
 
 def __batchfile(group):
@@ -153,7 +159,8 @@ def __prefix(group):
 
 
 def __cpus(group):
-    group.add_argument('--cpus', default=1, type=int, help='number of CPUs to use')
+    group.add_argument('--cpus', default=1, type=int,
+                       help='number of CPUs to use')
 
 
 def __force(group):
@@ -172,12 +179,12 @@ def __help(group):
 
 def __pplacer_cpus(group):
     group.add_argument('--pplacer_cpus', type=int, default=None,
-                       help='use ``pplacer_cpus`` during placement (default: ``cpus``)')
+                       help='number of CPUs to use during pplacer placement')
 
 
 def __scratch_dir(group):
     group.add_argument('--scratch_dir', type=str, default=None,
-                       help='Reduce pplacer memory usage by writing to disk (slower).')
+                       help='reduce pplacer memory usage by writing to disk (slower).')
 
 
 def __recalculate_red(group):
@@ -185,9 +192,10 @@ def __recalculate_red(group):
                        help='recalculate RED values based on the reference tree and all added user genomes')
 
 
-def __split_tree(group):
-    group.add_argument('-s', '--split_tree', default=False, action='store_true',
-                       help='Use shards of the reference tree (for Bacteria only). reduce memory usage (slower).')
+def __full_tree(group):
+    group.add_argument('-f', '--full_tree', default=False, action='store_true',
+                       help='use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk '
+                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC} GB of RAM to load the reference tree')
 
 
 def __identify_dir(group, required):
@@ -237,19 +245,23 @@ def __no_mash(group):
 
 
 def __mash_k(group):
-    group.add_argument('--mash_k', default=16, type=int, help='k-mer size [1-32]')
+    group.add_argument('--mash_k', default=16, type=int,
+                       help='k-mer size [1-32]')
 
 
 def __mash_s(group):
-    group.add_argument('--mash_s', default=5000, type=int, help='maximum number of non-redundant hashes')
+    group.add_argument('--mash_s', default=5000, type=int,
+                       help='maximum number of non-redundant hashes')
 
 
 def __mash_d(group):
-    group.add_argument('--mash_d', default=0.1, type=float, help='maximum distance to keep [0-1]')
+    group.add_argument('--mash_d', default=0.1, type=float,
+                       help='maximum distance to keep [0-1]')
 
 
 def __mash_v(group):
-    group.add_argument('--mash_v', default=1.0, type=float, help='maximum p-value to keep [0-1]')
+    group.add_argument('--mash_v', default=1.0, type=float,
+                       help='maximum p-value to keep [0-1]')
 
 
 def __mash_db(group):
@@ -259,12 +271,17 @@ def __mash_db(group):
 
 def __min_af(group):
     group.add_argument('--min_af', type=float, default=AF_THRESHOLD,
-                       help='minimum alignment fraction to consider closest genome')
+                       help='minimum alignment fraction to assign genome to a species cluster')
 
 
 def __untrimmed_msa(group, required):
     group.add_argument('--untrimmed_msa', type=str, default=None, required=required,
                        help="path to the untrimmed MSA file")
+
+
+def __keep_intermediates(group):
+    group.add_argument('--keep_intermediates', default=False, action='store_true',
+                       help='keep intermediate files in the final directory')
 
 
 def __output(group, required):
@@ -295,7 +312,8 @@ def __write_single_copy_genes(group):
 
 def get_main_parser():
     # Setup the main, and sub parsers.
-    main_parser = argparse.ArgumentParser(prog='gtdbtk', add_help=False, conflict_handler='resolve')
+    main_parser = argparse.ArgumentParser(
+        prog='gtdbtk', add_help=False, conflict_handler='resolve')
     sub_parsers = main_parser.add_subparsers(help="--", dest='subparser_name')
 
     # de novo workflow.
@@ -326,9 +344,11 @@ def get_main_parser():
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
             __prefix(grp)
+            __genes(grp)
             __cpus(grp)
             __force(grp)
             __temp_dir(grp)
+            __keep_intermediates(grp)
             __debug(grp)
             __help(grp)
 
@@ -340,15 +360,17 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
             __prefix(grp)
+            __genes(grp)
             __cpus(grp)
             __pplacer_cpus(grp)
             __force(grp)
             __scratch_dir(grp)
             # __recalculate_red(grp)
-            # __split_tree(grp)
+            __keep_intermediates(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)
@@ -364,6 +386,7 @@ def get_main_parser():
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)
+            __genes(grp)
             __cpus(grp)
             __force(grp)
             __write_single_copy_genes(grp)
@@ -423,7 +446,7 @@ def get_main_parser():
             __cpus(grp)
             __pplacer_cpus(grp)
             __scratch_dir(grp)
-            # __split_tree(grp)
+            __full_tree(grp)
             # __recalculate_red(grp)
             __min_af(grp)
             __temp_dir(grp)
@@ -506,6 +529,25 @@ def get_main_parser():
         with mutex_group(parser, required=True) as grp:
             __mask_file(grp)
             __reference_mask(grp)
+        with arg_group(parser, 'optional arguments') as grp:
+            __debug(grp)
+            __help(grp)
+
+    # Remove labels
+    with subparser(sub_parsers, 'remove_labels', 'Remove labels (bootstrap values, node labels) from an Newick tree to '
+                                                 'to improve compatibility with tree viewers.') as parser:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
+            __debug(grp)
+            __help(grp)
+
+    # Remove labels
+    with subparser(sub_parsers, 'convert_to_itol', 'Reformat the GTDB-Tk tree to be iTOL compatible.') as parser:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
             __debug(grp)
             __help(grp)

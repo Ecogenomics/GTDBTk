@@ -24,7 +24,7 @@ import tempfile
 
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
-from gtdbtk.io.marker.copy_number import CopyNumberFileAR122, CopyNumberFileBAC120
+from gtdbtk.io.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
 from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
 from gtdbtk.tools import tqdm_log
 
@@ -40,7 +40,7 @@ class HmmAligner(object):
                  pfam_hmm_dir,
                  tigrfam_hmm_dir,
                  bac120_markers,
-                 ar122_markers):
+                 ar53_markers):
         """Initialization."""
 
         check_dependencies(['hmmalign'])
@@ -55,14 +55,14 @@ class HmmAligner(object):
         self.tigrfam_hmm_dir = tigrfam_hmm_dir
 
         self.bac120_markers = bac120_markers
-        self.ar122_markers = ar122_markers
+        self.ar53_markers = ar53_markers
 
         self.marker_path_prefix = {"PFAM": os.path.join(self.pfam_hmm_dir,
                                                         'individual_hmms'),
                                    "TIGRFAM": os.path.join(os.path.dirname(self.tigrfam_hmm_dir),
                                                            'individual_hmms')}
 
-        self.ar122_marker_sizes = None
+        self.ar53_marker_sizes = None
         self.bac120_marker_sizes = None
 
         self.version = self.get_version()
@@ -85,15 +85,15 @@ class HmmAligner(object):
             return "(version unavailable)"
 
     def _get_hmm_sizes(self):
-        ar122, bac120 = dict(), dict()
-        for marker_d, out_d in ((self.ar122_markers, ar122),
+        ar53, bac120 = dict(), dict()
+        for marker_d, out_d in ((self.ar53_markers, ar53),
                                 (self.bac120_markers, bac120)):
             for marker_type in ('PFAM', 'TIGRFAM'):
                 for marker_name in marker_d[marker_type]:
                     marker_path = os.path.join(self.marker_path_prefix[marker_type], marker_name)
                     marker_name_strip = marker_name.replace('.HMM', '').replace('.hmm', '')
                     out_d[marker_name_strip] = self._get_hmm_size(marker_path)
-        self.ar122_marker_sizes = ar122
+        self.ar53_marker_sizes = ar53
         self.bac120_marker_sizes = bac120
         return
 
@@ -105,7 +105,7 @@ class HmmAligner(object):
         db_genome_ids : dict
             A dictionary containing the genome ids and aa paths to process.
         marker_set_id : str
-            The marker set of these genomes (bac120/ar122).
+            The marker set of these genomes (bac120/ar53).
 
         Returns
         -------
@@ -211,9 +211,9 @@ class HmmAligner(object):
         if marker_set_id == 'bac120':
             copy_number_file = CopyNumberFileBAC120('/dev/null', None)
             marker_size_d = self.bac120_marker_sizes
-        elif marker_set_id == 'ar122':
-            copy_number_file = CopyNumberFileAR122('/dev/null', None)
-            marker_size_d = self.ar122_marker_sizes
+        elif marker_set_id == 'ar53':
+            copy_number_file = CopyNumberFileAR53('/dev/null', None)
+            marker_size_d = self.ar53_marker_sizes
         else:
             raise GTDBTkException('Unknown marker set.')
 
@@ -231,12 +231,12 @@ class HmmAligner(object):
                                              os.path.join(
                     marker_paths[db_marker], marker)
                     for marker in self.bac120_markers[db_marker]})
-        elif marker_set_id == "ar122":
-            for db_marker in sorted(self.ar122_markers):
+        elif marker_set_id == "ar53":
+            for db_marker in sorted(self.ar53_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):
                                              os.path.join(
                     marker_paths[db_marker], marker)
-                    for marker in self.ar122_markers[db_marker]})
+                    for marker in self.ar53_markers[db_marker]})
         elif marker_set_id == "rps23":
             for db_marker in sorted(self.rps23_markers):
                 marker_dict_original.update({marker.replace(".HMM", "").replace(".hmm", ""):

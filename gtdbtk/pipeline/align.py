@@ -75,7 +75,7 @@ def get_single_copy_hits(gid_dict: dict, copy_number_file, cpus):
                       copy_number_file))
 
     # Process the queue.
-    with mp.get_context('spawn').Pool(processes=cpus) as pool:
+    with mp.Pool(processes=cpus) as pool:
         results = list(tqdm_log(pool.imap_unordered(get_single_copy_hits_worker, queue),
                                 total=len(queue), unit='genome'))
 
@@ -238,7 +238,7 @@ def align_marker_set(gid_dict, marker_info_file: MarkerInfoFile, copy_number_fil
                           marker_info_file.markers[marker_id]['path'],
                           marker_path,
                           frozenset(single_copy_hits[marker_id])))
-        with mp.get_context('spawn').Pool(processes=cpus) as pool:
+        with mp.Pool(processes=cpus) as pool:
             results = list(tqdm_log(pool.imap_unordered(run_hmm_align_worker, queue),
                                     total=len(queue), unit='marker'))
 

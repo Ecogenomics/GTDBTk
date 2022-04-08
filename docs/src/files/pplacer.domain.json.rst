@@ -31,7 +31,7 @@ Example
         }
       ], "metadata":
       {"invocation":
-        "pplacer -m WAG -j 3 -c \/release89\/pplacer\/gtdb_r89_ar122.refpkg -o classify_output\/classify\/intermediate_results\/pplacer\/pplacer.ar122.json align_output\/align\/gtdbtk.ar122.user_msa.fasta"
+        "pplacer -m WAG -j 3 -c \/release89\/pplacer\/gtdb_r89_ar53.refpkg -o classify_output\/classify\/intermediate_results\/pplacer\/pplacer.ar53.json align_output\/align\/gtdbtk.ar53.user_msa.fasta"
       }, "version": 3, "fields":
       ["distal_length", "edge_num", "like_weight_ratio", "likelihood",
         "pendant_length"

@@ -3,7 +3,7 @@
 align
 =====
 
-Create a multiple sequence alignment based on the AR122/BAC120 marker set.
+Create a multiple sequence alignment based on the AR53/BAC120 marker set.
 
 
 Arguments

@@ -6,7 +6,7 @@ DIR_IDENTIFY_INTERMEDIATE = join(DIR_IDENTIFY, 'intermediate_results')
 DIR_MARKER_GENE = join(DIR_IDENTIFY_INTERMEDIATE, 'marker_genes')
 DIR_IDENTIFY_FASTA = join(DIR_IDENTIFY_INTERMEDIATE, 'single_copy_fasta')
 PATH_BAC120_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.bac120.markers_summary.tsv')
-PATH_AR122_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.ar122.markers_summary.tsv')
+PATH_AR53_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.ar53.markers_summary.tsv')
 PATH_TLN_TABLE_SUMMARY = join(DIR_IDENTIFY, '{prefix}.translation_table_summary.tsv')
 PATH_FAILS = join(DIR_IDENTIFY,'{prefix}.failed_genomes.tsv')
 
@@ -26,40 +26,44 @@ PFAM_TOP_HIT_SUFFIX = "_pfam_tophit.tsv"
 DIR_ALIGN = 'align'
 DIR_ALIGN_INTERMEDIATE = join(DIR_ALIGN, 'intermediate_results')
 PATH_BAC120_FILTERED_GENOMES = join(DIR_ALIGN, '{prefix}.bac120.filtered.tsv')
-PATH_AR122_FILTERED_GENOMES = join(DIR_ALIGN, '{prefix}.ar122.filtered.tsv')
+PATH_AR53_FILTERED_GENOMES = join(DIR_ALIGN, '{prefix}.ar53.filtered.tsv')
 PATH_BAC120_MSA = join(DIR_ALIGN, '{prefix}.bac120.msa.fasta')
-PATH_AR122_MSA = join(DIR_ALIGN, '{prefix}.ar122.msa.fasta')
+PATH_AR53_MSA = join(DIR_ALIGN, '{prefix}.ar53.msa.fasta')
 PATH_BAC120_USER_MSA = join(DIR_ALIGN, '{prefix}.bac120.user_msa.fasta')
-PATH_AR122_USER_MSA = join(DIR_ALIGN, '{prefix}.ar122.user_msa.fasta')
+PATH_AR53_USER_MSA = join(DIR_ALIGN, '{prefix}.ar53.user_msa.fasta')
 PATH_BAC120_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.bac120.marker_info.tsv')
-PATH_AR122_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.ar122.marker_info.tsv')
+PATH_AR53_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.ar53.marker_info.tsv')
 DIR_ALIGN_MARKERS = join(DIR_ALIGN_INTERMEDIATE, 'markers')
 
 # Command: classify
 DIR_CLASSIFY = 'classify'
 PATH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree')
-PATH_AR122_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.ar122.classify.tree')
+PATH_AR53_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.ar53.classify.tree')
 PATH_BAC120_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.bac120.summary.tsv')
-PATH_AR122_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar122.summary.tsv')
+PATH_AR53_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar53.summary.tsv')
 PATH_HIGH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.high.bac120.classify.tree')
 PATH_LOW_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree.{iter}.tree')
 PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
+PATH_AR53_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.ar53.disappearing_genomes.tsv')
+PATH_BAC120_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.bac120.disappearing_genomes.tsv')
 
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
-PATH_AR122_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.red_dictionary.tsv')
+PATH_AR53_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.red_dictionary.tsv')
 PATH_BAC120_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.classification_pplacer.tsv')
+PATH_AR53_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.classification_pplacer.tsv')
 PATH_BAC120_HIGH_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.high.classification_pplacer.tsv')
 PATH_BAC120_LOW_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.low.classification_pplacer_tree_{iter}.tsv')
+PATH_BAC120_TREE_MAPPING = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.tree.mapping.tsv')
 
 
-PATH_AR122_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar122.classification_pplacer.tsv')
+
 
 DIR_PPLACER = join(DIR_CLASSIFY_INTERMEDIATE, 'pplacer')
 PATH_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.bac120.out')
-PATH_AR122_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.ar122.out')
+PATH_AR53_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.ar53.out')
 PATH_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.bac120.json')
-PATH_AR122_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.ar122.json')
+PATH_AR53_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.ar53.json')
 
 # SPLIT TREE
 PATH_HIGH_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.high.bac120.out')
@@ -80,11 +84,11 @@ PATH_MARKER_FASTTREE_LOG = join(DIR_INFER_INTERMEDIATE, '{prefix}.{marker}.fastt
 PATH_FASTTREE_LOG = join(DIR_INFER_INTERMEDIATE, '{prefix}.fasttree.log')
 
 PATH_BAC120_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.unrooted.tree')
-PATH_AR122_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.unrooted.tree')
+PATH_AR53_UNROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar53.unrooted.tree')
 PATH_BAC120_ROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.bac120.rooted.tree')
-PATH_AR122_ROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar122.rooted.tree')
+PATH_AR53_ROOTED_TREE = join(DIR_INFER_INTERMEDIATE, '{prefix}.ar53.rooted.tree')
 PATH_BAC120_DECORATED_TREE = join(DIR_INFER, '{prefix}.bac120.decorated.tree')
-PATH_AR122_DECORATED_TREE = join(DIR_INFER, '{prefix}.ar122.decorated.tree')
+PATH_AR53_DECORATED_TREE = join(DIR_INFER, '{prefix}.ar53.decorated.tree')
 
 # Command: ani_rep
 DIR_ANI_REP_INT = join('intermediate_results')
