@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>align &mdash; GTDB-Tk 1.7.0 documentation</title>
+  <title>align &mdash; GTDB-Tk 2.0.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                1.7.0
+                2.0.0
               </div>
             
           
@@ -122,12 +122,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Commands</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">align</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive optional arguments">mutually exclusive optional arguments</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#files-output">Files output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
@@ -254,91 +249,9 @@
 </style>
 <div class="section" id="align">
 <span id="commands-align"></span><h1>align<a class="headerlink" href="#align" title="Permalink to this headline">¶</a></h1>
-<p>Create a multiple sequence alignment based on the AR122/BAC120 marker set.</p>
+<p>Create a multiple sequence alignment based on the AR53/BAC120 marker set.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">align</span> <span class="o">--</span><span class="n">identify_dir</span> <span class="n">IDENTIFY_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">skip_gtdb_refs</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">taxa_filter</span> <span class="n">TAXA_FILTER</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">cols_per_gene</span> <span class="n">COLS_PER_GENE</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">min_consensus</span> <span class="n">MIN_CONSENSUS</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">max_consensus</span> <span class="n">MAX_CONSENSUS</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">min_perc_taxa</span> <span class="n">MIN_PERC_TAXA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">rnd_seed</span> <span class="n">RND_SEED</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">custom_msa_filters</span> <span class="o">|</span> <span class="o">--</span><span class="n">skip_trimming</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--identify_dir</kbd></dt>
-<dd><p>output directory of ‘identify’ command</p>
-</dd>
-<dt><kbd>--out_dir</kbd></dt>
-<dd><p>directory to output files</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--skip_gtdb_refs</kbd></dt>
-<dd><p>do not include GTDB reference genomes in multiple sequence alignment</p>
-</dd>
-<dt><kbd>--taxa_filter</kbd></dt>
-<dd><p>filter GTDB genomes to taxa (comma separated) within specific taxonomic groups (e.g.: <code class="docutils literal notranslate"><span class="pre">d__Bacteria</span></code> or <code class="docutils literal notranslate"><span class="pre">p__Proteobacteria,p__Actinobacteria</span></code>)</p>
-</dd>
-<dt><kbd>--min_perc_aa</kbd></dt>
-<dd><p>exclude genomes that do not have at least this percentage of AA in the MSA (inclusive bound)</p>
-<p>Default: 10</p>
-</dd>
-<dt><kbd>--cols_per_gene</kbd></dt>
-<dd><p>maximum number of columns to retain per gene when generating the MSA</p>
-<p>Default: 42</p>
-</dd>
-<dt><kbd>--min_consensus</kbd></dt>
-<dd><p>minimum percentage of the same amino acid required to retain column (inclusive bound)</p>
-<p>Default: 25</p>
-</dd>
-<dt><kbd>--max_consensus</kbd></dt>
-<dd><p>maximum percentage of the same amino acid required to retain column (exclusive bound)</p>
-<p>Default: 95</p>
-</dd>
-<dt><kbd>--min_perc_taxa</kbd></dt>
-<dd><p>minimum percentage of taxa required to retain column (inclusive bound)</p>
-<p>Default: 50</p>
-</dd>
-<dt><kbd>--rnd_seed</kbd></dt>
-<dd><p>random seed to use for selecting columns, e.g. <code class="docutils literal notranslate"><span class="pre">42</span></code></p>
-</dd>
-<dt><kbd>--prefix</kbd></dt>
-<dd><p>prefix for all output files</p>
-<p>Default: “gtdbtk”</p>
-</dd>
-<dt><kbd>--cpus</kbd></dt>
-<dd><p>number of CPUs to use</p>
-<p>Default: 1</p>
-</dd>
-<dt><kbd>--tmpdir</kbd></dt>
-<dd><p>specify alternative directory for temporary files</p>
-<p>Default: “/tmp”</p>
-</dd>
-<dt><kbd>--debug</kbd></dt>
-<dd><p>create intermediate files for debugging purposes</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="mutually exclusive optional arguments">
-<h3>mutually exclusive optional arguments<a class="headerlink" href="#mutually exclusive optional arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--custom_msa_filters</kbd></dt>
-<dd><p>perform custom filtering of MSA with <code class="docutils literal notranslate"><span class="pre">cols_per_gene</span></code>, <code class="docutils literal notranslate"><span class="pre">min_consensus</span></code> <code class="docutils literal notranslate"><span class="pre">max_consensus</span></code>, and <code class="docutils literal notranslate"><span class="pre">min_perc_taxa</span></code> parameters instead of using canonical mask</p>
-</dd>
-<dt><kbd>--skip_trimming</kbd></dt>
-<dd><p>skip the trimming step and return the full MSAs</p>
-</dd>
-</dl>
-</div>
 </div>
 <div class="section" id="files-output">
 <h2>Files output<a class="headerlink" href="#files-output" title="Permalink to this headline">¶</a></h2>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Example &mdash; GTDB-Tk 1.7.0 documentation</title>
+  <title>Example &mdash; GTDB-Tk 2.0.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                1.7.0
+                2.0.0
               </div>
             
           
@@ -581,12 +581,12 @@ genome_a.fna_protein.fna.sha256      prodigal_translation_table.tsv
 genome_a.fna_protein.gff             prodigal_translation_table.tsv.sha256
 </pre></div></div>
 </div>
-<p>However, it is sometimes more useful to just read the summary files which detail markers identified from either the archaeal 122, or bacterial 120 marker set.</p>
+<p>However, it is sometimes more useful to just read the summary files which detail markers identified from either the archaeal 53, or bacterial 120 marker set.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>cat /tmp/gtdbtk/identify/gtdbtk.ar122.markers_summary.tsv
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>cat /tmp/gtdbtk/identify/gtdbtk.ar53.markers_summary.tsv
 </pre></div>
 </div>
 </div>
@@ -637,7 +637,7 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 <div class="section" id="id1">
 <h3>Results<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>It is important to pay attention to the output, if a genome had a low number of markers identified it will be excluded from the analysis at this step. A warning will appear if that is the case.</p>
-<p>Depending on the domain, a prefixed file of either <code class="docutils literal notranslate"><span class="pre">ar122</span></code> or <code class="docutils literal notranslate"><span class="pre">bac120</span></code> will appear containing the MSA of the user genomes and the GTDB genomes, or just the user genomes (<code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.msa.fasta</span></code> and <code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.user_msa.fasta</span></code> respectively.)</p>
+<p>Depending on the domain, a prefixed file of either <code class="docutils literal notranslate"><span class="pre">ar53</span></code> or <code class="docutils literal notranslate"><span class="pre">bac120</span></code> will appear containing the MSA of the user genomes and the GTDB genomes, or just the user genomes (<code class="docutils literal notranslate"><span class="pre">gtdbtk.ar53.msa.fasta</span></code> and <code class="docutils literal notranslate"><span class="pre">gtdbtk.ar53.user_msa.fasta</span></code> respectively.)</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -651,9 +651,9 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span style="color: rgb(0,95,255)">align</span>                      <span style="color: rgb(0,255,255)">gtdbtk.ar122.user_msa.fasta</span>  <span style="color: rgb(0,95,255)">identify</span>
-<span style="color: rgb(0,255,255)">gtdbtk.ar122.filtered.tsv</span>  gtdbtk.log
-<span style="color: rgb(0,255,255)">gtdbtk.ar122.msa.fasta</span>     gtdbtk.warnings.log
+<span style="color: rgb(0,95,255)">align</span>                      <span style="color: rgb(0,255,255)">gtdbtk.ar53.user_msa.fasta</span>  <span style="color: rgb(0,95,255)">identify</span>
+<span style="color: rgb(0,255,255)">gtdbtk.ar53.filtered.tsv</span>  gtdbtk.log
+<span style="color: rgb(0,255,255)">gtdbtk.ar53.msa.fasta</span>     gtdbtk.warnings.log
 </pre></div></div>
 </div>
 </div>
@@ -690,7 +690,7 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 </div>
 <div class="section" id="id2">
 <h3>Results<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>The two main files output (one again, depending on their domain) are the summary file, and the reference tree containing those genomes (<code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.summary.tsv</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtdbtk.ar122.classify.tree</span></code> respectively). Classification of the genomes are present in the summary file.</p>
+<p>The two main files output (one again, depending on their domain) are the summary file, and the reference tree containing those genomes (<code class="docutils literal notranslate"><span class="pre">gtdbtk.ar53.summary.tsv</span></code>, and <code class="docutils literal notranslate"><span class="pre">gtdbtk.ar53.classify.tree</span></code> respectively). Classification of the genomes are present in the summary file.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -704,8 +704,8 @@ genome_b.fna    118     2       0       2       PF00368.13,PF00410.14,PF00466.15
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span style="color: rgb(0,95,255)">classify</span>                    <span style="color: rgb(0,255,255)">gtdbtk.ar122.summary.tsv</span>  gtdbtk.warnings.log
-<span style="color: rgb(0,255,255)">gtdbtk.ar122.classify.tree</span>  gtdbtk.log
+<span style="color: rgb(0,95,255)">classify</span>                    <span style="color: rgb(0,255,255)">gtdbtk.ar53.summary.tsv</span>  gtdbtk.warnings.log
+<span style="color: rgb(0,255,255)">gtdbtk.ar53.classify.tree</span>  gtdbtk.log
 </pre></div></div>
 </div>
 </div>

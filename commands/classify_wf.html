@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify_wf &mdash; GTDB-Tk 1.7.0 documentation</title>
+  <title>classify_wf &mdash; GTDB-Tk 2.0.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                1.7.0
+                2.0.0
               </div>
             
           
@@ -127,12 +127,7 @@
 <li class="toctree-l2"><a class="reference internal" href="classify.html">classify</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">classify_wf</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#classify-workflow">Classify workflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
@@ -265,7 +260,7 @@
 <p>The classify workflow consists of three steps: <code class="docutils literal notranslate"><span class="pre">identify</span></code>, <code class="docutils literal notranslate"><span class="pre">align</span></code>, and <code class="docutils literal notranslate"><span class="pre">classify</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">identify</span></code> step calls genes using <a class="reference external" href="http://compbio.ornl.gov/prodigal/">Prodigal</a>,
 and uses HMM models and the <a class="reference external" href="http://hmmer.org/">HMMER</a> package to identify the
-120 bacterial and 122 archaeal marker genes used for phylogenetic inference
+120 bacterial and 53 archaeal marker genes used for phylogenetic inference
 (<a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/30148503">Parks et al., 2018</a>). Multiple
 sequence alignments (MSA) are obtained by aligning marker genes to their respective HMM model.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">align</span></code> step concatenates the aligned marker genes and filters the concatenated MSA to approximately 5,000 amino acids.</p>
@@ -293,74 +288,6 @@ The location of genomes can also be specified using a batch file with the <code 
 </div>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">classify_wf</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
-                          <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">force</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="mutually exclusive required arguments">
-<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--genome_dir</kbd></dt>
-<dd><p>directory containing genome files in FASTA format</p>
-</dd>
-<dt><kbd>--batchfile</kbd></dt>
-<dd><p>path to file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table [optional])</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--out_dir</kbd></dt>
-<dd><p>directory to output files</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>-x, --extension</kbd></dt>
-<dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
-<p>Default: “fna”</p>
-</dd>
-<dt><kbd>--min_perc_aa</kbd></dt>
-<dd><p>exclude genomes that do not have at least this percentage of AA in the MSA (inclusive bound)</p>
-<p>Default: 10</p>
-</dd>
-<dt><kbd>--prefix</kbd></dt>
-<dd><p>prefix for all output files</p>
-<p>Default: “gtdbtk”</p>
-</dd>
-<dt><kbd>--cpus</kbd></dt>
-<dd><p>number of CPUs to use</p>
-<p>Default: 1</p>
-</dd>
-<dt><kbd>--pplacer_cpus</kbd></dt>
-<dd><p>use <code class="docutils literal notranslate"><span class="pre">pplacer_cpus</span></code> during placement (default: <code class="docutils literal notranslate"><span class="pre">cpus</span></code>)</p>
-</dd>
-<dt><kbd>--force</kbd></dt>
-<dd><p>continue processing if an error occurs on a single genome</p>
-</dd>
-<dt><kbd>--scratch_dir</kbd></dt>
-<dd><p>Reduce pplacer memory usage by writing to disk (slower).</p>
-</dd>
-<dt><kbd>--min_af</kbd></dt>
-<dd><p>minimum alignment fraction to consider closest genome</p>
-<p>Default: 0.65</p>
-</dd>
-<dt><kbd>--tmpdir</kbd></dt>
-<dd><p>specify alternative directory for temporary files</p>
-<p>Default: “/tmp”</p>
-</dd>
-<dt><kbd>--debug</kbd></dt>
-<dd><p>create intermediate files for debugging purposes</p>
-</dd>
-</dl>
-</div>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>

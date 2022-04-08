@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Change log &mdash; GTDB-Tk 1.7.0 documentation</title>
+  <title>Change log &mdash; GTDB-Tk 2.0.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                1.7.0
+                2.0.0
               </div>
             
           
@@ -296,7 +296,7 @@ Fixed <code class="docutils literal notranslate"><span class="pre">'Namespace'</
 <li><p>Check if stdout is being piped to a file before adding colour.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/283">#283</a>) Significantly improved <code class="docutils literal notranslate"><span class="pre">classify</span></code> performance (noticeable when running trees &gt; 1,000 taxa).</p></li>
 <li><p>Automatically cap pplacer CPUs to 64 unless specifying <code class="docutils literal notranslate"><span class="pre">--pplacer_cpus</span></code> to prevent pplacer from hanging.</p></li>
-<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/262">#262</a>) Added <code class="docutils literal notranslate"><span class="pre">--write_single_copy_genes</span></code> to the <code class="docutils literal notranslate"><span class="pre">identify</span></code> command. Writes unaligned single-copy AR122/BAC120 marker genes to disk.</p></li>
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/262">#262</a>) Added <code class="docutils literal notranslate"><span class="pre">--write_single_copy_genes</span></code> to the <code class="docutils literal notranslate"><span class="pre">identify</span></code> command. Writes unaligned single-copy AR53/BAC120 marker genes to disk.</p></li>
 <li><p>When running <code class="docutils literal notranslate"><span class="pre">-version</span></code> warn if GTDB-Tk is not running the most up-to-date version (disable via <code class="docutils literal notranslate"><span class="pre">GTDBTK_VER_CHECK</span> <span class="pre">=</span> <span class="pre">False</span></code> in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>). If GTDB-Tk encounters an error it will silently continue (3 second timeout).</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/276">#276</a>) Renamed the column <code class="docutils literal notranslate"><span class="pre">aa_percent</span></code> to <code class="docutils literal notranslate"><span class="pre">msa_percent</span></code> in <code class="docutils literal notranslate"><span class="pre">summary.tsv</span></code> (produced by <code class="docutils literal notranslate"><span class="pre">classify</span></code>).</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/pull/286">#286</a>) Fixed a file not found error when the reference data is a symbolic link (thanks <a class="reference external" href="https://github.com/davidealbanese">davidealbanese</a>!).</p></li>
