@@ -6,6 +6,7 @@ Change log
 -----
 
 Major changes:
+
 * GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **35 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag.
 * Archaeal classification now uses a refined set of 53 archaeal-specific marker genes based on the recent publication by `Dombrowski et al., 2020 <https://www.nature.com/articles/s41467-020-17408-w>`_. This set of archaeal marker genes is now used by GTDB for curating the archaeal taxonomy.
 * By default, all directories containing intermediate results are **now removed** by default at the end of the `classify_wf` and `de_novo_wf` pipelines. If you wish to retain these intermediates files use the `--keep-intermediates` flag.
@@ -14,14 +15,16 @@ Major changes:
 
 
 Features:
-* `convert_to_itol` to convert trees into iTOL format (`#373 <https://github.com/Ecogenomics/GTDBTk/issues/373>`_)
-* Output FASTA files are compressed by default (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_)
-* Intermediate files will be removed by default when using classify/de-novo workflows unless specified by `--keep_intermediates` (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_)
-* Add --genes flag for Error (`#362 <https://github.com/Ecogenomics/GTDBTk/issues/362>`_)
-* A warning will be displayed if pplacer fails to place a genome (`#360 <https://github.com/Ecogenomics/GTDBTk/issues/360>`_ / #`#356 <https://github.com/Ecogenomics/GTDBTk/issues/356>`_)
+
+* (`#373 <https://github.com/Ecogenomics/GTDBTk/issues/373>`_) `convert_to_itol` to convert trees into iTOL format
+* (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_) Output FASTA files are compressed by default
+* (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_) Intermediate files will be removed by default when using classify/de-novo workflows unless specified by `--keep_intermediates`
+* (`#362 <https://github.com/Ecogenomics/GTDBTk/issues/362>`_) Add --genes flag for Error
+* (`#360 <https://github.com/Ecogenomics/GTDBTk/issues/360>`_ / `#356 <https://github.com/Ecogenomics/GTDBTk/issues/356>`_) A warning will be displayed if pplacer fails to place a genome
 
 **Important**
-* This version is not backwards compatible with GTDB release 202.
+
+* This version is **not** backwards compatible with GTDB release 202.
 * This version requires a `new reference package <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz>`_
 
 

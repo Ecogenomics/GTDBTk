@@ -22,11 +22,11 @@ Files output
 * classify
     * intermediate_results
         * :ref:`[prefix].[domain].classification_pplacer.tsv <files/classification_pplacer.tsv>`
-        * :ref:`[prefix].[domain].red_dictionary.tsv <files/red_dictionary.tsv>`
+        * :ref:`[prefix].[domain].classify.tree <files/classify.tree>`
         * pplacer
             * :ref:`pplacer.[domain].json <files/pplacer.domain.json>`
             * :ref:`pplacer.[domain].out <files/pplacer.domain.out>`
-* :ref:`[prefix].[domain].classify.tree <files/classify.tree>`
+            * :ref:`[prefix].[domain].red_dictionary.tsv <files/red_dictionary.tsv>`
 * :ref:`[prefix].[domain].summary.tsv <files/summary.tsv>`
 * :ref:`[prefix].log <files/gtdbtk.log>`
 * :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
@@ -51,15 +51,16 @@ Output
 
 .. code-block:: text
 
-    [2020-04-14 09:22:35] INFO: GTDB-Tk v1.1.0
-    [2020-04-14 09:22:35] INFO: gtdbtk classify --genome_dir genomes/ --align_dir align_output/ --out_dir classify_output --cpus 3
-    [2020-04-14 09:22:35] INFO: Using GTDB-Tk reference data version r89: /release89
-    [2020-04-14 09:22:35] INFO: Placing 3 archaeal genomes into reference tree with pplacer using 3 cpus (be patient).
-    Placing genomes |##################################################| 3/3 (100.00%)
-    [2020-04-14 09:23:32] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
-    [2020-04-14 09:23:33] INFO: Calculating average nucleotide identity using FastANI.
-    [2020-04-14 09:23:33] INFO: fastANI version: 1.3
-    ==> Processing 24 of 24 (100.0%) comparisons.
-    [2020-04-14 09:23:38] INFO: 3 genome(s) have been classified using FastANI and pplacer.
-    [2020-04-14 09:23:38] INFO: Calculating RED values based on reference tree.
-    [2020-04-14 09:23:38] INFO: Done.
+    [2022-04-11 12:02:06] INFO: GTDB-Tk v2.0.0
+    [2022-04-11 12:02:06] INFO: gtdbtk classify --genome_dir /tmp/gtdbtk/genomes --align_dir /tmp/gtdbtk/align --out_dir /tmp/gtdbtk/classify -x gz --cpus 2
+    [2022-04-11 12:02:06] INFO: Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
+    [2022-04-11 12:02:07] TASK: Placing 2 archaeal genomes into reference tree with pplacer using 2 CPUs (be patient).
+    [2022-04-11 12:02:07] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
+    [2022-04-11 12:07:06] INFO: Calculating RED values based on reference tree.
+    [2022-04-11 12:07:06] TASK: Traversing tree to determine classification method.
+    [2022-04-11 12:07:06] INFO: Completed 2 genomes in 0.00 seconds (18,558.87 genomes/second).
+    [2022-04-11 12:07:06] TASK: Calculating average nucleotide identity using FastANI (v1.32).
+    [2022-04-11 12:07:08] INFO: Completed 4 comparisons in 1.61 seconds (2.49 comparisons/second).
+    [2022-04-11 12:07:08] INFO: 2 genome(s) have been classified using FastANI and pplacer.
+    [2022-04-11 12:07:08] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+    [2022-04-11 12:07:08] INFO: Done.

@@ -3,7 +3,7 @@ Announcements
 
 
 GTDB R207 available
-------------------
+-------------------
 
 *April 8, 2022*
 
@@ -13,7 +13,7 @@ GTDB R207 available
 
 
 GTDB R202 available
-------------------
+-------------------
 
 *April 23, 2021*
 
