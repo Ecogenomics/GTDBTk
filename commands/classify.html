@@ -125,7 +125,12 @@
 <li class="toctree-l2"><a class="reference internal" href="ani_rep.html">ani_rep</a></li>
 <li class="toctree-l2"><a class="reference internal" href="check_install.html">check_install</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">classify</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#files-output">Files output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
@@ -252,6 +257,73 @@
 <p>Determine taxonomic classification of genomes.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">classify</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
+                       <span class="o">--</span><span class="n">align_dir</span> <span class="n">ALIGN_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="mutually exclusive required arguments">
+<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--genome_dir</kbd></dt>
+<dd><p>directory containing genome files in FASTA format</p>
+</dd>
+<dt><kbd>--batchfile</kbd></dt>
+<dd><p>path to file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table [optional])</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="required named arguments">
+<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--align_dir</kbd></dt>
+<dd><p>output directory of ‘align’ command</p>
+</dd>
+<dt><kbd>--out_dir</kbd></dt>
+<dd><p>directory to output files</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-x, --extension</kbd></dt>
+<dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
+<p>Default: “fna”</p>
+</dd>
+<dt><kbd>--prefix</kbd></dt>
+<dd><p>prefix for all output files</p>
+<p>Default: “gtdbtk”</p>
+</dd>
+<dt><kbd>--cpus</kbd></dt>
+<dd><p>number of CPUs to use</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--pplacer_cpus</kbd></dt>
+<dd><p>number of CPUs to use during pplacer placement</p>
+</dd>
+<dt><kbd>--scratch_dir</kbd></dt>
+<dd><p>reduce pplacer memory usage by writing to disk (slower).</p>
+</dd>
+<dt><kbd>-f, --full_tree</kbd></dt>
+<dd><p>use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk approach (version &lt; 2) and requires more than 320 GB of RAM to load the reference tree</p>
+</dd>
+<dt><kbd>--min_af</kbd></dt>
+<dd><p>minimum alignment fraction to assign genome to a species cluster</p>
+<p>Default: 0.5</p>
+</dd>
+<dt><kbd>--tmpdir</kbd></dt>
+<dd><p>specify alternative directory for temporary files</p>
+<p>Default: “/tmp”</p>
+</dd>
+<dt><kbd>--debug</kbd></dt>
+<dd><p>create intermediate files for debugging purposes</p>
+</dd>
+</dl>
+</div>
 </div>
 <div class="section" id="files-output">
 <h2>Files output<a class="headerlink" href="#files-output" title="Permalink to this headline">¶</a></h2>

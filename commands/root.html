@@ -132,7 +132,11 @@
 <li class="toctree-l2"><a class="reference internal" href="identify.html">identify</a></li>
 <li class="toctree-l2"><a class="reference internal" href="infer.html">infer</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">root</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
 </ul>
@@ -250,6 +254,45 @@
 <p>Root a tree using an outgroup.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">root</span> <span class="o">--</span><span class="n">input_tree</span> <span class="n">INPUT_TREE</span> <span class="o">--</span><span class="n">outgroup_taxon</span> <span class="n">OUTGROUP_TAXON</span>
+                   <span class="o">--</span><span class="n">output_tree</span> <span class="n">OUTPUT_TREE</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">gtdbtk_classification_file</span> <span class="n">GTDBTK_CLASSIFICATION_FILE</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">custom_taxonomy_file</span> <span class="n">CUSTOM_TAXONOMY_FILE</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="required named arguments">
+<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--input_tree</kbd></dt>
+<dd><p>path to the unrooted tree in Newick format</p>
+</dd>
+<dt><kbd>--outgroup_taxon</kbd></dt>
+<dd><p>taxon to use as outgroup (e.g., <code class="docutils literal notranslate"><span class="pre">p__Patescibacteria</span></code> or <code class="docutils literal notranslate"><span class="pre">p__Altarchaeota</span></code>)</p>
+</dd>
+<dt><kbd>--output_tree</kbd></dt>
+<dd><p>path to output the tree</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--gtdbtk_classification_file</kbd></dt>
+<dd><p>file with GTDB-Tk classifications produced by the <cite>classify</cite> command</p>
+</dd>
+<dt><kbd>--custom_taxonomy_file</kbd></dt>
+<dd><p>file indicating custom taxonomy strings for user genomes, that should contain any genomes belonging to the outgroup. Format: GENOME_ID&lt;TAB&gt;d__;p__;c__;o__;f__;g__;s__</p>
+</dd>
+<dt><kbd>--tmpdir</kbd></dt>
+<dd><p>specify alternative directory for temporary files</p>
+<p>Default: “/tmp”</p>
+</dd>
+<dt><kbd>--debug</kbd></dt>
+<dd><p>create intermediate files for debugging purposes</p>
+</dd>
+</dl>
+</div>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
