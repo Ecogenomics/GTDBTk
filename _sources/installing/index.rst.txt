@@ -118,7 +118,7 @@ Please cite these tools if you use GTDB-Tk in your work.
 GTDB-Tk reference data
 ----------------------
 
-GTDB-Tk requires ~27G of external data that needs to be downloaded and unarchived:
+GTDB-Tk requires ~66G of external data that needs to be downloaded and unarchived:
 
 .. code-block:: bash
 
@@ -137,9 +137,12 @@ Note that different versions of the GTDB release data may not run on all version
    * - GTDB Release
      - Minimum version
      - Maximum version
+   * - R207
+     - 2.0.0
+     - Current
    * - R202
      - 1.5.0
-     - Current
+     - 1.7.0
    * - R95
      - 1.3.0
      - 1.4.2
