@@ -172,7 +172,7 @@ class Translate(object):
                     self._logger.warning(f'{domain} have been skipped as the summary file does not exist: {summary_file}')
                     continue
                 if not os.path.exists(tree_file):
-                    self._logger.warning(f'{domain} have been skipped as the tree file does not exist: {summary_file}')
+                    self._logger.warning(f'{domain} have been skipped as the tree file does not exist: {tree_file}')
                     continue
 
                 self._logger.info(f'Parsing {tree_file}')
