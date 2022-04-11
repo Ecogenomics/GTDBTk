@@ -23,6 +23,11 @@ Once the third-party dependencies have been installed, install GTDB-Tk via `pip 
 
     python -m pip install gtdbtk
 
+Alternatively, if you have a previously installed GTDB-Tk, you can upgrade the latest version:
+
+.. code-block:: bash
+
+    python -m pip install gtdbtk --upgrade
 
 Step 3: Download and alias the GTDB-Tk reference data
 -----------------------------------------------------
