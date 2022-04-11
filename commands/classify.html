@@ -261,11 +261,12 @@
 <li><dl class="simple">
 <dt>intermediate_results</dt><dd><ul>
 <li><p><a class="reference internal" href="../files/classification_pplacer.tsv.html#files-classification-pplacer-tsv"><span class="std std-ref">[prefix].[domain].classification_pplacer.tsv</span></a></p></li>
-<li><p><a class="reference internal" href="../files/red_dictionary.tsv.html#files-red-dictionary-tsv"><span class="std std-ref">[prefix].[domain].red_dictionary.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/classify.tree.html#files-classify-tree"><span class="std std-ref">[prefix].[domain].classify.tree</span></a></p></li>
 <li><dl class="simple">
 <dt>pplacer</dt><dd><ul>
 <li><p><a class="reference internal" href="../files/pplacer.domain.json.html#files-pplacer-domain-json"><span class="std std-ref">pplacer.[domain].json</span></a></p></li>
 <li><p><a class="reference internal" href="../files/pplacer.domain.out.html#files-pplacer-domain-out"><span class="std std-ref">pplacer.[domain].out</span></a></p></li>
+<li><p><a class="reference internal" href="../files/red_dictionary.tsv.html#files-red-dictionary-tsv"><span class="std std-ref">[prefix].[domain].red_dictionary.tsv</span></a></p></li>
 </ul>
 </dd>
 </dl>
@@ -278,7 +279,6 @@
 </dd>
 </dl>
 </li>
-<li><p><a class="reference internal" href="../files/classify.tree.html#files-classify-tree"><span class="std std-ref">[prefix].[domain].classify.tree</span></a></p></li>
 <li><p><a class="reference internal" href="../files/summary.tsv.html#files-summary-tsv"><span class="std std-ref">[prefix].[domain].summary.tsv</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.log.html#files-gtdbtk-log"><span class="std std-ref">[prefix].log</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.warnings.log.html#files-gtdbtk-warnings-log"><span class="std std-ref">[prefix].warnings.log</span></a></p></li>
@@ -294,18 +294,19 @@
 </div>
 <div class="section" id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2020-04-14 09:22:35] INFO: GTDB-Tk v1.1.0
-[2020-04-14 09:22:35] INFO: gtdbtk classify --genome_dir genomes/ --align_dir align_output/ --out_dir classify_output --cpus 3
-[2020-04-14 09:22:35] INFO: Using GTDB-Tk reference data version r89: /release89
-[2020-04-14 09:22:35] INFO: Placing 3 archaeal genomes into reference tree with pplacer using 3 cpus (be patient).
-Placing genomes |##################################################| 3/3 (100.00%)
-[2020-04-14 09:23:32] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
-[2020-04-14 09:23:33] INFO: Calculating average nucleotide identity using FastANI.
-[2020-04-14 09:23:33] INFO: fastANI version: 1.3
-==&gt; Processing 24 of 24 (100.0%) comparisons.
-[2020-04-14 09:23:38] INFO: 3 genome(s) have been classified using FastANI and pplacer.
-[2020-04-14 09:23:38] INFO: Calculating RED values based on reference tree.
-[2020-04-14 09:23:38] INFO: Done.
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2022-04-11 12:02:06] INFO: GTDB-Tk v2.0.0
+[2022-04-11 12:02:06] INFO: gtdbtk classify --genome_dir /tmp/gtdbtk/genomes --align_dir /tmp/gtdbtk/align --out_dir /tmp/gtdbtk/classify -x gz --cpus 2
+[2022-04-11 12:02:06] INFO: Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
+[2022-04-11 12:02:07] TASK: Placing 2 archaeal genomes into reference tree with pplacer using 2 CPUs (be patient).
+[2022-04-11 12:02:07] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
+[2022-04-11 12:07:06] INFO: Calculating RED values based on reference tree.
+[2022-04-11 12:07:06] TASK: Traversing tree to determine classification method.
+[2022-04-11 12:07:06] INFO: Completed 2 genomes in 0.00 seconds (18,558.87 genomes/second).
+[2022-04-11 12:07:06] TASK: Calculating average nucleotide identity using FastANI (v1.32).
+[2022-04-11 12:07:08] INFO: Completed 4 comparisons in 1.61 seconds (2.49 comparisons/second).
+[2022-04-11 12:07:08] INFO: 2 genome(s) have been classified using FastANI and pplacer.
+[2022-04-11 12:07:08] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+[2022-04-11 12:07:08] INFO: Done.
 </pre></div>
 </div>
 </div>

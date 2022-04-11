@@ -253,10 +253,16 @@
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
 <p>## Files output</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../files/markers_summary.tsv.html#files-markers-summary-tsv"><span class="std std-ref">[prefix].[domain].markers_summary.tsv</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.log.html#files-gtdbtk-log"><span class="std std-ref">[prefix].log</span></a></p></li>
-<li><p><a class="reference internal" href="../files/translation_table_summary.tsv.html#files-translation-table-summary-tsv"><span class="std std-ref">[prefix].translation_table_summary.tsv</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.warnings.log.html#files-gtdbtk-warnings-log"><span class="std std-ref">[prefix].warnings.log</span></a></p></li>
+<li><dl class="simple">
+<dt>identify/</dt><dd><ul>
+<li><p><a class="reference internal" href="../files/markers_summary.tsv.html#files-markers-summary-tsv"><span class="std std-ref">[prefix].[domain].markers_summary.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/translation_table_summary.tsv.html#files-translation-table-summary-tsv"><span class="std std-ref">[prefix].translation_table_summary.tsv</span></a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
 <li><dl class="simple">
 <dt>identify/intermediate_results/marker_genes/[genome_id]/</dt><dd><ul>
 <li><p><a class="reference internal" href="../files/pfam_tophit.tsv.html#files-pfam-tophit-tsv"><span class="std std-ref">[genome_id]_pfam_tophit.tsv</span></a></p></li>
@@ -284,18 +290,20 @@
 </div>
 <div class="section" id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2020-04-14 08:51:00] INFO: GTDB-Tk v1.1.0
-[2020-04-14 08:51:00] INFO: gtdbtk identify --genome_dir genomes/ --out_dir identify_output --cpus 3
-[2020-04-14 08:51:00] INFO: Using GTDB-Tk reference data version r89: /release89
-[2020-04-14 08:51:00] INFO: Identifying markers in 3 genomes with 3 threads.
-[2020-04-14 08:51:00] INFO: Running Prodigal V2.6.3 to identify genes.
-==&gt; Finished processing 3 of 3 (100.0%) genomes.
-[2020-04-14 08:51:18] INFO: Identifying TIGRFAM protein families.
-==&gt; Finished processing 3 of 3 (100.0%) genomes.
-[2020-04-14 08:51:27] INFO: Identifying Pfam protein families.
-==&gt; Finished processing 3 of 3 (100.0%) genomes.
-[2020-04-14 08:51:29] INFO: Annotations done using HMMER 3.1b2 (February 2015)
-[2020-04-14 08:51:29] INFO: Done.
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2022-04-11 11:48:59] INFO: GTDB-Tk v2.0.0
+[2022-04-11 11:48:59] INFO: gtdbtk identify --genome_dir /tmp/gtdbtk/genomes --out_dir /tmp/gtdbtk/identify --extension gz --cpus 2
+[2022-04-11 11:48:59] INFO: Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
+[2022-04-11 11:48:59] INFO: Identifying markers in 2 genomes with 2 threads.
+[2022-04-11 11:48:59] TASK: Running Prodigal V2.6.3 to identify genes.
+[2022-04-11 11:49:10] INFO: Completed 2 genomes in 10.94 seconds (5.47 seconds/genome).
+[2022-04-11 11:49:10] TASK: Identifying TIGRFAM protein families.
+[2022-04-11 11:49:16] INFO: Completed 2 genomes in 5.78 seconds (2.89 seconds/genome).
+[2022-04-11 11:49:16] TASK: Identifying Pfam protein families.
+[2022-04-11 11:49:16] INFO: Completed 2 genomes in 0.42 seconds (4.81 genomes/second).
+[2022-04-11 11:49:16] INFO: Annotations done using HMMER 3.1b2 (February 2015).
+[2022-04-11 11:49:16] TASK: Summarising identified marker genes.
+[2022-04-11 11:49:16] INFO: Completed 2 genomes in 0.05 seconds (40.91 genomes/second).
+[2022-04-11 11:49:16] INFO: Done.
 </pre></div>
 </div>
 </div>

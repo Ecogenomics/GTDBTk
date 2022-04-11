@@ -20,11 +20,12 @@ Arguments
 Files output
 ------------
 
-* :ref:`[prefix].[domain].filtered.tsv <files/filtered.tsv>`
-* :ref:`[prefix].[domain].msa.fasta <files/msa.fasta>`
-* :ref:`[prefix].[domain].user_msa.fasta <files/user_msa.fasta>`
+
 * :ref:`[prefix].log <files/gtdbtk.log>`
 * :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+* :ref:`align/[prefix].[domain].msa.fasta.gz <files/msa.fasta>`
+* :ref:`align/[prefix].[domain].user_msa.fasta.gz <files/user_msa.fasta>`
+* :ref:`align/[prefix].[domain].filtered.tsv <files/filtered.tsv>`
 * :ref:`align/intermediate_results/[prefix].[domain].marker_info.tsv <files/marker_info.tsv>`
 
 
@@ -45,16 +46,20 @@ Output
 
 .. code-block:: text
 
-    [2020-04-14 09:14:44] INFO: GTDB-Tk v1.1.0
-    [2020-04-14 09:14:44] INFO: gtdbtk align --identify_dir identify_output/ --out_dir align_output --cpus 3
-    [2020-04-14 09:14:44] INFO: Using GTDB-Tk reference data version r89: /release89
-    [2020-04-14 09:14:44] INFO: Aligning markers in 3 genomes with 3 threads.
-    [2020-04-14 09:14:44] INFO: Processing 3 genomes identified as archaeal.
-    [2020-04-14 09:14:44] INFO: Read concatenated alignment for 1248 GTDB genomes.
-    ==> Finished aligning 3 of 3 (100.0%) genomes.
-    [2020-04-14 09:14:49] INFO: Masking columns of multiple sequence alignment using canonical mask.
-    [2020-04-14 09:14:52] INFO: Masked alignment from 32675 to 5124 AAs.
-    [2020-04-14 09:14:52] INFO: 0 user genomes have amino acids in <10.0% of columns in filtered MSA.
-    [2020-04-14 09:14:52] INFO: Creating concatenated alignment for 1251 GTDB and user genomes.
-    [2020-04-14 09:14:52] INFO: Creating concatenated alignment for 3 user genomes.
-    [2020-04-14 09:14:52] INFO: Done.
+    [2022-04-11 11:59:14] INFO: GTDB-Tk v2.0.0
+    [2022-04-11 11:59:14] INFO: gtdbtk align --identify_dir /tmp/gtdbtk/identify --out_dir /tmp/gtdbtk/align --cpus 2
+    [2022-04-11 11:59:14] INFO: Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
+    [2022-04-11 11:59:15] INFO: Aligning markers in 3 genomes with 2 CPUs.
+    [2022-04-11 11:59:16] INFO: Processing 3 genomes identified as archaeal.
+    [2022-04-11 11:59:16] INFO: Read concatenated alignment for 3,412 GTDB genomes.
+    [2022-04-11 11:59:16] TASK: Generating concatenated alignment for each marker.
+    [2022-04-11 11:59:16] INFO: Completed 3 genomes in 0.01 seconds (139.73 genomes/second).
+    [2022-04-11 11:59:16] TASK: Aligning 52 identified markers using hmmalign 3.1b2 (February 2015).
+    [2022-04-11 11:59:17] INFO: Completed 52 markers in 0.86 seconds (60.66 markers/second).
+    [2022-04-11 11:59:17] TASK: Masking columns of archaeal multiple sequence alignment using canonical mask.
+    [2022-04-11 11:59:21] INFO: Completed 3,414 sequences in 4.19 seconds (815.22 sequences/second).
+    [2022-04-11 11:59:21] INFO: Masked archaeal alignment from 13,540 to 10,153 AAs.
+    [2022-04-11 11:59:21] INFO: 0 archaeal user genomes have amino acids in <10.0% of columns in filtered MSA.
+    [2022-04-11 11:59:21] INFO: Creating concatenated alignment for 3,414 archaeal GTDB and user genomes.
+    [2022-04-11 11:59:23] INFO: Creating concatenated alignment for 3 archaeal user genomes.
+    [2022-04-11 11:59:23] INFO: Done.

@@ -128,25 +128,25 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Change log</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id1">2.0.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id7">1.7.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id12">1.6.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id15">1.5.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id18">1.5.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id20">1.4.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id23">1.4.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id26">1.4.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id33">1.3.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id34">1.2.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id42">1.1.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id51">1.0.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id52">1.0.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id53">0.3.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id54">0.3.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id55">0.3.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id56">0.3.0</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id57">0.2.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id58">0.1.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id59">0.1.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">1.7.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id13">1.6.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id16">1.5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id19">1.5.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id21">1.4.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id24">1.4.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id27">1.4.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id34">1.3.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id35">1.2.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id43">1.1.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id52">1.0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id53">1.0.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id54">0.3.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id55">0.3.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id56">0.3.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id57">0.3.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id58">0.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id59">0.1.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id60">0.1.0</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -247,24 +247,30 @@
 <h1>Change log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2>2.0.0<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>Major changes:
-* GTDB-TK now uses a <strong>divide-and-conquer</strong> approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from <strong>320 GB</strong> of RAM when using the full GTDB R07-RS207 reference tree to approximately <strong>35 GB</strong>. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the <cite>–full-tree</cite> flag.
-* Archaeal classification now uses a refined set of 53 archaeal-specific marker genes based on the recent publication by <a class="reference external" href="https://www.nature.com/articles/s41467-020-17408-w">Dombrowski et al., 2020</a>. This set of archaeal marker genes is now used by GTDB for curating the archaeal taxonomy.
-* By default, all directories containing intermediate results are <strong>now removed</strong> by default at the end of the <cite>classify_wf</cite> and <cite>de_novo_wf</cite> pipelines. If you wish to retain these intermediates files use the <cite>–keep-intermediates</cite> flag.
-* All MSA files produced by the <cite>align</cite> step are now compressed with gzip.
-* The classification summary and failed genomes files are now the only files linked in the root directory of <cite>classify_wf</cite>.</p>
-<p>Features:
-* <cite>convert_to_itol</cite> to convert trees into iTOL format (<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/373">#373</a>)
-* Output FASTA files are compressed by default (<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/369">#369</a>)
-* Intermediate files will be removed by default when using classify/de-novo workflows unless specified by <cite>–keep_intermediates</cite> (<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/369">#369</a>)
-* Add –genes flag for Error (<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/362">#362</a>)
-* A warning will be displayed if pplacer fails to place a genome (<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/360">#360</a> / #`#356 &lt;<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/356">https://github.com/Ecogenomics/GTDBTk/issues/356</a>&gt;`_)</p>
-<p><strong>Important</strong>
-* This version is not backwards compatible with GTDB release 202.
-* This version requires a <a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz">new reference package</a></p>
+<p>Major changes:</p>
+<ul class="simple">
+<li><p>GTDB-TK now uses a <strong>divide-and-conquer</strong> approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from <strong>320 GB</strong> of RAM when using the full GTDB R07-RS207 reference tree to approximately <strong>35 GB</strong>. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the <cite>–full-tree</cite> flag.</p></li>
+<li><p>Archaeal classification now uses a refined set of 53 archaeal-specific marker genes based on the recent publication by <a class="reference external" href="https://www.nature.com/articles/s41467-020-17408-w">Dombrowski et al., 2020</a>. This set of archaeal marker genes is now used by GTDB for curating the archaeal taxonomy.</p></li>
+<li><p>By default, all directories containing intermediate results are <strong>now removed</strong> by default at the end of the <cite>classify_wf</cite> and <cite>de_novo_wf</cite> pipelines. If you wish to retain these intermediates files use the <cite>–keep-intermediates</cite> flag.</p></li>
+<li><p>All MSA files produced by the <cite>align</cite> step are now compressed with gzip.</p></li>
+<li><p>The classification summary and failed genomes files are now the only files linked in the root directory of <cite>classify_wf</cite>.</p></li>
+</ul>
+<p>Features:</p>
+<ul class="simple">
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/373">#373</a>) <cite>convert_to_itol</cite> to convert trees into iTOL format</p></li>
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/369">#369</a>) Output FASTA files are compressed by default</p></li>
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/369">#369</a>) Intermediate files will be removed by default when using classify/de-novo workflows unless specified by <cite>–keep_intermediates</cite></p></li>
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/362">#362</a>) Add –genes flag for Error</p></li>
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/360">#360</a> / <a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/356">#356</a>) A warning will be displayed if pplacer fails to place a genome</p></li>
+</ul>
+<p><strong>Important</strong></p>
+<ul class="simple">
+<li><p>This version is <strong>not</strong> backwards compatible with GTDB release 202.</p></li>
+<li><p>This version requires a <a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz">new reference package</a></p></li>
+</ul>
 </div>
-<div class="section" id="id7">
-<h2>1.7.0<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id8">
+<h2>1.7.0<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/336">#336</a>) Warn the user if they have provided an incorrectly formatted taxonomy file.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/348">#348</a>) Gracefully exit the program if no single copy hits could be identified.</p></li>
@@ -272,45 +278,45 @@
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/pull/354">#354</a>) Added optional <code class="docutils literal notranslate"><span class="pre">--tmpdir</span></code> argument to set temporary directory (thanks <a class="reference external" href="https://github.com/tr11-sanger">tr11-sanger</a>!).</p></li>
 </ul>
 </div>
-<div class="section" id="id12">
-<h2>1.6.0<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id13">
+<h2>1.6.0<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/337">#337</a>) Set minimum <cite>tqdm</cite> version to <cite>4.35.0</cite></p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/pull/335">#335</a>) Fixed typo in output log messages (&#64;fplaza)</p></li>
 <li><p>Removed the option to re-calculate RED values (<cite>–recalculate_red</cite>)</p></li>
 </ul>
 </div>
-<div class="section" id="id15">
-<h2>1.5.1<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id16">
+<h2>1.5.1<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/327">#327</a>) Disallow spaces in genome names/file paths due to downstream application issues.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/326">#326</a>) Disallow genome names that are blank.</p></li>
 </ul>
 </div>
-<div class="section" id="id18">
-<h2>1.5.0<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id19">
+<h2>1.5.0<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/311">#311</a>) Updated GTDB-Tk to support R202.
 See <a class="reference external" href="https://ecogenomics.github.io/GTDBTk/installing/index.html#gtdb-tk-reference-data">https://ecogenomics.github.io/GTDBTk/installing/index.html#gtdb-tk-reference-data</a> for instructions on downloading R202.</p></li>
 </ul>
 </div>
-<div class="section" id="id20">
-<h2>1.4.2<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id21">
+<h2>1.4.2<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/311">#311</a>) Fixed –scratch_dir not working in v 1.4.1 for classify_wf</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/311">#312</a>) Automatic drop of genome leads to error in downstream modules of classify_wf</p></li>
 </ul>
 </div>
-<div class="section" id="id23">
-<h2>1.4.1<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id24">
+<h2>1.4.1<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Updated GitHub CI/CD to trigger docker build / tag version on release.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/255">#255</a>) (<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/297">#297</a>)
 Fixed <code class="docutils literal notranslate"><span class="pre">'Namespace'</span> <span class="pre">object</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">attribute</span></code> errors by adding default arguments to argparse.</p></li>
 </ul>
 </div>
-<div class="section" id="id26">
-<h2>1.4.0<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id27">
+<h2>1.4.0<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Check if stdout is being piped to a file before adding colour.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/283">#283</a>) Significantly improved <code class="docutils literal notranslate"><span class="pre">classify</span></code> performance (noticeable when running trees &gt; 1,000 taxa).</p></li>
@@ -326,8 +332,8 @@ Fixed <code class="docutils literal notranslate"><span class="pre">'Namespace'</
 <li><p>Added the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> command to re-use the GTDB-Tk Mash reference database in <code class="docutils literal notranslate"><span class="pre">ani_rep</span></code>.</p></li>
 </ul>
 </div>
-<div class="section" id="id33">
-<h2>1.3.0<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id34">
+<h2>1.3.0<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>This version of GTDB-Tk requires a new version of the GTDB-Tk reference package
 (gtdbtk_r95_data.tar.gz) <a class="reference external" href="https://data.ace.uq.edu.au/public/gtdb/data/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz">available here</a>.</p></li>
@@ -336,8 +342,8 @@ Fixed <code class="docutils literal notranslate"><span class="pre">'Namespace'</
 <li><p>Estimated time until completion has been dampened.</p></li>
 </ul>
 </div>
-<div class="section" id="id34">
-<h2>1.2.0<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id35">
+<h2>1.2.0<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/241">#241</a>) Moved GTDB-Tk entry point to <code class="docutils literal notranslate"><span class="pre">__main__.py</span></code> instead of
 <code class="docutils literal notranslate"><span class="pre">bin/gtdbtk</span></code> to support execution in some HPC systems (<code class="docutils literal notranslate"><span class="pre">gtdbtk</span></code> will still be aliased on install).</p></li>
@@ -349,8 +355,8 @@ Fixed <code class="docutils literal notranslate"><span class="pre">'Namespace'</
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/pull/248">#248</a>) Improved <code class="docutils literal notranslate"><span class="pre">pplacer</span></code> output with running the <code class="docutils literal notranslate"><span class="pre">classify</span></code> command.</p></li>
 </ul>
 </div>
-<div class="section" id="id42">
-<h2>1.1.0<a class="headerlink" href="#id42" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id43">
+<h2>1.1.0<a class="headerlink" href="#id43" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>In rare cases pplacer would assign an empty taxonomy string which would raise an error.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/229">#229</a>) Genomes using windows line carriage <code class="docutils literal notranslate"><span class="pre">\r\n</span></code> would raise an error.</p></li>
@@ -370,15 +376,15 @@ then <code class="docutils literal notranslate"><span class="pre">mash</span></c
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/235">#230</a>) Improved how markers are used in determining the correct domain, and gene selection for the alignment.</p></li>
 </ul>
 </div>
-<div class="section" id="id51">
-<h2>1.0.2<a class="headerlink" href="#id51" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id52">
+<h2>1.0.2<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Fixed an issue where FastANI threads would timeout with <code class="docutils literal notranslate"><span class="pre">FastANI</span> <span class="pre">returned</span> <span class="pre">a</span> <span class="pre">non-zero</span> <span class="pre">exit</span> <span class="pre">code.</span></code></p></li>
 <li><p>Versions affected: <code class="docutils literal notranslate"><span class="pre">1.0.0</span></code>, and <code class="docutils literal notranslate"><span class="pre">1.0.1</span></code>.</p></li>
 </ul>
 </div>
-<div class="section" id="id52">
-<h2>1.0.0<a class="headerlink" href="#id52" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id53">
+<h2>1.0.0<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Migrated to <strong>Python 3</strong>, you must be running at least <strong>Python 3.6</strong> or later to use this version.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">check_install</span></code> now does an exhaustive check of the reference data.</p></li>
@@ -387,8 +393,8 @@ then <code class="docutils literal notranslate"><span class="pre">mash</span></c
 <li><p>Third party software versions are reported where possible.</p></li>
 </ul>
 </div>
-<div class="section" id="id53">
-<h2>0.3.3<a class="headerlink" href="#id53" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id54">
+<h2>0.3.3<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>A bug has been fixed which affected <code class="docutils literal notranslate"><span class="pre">classify</span></code> and <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> when using the <code class="docutils literal notranslate"><span class="pre">--batchfile</span></code>
 argument with genome IDs that differed from the FASTA filename. This issue resulted in
@@ -401,23 +407,23 @@ with species assignments this bug did not impact you.</p></li>
 <li><p>Improved MSA masking performance.</p></li>
 </ul>
 </div>
-<div class="section" id="id54">
-<h2>0.3.2<a class="headerlink" href="#id54" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id55">
+<h2>0.3.2<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>FastANI calculations are more robust.</p></li>
 <li><p>Optimisation of RED calculations.</p></li>
 <li><p>Improved output messages when errors are encountered.</p></li>
 </ul>
 </div>
-<div class="section" id="id55">
-<h2>0.3.1<a class="headerlink" href="#id55" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id56">
+<h2>0.3.1<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Pplacer taxonomy is now available in the summary file.</p></li>
 <li><p>FastANI species assignment will be selected over phylogenetic placement (Topology case).</p></li>
 </ul>
 </div>
-<div class="section" id="id56">
-<h2>0.3.0<a class="headerlink" href="#id56" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id57">
+<h2>0.3.0<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Best translation table displayed in summary file.</p></li>
 <li><p>GTDB-Tk now supports gzipped genomes as inputs (<code class="docutils literal notranslate"><span class="pre">--extension</span> <span class="pre">gz</span></code>).</p></li>
@@ -430,8 +436,8 @@ with species assignments this bug did not impact you.</p></li>
 <li><p>New output structure.</p></li>
 </ul>
 </div>
-<div class="section" id="id57">
-<h2>0.2.1<a class="headerlink" href="#id57" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id58">
+<h2>0.2.1<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Species classification is now based strictly on the ANI to reference genomes</p></li>
 <li><p>The “classify” function now reports the closest reference genome in the summary file even if the ANI is &lt;95%</p></li>
@@ -445,16 +451,16 @@ with species assignments this bug did not impact you.</p></li>
 <li><p>This version requires a new version of the GTDB-Tk data package (gtdbtk.r86_v2_data.tar.gz) available <a class="reference external" href="https://data.ace.uq.edu.au/public/gtdbtk/release_86/">here</a></p></li>
 </ul>
 </div>
-<div class="section" id="id58">
-<h2>0.1.3<a class="headerlink" href="#id58" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id59">
+<h2>0.1.3<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>GTDB-Tk v0.1.3 has been released and addresses an issue with species assignments based on the placement of
 genomes in the reference tree. This impacted species assignment when submitting multiple closely related genomes.
 Species assignments reported by ANI were not impacted.</p></li>
 </ul>
 </div>
-<div class="section" id="id59">
-<h2>0.1.0<a class="headerlink" href="#id59" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id60">
+<h2>0.1.0<a class="headerlink" href="#id60" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Updated to R86, requires <a class="reference external" href="https://data.ace.uq.edu.au/public/gtdbtk/release_86/">release 86</a> to run.</p></li>
 </ul>
