@@ -7,6 +7,10 @@
 [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ecogenomic/gtdbtk?sort=date&color=299bec&label=docker)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 
+<br><br>
+<b>14th April, 2022 , WARNING </b>: An issue in the the divide-and-conquer approach has been raised. We are currently working on a solution. In the meantime we recommend using the full tree approach for a classification with GTDB-Tk v2.0.0.  
+<br><br>
+
 <b>[GTDB-Tk v2.0.0](https://ecogenomics.github.io/GTDBTk/announcements.html) was released on April 8, 2022 along with new reference data for [GTDB R07-RS207](https://gtdb.ecogenomic.org/). Upgrading is recommended.</b>  
 <b> Please note v2.0.0+ is not compatible with GTDB R06-RS202. </b>
 
