@@ -8,7 +8,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 
 <br><br>
-<b>14th April, 2022 , WARNING </b>: An issue in the the divide-and-conquer approach has been raised. We are currently working on a solution. In the meantime we recommend using the full tree approach for a classification with GTDB-Tk v2.0.0.  
+<b>14th April, 2022, WARNING </b>: An issue in the the divide-and-conquer approach has been identified. We are currently working on a solution. In the meantime, please use the full tree approach (`--full-tree` flag) when classifying genomes with GTDB-Tk v2.0.0. Thank you to Florian Plaza Oñate for bringing this [issue](https://github.com/Ecogenomics/GTDBTk/issues/383) to our attention.  
 <br><br>
 
 <b>[GTDB-Tk v2.0.0](https://ecogenomics.github.io/GTDBTk/announcements.html) was released on April 8, 2022 along with new reference data for [GTDB R07-RS207](https://gtdb.ecogenomic.org/). Upgrading is recommended.</b>  
