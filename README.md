@@ -8,7 +8,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 
 <br><br>
-<b>14th April, 2022, WARNING </b>: An issue in the divide-and-conquer approach has been identified. We are currently working on a solution. In the meantime, please use the full tree approach (`--full-tree` flag) when classifying genomes with GTDB-Tk v2.0.0. Thank you to Florian Plaza Oñate for bringing this [issue](https://github.com/Ecogenomics/GTDBTk/issues/383) to our attention.  
+<b>14th April, 2022, WARNING </b>: An issue in the divide-and-conquer approach has been identified. We are currently working on a solution. In the meantime, please use the full tree approach (`--full_tree` flag) when classifying genomes with GTDB-Tk v2.0.0. Thank you to Florian Plaza Oñate for bringing this [issue](https://github.com/Ecogenomics/GTDBTk/issues/383) to our attention.  
 <br><br>
 
 <b>[GTDB-Tk v2.0.0](https://ecogenomics.github.io/GTDBTk/announcements.html) was released on April 8, 2022 along with new reference data for [GTDB R07-RS207](https://gtdb.ecogenomic.org/). Upgrading is recommended.</b>  
@@ -23,7 +23,7 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 ## New Features
 
 GTDB-Tk v2.0.0 includes the following new features:
-- GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **35 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag.
+- GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **35 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full_tree` flag.
 - Archaeal classifications now uses a refined set of 53 archaeal-specific marker genes based on the recent publication by [Dombrowski et al., 2020](https://www.nature.com/articles/s41467-020-17408-w). This set of archaeal marker genes is used by GTDB for curating the archaeal taxonomy.
 - By default, all directories containing intermediate results are **now removed** by default at the end of the `classify_wf` and `de_novo_wf` pipelines. If you wish to retain these intermediates files use the `--keep-intermediates` flag.
 - All MSA files produced by the `align` step are now compressed with gzip.
