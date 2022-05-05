@@ -795,7 +795,7 @@ class OptionsParser(object):
                                 'fastANI'])
 
             options.write_single_copy_genes = False
-            self.identify(options)
+            #self.identify(options)
 
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
@@ -811,7 +811,7 @@ class OptionsParser(object):
             options.rnd_seed = None
             options.skip_trimming = False
 
-            self.align(options)
+            #self.align(options)
 
             self.classify(options)
             if not options.keep_intermediates:

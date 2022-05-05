@@ -50,7 +50,7 @@ from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.split import Split
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
-    calculate_patristic_distance, tqdm_log, truncate_taxonomy, standardise_taxonomy
+    calculate_patristic_distance, tqdm_log, truncate_taxonomy, standardise_taxonomy, limit_rank
 
 sys.setrecursionlimit(15000)
 
@@ -68,6 +68,12 @@ class Classify(object):
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
+
+        self.DOMAIN_IDX = 0
+        self.PHYLUM_IDX = 1
+        self.CLASS_IDX = 2
+        self.ORDER_IDX = 3
+        self.FAMILY_IDX = 4
 
         self.logger = logging.getLogger('timestamp')
 
@@ -92,8 +98,6 @@ class Classify(object):
         # rank_of_interest determine the rank in the tree_mapping file for
         # lower classification
         self.rank_of_interest = "o__"
-
-
 
     def parse_radius_file(self):
         results = {}
@@ -146,8 +150,12 @@ class Classify(object):
         mem_gb = get_memory_gb()
         if mem_gb is not None:
             mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and mem_total < Config.PPLACER_MIN_RAM_BAC:
-                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC,
+            if marker_set_id == 'bac120' and levelopt is None and mem_total < Config.PPLACER_MIN_RAM_BAC_FULL:
+                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC_FULL,
+                                                       domain='bacterial',
+                                                       cur_gb=mem_total))
+            if marker_set_id == 'bac120' and levelopt == 'high' and mem_total < Config.PPLACER_MIN_RAM_BAC_SPLIT:
+                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC_SPLIT,
                                                        domain='bacterial',
                                                        cur_gb=mem_total))
             elif marker_set_id == 'ar53' and mem_total < Config.PPLACER_MIN_RAM_ARC:
@@ -248,7 +256,7 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG line
-        run_pplacer = True
+        run_pplacer = False
         if run_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
@@ -361,12 +369,12 @@ class Classify(object):
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                 marker_summary_fh.read()
                 if os.path.isfile(os.path.join(align_dir,
-                                             PATH_AR53_USER_MSA.format(prefix=prefix))):
+                                               PATH_AR53_USER_MSA.format(prefix=prefix))):
                     user_msa_file = os.path.join(align_dir,
                                                  PATH_AR53_USER_MSA.format(prefix=prefix))
                 else:
                     user_msa_file = os.path.join(align_dir,
-                                                 PATH_AR53_USER_MSA.format(prefix=prefix)+'.gz')
+                                                 PATH_AR53_USER_MSA.format(prefix=prefix) + '.gz')
                 summary_file = ClassifySummaryFileAR53(out_dir, prefix)
                 red_dict_file = REDDictFileAR53(out_dir, prefix)
                 disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
@@ -375,12 +383,12 @@ class Classify(object):
                 marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                 marker_summary_fh.read()
                 if os.path.isfile(os.path.join(align_dir,
-                                             PATH_BAC120_USER_MSA.format(prefix=prefix))):
+                                               PATH_BAC120_USER_MSA.format(prefix=prefix))):
                     user_msa_file = os.path.join(align_dir,
                                                  PATH_BAC120_USER_MSA.format(prefix=prefix))
                 else:
                     user_msa_file = os.path.join(align_dir,
-                                                 PATH_BAC120_USER_MSA.format(prefix=prefix)+'.gz')
+                                                 PATH_BAC120_USER_MSA.format(prefix=prefix) + '.gz')
                 summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
                 red_dict_file = REDDictFileBAC120(out_dir, prefix)
                 disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
@@ -409,7 +417,7 @@ class Classify(object):
             if not fulltreeopt and marker_set_id == 'bac120':
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                 # run pplacer to place bins in reference genome tree
-                genomes_to_process=[seq_id for seq_id, _seq in read_seq(user_msa_file)]
+                genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
                 debug_file, conflict_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
 
@@ -428,7 +436,7 @@ class Classify(object):
                 disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in high_classification]
                 if disappearing_genomes:
                     for disappearing_genome in disappearing_genomes:
-                        disappearing_genomes_file.add_genome(disappearing_genome,'Backbone')
+                        disappearing_genomes_file.add_genome(disappearing_genome, 'Backbone')
 
                 tree_mapping_dict = {}
                 tree_mapping_dict_reverse = {}
@@ -438,11 +446,17 @@ class Classify(object):
                         tree_mapping_dict[k] = v
                         tree_mapping_dict_reverse.setdefault(v, []).append(k)
 
-                splitter = Split(self.order_rank,self.gtdb_taxonomy,self.reference_ids)
-                sorted_high_taxonomy, len_sorted_genomes = splitter.map_high_taxonomy(
+                splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
+                sorted_high_taxonomy, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
                     high_classification, tree_mapping_dict, summary_file)
-                self.logger.info(f"{len_sorted_genomes} out of {len(genomes_to_process)} have an order assignments. Those genomes "
-                                 f"will be reclassified.")
+
+                with open(out_dir + '/' + prefix + '_high_taxonomy_used.txt', 'w') as htu:
+                    for l, b in high_taxonomy_used.items():
+                        htu.write(l + '\t' + str(b[0]) + '\t' + str(b[1]) + '\t' + str(b[2]) +'\n')
+
+                self.logger.info(
+                    f"{len_sorted_genomes} out of {len(genomes_to_process)} have an order assignments. Those genomes "
+                    f"will be reclassified.")
 
                 for idx, tree_iter in enumerate(
                         sorted(sorted_high_taxonomy, key=lambda z: len(sorted_high_taxonomy[z]), reverse=True)):
@@ -453,26 +467,45 @@ class Classify(object):
                     genomes_to_process = [seq_id for seq_id, _seq in read_seq(submsa_file_path)]
                     mrca_lowtree = self._assign_mrca_red(
                         low_classify_tree, marker_set_id, 'low', tree_iter)
-                    pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix,tree_iter)
+                    pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix, tree_iter)
                     pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
                                                                        marker_set_id, user_msa_file, mrca_lowtree)
                     disappearing_genomes = [seq_id for seq_id in genomes_to_process if
                                             seq_id not in pplacer_taxonomy_dict]
                     if disappearing_genomes:
-                        self.logger.warning(f"{len(disappearing_genomes)} out of {len(genomes_to_process)} have not been"
-                                            f" properly placed by pplacer. This is a known issue with pplacer but we do "
-                                            f"not have a solution currently. Those missing genomes are written to "
-                                            f"the {disappearing_genomes_file.file_name} file. We recommend rerunning "
-                                            f"those genomes through GTDB-Tk to 'fix' the problem.")
+                        self.logger.warning(
+                            f"{len(disappearing_genomes)} out of {len(genomes_to_process)} have not been"
+                            f" properly placed by pplacer. This is a known issue with pplacer but we do "
+                            f"not have a solution currently. Those missing genomes are written to "
+                            f"the {disappearing_genomes_file.file_name} file. We recommend rerunning "
+                            f"those genomes through GTDB-Tk to 'fix' the problem.")
                         for disappearing_genome in disappearing_genomes:
                             disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
-                    self._parse_tree(mrca_lowtree, genomes, msa_dict,
-                                     percent_multihit_dict, tln_table_summary_file.genomes,
-                                     bac_ar_diff, submsa_file_path, red_dict_file.data,
-                                     summary_file, conflict_file, pplacer_taxonomy_dict,
-                                     high_classification, debug_file, debugopt,
-                                     tree_mapping_file, tree_iter, tree_mapping_dict_reverse)
+                    order_level_classification,classified_user_genomes = self._parse_tree(mrca_lowtree, genomes, msa_dict,
+                                                                  percent_multihit_dict, tln_table_summary_file.genomes,
+                                                                  bac_ar_diff, submsa_file_path, red_dict_file.data,
+                                                                  summary_file, conflict_file, pplacer_taxonomy_dict,
+                                                                  high_classification, debug_file, debugopt,
+                                                                  tree_mapping_file, tree_iter,
+                                                                  tree_mapping_dict_reverse)
+
+
+                    with open(out_dir + '/' + prefix + '_order_level_classification.txt', 'a') as olf:
+                        for l, b in order_level_classification.items():
+                            olf.write(l + '\t' + str(b) + '\n')
+                        for l, b in classified_user_genomes.items():
+                            olf.write(l + '\t' + str(b) + '\n')
+
+                # add filtered genomes to the summary file
+                self.add_filtered_genomes_to_summary(align_dir, summary_file, marker_set_id, prefix)
+
+                # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                # but they need to be included in one of the summary file
+                self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+
+
 
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
@@ -508,12 +541,19 @@ class Classify(object):
 
                 disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
 
-
                 self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
                                  tln_table_summary_file.genomes,
                                  bac_ar_diff, user_msa_file, red_dict_file.data, summary_file, conflict_file,
                                  pplacer_taxonomy_dict, None,
                                  debug_file, debugopt, None, None, None)
+                # add filtered genomes to the summary file
+                self.add_filtered_genomes_to_summary(align_dir, summary_file, marker_set_id, prefix)
+
+                # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                # but they need to be included in one of the summary file
+                if marker_set_id == 'bac120':
+                    self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
 
                 # Symlink to the summary file from the root
                 if marker_set_id == 'bac120':
@@ -527,16 +567,15 @@ class Classify(object):
 
                 if disappearing_genomes:
                     for disappearing_genome in disappearing_genomes:
-                        disappearing_genomes_file.add_genome(disappearing_genome,'N/A')
-
+                        disappearing_genomes_file.add_genome(disappearing_genome, 'N/A')
 
                 if debugopt:
                     debug_file.close()
 
-
-
             if not fulltreeopt and marker_set_id == 'bac120':
                 tree_mapping_file.write()
+
+
 
             # Write the summary file to disk.
             if disappearing_genomes_file.data:
@@ -650,6 +689,7 @@ class Classify(object):
                     number_comparison += len(sorted_l)
                     out[leaf_node] = {"potential_g": sorted_l,
                                       "pplacer_g": leaf_ref_genome}
+
             else:
                 if leaf_ref_genome:
                     out[leaf_node] = {"potential_g": [(leaf_ref_genome, 0.0)],
@@ -660,9 +700,10 @@ class Classify(object):
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                                user_msa_file, red_dict, summary_file, conflict_file, pplacer_taxonomy_dict,
                                high_classification, debug_file, debugopt, classified_user_genomes,
-                               unclassified_user_genomes, tt, order_in_spe_tree):
+                               unclassified_user_genomes, tt, valid_orders, valid_classes,valid_phyla):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
-        user_genome_ids = user_genome_ids.difference(set(classified_user_genomes))
+        user_genome_ids = user_genome_ids.difference(set(classified_user_genomes.keys()))
+        order_level_classification = dict()
         for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label in user_genome_ids):
 
             # In some cases , pplacer can associate 2 user genomes
@@ -745,6 +786,7 @@ class Classify(object):
                         print(leaf.taxon.label)
                         print(list_leaves)
                         print(list_subrank)
+                        print(set(list_subrank))
                         raise GTDBTkExit('There should be only one leaf.')
                     else:
                         closest_rank = parent_rank
@@ -815,10 +857,107 @@ class Classify(object):
                             for subnd in tt.get_leaf_nodes(cur_node)]
             red_taxonomy = self._get_redtax(list_subnode, closest_rank)
             notes = []
+            warnings = []
 
-            standardised_red_tax = standardise_taxonomy(';'.join(red_taxonomy))
+            order_level_tax = standardise_taxonomy(';'.join(red_taxonomy)).split(';')
+            standardised_red_tax= standardise_taxonomy(';'.join(red_taxonomy))
+            order_in_spe_tree = valid_orders
+            class_in_spe_tree = valid_classes
 
-            if order_in_spe_tree and 'o__;' in standardised_red_tax:
+            order_level_classification[leaf.taxon.label] = order_level_tax
+
+
+            # if valid_orders:
+            #     backbone_tax = high_classification.get(leaf.taxon.label).get('tk_tax_red').split(';')
+            #     pplacer_taxonomy_to_report = ';'.join(order_level_tax)
+            #     red_value_to_report = current_rel_list
+            #
+            #     if backbone_tax[self.ORDER_IDX] == 'o__':
+            #         # no classification in order level tree so must
+            #         # use the classification in the backbone tree
+            #         final_split = backbone_tax
+            #         notes.append('classification based on placement in backbone tree')
+            #         pplacer_taxonomy_to_report = ';'.join(backbone_tax)
+            #         red_value_to_report = high_classification.get(leaf.taxon.label).get('rel_dist')
+            #     elif order_level_tax[self.ORDER_IDX] in valid_orders \
+            #             and backbone_tax[self.ORDER_IDX] == order_level_tax[self.ORDER_IDX]:
+            #         # backbone and order-level trees have same order classification so we trust
+            #         # the order-level classification
+            #         final_split = order_level_tax
+            #         notes.append('classification based on placement in order-level tree')
+            #
+            #     elif valid_orders and order_level_tax[self.ORDER_IDX] in valid_orders:
+            #         # order classification in the order-level tree is to a valid order
+            #         # (i.e. an order fully contained in the order-level tree) so we trust the order-level
+            #         # classification despite the incongruency with the backbone tree
+            #         final_split = order_level_tax
+            #         notes.append('classification based on placement in order-level tree')
+            #         warnings.append('backbone tree has incongruent order classification')
+            #
+            #     elif order_level_tax[self.CLASS_IDX] in valid_classes \
+            #             and backbone_tax[self.CLASS_IDX] == order_level_tax[self.CLASS_IDX]:
+            #         # backbone and order-level trees have same class classification so we trust the
+            #         # order-level classification down to the rank of class
+            #         final_split = limit_rank(order_level_tax, self.CLASS_IDX)
+            #         notes.append('classification based on placement in order-level tree')
+            #         warnings.append('classification restricted to valid class')
+            #
+            #     elif order_level_tax[self.CLASS_IDX] in valid_classes:
+            #         # class classification in the order-level tree is to a valid class
+            #         # (i.e. a class from a valid order in the order-level tree)
+            #         # so we trust the order-level classification despite the incongruency with the
+            #         # backbone tree down to the rank of class
+            #         final_split = limit_rank(order_level_tax, self.CLASS_IDX)
+            #         notes.append('classification based on placement in order-level tree')
+            #         warnings.append('backbone tree has incongruent class classification')
+            #
+            #     elif order_level_tax[self.PHYLUM_IDX] in valid_phyla \
+            #             and backbone_tax[self.PHYLUM_IDX] == order_level_tax[self.PHYLUM_IDX]:
+            #         # backbone and order-level trees have same phylum classification so we trust the
+            #         # order-level classification down to the rank of phylum
+            #         final_split = limit_rank(order_level_tax, self.PHYLUM_IDX)
+            #         notes.append('classification based on placement in order-level tree')
+            #         warnings.append('classification restricted to valid phylum')
+            #
+            #     elif order_level_tax[self.PHYLUM_IDX] in valid_phyla:
+            #         # phylum classification in the order-level tree
+            #         # is to a valid phylum (i.e. a phylum from a valid order
+            #         # in the order-level tree) so we trust the order-level
+            #         # classification despite the incongruency with the backbone tree down to the rank of phylum
+            #         final_split = limit_rank(order_level_tax, self.PHYLUM_IDX)
+            #         notes.append('classification based on placement in order-level tree')
+            #         warnings.append('backbone tree has incongruent phylum classification')
+            #
+            #     else:
+            #         # order-level classification is questionable since it is
+            #         # not to a valid taxa so use the consensus between
+            #         # the backbone and order-level classifications
+            #         consensus = []
+            #         for idx, (backbone_taxon, order_taxon) in enumerate(zip(backbone_tax, order_level_tax)):
+            #             if backbone_taxon == order_taxon:
+            #                 consensus.append(backbone_taxon)
+            #             else:
+            #                 consensus.append(self.order_rank[idx])
+            #         final_split = consensus
+            #         notes.append('classification based on consensus between backbone and order-level tree')
+            #
+            #     summary_row = ClassifySummaryFileRow()
+            #     if leaf.taxon.label in unclassified_user_genomes:
+            #         summary_row = unclassified_user_genomes.get(leaf.taxon.label)
+            #         if summary_row.note == '':
+            #             summary_row.note = None
+            #     summary_row.gid = leaf.taxon.label
+            #     summary_row.classification = ';'.join(final_split)
+            #     summary_row.pplacer_tax = pplacer_taxonomy_to_report
+            #     summary_row.red_value = red_value_to_report
+            #     if summary_row.classification_method is None:
+            #         summary_row.classification_method = detection
+            #     summary_row.msa_percent = self.aa_percent_msa(msa_dict.get(summary_row.gid))
+            #     summary_row.tln_table = trans_table_dict.get(summary_row.gid)
+
+
+            if order_in_spe_tree and 'o__;' in standardised_red_tax \
+                    and standardised_red_tax.split(';')[self.order_rank.index('c__')] not in class_in_spe_tree:
                 v = high_classification.get(leaf.taxon.label)
                 tk_tax_red_without_order = truncate_taxonomy(v.get('tk_tax_red'), 'o__')
                 summary_row = ClassifySummaryFileRow()
@@ -827,21 +966,33 @@ class Classify(object):
                 summary_row.pplacer_tax = v.get('pplacer_tax')
                 summary_row.red_value = v.get('rel_dist')
                 notes.append(
-                    'Genome not classified with order in species tree, reverse to backbone tree classification.')
+                    'Genome not classified with order in species tree, revert to backbone tree classification.')
 
                 #### Test 1.2
-            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,high_classification.get(leaf.taxon.label),'f__'):
-                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, high_classification)
-                notes.append('Genome has conflicting families between trees, reverse to backbone tree classification.')
-            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,high_classification.get(leaf.taxon.label),'o__'):
-                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, high_classification)
-                notes.append('Genome has conflicting orders between trees, reverse to backbone tree classification.')
-            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,high_classification.get(leaf.taxon.label),'c__'):
-                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax,leaf,high_classification)
-                notes.append('Genome has conflicting classes between trees, reverse to backbone tree classification.')
+            # elif order_in_spe_tree \
+            #         and self.check_common_rank_btwn_tax(standardised_red_tax,high_taxonomy,'f__',red_taxonomy) \
+            #         and not self.check_extra_rank_species_level(standardised_red_tax,'f__') \
+            #         and self.check_extra_rank_species_level(high_taxonomy, 'f__'):
+            #     summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, high_classification)
+            #     notes.append('Genome has conflicting families between trees, revert to backbone tree classification.')
+            elif order_in_spe_tree \
+                    and self.check_common_rank_btwn_tax(standardised_red_tax, high_classification.get(leaf.taxon.label),
+                                                        'o__') \
+                    and not self.check_extra_rank_species_level(standardised_red_tax, 'o__') \
+                    and red_taxonomy[self.order_rank.index(self.rank_of_interest)] not in order_in_spe_tree:
+                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf,
+                                                                            high_classification)
+                notes.append('Genome has conflicting orders between trees, revert to backbone tree classification.')
+            elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,
+                                                                       high_classification.get(leaf.taxon.label), 'c__') \
+                    and standardised_red_tax.split(';')[self.order_rank.index('c__')] not in class_in_spe_tree:
+                summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf,
+                                                                            high_classification)
+                notes.append('Genome has conflicting classes between trees, revert to backbone tree classification.')
 
-            elif order_in_spe_tree and red_taxonomy[
-                self.order_rank.index(self.rank_of_interest)] not in order_in_spe_tree:
+            elif order_in_spe_tree and standardised_red_tax.split(';')[
+                self.order_rank.index(self.rank_of_interest)] not in order_in_spe_tree \
+                    and standardised_red_tax.split(';')[self.order_rank.index('c__')] not in class_in_spe_tree:
                 v = high_classification.get(leaf.taxon.label)
                 tk_tax_red_without_order = truncate_taxonomy(v.get('tk_tax_red'), 'o__')
                 summary_row = ClassifySummaryFileRow()
@@ -849,7 +1000,8 @@ class Classify(object):
                 summary_row.classification = tk_tax_red_without_order
                 summary_row.pplacer_tax = v.get('pplacer_tax')
                 summary_row.red_value = v.get('rel_dist')
-                notes.append('Genome placed in dummy order in species tree, reverse to backbone tree classification.')
+                notes.append('Genome placed in dummy order in species tree, revert to backbone tree classification.')
+
             else:
                 del debug_info[0]
                 summary_row = ClassifySummaryFileRow()
@@ -867,15 +1019,21 @@ class Classify(object):
                 summary_row.red_value = current_rel_list
 
             if summary_row.gid in percent_multihit_dict:
-                notes.append('Genome has more than {}% of markers with multiple hits'.format(
+                warnings.append('Genome has more than {}% of markers with multiple hits'.format(
                     percent_multihit_dict.get(summary_row.gid)))
             if summary_row.gid in bac_ar_diff:
-                notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(summary_row.gid).get('bac120'),
                     bac_ar_diff.get(summary_row.gid).get('ar53')))
 
+            if len(warnings) > 0:
+                if summary_row.warnings is not None:
+                    warnings.extend(summary_row.warnings.split(';'))
+                summary_row.warnings = ';'.join(set(warnings))
             if len(notes) > 0:
-                summary_row.warnings = ';'.join(notes)
+                if summary_row.note is not None:
+                    notes.extend(summary_row.note.split(';'))
+                summary_row.note = ';'.join(set(notes))
             summary_file.add_row(summary_row)
 
             if debugopt:
@@ -899,8 +1057,9 @@ class Classify(object):
                     conflict_file.write(
                         '{}\t{}\t{}\tred_classification\n'.format(leaf.taxon.label, high_classification.get(
                             leaf.taxon.label).get('tk_tax_red'), summary_row.classification))
+        return order_level_classification
 
-    def generate_summary_row_reverse_to_backbone(self,standardised_red_tax, leaf, high_classification):
+    def generate_summary_row_reverse_to_backbone(self, standardised_red_tax, leaf, high_classification):
         taxonomy_infos = high_classification.get(leaf.taxon.label)
         common_ranks = [z for z in standardised_red_tax.split(';') if
                         len(z) > 3 and z in taxonomy_infos.get('tk_tax_red').split(';')]
@@ -912,11 +1071,17 @@ class Classify(object):
         summary_row.red_value = taxonomy_infos.get('rel_dist')
         return summary_row
 
-    def check_common_rank_btwn_tax(self,standardised_red_tax,taxonomy_infos,rank):
+    def check_common_rank_btwn_tax(self, standardised_red_tax, taxonomy_infos, rank):
+
         return (taxonomy_infos.get('tk_tax_red').split(';')[self.order_rank.index(rank)] != rank and
-        standardised_red_tax.split(';')[self.order_rank.index(rank)] != rank and
-        standardised_red_tax.split(';')[self.order_rank.index(rank)] != taxonomy_infos.get('tk_tax_red').split(';')[
-            self.order_rank.index(rank)])
+                standardised_red_tax.split(';')[self.order_rank.index(rank)] != rank and
+                standardised_red_tax.split(';')[self.order_rank.index(rank)] !=
+                taxonomy_infos.get('tk_tax_red').split(';')[
+                    self.order_rank.index(rank)])
+
+    def check_extra_rank_species_level(self, taxonomy, rank):
+        if len(taxonomy.split(';')[self.order_rank.index(rank) + 1]) > 3:
+            return True
 
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, conflict_file, pplacer_taxonomy_dict, high_classification,
@@ -932,6 +1097,8 @@ class Classify(object):
         self.logger.log(Config.LOG_TASK, 'Traversing tree to determine classification method.')
         fastani_verification, qury_nodes = self._get_fastani_verification(tree, self.reference_ids, tt)
 
+        #fastani_verification = {}
+
         # we run a fastani comparison for each user genomes against the
         # selected genomes in the same genus
         if len(fastani_verification) > 0:
@@ -944,6 +1111,8 @@ class Classify(object):
             all_fastani_dict = fastani.run(d_ani_compare, d_paths)
         else:
             all_fastani_dict = {}
+
+
 
         classified_user_genomes, unclassified_user_genomes = self._sort_fastani_results(
             fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
@@ -958,20 +1127,29 @@ class Classify(object):
                 if genome in classified_user_genomes:
                     mapping_row.ani_classification = True
                 else:
-                    mapping_row.ani_classification = True
+                    mapping_row.ani_classification = False
                 mapping_row.mapped_tree = tree_iter
                 tree_mapping_file.add_row(mapping_row)
 
         # Iterate over each leaf node that was not classified with FastANI.
         order_in_spe_tree = None
+        class_in_spe_tree = None
+        phyla_in_spe_tree = None
         if tree_mapping_dict_reverse:
             order_in_spe_tree = tree_mapping_dict_reverse.get(tree_iter)
-        self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
-                                    trans_table_dict, bac_ar_diff, user_msa_file,
-                                    red_dict, summary_file, conflict_file,
-                                    pplacer_taxonomy_dict, high_classification,
-                                    debug_file, debugopt, classified_user_genomes,
-                                    unclassified_user_genomes, tt, order_in_spe_tree)
+            class_in_spe_tree = self.get_authorised_rank(order_in_spe_tree,self.CLASS_IDX)
+            phyla_in_spe_tree = self.get_authorised_rank(order_in_spe_tree,self.PHYLUM_IDX)
+
+
+        order_level_classification = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
+                                                                 trans_table_dict, bac_ar_diff, user_msa_file,
+                                                                 red_dict, summary_file, conflict_file,
+                                                                 pplacer_taxonomy_dict, high_classification,
+                                                                 debug_file, debugopt, classified_user_genomes,
+                                                                 unclassified_user_genomes, tt, order_in_spe_tree,
+                                                                 class_in_spe_tree, phyla_in_spe_tree)
+
+        return order_level_classification,classified_user_genomes
 
     def _assign_mrca_red(self, input_tree, marker_set_id, levelopt=None, tree_iter=None):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -1110,6 +1288,37 @@ class Classify(object):
 
         return pplacer_classify_file.data
 
+    def add_filtered_genomes_to_summary(self, align_dir, summary_file, marker_set_id,prefix):
+        if marker_set_id == 'bac120':
+            filtered_file = os.path.join(align_dir,PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))
+            domain = 'Bacteria'
+        else:
+            filtered_file = os.path.join(align_dir,PATH_AR53_FILTERED_GENOMES.format(prefix=prefix))
+            domain = 'Archaea'
+
+        with open(filtered_file) as fin:
+            for line in fin:
+                infos = line.strip().split('\t')
+                summary_row = ClassifySummaryFileRow()
+                summary_row.gid = infos[0]
+                summary_row.classification = f'Unclassified {domain}'
+                summary_row.warnings = infos[1]
+                summary_file.add_row(summary_row)
+
+    def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
+        prodigal_failed_file = os.path.join(align_dir, PATH_FAILS.format(prefix=prefix))
+        align_failed_file = os.path.join(align_dir, PATH_FAILED_ALIGN_GENOMES.format(prefix=prefix))
+        for failfile in (prodigal_failed_file, align_failed_file):
+            if os.path.exists(failfile):
+                with open(failfile) as pff:
+                    for line in pff:
+                        infos = line.strip().split('\t')
+                        summary_row = ClassifySummaryFileRow()
+                        summary_row.gid = infos[0]
+                        summary_row.classification = f'Unclassified'
+                        summary_row.warnings = infos[1]
+                        summary_file.add_row(summary_row)
+
     def _formatnote(self, sorted_dict, labels):
         """Format the note field by concatenating all information in a sorted dictionary
 
@@ -1166,19 +1375,19 @@ class Classify(object):
         predicted a taxonomy
 
         """
-        classified_user_genomes = []
+        classified_user_genomes = {}
         unclassified_user_genomes = {}
 
         for userleaf, potential_nodes in fastani_verification.items():
 
             summary_row = ClassifySummaryFileRow()
 
-            notes = []
+            warnings = []
             if userleaf.taxon.label in percent_multihit_dict:
-                notes.append('Genome has more than {}% of markers with multiple hits'.format(
+                warnings.append('Genome has more than {}% of markers with multiple hits'.format(
                     percent_multihit_dict.get(userleaf.taxon.label)))
             if userleaf.taxon.label in bac_ar_diff:
-                notes.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
                     bac_ar_diff.get(userleaf.taxon.label).get('bac120'),
                     bac_ar_diff.get(userleaf.taxon.label).get('ar53')))
 
@@ -1207,7 +1416,7 @@ class Classify(object):
                             current_af = all_fastani_dict.get(userleaf.taxon.label).get(
                                 fastani_matching_reference).get('af')
                         else:
-                            notes.append(
+                            warnings.append(
                                 "Genome not assigned to closest species as it falls outside its pre-defined ANI radius")
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
@@ -1220,8 +1429,8 @@ class Classify(object):
                     summary_row.msa_percent = self.aa_percent_msa(
                         msa_dict.get(summary_row.gid))
                     summary_row.tln_table = trans_table_dict.get(summary_row.gid)
-                    if len(notes) > 0:
-                        summary_row.warnings = ';'.join(notes)
+                    if len(warnings) > 0:
+                        summary_row.warnings = ';'.join(warnings)
 
                     if fastani_matching_reference is not None:
                         summary_row.fastani_ref = fastani_matching_reference
@@ -1326,8 +1535,8 @@ class Classify(object):
                         else:
                             summary_row.other_related_refs = other_ref
 
-                    if len(notes) > 0:
-                        summary_row.warnings = ';'.join(notes)
+                    if len(warnings) > 0:
+                        summary_row.warnings = ';'.join(warnings)
 
                     if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
                             sorted_prefilter_af_dict[0][0]):
@@ -1351,15 +1560,15 @@ class Classify(object):
                             fastani_matching_reference).get('af')
                         summary_row.fastani_af = current_af
                         summary_row.note = 'topological placement and ANI have incongruent species assignments'
-                        if len(notes) > 0:
-                            summary_row.warnings = ';'.join(notes)
+                        if len(warnings) > 0:
+                            summary_row.warnings = ';'.join(warnings)
 
                         summary_file.add_row(summary_row)
-                        classified_user_genomes.append(userleaf.taxon.label)
+                        classified_user_genomes[userleaf.taxon.label] = standardise_taxonomy(taxa_str)
                     else:
-                        notes.append("Genome not assigned to closest species as "
+                        warnings.append("Genome not assigned to closest species as "
                                      "it falls outside its pre-defined ANI radius")
-                        summary_row.warnings = ';'.join(notes)
+                        summary_row.warnings = ';'.join(warnings)
                         summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                         unclassified_user_genomes[userleaf.taxon.label] = summary_row
 
@@ -1818,3 +2027,13 @@ class Classify(object):
                 dict_paths[shortleaf] = ref_path
 
         return dict_compare, dict_paths
+
+    def get_authorised_rank(self, order_in_spe_tree,rank_index):
+        results = []
+        for k, v in self.gtdb_taxonomy.items():
+            if v[self.order_rank.index(self.rank_of_interest)] in order_in_spe_tree:
+                results.append(v[rank_index])
+        return list(set(results))
+
+
+

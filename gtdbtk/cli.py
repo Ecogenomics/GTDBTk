@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC
+from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL
 
 
 @contextmanager
@@ -195,7 +195,7 @@ def __recalculate_red(group):
 def __full_tree(group):
     group.add_argument('-f', '--full_tree', default=False, action='store_true',
                        help='use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk '
-                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC} GB of RAM to load the reference tree')
+                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC_FULL} GB of RAM to load the reference tree')
 
 
 def __identify_dir(group, required):

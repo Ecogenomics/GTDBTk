@@ -48,6 +48,9 @@ def truncate_taxonomy(taxonomy, rank):
     taxonomy = standardise_taxonomy(';'.join(taxonomy_list), 'bac120')
     return taxonomy
 
+def limit_rank(taxa, rank_idx):
+    return taxa[0:rank_idx+1] + order_rank[rank_idx+1:]
+
 def standardise_taxonomy(taxstring, marker_set=None):
         """Create a 7 rank taxonomy string from an incomplete taxonomy string
 

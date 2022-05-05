@@ -342,6 +342,7 @@ class Split(object):
     def map_high_taxonomy(self,high_classification, mapping_dict, summary_file):
         mapped_rank = {}
         counter = 0
+        high_taxonomy_used = {}
         for k, v in high_classification.items():
             # if the classification has an order
             rk_to_check = v.get('tk_tax_red').split(
@@ -350,6 +351,7 @@ class Split(object):
                 mapped_rank.setdefault(
                     mapping_dict.get(rk_to_check), []).append(k)
                 counter += 1
+                high_taxonomy_used[k] = ["RED",v.get('tk_tax_terminal'),v.get('tk_tax_red')]
             else:
                 rk_to_check = v.get('tk_tax_terminal').split(
                     ';')[self.order_rank.index(self.rank_of_interest)]
@@ -357,6 +359,7 @@ class Split(object):
                     mapped_rank.setdefault(
                         mapping_dict.get(rk_to_check), []).append(k)
                     counter += 1
+                    high_taxonomy_used[k] = ["TERMINAL",v.get('tk_tax_terminal'),v.get('tk_tax_red')]
                 else:
                     summary_row = ClassifySummaryFileRow()
                     summary_row.gid = k
@@ -364,4 +367,4 @@ class Split(object):
                     summary_row.pplacer_tax = v.get('pplacer_tax')
                     summary_row.red_value = v.get('rel_dist')
                     summary_file.add_row(summary_row)
-        return mapped_rank, counter
+        return mapped_rank, counter , high_taxonomy_used
