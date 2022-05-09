@@ -704,7 +704,7 @@ class Classify(object):
                                unclassified_user_genomes, tt, valid_classes,valid_phyla):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
         user_genome_ids = user_genome_ids.difference(set(classified_user_genomes.keys()))
-        order_level_classification = dict()
+        class_level_classification = dict()
         for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label in user_genome_ids):
 
             # In some cases , pplacer can associate 2 user genomes
@@ -864,8 +864,7 @@ class Classify(object):
             standardised_red_tax= standardise_taxonomy(';'.join(red_taxonomy))
             class_in_spe_tree = valid_classes
 
-            order_level_classification[leaf.taxon.label] = standardised_red_tax
-
+            class_level_classification[leaf.taxon.label] = standardised_red_tax
 
             if valid_classes:
                 backbone_tax = high_classification.get(leaf.taxon.label).get('tk_tax_red').split(';')
@@ -873,64 +872,54 @@ class Classify(object):
                 red_value_to_report = current_rel_list
 
                 if backbone_tax[self.CLASS_IDX] == 'c__' and class_level_tax[self.CLASS_IDX] == 'c__':
-                    # no classification in order level tree so must
+                    # no classification in class level tree so must
                     # use the classification in the backbone tree
                     final_split = backbone_tax
                     notes.append('classification based on placement in backbone tree')
                     pplacer_taxonomy_to_report = ';'.join(backbone_tax)
                     red_value_to_report = high_classification.get(leaf.taxon.label).get('rel_dist')
-                # elif order_level_tax[self.ORDER_IDX] in valid_orders \
-                #         and backbone_tax[self.ORDER_IDX] == order_level_tax[self.ORDER_IDX]:
-                #     # backbone and order-level trees have same order classification so we trust
-                #     # the order-level classification
-                #     final_split = order_level_tax
-                #     notes.append('classification based on placement in order-level tree')
-                #
-                # elif valid_orders and order_level_tax[self.ORDER_IDX] in valid_orders:
-                #     # order classification in the order-level tree is to a valid order
-                #     # (i.e. an order fully contained in the order-level tree) so we trust the order-level
-                #     # classification despite the incongruency with the backbone tree
-                #     final_split = order_level_tax
-                #     notes.append('classification based on placement in order-level tree')
-                #     warnings.append('backbone tree has incongruent order classification')
 
                 elif class_level_tax[self.CLASS_IDX] in valid_classes \
                         and backbone_tax[self.CLASS_IDX] == class_level_tax[self.CLASS_IDX]:
-                    # backbone and order-level trees have same class classification so we trust the
-                    # order-level classification down to the rank of class
+                    # backbone and class-level trees have same class classification so we trust the
+                    # class-level classification down to the rank of class
                     final_split = class_level_tax
                     notes.append('classification based on placement in class-level tree')
 
                 elif class_level_tax[self.CLASS_IDX] in valid_classes:
-                    # class classification in the order-level tree is to a valid class
-                    # (i.e. a class from a valid order in the order-level tree)
-                    # so we trust the order-level classification despite the incongruency with the
-                    # backbone tree down to the rank of class
+                    # class classification in the class-level tree
+                    # is to a valid class (i.e. a class fully contained
+                    # in the class-level tree) so we trust the class-level
+                    # classification despite the incongruency with the
+                    # backbone tree
                     final_split = class_level_tax
                     notes.append('classification based on placement in class-level tree')
                     warnings.append('backbone tree has incongruent class classification')
 
                 elif class_level_tax[self.PHYLUM_IDX] in valid_phyla \
                         and backbone_tax[self.PHYLUM_IDX] == class_level_tax[self.PHYLUM_IDX]:
-                    # backbone and order-level trees have same phylum classification so we trust the
-                    # order-level classification down to the rank of phylum
+                    # backbone and class-level trees have same
+                    # phylum classification so we trust the
+                    # class-level classification down to the
+                    # rank of phylum
                     final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
                     notes.append('classification based on placement in order-level tree')
                     warnings.append('classification restricted to valid phylum')
 
                 elif class_level_tax[self.PHYLUM_IDX] in valid_phyla:
-                    # phylum classification in the order-level tree
-                    # is to a valid phylum (i.e. a phylum from a valid order
-                    # in the order-level tree) so we trust the order-level
-                    # classification despite the incongruency with the backbone tree down to the rank of phylum
+                    # phylum classification in the class-level tree
+                    # is to a valid phylum (i.e. a phylum from a valid class
+                    # in the class-level tree) so we trust the class-level
+                    # classification despite the incongruency with the
+                    # backbone tree down to the rank of phylum
                     final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
                     notes.append('classification based on placement in order-level tree')
                     warnings.append('backbone tree has incongruent phylum classification')
 
                 else:
-                    # order-level classification is questionable since it is
+                    # class-level classification is questionable since it is
                     # not to a valid taxa so use the consensus between
-                    # the backbone and order-level classifications
+                    # the backbone and class-level classifications
                     consensus = []
                     for idx, (backbone_taxon, order_taxon) in enumerate(zip(backbone_tax, class_level_tax)):
                         if backbone_taxon == order_taxon:
@@ -953,53 +942,6 @@ class Classify(object):
                     summary_row.classification_method = detection
                 summary_row.msa_percent = self.aa_percent_msa(msa_dict.get(summary_row.gid))
                 summary_row.tln_table = trans_table_dict.get(summary_row.gid)
-
-
-            # if order_in_spe_tree and 'o__;' in standardised_red_tax \
-            #         and standardised_red_tax.split(';')[self.order_rank.index('c__')] not in class_in_spe_tree:
-            #     v = high_classification.get(leaf.taxon.label)
-            #     tk_tax_red_without_order = truncate_taxonomy(v.get('tk_tax_red'), 'o__')
-            #     summary_row = ClassifySummaryFileRow()
-            #     summary_row.gid = leaf.taxon.label
-            #     summary_row.classification = tk_tax_red_without_order
-            #     summary_row.pplacer_tax = v.get('pplacer_tax')
-            #     summary_row.red_value = v.get('rel_dist')
-            #     notes.append(
-            #         'Genome not classified with order in species tree, revert to backbone tree classification.')
-
-                #### Test 1.2
-            # elif order_in_spe_tree \
-            #         and self.check_common_rank_btwn_tax(standardised_red_tax,high_taxonomy,'f__',red_taxonomy) \
-            #         and not self.check_extra_rank_species_level(standardised_red_tax,'f__') \
-            #         and self.check_extra_rank_species_level(high_taxonomy, 'f__'):
-            #     summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf, high_classification)
-            #     notes.append('Genome has conflicting families between trees, revert to backbone tree classification.')
-            # elif order_in_spe_tree \
-            #         and self.check_common_rank_btwn_tax(standardised_red_tax, high_classification.get(leaf.taxon.label),
-            #                                             'o__') \
-            #         and not self.check_extra_rank_species_level(standardised_red_tax, 'o__') \
-            #         and red_taxonomy[self.order_rank.index(self.rank_of_interest)] not in order_in_spe_tree:
-            #     summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf,
-            #                                                                 high_classification)
-            #     notes.append('Genome has conflicting orders between trees, revert to backbone tree classification.')
-            # elif order_in_spe_tree and self.check_common_rank_btwn_tax(standardised_red_tax,
-            #                                                            high_classification.get(leaf.taxon.label), 'c__') \
-            #         and standardised_red_tax.split(';')[self.order_rank.index('c__')] not in class_in_spe_tree:
-            #     summary_row = self.generate_summary_row_reverse_to_backbone(standardised_red_tax, leaf,
-            #                                                                 high_classification)
-            #     notes.append('Genome has conflicting classes between trees, revert to backbone tree classification.')
-            #
-            # elif order_in_spe_tree and standardised_red_tax.split(';')[
-            #     self.order_rank.index(self.rank_of_interest)] not in order_in_spe_tree \
-            #         and standardised_red_tax.split(';')[self.order_rank.index('c__')] not in class_in_spe_tree:
-            #     v = high_classification.get(leaf.taxon.label)
-            #     tk_tax_red_without_order = truncate_taxonomy(v.get('tk_tax_red'), 'o__')
-            #     summary_row = ClassifySummaryFileRow()
-            #     summary_row.gid = leaf.taxon.label
-            #     summary_row.classification = tk_tax_red_without_order
-            #     summary_row.pplacer_tax = v.get('pplacer_tax')
-            #     summary_row.red_value = v.get('rel_dist')
-            #     notes.append('Genome placed in dummy order in species tree, revert to backbone tree classification.')
 
             else:
                 del debug_info[0]
@@ -1056,7 +998,7 @@ class Classify(object):
                     conflict_file.write(
                         '{}\t{}\t{}\tred_classification\n'.format(leaf.taxon.label, high_classification.get(
                             leaf.taxon.label).get('tk_tax_red'), summary_row.classification))
-        return order_level_classification
+        return class_level_classification
 
     def generate_summary_row_reverse_to_backbone(self, standardised_red_tax, leaf, high_classification):
         taxonomy_infos = high_classification.get(leaf.taxon.label)
