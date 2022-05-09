@@ -700,7 +700,7 @@ class OptionsParser(object):
                 raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
                                  "'--custom_taxonomy_file' to be included to the command line.")
 
-            options.write_single_copy_genes = False
+            #options.write_single_copy_genes = False
             self.identify(options)
 
             options.identify_dir = options.out_dir
@@ -794,7 +794,7 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
 
-            options.write_single_copy_genes = False
+            #options.write_single_copy_genes = False
             self.identify(options)
 
             options.identify_dir = options.out_dir
