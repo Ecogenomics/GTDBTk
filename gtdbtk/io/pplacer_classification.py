@@ -19,8 +19,8 @@ import os
 from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import PATH_AR53_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS, PATH_BAC120_HIGH_PPLACER_CLASS, \
-    PATH_BAC120_LOW_PPLACER_CLASS
+from gtdbtk.config.output import PATH_AR53_PPLACER_CLASS, PATH_BAC120_PPLACER_CLASS, PATH_BAC120_BACKBONE_PPLACER_CLASS, \
+    PATH_BAC120_CLASS_LEVEL_PPLACER_CLASS
 from gtdbtk.exceptions import GTDBTkExit
 
 
@@ -66,7 +66,7 @@ class PplacerLowClassifyFileBAC120(PplacerClassifyFile):
     """Store the pplacer classifications for the BAC120 marker set."""
 
     def __init__(self, out_dir: str, prefix: str,iter:str):
-        path = os.path.join(out_dir, PATH_BAC120_LOW_PPLACER_CLASS.format(prefix=prefix,iter=iter))
+        path = os.path.join(out_dir, PATH_BAC120_CLASS_LEVEL_PPLACER_CLASS.format(prefix=prefix,iter=iter))
         super().__init__(path)
 
 
@@ -86,7 +86,7 @@ class PplacerHighClassifyFile(object):
     """Store the pplacer classifications."""
 
     def __init__(self,out_dir: str,prefix: str):
-        self.path = os.path.join(out_dir, PATH_BAC120_HIGH_PPLACER_CLASS.format(prefix=prefix))
+        self.path = os.path.join(out_dir, PATH_BAC120_BACKBONE_PPLACER_CLASS.format(prefix=prefix))
         self.rows = dict()  # keyed by user_genome
         self.none_value = 'N/A'
 

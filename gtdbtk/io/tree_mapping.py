@@ -29,6 +29,7 @@ class GenomeMappingFileRow(object):
         self.gid = None
         self.ani_classification = None
         self.mapped_tree = None
+        self.rule = None
 
 class GenomeMappingFile(object):
     """Store the GTDB-Tk classify summary output."""
@@ -47,7 +48,8 @@ class GenomeMappingFile(object):
             row = GenomeMappingFileRow()
         mapping = [('user_genome', row.gid),
                    ('is_ani_classification', row.ani_classification),
-                   ('species_tree_mapped', row.mapped_tree)]
+                   ('class_tree_mapped', row.mapped_tree),
+                   ('classification_rule', row.rule)]
         cols, data = list(), list()
         for col_name, col_val in mapping:
             cols.append(col_name)
@@ -88,4 +90,5 @@ class GenomeMappingFile(object):
                 row.gid = data[0]
                 row.ani_classification = data[1]
                 row.mapped_tree = data[2]
+                row.rule = data[3]
                 self.add_row(row)

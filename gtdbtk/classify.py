@@ -203,16 +203,16 @@ class Classify(object):
                                 f'Placing {num_genomes:,} bacterial genomes '
                                 f'into backbone reference tree with pplacer using '
                                 f'{self.pplacer_cpus} CPUs (be patient).')
-                pplacer_ref_pkg = os.path.join(Config.HIGH_PPLACER_DIR,
-                                               Config.HIGH_PPLACER_REF_PKG)
+                pplacer_ref_pkg = os.path.join(Config.BACKBONE_PPLACER_DIR,
+                                               Config.BACKBONE_PPLACER_REF_PKG)
             elif levelopt == 'low':
                 self.logger.log(Config.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
                                 f'into class-level reference tree {tree_iter} ({idx_tree}/{number_low_trees}) with '
                                 f'pplacer using {self.pplacer_cpus} CPUs '
                                 f'(be patient).')
-                pplacer_ref_pkg = os.path.join(Config.LOW_PPLACER_DIR,
-                                               Config.LOW_PPLACER_REF_PKG.format(iter=tree_iter))
+                pplacer_ref_pkg = os.path.join(Config.CLASS_LEVEL_PPLACER_DIR,
+                                               Config.CLASS_LEVEL_PPLACER_REF_PKG.format(iter=tree_iter))
         elif marker_set_id == 'ar53':
             self.logger.log(Config.LOG_TASK,
                             f'Placing {num_genomes:,} archaeal genomes into '
@@ -237,14 +237,14 @@ class Classify(object):
                     out_dir, PATH_BAC120_PPLACER_JSON)
             elif levelopt == 'high':
                 pplacer_out = os.path.join(
-                    out_dir, PATH_HIGH_BAC120_PPLACER_OUT)
+                    out_dir, PATH_BACKBONE_BAC120_PPLACER_OUT)
                 pplacer_json_out = os.path.join(
-                    out_dir, PATH_HIGH_BAC120_PPLACER_JSON)
+                    out_dir, PATH_BACKBONE_BAC120_PPLACER_JSON)
             elif levelopt == 'low':
                 pplacer_out = os.path.join(
-                    out_dir, PATH_LOW_BAC120_PPLACER_OUT.format(iter=tree_iter))
+                    out_dir, PATH_CLASS_LEVEL_BAC120_PPLACER_OUT.format(iter=tree_iter))
                 pplacer_json_out = os.path.join(
-                    out_dir, PATH_LOW_BAC120_PPLACER_JSON.format(iter=tree_iter))
+                    out_dir, PATH_CLASS_LEVEL_BAC120_PPLACER_JSON.format(iter=tree_iter))
         elif marker_set_id == 'ar53':
             pplacer_out = os.path.join(out_dir, PATH_AR53_PPLACER_OUT)
             pplacer_json_out = os.path.join(out_dir, PATH_AR53_PPLACER_JSON)
@@ -256,7 +256,7 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG line
-        run_pplacer = True
+        run_pplacer = False
         if run_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
@@ -269,10 +269,10 @@ class Classify(object):
                     out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
             elif levelopt == 'high':
                 tree_file = os.path.join(
-                    out_dir, PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))
+                    out_dir, PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix))
             elif levelopt == 'low':
                 tree_file = os.path.join(
-                    out_dir, PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))
+                    out_dir, PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))
         elif marker_set_id == 'ar53':
             tree_file = os.path.join(
                 out_dir, PATH_AR53_TREE_FILE.format(prefix=prefix))
@@ -287,12 +287,12 @@ class Classify(object):
         #     symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
         #               os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
         # elif levelopt == 'high':
-        #     symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
-        #               os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
+        #     symlink_f(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix),
+        #               os.path.join(out_dir, os.path.basename(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix))))
         # elif levelopt == 'low':
-        #     symlink_f(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter),
+        #     symlink_f(PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter),
         #               os.path.join(out_dir,
-        #                            os.path.basename(PATH_LOW_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))))
+        #                            os.path.basename(PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))))
         # elif marker_set_id == 'ar53':
         #     symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
         #               os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
@@ -306,12 +306,12 @@ class Classify(object):
         #         symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
         #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
         #     elif levelopt == 'high':
-        #         symlink_f(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix),
-        #                   os.path.join(out_dir, os.path.basename(PATH_HIGH_BAC120_TREE_FILE.format(prefix=prefix))))
+        #         symlink_f(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix),
+        #                   os.path.join(out_dir, os.path.basename(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix))))
         #     elif levelopt == 'low':
-        #         symlink_f(PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
+        #         symlink_f(PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
         #                   os.path.join(out_dir, os.path.basename(
-        #                       PATH_LOW_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
+        #                       PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
         # elif marker_set_id == 'ar53':
         #     symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
         #               os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
@@ -401,6 +401,18 @@ class Classify(object):
             if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
                 # file will not exist if there are no User genomes from a
                 # given domain
+                # but if there is Unclassified genomes without domain,
+                # they still have to be written in the bac120 summary file:
+                if marker_set_id == 'bac120':
+                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                    # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                    # but they need to be included in one of the summary file
+                    self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    if summary_file.has_row():
+                        summary_file.write()
+                        # Symlink to the summary file from the root
+                        symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
                 continue
 
             # Write the RED dictionary to disk (intermediate file).
@@ -418,7 +430,7 @@ class Classify(object):
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                 # run pplacer to place bins in reference genome tree
                 genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
-                debug_file, conflict_file = self._generate_summary_file(
+                debug_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
 
                 high_classify_tree = self.place_genomes(user_msa_file,
@@ -440,7 +452,7 @@ class Classify(object):
 
                 tree_mapping_dict = {}
                 tree_mapping_dict_reverse = {}
-                with open(Config.LOW_TREE_MAPPING_FILE) as ltmf:
+                with open(Config.CLASS_LEVEL_TREE_MAPPING_FILE) as ltmf:
                     for line in ltmf:
                         k, v = line.strip().split()
                         tree_mapping_dict[k] = v
@@ -448,10 +460,10 @@ class Classify(object):
 
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                 sorted_high_taxonomy, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
-                    high_classification, tree_mapping_dict, summary_file)
+                    high_classification, tree_mapping_dict, summary_file, tree_mapping_file)
 
                 if debugopt:
-                    with open(out_dir + '/' + prefix + '_high_taxonomy_used.txt', 'w') as htu:
+                    with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
                         for l, b in high_taxonomy_used.items():
                             htu.write(l + '\t' + str(b[0]) + '\t' + str(b[1]) + '\t' + str(b[2]) +'\n')
 
@@ -486,7 +498,7 @@ class Classify(object):
                     order_level_classification,classified_user_genomes = self._parse_tree(mrca_lowtree, genomes, msa_dict,
                                                                   percent_multihit_dict, tln_table_summary_file.genomes,
                                                                   bac_ar_diff, submsa_file_path, red_dict_file.data,
-                                                                  summary_file, conflict_file, pplacer_taxonomy_dict,
+                                                                  summary_file, pplacer_taxonomy_dict,
                                                                   high_classification, debug_file, debugopt,
                                                                   tree_mapping_file, tree_iter,
                                                                   tree_mapping_dict_reverse)
@@ -525,15 +537,10 @@ class Classify(object):
                 genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
                 # get taxonomic classification of each user genome
-                debug_file, conflict_file = self._generate_summary_file(
+                debug_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
 
-                if recalculate_red:
-                    tree_to_process = self._calculate_red_distances(
-                        classify_tree, out_dir)
-                else:
-                    tree_to_process = self._assign_mrca_red(
-                        classify_tree, marker_set_id)
+                tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
 
                 pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
                                                                    marker_set_id,
@@ -544,7 +551,7 @@ class Classify(object):
 
                 self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
                                  tln_table_summary_file.genomes,
-                                 bac_ar_diff, user_msa_file, red_dict_file.data, summary_file, conflict_file,
+                                 bac_ar_diff, user_msa_file, red_dict_file.data, summary_file,
                                  pplacer_taxonomy_dict, None,
                                  debug_file, debugopt, None, None, None)
                 # add filtered genomes to the summary file
@@ -585,26 +592,20 @@ class Classify(object):
 
     def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):
         debug_file = None
-        conflict_summary = None
 
         if debugopt:
             debug_file = open(os.path.join(
                 out_dir, prefix + '.{}.debug_file.tsv'.format(marker_set_id)), 'w')
             debug_file.write(
                 "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
-        if not fulltreeopt:
-            conflict_summary = open(os.path.join(
-                out_dir, PATH_BAC120_CONFLICT.format(prefix=prefix)), 'w')
-            conflict_summary.write(
-                "User genome\tHigh classification\tLow Classification\tType Classification\n")
-        return debug_file, conflict_summary
+        return debug_file
 
     def _place_in_low_tree(self, tree_iter, number_low_trees, idx_tree, listg, msa_dict, marker_set_id, prefix,
                            scratch_dir, out_dir):
         make_sure_path_exists(os.path.join(
-            out_dir, DIR_LOW_PPLACER.format(iter=tree_iter)))
+            out_dir, DIR_CLASS_LEVEL_PPLACER.format(iter=tree_iter)))
         submsa_file_path = os.path.join(
-            out_dir, PATH_LOW_BAC120_SUBMSA.format(iter=tree_iter))
+            out_dir, PATH_CLASS_LEVEL_BAC120_SUBMSA.format(iter=tree_iter))
 
         submsa_file = open(submsa_file_path, 'w')
 
@@ -699,9 +700,9 @@ class Classify(object):
         return out, qry_nodes
 
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                               user_msa_file, red_dict, summary_file, conflict_file, pplacer_taxonomy_dict,
+                               user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,
                                high_classification, debug_file, debugopt, classified_user_genomes,
-                               unclassified_user_genomes, tt, valid_classes,valid_phyla):
+                               unclassified_user_genomes, tt,tree_iter,tree_mapping_file, valid_classes,valid_phyla):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
         user_genome_ids = user_genome_ids.difference(set(classified_user_genomes.keys()))
         class_level_classification = dict()
@@ -871,11 +872,20 @@ class Classify(object):
                 pplacer_taxonomy_to_report = ';'.join(class_level_tax)
                 red_value_to_report = current_rel_list
 
+                mapping_row = GenomeMappingFileRow()
+                mapping_row.gid = leaf.taxon.label
+                mapping_row.ani_classification = False
+                mapping_row.mapped_tree = tree_iter
+
+
+
                 if backbone_tax[self.CLASS_IDX] == 'c__' and class_level_tax[self.CLASS_IDX] == 'c__':
                     # no classification in class level tree so must
                     # use the classification in the backbone tree
                     final_split = backbone_tax
                     notes.append('classification based on placement in backbone tree')
+                    mapping_row.mapped_tree = 'backbone'
+                    mapping_row.rule = 'Rule 1'
                     pplacer_taxonomy_to_report = ';'.join(backbone_tax)
                     red_value_to_report = high_classification.get(leaf.taxon.label).get('rel_dist')
 
@@ -884,6 +894,7 @@ class Classify(object):
                     # backbone and class-level trees have same class classification so we trust the
                     # class-level classification down to the rank of class
                     final_split = class_level_tax
+                    mapping_row.rule = 'Rule 2'
                     notes.append('classification based on placement in class-level tree')
 
                 elif class_level_tax[self.CLASS_IDX] in valid_classes:
@@ -893,6 +904,7 @@ class Classify(object):
                     # classification despite the incongruency with the
                     # backbone tree
                     final_split = class_level_tax
+                    mapping_row.rule = 'Rule 3'
                     notes.append('classification based on placement in class-level tree')
                     warnings.append('backbone tree has incongruent class classification')
 
@@ -903,7 +915,8 @@ class Classify(object):
                     # class-level classification down to the
                     # rank of phylum
                     final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
-                    notes.append('classification based on placement in order-level tree')
+                    mapping_row.rule = 'Rule 4'
+                    notes.append('classification based on placement in class-level tree')
                     warnings.append('classification restricted to valid phylum')
 
                 elif class_level_tax[self.PHYLUM_IDX] in valid_phyla:
@@ -913,7 +926,8 @@ class Classify(object):
                     # classification despite the incongruency with the
                     # backbone tree down to the rank of phylum
                     final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
-                    notes.append('classification based on placement in order-level tree')
+                    mapping_row.rule = 'Rule 5'
+                    notes.append('classification based on placement in class-level tree')
                     warnings.append('backbone tree has incongruent phylum classification')
 
                 else:
@@ -927,7 +941,8 @@ class Classify(object):
                         else:
                             consensus.append(self.order_rank[idx])
                     final_split = consensus
-                    notes.append('classification based on consensus between backbone and order-level tree')
+                    mapping_row.rule = 'Rule 6'
+                    notes.append('classification based on consensus between backbone and class-level tree')
 
                 summary_row = ClassifySummaryFileRow()
                 if leaf.taxon.label in unclassified_user_genomes:
@@ -942,6 +957,8 @@ class Classify(object):
                     summary_row.classification_method = detection
                 summary_row.msa_percent = self.aa_percent_msa(msa_dict.get(summary_row.gid))
                 summary_row.tln_table = trans_table_dict.get(summary_row.gid)
+
+                tree_mapping_file.add_row(mapping_row)
 
             else:
                 del debug_info[0]
@@ -980,24 +997,8 @@ class Classify(object):
             if debugopt:
                 debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
                     leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
-            if high_classification and leaf.taxon.label in high_classification:
-                fullrank_terminal = [x for x in high_classification.get(leaf.taxon.label).get('tk_tax_terminal').split(
-                    ';')[0:self.order_rank.index(self.rank_of_interest) + 2] if len(x) > 3]
-                low_taxonomy = summary_row.classification.split(';')[0:len(fullrank_terminal)]
 
-                if fullrank_terminal != low_taxonomy:
-                    conflict_file.write(
-                        '{}\t{}\t{}\tterminal_classification\n'.format(leaf.taxon.label, high_classification.get(
-                            leaf.taxon.label).get('tk_tax_terminal'), summary_row.classification))
 
-                fullrank_red = [x for x in high_classification.get(leaf.taxon.label).get('tk_tax_red').split(
-                    ';')[0:self.order_rank.index(self.rank_of_interest) + 2] if len(x) > 3]
-                low_taxonomy = summary_row.classification.split(';')[0:len(fullrank_red)]
-
-                if fullrank_red != low_taxonomy:
-                    conflict_file.write(
-                        '{}\t{}\t{}\tred_classification\n'.format(leaf.taxon.label, high_classification.get(
-                            leaf.taxon.label).get('tk_tax_red'), summary_row.classification))
         return class_level_classification
 
     def generate_summary_row_reverse_to_backbone(self, standardised_red_tax, leaf, high_classification):
@@ -1025,7 +1026,7 @@ class Classify(object):
             return True
 
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                    user_msa_file, red_dict, summary_file, conflict_file, pplacer_taxonomy_dict, high_classification,
+                    user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict, high_classification,
                     debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
         # Genomes can be classified by using FastANI or RED values
         # We go through all leaves of the tree. if the leaf is a user
@@ -1063,14 +1064,12 @@ class Classify(object):
                          f'been classified using FastANI and pplacer.')
 
         if tree_mapping_file:
-            for genome in [x.taxon.label for x in qury_nodes]:
+            for genome in classified_user_genomes.keys():
                 mapping_row = GenomeMappingFileRow()
                 mapping_row.gid = genome
-                if genome in classified_user_genomes:
-                    mapping_row.ani_classification = True
-                else:
-                    mapping_row.ani_classification = False
+                mapping_row.ani_classification = True
                 mapping_row.mapped_tree = tree_iter
+                mapping_row.rule = 'Rule 7'
                 tree_mapping_file.add_row(mapping_row)
 
         # Iterate over each leaf node that was not classified with FastANI.
@@ -1083,10 +1082,10 @@ class Classify(object):
 
         order_level_classification = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
                                                                  trans_table_dict, bac_ar_diff, user_msa_file,
-                                                                 red_dict, summary_file, conflict_file,
+                                                                 red_dict, summary_file,
                                                                  pplacer_taxonomy_dict, high_classification,
                                                                  debug_file, debugopt, classified_user_genomes,
-                                                                 unclassified_user_genomes, tt,
+                                                                 unclassified_user_genomes, tt,tree_iter,tree_mapping_file,
                                                                  class_in_spe_tree, phyla_in_spe_tree)
 
         return order_level_classification,classified_user_genomes
@@ -1117,9 +1116,9 @@ class Classify(object):
         if levelopt is None:
             red_file = Config.MRCA_RED_BAC120
         elif levelopt == 'high':
-            red_file = Config.HIGH_RED_FILE
+            red_file = Config.BACKBONE_RED_FILE
         elif levelopt == 'low':
-            red_file = Config.LOW_RED_FILE.format(iter=tree_iter)
+            red_file = Config.CLASS_LEVEL_RED_FILE.format(iter=tree_iter)
         if marker_set_id == 'ar53':
             red_file = Config.MRCA_RED_AR53
 

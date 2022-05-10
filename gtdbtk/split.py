@@ -26,6 +26,7 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.io.classify_summary import ClassifySummaryFileRow
 from gtdbtk.io.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
+from gtdbtk.io.tree_mapping import GenomeMappingFileRow
 from gtdbtk.tools import TreeTraversal, standardise_taxonomy
 
 
@@ -338,7 +339,7 @@ class Split(object):
 
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
-    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file):
+    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,tree_mapping_file):
         mapped_rank = {}
         counter = 0
         high_taxonomy_used = {}
@@ -365,5 +366,15 @@ class Split(object):
                     summary_row.classification = v.get('tk_tax_red')
                     summary_row.pplacer_tax = v.get('pplacer_tax')
                     summary_row.red_value = v.get('rel_dist')
+                    summary_row.note = 'classification based on placement in backbone tree'
+
+                    mapping_row = GenomeMappingFileRow()
+                    mapping_row.gid = k
+                    mapping_row.ani_classification = False
+                    mapping_row.mapped_tree = 'backbone'
+                    mapping_row.rule = 'Rule 1'
+
+                    tree_mapping_file.add_row(mapping_row)
                     summary_file.add_row(summary_row)
+
         return mapped_rank, counter , high_taxonomy_used

@@ -120,6 +120,12 @@ def merge_two_dicts(x, y):
     z.update(y)
     return z
 
+def confirm(msg):
+    raw = input(msg + " (y/N): ")
+    if raw.upper() in ["Y", "YES"]:
+        return True
+    return False
+
 
 def sha1_dir(path, progress):
     """Recursively add files found within the path and output a SHA1 hash.
