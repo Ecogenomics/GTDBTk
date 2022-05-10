@@ -461,8 +461,7 @@ class OptionsParser(object):
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
-                     fulltreeopt=options.full_tree,
-                     recalculate_red=False)
+                     fulltreeopt=options.full_tree)
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
                          'designations. New designations should be based on one or more de novo trees, an '

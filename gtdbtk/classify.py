@@ -281,44 +281,6 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
 
         pplacer.tog(pplacer_json_out, tree_file)
-
-        # Symlink to the tree summary file
-        # if marker_set_id == 'bac120' and levelopt is None:
-        #     symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
-        #               os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
-        # elif levelopt == 'high':
-        #     symlink_f(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix),
-        #               os.path.join(out_dir, os.path.basename(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix))))
-        # elif levelopt == 'low':
-        #     symlink_f(PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter),
-        #               os.path.join(out_dir,
-        #                            os.path.basename(PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))))
-        # elif marker_set_id == 'ar53':
-        #     symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
-        #               os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
-        # else:
-        #     self.logger.error('There was an error determining the marker set.')
-        #     raise GenomeMarkerSetUnknown
-
-        # Symlink to the tree summary file
-        # if marker_set_id == 'bac120':
-        #     if levelopt is None:
-        #         symlink_f(PATH_BAC120_TREE_FILE.format(prefix=prefix),
-        #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_TREE_FILE.format(prefix=prefix))))
-        #     elif levelopt == 'high':
-        #         symlink_f(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix),
-        #                   os.path.join(out_dir, os.path.basename(PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix))))
-        #     elif levelopt == 'low':
-        #         symlink_f(PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix),
-        #                   os.path.join(out_dir, os.path.basename(
-        #                       PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(iter=tree_iter, prefix=prefix))))
-        # elif marker_set_id == 'ar53':
-        #     symlink_f(PATH_AR53_TREE_FILE.format(prefix=prefix),
-        #               os.path.join(out_dir, os.path.basename(PATH_AR53_TREE_FILE.format(prefix=prefix))))
-        # else:
-        #     self.logger.error('There was an error determining the marker set.')
-        #     raise GenomeMarkerSetUnknown
-
         return tree_file
 
     def _parse_red_dict(self, red_dist_dict):
@@ -355,13 +317,11 @@ class Classify(object):
             out_dir,
             prefix,
             scratch_dir=None,
-            recalculate_red=None,
             debugopt=False,
             fulltreeopt=False):
         """Classify genomes based on position in reference tree."""
 
         _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
-        disappearing_genomes = []
 
         for marker_set_id in ('ar53', 'bac120'):
 
@@ -399,9 +359,9 @@ class Classify(object):
                 raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
             if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
-                # file will not exist if there are no User genomes from a
-                # given domain
-                # but if there is Unclassified genomes without domain,
+                # file will not exist if there are no User genomes from a given domain
+                #
+                # But if there is Unclassified genomes without domain,
                 # they still have to be written in the bac120 summary file:
                 if marker_set_id == 'bac120':
                     # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
@@ -495,7 +455,7 @@ class Classify(object):
                         for disappearing_genome in disappearing_genomes:
                             disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
-                    order_level_classification,classified_user_genomes = self._parse_tree(mrca_lowtree, genomes, msa_dict,
+                    class_level_classification, classified_user_genomes = self._parse_tree(mrca_lowtree, genomes, msa_dict,
                                                                   percent_multihit_dict, tln_table_summary_file.genomes,
                                                                   bac_ar_diff, submsa_file_path, red_dict_file.data,
                                                                   summary_file, pplacer_taxonomy_dict,
@@ -505,7 +465,7 @@ class Classify(object):
 
                     if debugopt:
                         with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
-                            for l, b in order_level_classification.items():
+                            for l, b in class_level_classification.items():
                                 olf.write(l + '\t' + str(b) + '\n')
                             for l, b in classified_user_genomes.items():
                                 olf.write(l + '\t' + str(b) + '\n')
@@ -514,11 +474,10 @@ class Classify(object):
                 self.add_filtered_genomes_to_summary(align_dir, summary_file, marker_set_id, prefix)
 
                 # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                # This is a executive direction: failed prodigal and genomes with
+                # no markers are not bacterial or archaeal
                 # but they need to be included in one of the summary file
                 self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-
-
 
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
