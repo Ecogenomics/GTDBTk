@@ -960,30 +960,6 @@ class Classify(object):
 
         return class_level_classification
 
-    def generate_summary_row_reverse_to_backbone(self, standardised_red_tax, leaf, high_classification):
-        taxonomy_infos = high_classification.get(leaf.taxon.label)
-        common_ranks = [z for z in standardised_red_tax.split(';') if
-                        len(z) > 3 and z in taxonomy_infos.get('tk_tax_red').split(';')]
-        combined_ranks = standardise_taxonomy(';'.join(common_ranks), 'bac120')
-        summary_row = ClassifySummaryFileRow()
-        summary_row.gid = leaf.taxon.label
-        summary_row.classification = combined_ranks
-        summary_row.pplacer_tax = taxonomy_infos.get('pplacer_tax')
-        summary_row.red_value = taxonomy_infos.get('rel_dist')
-        return summary_row
-
-    def check_common_rank_btwn_tax(self, standardised_red_tax, taxonomy_infos, rank):
-
-        return (taxonomy_infos.get('tk_tax_red').split(';')[self.order_rank.index(rank)] != rank and
-                standardised_red_tax.split(';')[self.order_rank.index(rank)] != rank and
-                standardised_red_tax.split(';')[self.order_rank.index(rank)] !=
-                taxonomy_infos.get('tk_tax_red').split(';')[
-                    self.order_rank.index(rank)])
-
-    def check_extra_rank_species_level(self, taxonomy, rank):
-        if len(taxonomy.split(';')[self.order_rank.index(rank) + 1]) > 3:
-            return True
-
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict, high_classification,
                     debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
