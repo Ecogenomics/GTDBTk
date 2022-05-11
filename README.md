@@ -7,7 +7,7 @@
 [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ecogenomic/gtdbtk?sort=date&color=299bec&label=docker)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 
-<b>[GTDB-Tk v2.1.0](https://ecogenomics.github.io/GTDBTk/announcements.html) was released on May 10, 2022. Upgrading is recommended.</b>  
+<b>[GTDB-Tk v2.1.0](https://ecogenomics.github.io/GTDBTk/announcements.html) was released on May 11, 2022. Upgrading is recommended.</b>  
 <b> Please note v2.1.0+ is not compatible with GTDB-Tk package [R207_v1](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz). It is necessary to upgrade to GTDB-Tk package [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz).</b>
 
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes based on the Genome Database Taxonomy ([GTDB](https://gtdb.ecogenomic.org/)). It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
