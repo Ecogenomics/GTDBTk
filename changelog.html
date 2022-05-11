@@ -250,14 +250,14 @@
 <h2>2.1.0<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Major changes:</p>
 <ul class="simple">
-<li><p>GTDB-TK now uses a <strong>divide-and-conquer</strong> approach where the bacterial reference tree is split into multiple <strong>class</strong>-level subtrees. This reduces the memory requirements of GTDB-Tk from <strong>320 GB</strong> of RAM when using the full GTDB R07-RS207 reference tree to approximately <strong>50 GB</strong>. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the <cite>–full-tree</cite> flag. This is the main change from v2.0.0. The split tree approach has been modified from order-level trees to class-level trees to resolve specific classification issues (See [#383](<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/383">https://github.com/Ecogenomics/GTDBTk/issues/383</a>)).</p></li>
+<li><p>GTDB-TK now uses a <strong>divide-and-conquer</strong> approach where the bacterial reference tree is split into multiple <strong>class</strong>-level subtrees. This reduces the memory requirements of GTDB-Tk from <strong>320 GB</strong> of RAM when using the full GTDB R07-RS207 reference tree to approximately <strong>50 GB</strong>. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the <cite>–full-tree</cite> flag. This is the main change from v2.0.0. The split tree approach has been modified from order-level trees to class-level trees to resolve specific classification issues (See <cite>#383 &lt;https://github.com/Ecogenomics/GTDBTk/issues/383&gt;</cite>).</p></li>
 <li><p>Genomes that cannot be assigned to a domain (e.g. genomes with no bacterial or archaeal markers or genomes with no genes called by Prodigal) are now reported in the <cite>gtdbtk.bac120.summary.tsv</cite> as ‘Unclassified’</p></li>
-<li><p>Genomes filtered out during the alignment step are now reported in the <cite>gtdbtk.bac120.summary.tsv</cite> as ‘Unclassified Bacteria/Archaea’</p></li>
-<li><p><cite>__write_single_copy_genes</cite> flag in now available in the <cite>classify_wf</cite> and <cite>de_novo_wf</cite> workflows.</p></li>
+<li><p>Genomes filtered out during the alignment step are now reported in the <cite>gtdbtk.bac120.summary.tsv</cite> or <cite>gtdbtk.ar53.summary.tsv</cite> as ‘Unclassified Bacteria/Archaea’</p></li>
+<li><p><cite>–write_single_copy_genes</cite> flag in now available in the <cite>classify_wf</cite> and <cite>de_novo_wf</cite> workflows.</p></li>
 </ul>
 <p>Features:</p>
 <ul class="simple">
-<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/392">#392</a>) <cite>__write_single_copy_genes</cite> flag available in workflows.</p></li>
+<li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/392">#392</a>) <cite>–write_single_copy_genes</cite> flag available in workflows.</p></li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/392">#387</a>) specific memory requirements set in classify_wf depending on the classification approach.</p></li>
 </ul>
 </div>
