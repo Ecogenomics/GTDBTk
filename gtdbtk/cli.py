@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC
+from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL
 
 
 @contextmanager
@@ -187,15 +187,15 @@ def __scratch_dir(group):
                        help='reduce pplacer memory usage by writing to disk (slower).')
 
 
-def __recalculate_red(group):
-    group.add_argument('-r', '--recalculate_red', default=False, action='store_true',
-                       help='recalculate RED values based on the reference tree and all added user genomes')
+# def __recalculate_red(group):
+#     group.add_argument('-r', '--recalculate_red', default=False, action='store_true',
+#                        help='recalculate RED values based on the reference tree and all added user genomes')
 
 
 def __full_tree(group):
     group.add_argument('-f', '--full_tree', default=False, action='store_true',
                        help='use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk '
-                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC} GB of RAM to load the reference tree')
+                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC_FULL} GB of RAM to load the reference tree')
 
 
 def __identify_dir(group, required):
@@ -343,6 +343,7 @@ def get_main_parser():
             __gamma(grp)
             __gtdbtk_classification_file(grp)
             __custom_taxonomy_file(grp)
+            __write_single_copy_genes(grp)
             __prefix(grp)
             __genes(grp)
             __cpus(grp)
@@ -369,7 +370,7 @@ def get_main_parser():
             __pplacer_cpus(grp)
             __force(grp)
             __scratch_dir(grp)
-            # __recalculate_red(grp)
+            __write_single_copy_genes(grp)
             __keep_intermediates(grp)
             __min_af(grp)
             __temp_dir(grp)
@@ -447,7 +448,6 @@ def get_main_parser():
             __pplacer_cpus(grp)
             __scratch_dir(grp)
             __full_tree(grp)
-            # __recalculate_red(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)

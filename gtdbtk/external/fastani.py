@@ -274,7 +274,7 @@ class FastANI(object):
         if rl is not None:
             args.extend(['--rl', rl])
         args.extend(['-o', output])
-        self.logger.debug(' '.join(args))
+        #self.logger.debug(' '.join(args))
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, encoding='utf-8')
         stdout, stderr = proc.communicate()

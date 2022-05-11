@@ -26,6 +26,7 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.io.classify_summary import ClassifySummaryFileRow
 from gtdbtk.io.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
+from gtdbtk.io.tree_mapping import GenomeMappingFileRow
 from gtdbtk.tools import TreeTraversal, standardise_taxonomy
 
 
@@ -41,7 +42,7 @@ class Split(object):
 
         # rank_of_interest determine the rank in the tree_mapping file for
         # lower classification
-        self.rank_of_interest = "o__"
+        self.rank_of_interest = "c__"
 
     def get_high_pplacer_taxonomy(self, out_dir, marker_set_id, prefix, user_msa_file, tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -293,12 +294,12 @@ class Split(object):
             for k, v in self.gtdb_taxonomy.items():
                 if closest_rank in v:
                     taxa_str = ';'.join(v[1:v.index(closest_rank) + 1])
-                    # All classification should be at least to the order level if a genome
-                    # is placed on a internal branch with only one order under
-                    if any(x.startswith('o__') for x in child_taxons) \
-                            and self.order_rank.index(closest_rank[0:3]) < self.order_rank.index('o__') \
-                            and ('o__' in taxa_str_terminal.split(';') or not is_on_terminal_branch):
-                        taxa_str_terminal = ';'.join(v[1:self.order_rank.index('o__') + 1])
+                    # All classification should be at least to the class level if a genome
+                    # is placed on an internal branch with only one class under
+                    if any(x.startswith('c__') for x in child_taxons) \
+                            and self.order_rank.index(closest_rank[0:3]) < self.order_rank.index('c__') \
+                            and ('c__' in taxa_str_terminal.split(';') or not is_on_terminal_branch):
+                        taxa_str_terminal = ';'.join(v[1:self.order_rank.index('c__') + 1])
                     break
 
         return taxa_str, taxa_str_terminal
@@ -331,17 +332,17 @@ class Split(object):
                     break
         if closest_rank is None:
             closest_rank = parent_rank
-        # temporary: to delete
-        # All classification should be at least to the order level if a genome
+        # All classification should be at least to the class level if a genome
         # is placed on a terminal branch
-        if self.order_rank.index(closest_rank) < self.order_rank.index('o__'):
-            return ';'.join(term_branch_taxonomy[1:self.order_rank.index('o__') + 1])
+        if self.order_rank.index(closest_rank) < self.order_rank.index('c__'):
+            return ';'.join(term_branch_taxonomy[1:self.order_rank.index('c__') + 1])
 
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
-    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file):
+    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,tree_mapping_file):
         mapped_rank = {}
         counter = 0
+        high_taxonomy_used = {}
         for k, v in high_classification.items():
             # if the classification has an order
             rk_to_check = v.get('tk_tax_red').split(
@@ -350,6 +351,7 @@ class Split(object):
                 mapped_rank.setdefault(
                     mapping_dict.get(rk_to_check), []).append(k)
                 counter += 1
+                high_taxonomy_used[k] = ["RED",v.get('tk_tax_terminal'),v.get('tk_tax_red')]
             else:
                 rk_to_check = v.get('tk_tax_terminal').split(
                     ';')[self.order_rank.index(self.rank_of_interest)]
@@ -357,11 +359,22 @@ class Split(object):
                     mapped_rank.setdefault(
                         mapping_dict.get(rk_to_check), []).append(k)
                     counter += 1
+                    high_taxonomy_used[k] = ["TERMINAL",v.get('tk_tax_terminal'),v.get('tk_tax_red')]
                 else:
                     summary_row = ClassifySummaryFileRow()
                     summary_row.gid = k
                     summary_row.classification = v.get('tk_tax_red')
                     summary_row.pplacer_tax = v.get('pplacer_tax')
                     summary_row.red_value = v.get('rel_dist')
+                    summary_row.note = 'classification based on placement in backbone tree'
+
+                    mapping_row = GenomeMappingFileRow()
+                    mapping_row.gid = k
+                    mapping_row.ani_classification = False
+                    mapping_row.mapped_tree = 'backbone'
+                    mapping_row.rule = 'Rule 1'
+
+                    tree_mapping_file.add_row(mapping_row)
                     summary_file.add_row(summary_row)
-        return mapped_rank, counter
+
+        return mapped_rank, counter , high_taxonomy_used

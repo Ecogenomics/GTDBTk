@@ -97,6 +97,11 @@ class ClassifySummaryFile(object):
             raise GTDBTkExit(f'Attempting to add duplicate row: {row.gid}')
         self.rows[row.gid] = row
 
+    def has_row(self):
+        if self.rows.items():
+            return True
+        return False
+
     def write(self):
         """Writes the summary file to disk. None will be replaced with N/A"""
         with open(self.path, 'w') as fh:
