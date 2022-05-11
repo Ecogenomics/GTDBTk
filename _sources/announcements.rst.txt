@@ -2,12 +2,23 @@ Announcements
 =============
 
 
+GTDB-Tk 2.1.0 available
+-------------------
+
+*May 11, 2022*
+
+* GTDB-Tk version ``2.1.0`` is now available.
+* This version of GTDB-Tk requires a new version of the GTDB-Tk reference package
+  `gtdbtk_r207_v2_data.tar.gz <https://data.ace.uq.edu.au/public/gtdb/data/releases/release207/207.0/auxillary_files>`_.
+
+
+
 GTDB R207 available
 -------------------
 
 *April 8, 2022*
 
-* GTDB Release 202 is now available and will be used from version ``2.0.0`` and up.
+* GTDB Release 207 is now available and will be used from version ``2.0.0`` and up.
 * This version of GTDB-Tk requires a new version of the GTDB-Tk reference package
   `gtdbtk_r207_data.tar.gz <https://data.ace.uq.edu.au/public/gtdb/data/releases/release207/207.0/auxillary_files>`_.
 
