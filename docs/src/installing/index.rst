@@ -38,7 +38,7 @@ Hardware requirements
      - ~65 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~320 GB ( 20GB for divide-and-conquer)
+     - ~320 GB ( 55GB for divide-and-conquer)
      - ~65 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
 
@@ -137,9 +137,12 @@ Note that different versions of the GTDB release data may not run on all version
    * - GTDB Release
      - Minimum version
      - Maximum version
+   * - R207_v2
+     - 2.1.0
+     - Current
    * - R207
      - 2.0.0
-     - Current
+     - 2.0.0
    * - R202
      - 1.5.0
      - 1.7.0
