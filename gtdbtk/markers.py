@@ -17,6 +17,7 @@
 
 import logging
 import os
+import shutil
 from collections import defaultdict
 from shutil import copy
 from typing import Dict, Tuple, Optional
@@ -486,6 +487,8 @@ class Markers(object):
             copy(CopyNumberFileBAC120(identify_dir, prefix).path, identify_path)
             copy(CopyNumberFileAR53(identify_dir, prefix).path, identify_path)
             copy(TlnTableSummaryFile(identify_dir, prefix).path, identify_path)
+            if os.path.isfile(failed_genomes_file):
+                copy(failed_genomes_file, identify_path)
 
         # Create the align intermediate directory.
         make_sure_path_exists(os.path.join(out_dir, DIR_ALIGN_INTERMEDIATE))
@@ -520,6 +523,10 @@ class Markers(object):
             f'Aligning markers in {len(genomic_files):,} genomes with {self.cpus} CPUs.')
         dom_iter = ((bac_gids, Config.CONCAT_BAC120, Config.MASK_BAC120, "bac120", 'bacterial', CopyNumberFileBAC120),
                     (ar_gids, Config.CONCAT_AR53, Config.MASK_AR53, "ar53", 'archaeal', CopyNumberFileAR53))
+
+        # For some genomes, it is possible to have no markers.
+        no_marker_gids = bac_gids.union(ar_gids)
+
         gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
         for gids, msa_file, mask_file, marker_set_id, domain_str, copy_number_f in dom_iter:
 
@@ -561,10 +568,22 @@ class Markers(object):
             # Generate the user MSA.
             user_msa = align.align_marker_set(
                 cur_genome_files, marker_info_file, copy_number_f, self.cpus)
+
+
+            tmp_gids = bac_gids.difference(set(user_msa.keys()))
+            if tmp_gids:
+                self.logger.warning(
+                    f'Filtered {len(tmp_gids)} genomes with no bacterial or archaeal marker.')
+
+            for genome_with_marker in user_msa:
+                no_marker_gids.remove(genome_with_marker)
+
             if len(user_msa) == 0:
                 self.logger.warning(
                     f'Identified {len(user_msa):,} single copy {domain_str} hits.')
                 continue
+
+            # Write genomes with no single copy hits .
 
             # Write the individual marker alignments to disk
             if self.debug:
@@ -655,6 +674,13 @@ class Markers(object):
             else:
                 self.logger.info(
                     f'All {domain_str} user genomes have been filtered out.')
+
+        # write out filtered genomes
+        if no_marker_gids:
+            no_marker_filtered_genomes = os.path.join(out_dir, PATH_FAILED_ALIGN_GENOMES.format(prefix=prefix))
+            with open(no_marker_filtered_genomes, 'w') as fout:
+                for no_marker_gid in no_marker_gids:
+                    fout.write(f'{no_marker_gid}\tNo bacterial or archaeal marker\n')
 
             # Create symlinks to the summary files
             # if marker_set_id == 'bac120':

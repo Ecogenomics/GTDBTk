@@ -248,12 +248,12 @@ class Prodigal(object):
             if len(lq_gids) > 10:
                 for lq_gid in lq_gids:
                     self.warnings.info(lq_gid)
-                    fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
+                    fails.write(f'{lq_gid}\tNo genes were called by Prodigal\n')
             else:
                 for lq_gid in lq_gids:
                     self.logger.warning(f'Skipping: {lq_gid}')
                     self.warnings.info(lq_gid)
-                    fails.write(f'{lq_gid}\tno genes were called by Prodigal\n')
+                    fails.write(f'{lq_gid}\tNo genes were called by Prodigal\n')
 
         fails.close()
         return result_dict

@@ -47,7 +47,7 @@ from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain
 from gtdbtk.pipeline.export_msa import export_msa
 from gtdbtk.reroot_tree import RerootTree
-from gtdbtk.tools import symlink_f, get_reference_ids
+from gtdbtk.tools import symlink_f, get_reference_ids, confirm
 
 
 class OptionsParser(object):
@@ -461,8 +461,7 @@ class OptionsParser(object):
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
-                     fulltreeopt=options.full_tree,
-                     recalculate_red=False)
+                     fulltreeopt=options.full_tree)
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
                          'designations. New designations should be based on one or more de novo trees, an '
@@ -700,7 +699,14 @@ class OptionsParser(object):
                 raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
                                  "'--custom_taxonomy_file' to be included to the command line.")
 
-            options.write_single_copy_genes = False
+            if options.write_single_copy_genes and not options.keep_intermediates:
+                self.logger.warning('--write_single_copy_genes flag is set to True,'
+                                    ' but --keep_intermediates is set to False. '
+                                    'The intermediate folder containing the single copy genes will be removed.')
+                if not confirm('Do you want to proceed?'):
+                    self.logger.info('Exiting workflow.')
+                    sys.exit(0)
+
             self.identify(options)
 
             options.identify_dir = options.out_dir
@@ -794,7 +800,19 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
 
-            options.write_single_copy_genes = False
+
+
+            if options.write_single_copy_genes and not options.keep_intermediates:
+                self.logger.warning('--write_single_copy_genes flag is set to True,'
+                                    ' but --keep_intermediates is set to False. '
+                                    'The intermediate folder containing the single copy genes will be removed.')
+                if not confirm('Do you want to proceed?'):
+                    self.logger.info('Exiting workflow.')
+                    sys.exit(0)
+
+
+            #options.write_single_copy_genes = False
+
             self.identify(options)
 
             options.identify_dir = options.out_dir
