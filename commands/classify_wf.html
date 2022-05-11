@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify_wf &mdash; GTDB-Tk 2.0.0 documentation</title>
+  <title>classify_wf &mdash; GTDB-Tk 2.1.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.0.0
+                2.1.0
               </div>
             
           
@@ -298,7 +298,8 @@ The location of genomes can also be specified using a batch file with the <code 
                           <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">force</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">keep_intermediates</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">write_single_copy_genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">keep_intermediates</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -354,6 +355,9 @@ The location of genomes can also be specified using a batch file with the <code 
 </dd>
 <dt><kbd>--scratch_dir</kbd></dt>
 <dd><p>reduce pplacer memory usage by writing to disk (slower).</p>
+</dd>
+<dt><kbd>--write_single_copy_genes</kbd></dt>
+<dd><p>output unaligned single-copy marker genes</p>
 </dd>
 <dt><kbd>--keep_intermediates</kbd></dt>
 <dd><p>keep intermediate files in the final directory</p>
