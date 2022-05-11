@@ -21,7 +21,7 @@ Please post questions and issues related to GTDB-Tk on the Issues section of the
 GTDB-Tk v2.1.0 includes the following new features:
 - GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple **class**-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **50 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag.  
 This is the main change from v2.0.0. The split tree approach has been modified from order-level trees to class-level trees to resolve specific classification issues (See [#383](https://github.com/Ecogenomics/GTDBTk/issues/383)). 
-- Genomes that can not be assigned to a domain (e.g. genomes with no bacterial or archaeal markers or genomes with no genes called by Prodigal) are now reported in the `gtdbtk.bac120.summary.tsv` as 'Unclassified'
+- Genomes that cannot be assigned to a domain (e.g. genomes with no bacterial or archaeal markers or genomes with no genes called by Prodigal) are now reported in the `gtdbtk.bac120.summary.tsv` as 'Unclassified'
 - Genomes filtered out during the alignment step are now reported in the `gtdbtk.bac120.summary.tsv` as 'Unclassified Bacteria/Archaea'
 - `__write_single_copy_genes` flag in now available in the `classify_wf` and `de_novo_wf` workflows.
 
