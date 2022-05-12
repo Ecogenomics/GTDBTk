@@ -122,9 +122,9 @@ GTDB-Tk requires ~66G of external data that needs to be downloaded and unarchive
 
 .. code-block:: bash
 
-    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
-    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz  (or, mirror)
-    tar xvzf gtdbtk_data.tar.gz
+    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz
+    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz  (or, mirror)
+    tar xvzf gtdbtk_v2_data.tar.gz
 
 
 Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, below are all supported versions:
