@@ -47,7 +47,7 @@ CLASS_LEVEL_TREE_MAPPING_FILE = os.path.join(CLASS_LEVEL_SPLIT_DIR, 'tree_mappin
 
 BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
 BACKBONE_RED_FILE = os.path.join(BACKBONE_RED_DIR, 'backbone_red_value.tsv')
-CLASS_LEVEL_PPLACER_REF_PKG = os.path.join(CLASS_LEVEL_PPLACER_DIR, 'gtdbtk.package.{iter}.refpkg')
+CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
 CLASS_LEVEL_RED_FILE = os.path.join(CLASS_LEVEL_RED_DIR, 'red_value_{iter}.tsv')
 
 RED_DIST_BAC_DICT = ''
