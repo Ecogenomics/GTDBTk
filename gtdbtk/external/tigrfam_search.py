@@ -20,6 +20,7 @@ import multiprocessing as mp
 import os
 import subprocess
 
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.io.marker.tophit import TopHitTigrFile
 from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
@@ -101,18 +102,25 @@ class TigrfamSearch(object):
     def _workerThread(self, queueIn, queueOut, n_skipped):
         """Process each data item in parallel."""
         while True:
-            gene_file = queueIn.get(block=True, timeout=None)
-            if gene_file is None:
+            queue_next = queueIn.get(block=True, timeout=None)
+            if queue_next is None:
                 break
 
-            assembly_dir, filename = os.path.split(gene_file)
-            genome_id = filename.replace(self.protein_file_suffix, '')
-            genome_dir = os.path.join(self.output_dir, genome_id)
-            output_hit_file = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
-                                                                        self.tigrfam_suffix))
+            genome_id, gene_file = queue_next
+            output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.tigrfam_suffix))
+            # output_tophit_file = os.path.join(self.output_dir, genome_id,
+            #                                   '{}{}'.format(genome_id, self.tigrfam_top_hit_suffix))
+            hmmsearch_out = os.path.join(self.output_dir, genome_id, '{}_tigrfam.out'.format(genome_id))
 
-            hmmsearch_out = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
-                                                                      '_tigrfam.out'))
+
+            # assembly_dir, filename = os.path.split(gene_file)
+            # genome_id = filename.replace(self.protein_file_suffix, '')
+            # genome_dir = os.path.join(self.output_dir, genome_id)
+            # output_hit_file = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
+            #                                                             self.tigrfam_suffix))
+
+            # hmmsearch_out = os.path.join(genome_dir, filename.replace(self.protein_file_suffix,
+            #                                                           '_tigrfam.out'))
 
             # Check if this has already been processed.
             out_files = (output_hit_file, hmmsearch_out, TopHitTigrFile.get_path(self.output_dir, genome_id))
@@ -122,6 +130,11 @@ class TigrfamSearch(object):
                     n_skipped.value += 1
 
             else:
+
+                genome_dir = os.path.join(self.output_dir, genome_id)
+                hmmsearch_out = os.path.join(genome_dir, '{}_tigrfam.out'.format(genome_id))
+                make_sure_path_exists(genome_dir)
+
                 args = ['hmmsearch', '-o', hmmsearch_out, '--tblout', output_hit_file,
                         '--noali', '--notextw', '--cut_nc', '--cpu',
                         str(self.cpus_per_genome), self.tigrfam_hmms, gene_file]
