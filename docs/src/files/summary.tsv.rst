@@ -12,11 +12,11 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 * fastani_reference_radius: indicates the species-specific ANI circumscription radius of the reference genomes used to determine if a query genome should be classified to the same species as the reference.
 * fastani_taxonomy: indicates the GTDB taxonomy of the above reference genome.
 * fastani_ani: indicates the ANI between the query and above reference genome.
-* fastani_af: indicates the AF between the query and above reference genome.
+* fastani_af: indicates the alignment fraction (AF) between the query and above reference genome.
 * closest_placement_reference: indicates the accession number of the reference genome when a genome is placed on a terminal branch. 
 * closest_placement_taxonomy: indicates the GTDB taxonomy of the above reference genome.
 * closest_placement_ani: indicates the ANI between the query and above reference genome.
-* closest_placement_af: indicates the AF between the query and above reference genome.
+* closest_placement_af: indicates the alignment fraction (AF) between the query and above reference genome.
 * pplacer_taxonomy: indicates the pplacer taxonomy of the query genome.
 * classification_method:	indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome's position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.
 * note: provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination is made and indicates if the placement of the genome in the reference tree and closest reference according to ANI/AF are the same (congruent) or different (incongruent). 
