@@ -4,5 +4,6 @@ sphinx-rtd-theme ~= 0.5.0
 recommonmark ~= 0.7.0
 sphinx-sitemap ~= 2.2.0
 nbsphinx ~= 0.8.0
-matplotlib ~=3.5.2
-linuxdoc ~= 20211220
+matplotlib ~= 3.5.2
+linuxdoc == 20211220
+jupyter ~= 1.0.0
