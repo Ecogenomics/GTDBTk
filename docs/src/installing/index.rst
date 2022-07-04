@@ -38,7 +38,7 @@ Hardware requirements
      - ~65 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~320 GB ( 55GB for divide-and-conquer)
+     - ~55GB (320 GB when using --full_tree)
      - ~65 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
 
