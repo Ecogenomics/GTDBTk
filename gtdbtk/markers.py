@@ -114,8 +114,9 @@ class Markers(object):
         #           os.path.join(outdir, os.path.basename(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix))))
         # symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
         #           os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
-        symlink_f(PATH_FAILS.format(prefix=prefix),
-                  os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix))))
+        if os.path.exists(os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix)))):
+            symlink_f(PATH_FAILS.format(prefix=prefix),
+                      os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix))))
 
         # Write the single copy AR53/BAC120 FASTA files to disk.
         if write_single_copy_genes:
@@ -211,11 +212,16 @@ class Markers(object):
                                           'nt_gene_path': None,
                                           'best_translation_table': 'user_supplied',
                                           'gff_path': None}
+                # we create a symlink to the genome file in the marker gene directory
+                # so we can use this symlink in the align step
+                symlink_protein_dir = os.path.join(self.marker_gene_dir, gid)
+                make_sure_path_exists(symlink_protein_dir)
+                symlink_f(gpath, os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
 
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.log(Config.LOG_TASK,
                         'Identifying TIGRFAM protein families.')
-        gene_files = [genome_dictionary[db_genome_id]['aa_gene_path']
+        gene_files = [(db_genome_id, genome_dictionary[db_genome_id]['aa_gene_path'])
                       for db_genome_id in genome_dictionary.keys()]
         tigr_search = TigrfamSearch(self.cpus,
                                     self.tigrfam_hmms,
@@ -570,10 +576,10 @@ class Markers(object):
                 cur_genome_files, marker_info_file, copy_number_f, self.cpus)
 
 
-            tmp_gids = bac_gids.difference(set(user_msa.keys()))
-            if tmp_gids:
-                self.logger.warning(
-                    f'Filtered {len(tmp_gids)} genomes with no bacterial or archaeal marker.')
+            # tmp_gids = bac_gids.difference(set(user_msa.keys()))
+            # if tmp_gids:
+            #     self.logger.warning(
+            #         f'Filtered {len(tmp_gids)} genomes with no bacterial or archaeal marker.')
 
             for genome_with_marker in user_msa:
                 no_marker_gids.remove(genome_with_marker)
@@ -681,28 +687,6 @@ class Markers(object):
             with open(no_marker_filtered_genomes, 'w') as fout:
                 for no_marker_gid in no_marker_gids:
                     fout.write(f'{no_marker_gid}\tNo bacterial or archaeal marker\n')
-
-            # Create symlinks to the summary files
-            # if marker_set_id == 'bac120':
-            #     symlink_f(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix),
-            #               os.path.join(out_dir, os.path.basename(PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))))
-            #     if len(trimmed_user_msa) > 0:
-            #         symlink_f(PATH_BAC120_USER_MSA.format(prefix=prefix),
-            #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_USER_MSA.format(prefix=prefix))))
-            #     if not skip_gtdb_refs:
-            #         symlink_f(PATH_BAC120_MSA.format(prefix=prefix),
-            #                   os.path.join(out_dir, os.path.basename(PATH_BAC120_MSA.format(prefix=prefix))))
-            # elif marker_set_id == 'ar53':
-            #     symlink_f(PATH_AR53_FILTERED_GENOMES.format(prefix=prefix),
-            #               os.path.join(out_dir, os.path.basename(PATH_AR53_FILTERED_GENOMES.format(prefix=prefix))))
-            #     if len(trimmed_user_msa) > 0:
-            #         symlink_f(PATH_AR53_USER_MSA.format(prefix=prefix),
-            #                   os.path.join(out_dir, os.path.basename(PATH_AR53_USER_MSA.format(prefix=prefix))))
-            #     if not skip_gtdb_refs:
-            #         symlink_f(PATH_AR53_MSA.format(prefix=prefix),
-            #                   os.path.join(out_dir, os.path.basename(PATH_AR53_MSA.format(prefix=prefix))))
-            # else:
-            #     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
     def _write_individual_markers(self, user_msa, marker_set_id, marker_list, out_dir, prefix):
         marker_dir = join(out_dir, DIR_ALIGN_MARKERS)

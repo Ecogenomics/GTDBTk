@@ -53,4 +53,4 @@ class TlnTableSummaryFile(object):
         with open(self.path, 'r') as fh:
             for line in fh.readlines():
                 gid, tbl = line.strip().split('\t')
-                self.genomes[gid] = int(tbl)
+                self.genomes[gid] = str(tbl)
