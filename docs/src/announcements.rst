@@ -3,7 +3,7 @@ Announcements
 
 
 GTDB-Tk 2.1.0 available
--------------------
+-----------------------
 
 *May 11, 2022*
 

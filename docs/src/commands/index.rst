@@ -14,6 +14,7 @@ Below is a list of all GTDB-Tk command line options:
    check_install
    classify
    classify_wf
+   convert_to_itol
    de_novo_wf
    decorate
    export_msa

@@ -85,14 +85,15 @@ class PfamSearch(object):
         """Process each data item in parallel."""
         try:
             while True:
-                gene_file = queueIn.get(block=True, timeout=None)
-                if gene_file is None:
+                queue_next = queueIn.get(block=True, timeout=None)
+                if queue_next is None:
                     break
 
-                genome_dir, filename = os.path.split(gene_file)
-                genome_id = filename.replace(self.protein_file_suffix, '')
-                output_hit_file = os.path.join(self.output_dir, genome_id, filename.replace(self.protein_file_suffix,
-                                                                                            self.pfam_suffix))
+                genome_id, gene_file = queue_next
+
+                output_hit_file = os.path.join(self.output_dir, genome_id, '{}{}'.format(genome_id, self.pfam_suffix))
+                output_tophit_file = os.path.join(self.output_dir, genome_id,
+                                                  '{}{}'.format(genome_id, self.pfam_top_hit_suffix))
 
                 # Check if this has already been processed.
                 out_files = (output_hit_file, TopHitPfamFile.get_path(self.output_dir, genome_id))

@@ -1,9 +1,10 @@
 #!/bin/bash
 
-for f in $1/*.gz
+DATAPATH='database'
+for f in $DATAPATH/*.gz
 do
+  mkdir --parents database/${f:9:3}/${f:13:3}/${f:16:3}/${f:19:3}/ ; mv $f $_
   filef="$(basename -- $f)"
-  mkdir --parents $1/${filef:0:3}/${filef:4:3}/${filef:7:3}/${filef:10:3}/ ; mv $f $_
-  echo "$filef $1/${filef:0:3}/${filef:4:3}/${filef:7:3}/${filef:10:3}/" >> genome_paths.tsv
-
+  echo "$filef database/${f:9:3}/${f:13:3}/${f:16:3}/${f:19:3}/ " >> genome_paths.tsv
+  #echo "$filef database/${f:9:3}/${f:13:3}/${f:16:3}/${f:19:3}/ "
 done

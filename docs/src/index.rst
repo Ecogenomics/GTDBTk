@@ -46,6 +46,7 @@ We encourage you to cite GTDB-Tk and the third-party dependencies as described i
    :caption: Running GTDB-Tk
    :maxdepth: 1
 
+   performance/index
    commands/index
    files/index
    examples/classify_wf

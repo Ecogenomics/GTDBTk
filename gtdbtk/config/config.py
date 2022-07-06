@@ -47,7 +47,7 @@ CLASS_LEVEL_TREE_MAPPING_FILE = os.path.join(CLASS_LEVEL_SPLIT_DIR, 'tree_mappin
 
 BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
 BACKBONE_RED_FILE = os.path.join(BACKBONE_RED_DIR, 'backbone_red_value.tsv')
-CLASS_LEVEL_PPLACER_REF_PKG = os.path.join(CLASS_LEVEL_PPLACER_DIR, 'gtdbtk.package.{iter}.refpkg')
+CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
 CLASS_LEVEL_RED_FILE = os.path.join(CLASS_LEVEL_RED_DIR, 'red_value_{iter}.tsv')
 
 RED_DIST_BAC_DICT = ''
@@ -218,7 +218,7 @@ PPLACER_BAC120_REF_PKG = f"gtdb_{VERSION_DATA}_bac120.refpkg"
 PPLACER_AR53_REF_PKG = f"gtdb_{VERSION_DATA}_ar53.refpkg"
 PPLACER_RPS23_REF_PKG = f"gtdb_{VERSION_DATA}_rps23.refpkg"
 PPLACER_MIN_RAM_BAC_FULL = 320
-PPLACER_MIN_RAM_BAC_SPLIT = 50
+PPLACER_MIN_RAM_BAC_SPLIT = 55
 PPLACER_MIN_RAM_ARC = 40
 
 # Fastani configuration
