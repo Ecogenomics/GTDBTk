@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>summary.tsv &mdash; GTDB-Tk 2.1.0 documentation</title>
+  <title>summary.tsv &mdash; GTDB-Tk 2.1.1 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.1.0
+                2.1.1
               </div>
             
           
@@ -120,6 +120,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Running GTDB-Tk</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../performance/index.html">Performance and Accuracy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../commands/index.html">Commands</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Files</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="ani_closest.tsv.html">ani_closest.tsv</a></li>
@@ -271,11 +272,11 @@
 <li><p>fastani_reference_radius: indicates the species-specific ANI circumscription radius of the reference genomes used to determine if a query genome should be classified to the same species as the reference.</p></li>
 <li><p>fastani_taxonomy: indicates the GTDB taxonomy of the above reference genome.</p></li>
 <li><p>fastani_ani: indicates the ANI between the query and above reference genome.</p></li>
-<li><p>fastani_af: indicates the AF between the query and above reference genome.</p></li>
+<li><p>fastani_af: indicates the alignment fraction (AF) between the query and above reference genome.</p></li>
 <li><p>closest_placement_reference: indicates the accession number of the reference genome when a genome is placed on a terminal branch.</p></li>
 <li><p>closest_placement_taxonomy: indicates the GTDB taxonomy of the above reference genome.</p></li>
 <li><p>closest_placement_ani: indicates the ANI between the query and above reference genome.</p></li>
-<li><p>closest_placement_af: indicates the AF between the query and above reference genome.</p></li>
+<li><p>closest_placement_af: indicates the alignment fraction (AF) between the query and above reference genome.</p></li>
 <li><p>pplacer_taxonomy: indicates the pplacer taxonomy of the query genome.</p></li>
 <li><p>classification_method:        indicates the rule used to classify the genome. This field will be one of: i) ANI, indicating a species assignement was based solely on the calculated ANI and AF with a reference genome; ii) ANI/Placement, indicating a species assignment was made based on both ANI and the placement of the genome in the reference tree; iii) taxonomic classification fully defined by topology, indicating that the classification could be determine based solely on the genome’s position in the reference tree; or iv) taxonomic novelty determined using RED, indicating that the relative evolutionary divergence (RED) and placement of the genome in the reference tree were used to determine the classification.</p></li>
 <li><p>note: provides additional information regarding the classification of the genome. Currently this field is only filled out when a species determination is made and indicates if the placement of the genome in the reference tree and closest reference according to ANI/AF are the same (congruent) or different (incongruent).</p></li>
