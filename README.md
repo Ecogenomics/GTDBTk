@@ -33,17 +33,14 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 GTDB-Tk is described in:
 
-* Chaumeil PA, et al. 2022. [GTDB-Tk v2: memory friendly classification with the Genome Taxonomy Database](https://www.biorxiv.org/content/10.1101/2022.07.11.499641v1). <i>bioRxiv</i>, doi: https://doi.org/10.1101/2022.07.11.499641.
+* Chaumeil PA, et al. 2022. [GTDB-Tk v2: memory friendly classification with the Genome Taxonomy Database](https://www.biorxiv.org/content/10.1101/2022.07.11.499641v1). <i>bioRxiv</i>, doi: doi.org/10.1101/2022.07.11.499641.
 * Chaumeil PA, et al. 2019. [GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz848/5626182). <i>Bioinformatics</i>, btz848.
 
 The Genome Taxonomy Database (GTDB) is described in:
 
 * Parks, D.H., et al. (2021). [GTDB: an ongoing census of bacterial and archaeal diversity through a phylogenetically consistent, rank normalized and complete genome-based taxonomy](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab776/6370255). <i>Nucleic Acids Research</i>, <b>50</b>: D785–D794.
-
 * Rinke, C, et al. (2021). [A standardized archaeal taxonomy for the Genome Taxonomy Database](https://www.nature.com/articles/s41564-021-00918-8). <i>Nature Microbiology</i>, <b>6</b>: 946–959.
-
 * Parks, D.H., et al. 2020. [A complete domain-to-species taxonomy for Bacteria and Archaea](https://rdcu.be/b3OI7). <i>Nature Biotechnology</i>, https://doi.org/10.1038/s41587-020-0501-8.
-
 * Parks DH, et al. 2018. [A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life](https://www.nature.com/articles/nbt.4229). <i>Nature Biotechnology</i>, http://dx.doi.org/10.1038/nbt.4229.
  
 
