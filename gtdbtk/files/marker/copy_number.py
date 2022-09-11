@@ -24,7 +24,7 @@ from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.config import BAC120_MARKERS, AR53_MARKERS
 from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY
 from gtdbtk.exceptions import GTDBTkExit
-from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
 
 
 class CopyNumberFile(object):

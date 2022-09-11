@@ -24,9 +24,9 @@ from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
-from gtdbtk.io.classify_summary import ClassifySummaryFileRow
-from gtdbtk.io.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
-from gtdbtk.io.tree_mapping import GenomeMappingFileRow
+from gtdbtk.files.classify_summary import ClassifySummaryFileRow
+from gtdbtk.files.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
+from gtdbtk.files.tree_mapping import GenomeMappingFileRow
 from gtdbtk.tools import TreeTraversal, standardise_taxonomy
 
 

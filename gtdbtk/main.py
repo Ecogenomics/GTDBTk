@@ -40,8 +40,8 @@ from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
-from gtdbtk.io.batchfile import Batchfile
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR53
+from gtdbtk.files.batchfile import Batchfile
+from gtdbtk.files.classify_summary import ClassifySummaryFileAR53
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain

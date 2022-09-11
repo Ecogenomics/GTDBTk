@@ -21,8 +21,8 @@ import tempfile
 import unittest
 
 from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY
-from gtdbtk.io.marker.copy_number import CopyNumberFile, CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
+from gtdbtk.files.marker.copy_number import CopyNumberFile, CopyNumberFileAR53, CopyNumberFileBAC120
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
 
 
 class TestCopyNumberFile(unittest.TestCase):

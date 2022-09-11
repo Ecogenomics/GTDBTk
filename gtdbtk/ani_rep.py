@@ -13,7 +13,7 @@ from gtdbtk.config.config import (FASTANI_DIR,
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.mash import Mash
-from gtdbtk.io.gtdb_radii import GTDBRadiiFile
+from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 
 
 class ANIRep(object):

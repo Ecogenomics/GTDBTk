@@ -38,14 +38,14 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
-from gtdbtk.io.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.io.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR53, \
+from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
+from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
+from gtdbtk.files.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR53, \
     PplacerLowClassifyFileBAC120
-from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
-from gtdbtk.io.red_dict import REDDictFileAR53, REDDictFileBAC120
-from gtdbtk.io.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
-from gtdbtk.io.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
+from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
+from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
+from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
+from gtdbtk.files.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.split import Split

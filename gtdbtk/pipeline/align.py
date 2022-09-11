@@ -8,9 +8,9 @@ from collections import defaultdict
 from gtdbtk.config.config import LOG_TASK
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.hmm_aligner import HmmAligner
-from gtdbtk.io.marker.copy_number import CopyNumberFile
-from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
-from gtdbtk.io.marker_info import MarkerInfoFile
+from gtdbtk.files.marker.copy_number import CopyNumberFile
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.files.marker_info import MarkerInfoFile
 from gtdbtk.tools import tqdm_log
 
 

@@ -22,7 +22,7 @@ import unittest
 
 from gtdbtk.config.output import PATH_TLN_TABLE_SUMMARY
 from gtdbtk.exceptions import GTDBTkExit
-from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
+from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 
 
 class TestTlnTableSummaryFile(unittest.TestCase):

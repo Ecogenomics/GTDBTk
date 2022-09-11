@@ -22,7 +22,7 @@ import subprocess
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
-from gtdbtk.io.marker.tophit import TopHitTigrFile
+from gtdbtk.files.marker.tophit import TopHitTigrFile
 from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 

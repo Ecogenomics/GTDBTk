@@ -20,7 +20,7 @@ import os
 
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.pypfam.Scan.PfamScan import PfamScan
-from gtdbtk.io.marker.tophit import TopHitPfamFile
+from gtdbtk.files.marker.tophit import TopHitPfamFile
 from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 
