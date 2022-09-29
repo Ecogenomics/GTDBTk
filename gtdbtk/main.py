@@ -14,7 +14,7 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-
+import argparse
 import logging
 import os
 import shutil
@@ -47,7 +47,7 @@ from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain
 from gtdbtk.pipeline.export_msa import export_msa
 from gtdbtk.reroot_tree import RerootTree
-from gtdbtk.tools import symlink_f, get_reference_ids, confirm
+from gtdbtk.tools import symlink_f, get_reference_ids, confirm, assert_outgroup_taxon_valid
 
 
 class OptionsParser(object):
@@ -514,7 +514,7 @@ class OptionsParser(object):
         export_msa(domain=domain, output_file=user_output)
         self.logger.info('Done.')
 
-    def root(self, options):
+    def root(self, options: argparse.Namespace):
         """Root tree using outgroup.
 
         Parameters
@@ -524,6 +524,7 @@ class OptionsParser(object):
         """
 
         check_file_exists(options.input_tree)
+        assert_outgroup_taxon_valid(options.outgroup_taxon)
 
         taxonomy = self._read_taxonomy_files(options)
 
@@ -694,6 +695,7 @@ class OptionsParser(object):
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
+            assert_outgroup_taxon_valid(options.outgroup_taxon)
 
             if options.skip_gtdb_refs and options.custom_taxonomy_file is None:
                 raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
