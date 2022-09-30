@@ -138,7 +138,7 @@ class TigrfamSearch(object):
                 args = ['hmmsearch', '-o', hmmsearch_out, '--tblout', output_hit_file,
                         '--noali', '--notextw', '--cut_nc', '--cpu',
                         str(self.cpus_per_genome), self.tigrfam_hmms, gene_file]
-                p = subprocess.Popen(args, stdout=subprocess.DEVNULL, sdterr=subprocess.DEVNULL)
+                p = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 stdout, stderr = p.communicate()
 
                 if p.returncode != 0:
