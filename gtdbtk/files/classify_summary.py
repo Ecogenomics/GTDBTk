@@ -111,6 +111,15 @@ class ClassifySummaryFile:
             return True
         return False
 
+    def get_gid_taxonomy(self) -> Dict[str, List[str]]:
+        out = dict()
+        for gid, row in self.rows.items():
+            split_tax = row.classification.split(';')
+            if len(split_tax) != 7:
+                raise GTDBTkExit(f'Expected a 7-rank taxonomy for {gid} but got {row.classification}')
+            out[gid] = split_tax
+        return out
+
     def write(self):
         """Writes the summary file to disk. None will be replaced with N/A"""
         with open(self.path, 'w') as fh:
@@ -174,5 +183,3 @@ class ClassifySummaryFileBAC120(ClassifySummaryFile):
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
         super().__init__(path, 'bac120')
-
-

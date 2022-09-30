@@ -41,7 +41,7 @@ from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.files.batchfile import Batchfile
-from gtdbtk.files.classify_summary import ClassifySummaryFileAR53
+from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFile
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain
@@ -204,16 +204,24 @@ class OptionsParser(object):
             check_file_exists(options.gtdbtk_classification_file)
 
             self.logger.info('Reading GTDB-Tk classification file.')
-            gtdbtk_taxonomy = Taxonomy().read(options.gtdbtk_classification_file)
-            del gtdbtk_taxonomy['user_genome']
-            num_reassigned = 0
+            gtdbtk_classify_file = ClassifySummaryFile(path=options.gtdbtk_classification_file)
+            gtdbtk_classify_file.read()
+            gtdbtk_taxonomy = gtdbtk_classify_file.get_gid_taxonomy()
+            if len(gtdbtk_taxonomy) == 0:
+                raise GTDBTkExit(f'No genomes found in GTDB-Tk classification file: {options.gtdbtk_classification_file}')
+
+            num_rep_reassigned = 0
+            num_usr_reassigned = 0
             for gid, taxa in gtdbtk_taxonomy.items():
                 if gid in taxonomy:
-                    num_reassigned += 1
+                    num_rep_reassigned += 1
+                else:
+                    num_usr_reassigned += 1
                 taxonomy[gid] = taxa
 
             self.logger.info(f'Read GTDB-Tk classifications for {len(gtdbtk_taxonomy):,} genomes.')
-            self.logger.info(f'Reassigned taxonomy for {num_reassigned:,} GTDB representative genomes.')
+            self.logger.info(f'Reassigned taxonomy for {num_rep_reassigned:,} GTDB representative '
+                             f'genomes, and {num_usr_reassigned:,} query genomes.')
 
         if options.custom_taxonomy_file:
             # add and overwrite taxonomy for genomes specified in the
