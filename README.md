@@ -33,7 +33,7 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 GTDB-Tk is described in:
 
-* Chaumeil PA, et al. 2022. [GTDB-Tk v2: memory friendly classification with the Genome Taxonomy Database](https://www.biorxiv.org/content/10.1101/2022.07.11.499641v1). <i>bioRxiv</i>, doi: doi.org/10.1101/2022.07.11.499641.
+* Chaumeil PA, et al. 2022. [GTDB-Tk v2: memory friendly classification with the Genome Taxonomy Database](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btac672/6758240?utm_source=advanceaccess&utm_campaign=bioinformatics&utm_medium=email). <i>Bioinformatics</i>, btac672, doi: doi.org/10.1093/bioinformatics/btac672.
 * Chaumeil PA, et al. 2019. [GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database](https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz848/5626182). <i>Bioinformatics</i>, btz848.
 
 The Genome Taxonomy Database (GTDB) is described in:
