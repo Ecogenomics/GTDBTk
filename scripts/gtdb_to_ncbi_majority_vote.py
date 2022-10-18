@@ -25,7 +25,7 @@ __author__ = 'Donovan Parks'
 __copyright__ = 'Copyright 2019'
 __credits__ = ['Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 __status__ = 'Development'
@@ -129,7 +129,7 @@ class Translate(object):
         ar_sp_tree = None
         if ar53_metadata_file:
             ar_sp_tree = os.path.join(gtdbtk_output_dir,
-                                        PATH_AR53_TREE_FILE.format(prefix=gtdbtk_prefix))
+                                      PATH_AR53_TREE_FILE.format(prefix=gtdbtk_prefix))
 
         bac_sp_trees = []
         bac_backbone_tree = None
@@ -158,10 +158,10 @@ class Translate(object):
 
         return ar_sp_tree, bac_sp_trees, bac_backbone_tree
 
-    def get_ncbi_descendants(self, 
-        cur_node, 
-        ncbi_sp_classification,
-        leaf_to_gids = None):
+    def get_ncbi_descendants(self,
+                             cur_node,
+                             ncbi_sp_classification,
+                             leaf_to_gids=None):
         """Move up tree until lineage contains at least one NCBI-defined species cluster."""
 
         # traverse up tree until lineage contains >=1 species with an
@@ -240,7 +240,8 @@ class Translate(object):
                     if gid == rep_id:
                         # genome is a GTDB representative
                         gtdb_taxonomy = tokens[gtdb_taxonomy_index]
-                        gtdb_family = [t.strip() for t in gtdb_taxonomy.split(';')][4]
+                        gtdb_family = [t.strip()
+                                       for t in gtdb_taxonomy.split(';')][4]
                         gtdb_family_to_rids[gtdb_family].add(gid)
 
                         gid_to_gtdb_family[gid] = gtdb_family
@@ -248,6 +249,69 @@ class Translate(object):
                     gtdb_sp_clusters[rep_id].add(gid)
 
         return ncbi_taxa, ncbi_lineages, gtdb_sp_clusters, gid_to_gtdb_family, gtdb_family_to_rids
+
+    def resolve_majority_vote(self, taxon_counter, num_votes):
+        """Resolve majority vote taxon.
+
+        A named taxon is considered to have a majority vote if it has >= 50%
+        of the votes and not other named taxon also has 50% of the votes. Otherwise,
+        there is no majority vote taxon.
+
+        Examples:
+            Case 1: >50%
+                g__Bacillus = 51%, g__Metabacillus = 49% => g__Bacillus
+                g__ = 51%, g__Metabacillus = 49% => no majority vote
+
+            Case 2: no taxon at >= 50%
+                g__Bacillus = 49%, g__Metabacillus = 48% => no majority vote
+
+            Case 3: single taxon at 50%
+                g__Bacillus = 50%, g__Metabacillus = 49%, ... => g__Bacillus
+                g__ = 50%, g__Metabacillus = 49%, ... => no majority vote
+
+            Case 4: two taxa at 50%
+                g__Bacillus = 50%, g__Metabacillus = 50% => no majority vote
+                g__Bacillus = 50%, g__ = 50% => majority vote is g__Bacillus
+        """
+
+        if num_votes == 0:
+            return None
+
+        req_counts = 0.5 * num_votes
+
+        # case 1: top taxon has >50% of the vote
+        mv_taxon, mv_count = taxon_counter.most_common(1)[0]
+        if mv_count > req_counts:
+            if len(mv_taxon) > 3:
+                return mv_taxon
+            else:
+                return None
+
+        # case 2: no taxon at >= 50%
+        if mv_count < req_counts:
+            return None
+
+        # case 3: single taxon at 50%
+        ((mv1_taxon, mv1_count),
+         (mv2_taxon, mv2_count)) = taxon_counter.most_common(2)
+
+        if mv1_count >= req_counts and mv2_count < req_counts:
+            if len(mv_taxon) > 3:
+                return mv1_taxon
+            else:
+                return None
+
+        # case 4: handle case where two taxa have exactly 50%
+        if mv1_count >= req_counts and mv2_count >= req_counts:
+            if len(mv1_taxon) > 3 and len(mv2_taxon) <= 3:
+                return mv1_taxon
+            elif len(mv1_taxon) <= 3 and len(mv2_taxon) > 3:
+                return mv2_taxon
+            elif len(mv1_taxon) > 3 and len(mv2_taxon) > 3:
+                return None
+
+        self.logger.error('Unexpected case while resolving majority vote.')
+        assert(False)
 
     def ncbi_sp_majority_vote(self, gtdb_sp_clusters, ncbi_taxa, ncbi_lineages):
         """Get NCBI majority vote classification for each GTDB species cluster."""
@@ -260,13 +324,13 @@ class Translate(object):
                     if cid in ncbi_taxa:
                         ncbi_taxon_list.append(ncbi_taxa[cid][rank])
 
-                if len(ncbi_taxon_list) > 0:
-                    counter = Counter(ncbi_taxon_list)
-                    mc_taxon, mc_count = counter.most_common(1)[0]
+                mv_taxon = self.resolve_majority_vote(
+                    Counter(ncbi_taxon_list),
+                    len(ncbi_taxon_list))
 
-                    if mc_count >= 0.5 * len(ncbi_taxon_list) and len(mc_taxon) > 3:
-                        ncbi_sp_classification[rep_id] = ncbi_lineages[mc_taxon]
-                        break
+                if mv_taxon:
+                    ncbi_sp_classification[rep_id] = ncbi_lineages[mv_taxon]
+                    break
 
             if rep_id in ncbi_sp_classification and ncbi_sp_classification[rep_id][0] == 'd__':
                 raise GTDBTkExit(
@@ -275,11 +339,11 @@ class Translate(object):
         return ncbi_sp_classification
 
     def get_ncbi_majority_vote(self,
-                            gtdb_taxa, 
-                            ncbi_rep_ids,
-                            ncbi_sp_classification,
-                            ncbi_lineages
-                            ):
+                               gtdb_taxa,
+                               ncbi_rep_ids,
+                               ncbi_sp_classification,
+                               ncbi_lineages
+                               ):
         """Get NCBI majority vote classification of genome."""
 
         # take a majority vote over species with a NCBI classification, and
@@ -294,11 +358,12 @@ class Translate(object):
                 ncbi_taxon_list.append(
                     ncbi_sp_classification[rep_id][rank])
 
-            counter = Counter(ncbi_taxon_list)
-            mc_taxon, mc_count = counter.most_common(1)[0]
+            mv_taxon = self.resolve_majority_vote(
+                Counter(ncbi_taxon_list),
+                len(ncbi_taxon_list))
 
-            if mc_count >= 0.5 * len(ncbi_taxon_list) and len(mc_taxon) > 3:
-                ncbi_classification = ncbi_lineages[mc_taxon]
+            if mv_taxon:
+                ncbi_classification = ncbi_lineages[mv_taxon]
                 break
 
         return ';'.join(ncbi_classification)
@@ -335,7 +400,7 @@ class Translate(object):
                     continue
 
                 # get NCBI majority vote classification for genomes
-                # placed in species-level trees 
+                # placed in species-level trees
                 processed_gids = set()
                 for tree_file in sp_trees:
                     self.logger.info(f' - parsing {tree_file}')
@@ -362,11 +427,11 @@ class Translate(object):
                                                                  ncbi_sp_classification)
 
                         ncbi_mv = self.get_ncbi_majority_vote(
-                            gtdb_taxa, 
+                            gtdb_taxa,
                             ncbi_rep_ids,
                             ncbi_sp_classification,
                             ncbi_lineages
-                            )
+                        )
 
                         # write out results
                         fout.write('{}\t{}\t{}\n'.format(
@@ -380,9 +445,9 @@ class Translate(object):
                 if len(remaining_gids) > 0:
                     self.logger.info(f' - parsing {backbone_tree}')
                     tree = dendropy.Tree.get_from_path(backbone_tree,
-                                                        schema='newick',
-                                                        rooting='force-rooted',
-                                                        preserve_underscores=True)
+                                                       schema='newick',
+                                                       rooting='force-rooted',
+                                                       preserve_underscores=True)
 
                     # map genomes IDs to leaf nodes
                     leaf_node_map = {}
@@ -411,7 +476,7 @@ class Translate(object):
                         )
 
                         ncbi_mv = self.get_ncbi_majority_vote(
-                            gtdb_taxa, 
+                            gtdb_taxa,
                             ncbi_rep_ids,
                             ncbi_sp_classification,
                             ncbi_lineages
@@ -484,14 +549,13 @@ class Translate(object):
             f' - identified genomes in {len(gtdb_family_to_rids):,} GTDB families'
         )
 
-
         # get majority vote NCBI classification for each GTDB species cluster
         self.logger.info(
             'Determining NCBI majority vote classifications for GTDB species clusters.')
 
         ncbi_sp_classification = self.ncbi_sp_majority_vote(
-            gtdb_sp_clusters, 
-            ncbi_taxa, 
+            gtdb_sp_clusters,
+            ncbi_taxa,
             ncbi_lineages)
 
         self.logger.info(
