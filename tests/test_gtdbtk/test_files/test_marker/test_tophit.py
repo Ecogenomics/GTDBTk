@@ -21,7 +21,7 @@ import tempfile
 import unittest
 
 from gtdbtk.config.output import PFAM_TOP_HIT_SUFFIX, TIGRFAM_TOP_HIT_SUFFIX
-from gtdbtk.io.marker.tophit import Hit, TopHitPfamFile, TopHitFile, TopHitTigrFile
+from gtdbtk.files.marker.tophit import Hit, TopHitPfamFile, TopHitFile, TopHitTigrFile
 
 
 class TestHit(unittest.TestCase):

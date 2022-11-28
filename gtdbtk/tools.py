@@ -1,6 +1,8 @@
 import hashlib
 import json
 import logging
+from typing import Optional
+
 import math
 import os
 import random
@@ -475,3 +477,23 @@ class tqdm_log(object):
 
     def __del__(self):
         self.tqdm.close()
+
+def assert_outgroup_taxon_valid(outgroup_taxon: Optional[str]):
+    """Check that the outgroup taxon is a valid string, no checks are made
+    to ensure that it is a real taxon. If an invalid string is provided, an
+    exception is raised."""
+    if not outgroup_taxon:
+        raise GTDBTkExit('The outgroup taxon cannot be empty, please specify a '
+                         'valid taxon (e.g. p__Proteobacteria).')
+    if len(outgroup_taxon) < 4:
+        raise GTDBTkExit('The outgroup taxon seems suspiciously short and is '
+                         'not a valid GTDB taxon, please specify a valid '
+                         'taxon (e.g. p__Proteobacteria).')
+    if outgroup_taxon.startswith('d__'):
+        raise GTDBTkExit('You cannot specify a domain as an outgroup, please '
+                         'select a lower rank (i.e. phylum, class, order, '
+                         'family, genus, species).')
+    if outgroup_taxon[:3] not in {'p__', 'c__', 'o__', 'f__', 'g__', 's__'}:
+        raise GTDBTkExit('You must specify the outgroup taxon in '
+                         'Greengenes-style format (e.g. p__Proteobacteria).')
+    return

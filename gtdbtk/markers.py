@@ -35,11 +35,11 @@ from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch, Inc
 from gtdbtk.external.pfam_search import PfamSearch
 from gtdbtk.external.prodigal import Prodigal
 from gtdbtk.external.tigrfam_search import TigrfamSearch
-from gtdbtk.io.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
-from gtdbtk.io.marker_info import MarkerInfoFileAR53, MarkerInfoFileBAC120
-from gtdbtk.io.prodigal.tln_table import TlnTableFile
-from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
+from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.files.marker_info import MarkerInfoFileAR53, MarkerInfoFileBAC120
+from gtdbtk.files.prodigal.tln_table import TlnTableFile
+from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.pipeline import align
 from gtdbtk.tools import merge_two_dicts, symlink_f, tqdm_log
 from gtdbtk.trim_msa import TrimMSA

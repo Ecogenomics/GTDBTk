@@ -29,7 +29,6 @@ from gtdbtk.io.pplacer_classification import PplacerHighClassifyRow, PplacerHigh
 from gtdbtk.io.tree_mapping import GenomeMappingFileRow
 from gtdbtk.tools import TreeTraversal, standardise_taxonomy, aa_percent_msa
 
-
 class Split(object):
     """Determine taxonomic classification of genomes by ML placement using the Split Methods."""
 

@@ -24,8 +24,8 @@ import tempfile
 
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.exceptions import GTDBTkException
-from gtdbtk.io.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile
 from gtdbtk.tools import tqdm_log
 
 
