@@ -42,6 +42,11 @@ def get_reference_ids():
                 results.add(raw_id[3:])
     return frozenset(results)
 
+def aa_percent_msa(aa_string):
+        aa_len = sum([1 for c in aa_string if c.isalpha()])
+        aa_perc = float(aa_len) / len(aa_string)
+        return round(aa_perc * 100, 2)
+
 def truncate_taxonomy(taxonomy, rank):
     taxonomy_list = taxonomy.split(';')
     taxonomy_list = taxonomy_list[0:order_rank.index(rank)]
