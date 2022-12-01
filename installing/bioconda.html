@@ -58,8 +58,8 @@
 
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Docker" href="docker.html" />
-    <link rel="prev" title="pip" href="pip.html" />
+    <link rel="next" title="pip" href="pip.html" />
+    <link rel="prev" title="Installing GTDB-Tk" href="index.html" />
  
 </head>
 
@@ -117,13 +117,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Installing GTDB-Tk</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="index.html#sources">Sources</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="pip.html">pip</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Bioconda</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#step-1-install-anaconda-if-not-already-done">Step 1: Install anaconda (if not already done)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-1-install-conda-if-not-already-done">Step 1: Install conda (if not already done)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#step-2-create-the-gtdb-tk-environment">Step 2: Create the GTDB-Tk environment</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#step-3-download-and-alias-the-gtdb-tk-reference-data">Step 3: Download and alias the GTDB-Tk reference data</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="pip.html">pip</a></li>
 <li class="toctree-l3"><a class="reference internal" href="docker.html">Docker</a></li>
 </ul>
 </li>
@@ -243,22 +243,26 @@
 </style>
 <div class="section" id="bioconda">
 <span id="installing-bioconda"></span><h1>Bioconda<a class="headerlink" href="#bioconda" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="step-1-install-anaconda-if-not-already-done">
-<h2>Step 1: Install anaconda (if not already done)<a class="headerlink" href="#step-1-install-anaconda-if-not-already-done" title="Permalink to this headline">¶</a></h2>
-<p>Ensure that <code class="docutils literal notranslate"><span class="pre">conda</span></code> on the system path. It is recommended to download <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a>.</p>
+<div class="section" id="step-1-install-conda-if-not-already-done">
+<h2>Step 1: Install conda (if not already done)<a class="headerlink" href="#step-1-install-conda-if-not-already-done" title="Permalink to this headline">¶</a></h2>
+<p>We strongly recommend using <a class="reference external" href="https://mamba.readthedocs.io/en/latest/installation.html">Mamba</a> (much faster!) over <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">miniconda</a>/<a class="reference external" href="https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html">conda</a>, but all will work.</p>
 </div>
 <div class="section" id="step-2-create-the-gtdb-tk-environment">
 <h2>Step 2: Create the GTDB-Tk environment<a class="headerlink" href="#step-2-create-the-gtdb-tk-environment" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>It is strongly recommended to create a new GTDB-Tk environment for each version of GTDB-Tk released.</p>
+<p>It is strongly recommended to create a new conda environment for each version of GTDB-Tk released.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You must always specify the version of GTDB-Tk, as conda may try to install a <strong>very old version (v1.0.2)</strong>.</p>
 </div>
-<p>GTDB-Tk package requires third-party packages from the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> and <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> channels.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># latest version</span>
-conda create -n gtdbtk -c conda-forge -c bioconda gtdbtk
+<p>GTDB-Tk requires third-party packages from the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> and <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> channels, make sure to
+specify those channels in that order!</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: replace 2.1.1 with the version you wish to install</span>
 
-<span class="c1"># specific version (replace 1.3.0 with the version you wish to install, recommended)</span>
-conda create -n gtdbtk-1.3.0 -c conda-forge -c bioconda <span class="nv">gtdbtk</span><span class="o">=</span><span class="m">1</span>.3.0
+<span class="c1"># using conda</span>
+conda create -n gtdbtk-2.1.1 -c conda-forge -c bioconda <span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.1.1
+
+<span class="c1"># using mamba (alternative)</span>
+mamba create -n gtdbtk-2.1.1 -c conda-forge -c bioconda <span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.1.1
 </pre></div>
 </div>
 </div>
@@ -268,7 +272,7 @@ conda create -n gtdbtk-1.3.0 -c conda-forge -c bioconda <span class="nv">gtdbtk<
 containing the unarchived <a class="reference internal" href="index.html#installing-gtdbtk-reference-data"><span class="std std-ref">GTDB-Tk reference data</span></a>.</p>
 <div class="section" id="automatically">
 <h3>Automatically<a class="headerlink" href="#automatically" title="Permalink to this headline">¶</a></h3>
-<p>The conda package is bundled with a script <code class="docutils literal notranslate"><span class="pre">download-db.sh</span></code> <a class="reference external" href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/gtdbtk/download-db.sh">(located here)</a>
+<p>The conda package is bundled with a script <code class="docutils literal notranslate"><span class="pre">download-db.sh</span></code> <a class="reference external" href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/gtdbtk/download-db.sh">(source)</a>
 that will automatically download, and extract the GTDB-Tk reference data. The script will be on the system path so simply run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>download-db.sh
 </pre></div>
@@ -276,14 +280,13 @@ that will automatically download, and extract the GTDB-Tk reference data. The sc
 </div>
 <div class="section" id="manually">
 <h3>Manually<a class="headerlink" href="#manually" title="Permalink to this headline">¶</a></h3>
-<p>You can automatically alias <code class="docutils literal notranslate"><span class="pre">GTDBTK_DATA_PATH</span></code> whenever the environment is activated by editing <code class="docutils literal notranslate"><span class="pre">{gtdbtk</span> <span class="pre">environment</span> <span class="pre">path}/etc/conda/activate.d/gtdbtk.sh</span></code>, e.g.:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Determine the GTDB-Tk environment path</span>
-conda activate gtdbtk-1.3.0
-which gtdbtk
-<span class="c1"># /miniconda3/envs/gtdbtk-1.3.0/bin/gtdbtk</span>
+<p>You can automatically alias <code class="docutils literal notranslate"><span class="pre">GTDBTK_DATA_PATH</span></code> whenever the environment is activated by
+<a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables">setting environment-specific variables</a>, e.g.:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate the GTDB-Tk conda environment</span>
+conda activate gtdbtk-2.1.1
 
-<span class="c1"># Edit the activate file</span>
-<span class="nb">echo</span> <span class="s2">&quot;export GTDBTK_DATA_PATH=/path/to/release/package/&quot;</span> &gt; /miniconda3/envs/gtdbtk-1.3.0/etc/conda/activate.d/gtdbtk.sh
+<span class="c1"># Set the environment variable to the directory containing the GTDB-Tk reference data</span>
+conda env config vars <span class="nb">set</span> <span class="nv">GTDBTK_DATA_PATH</span><span class="o">=</span><span class="s2">&quot;/path/to/unarchived/gtdbtk/data&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -296,8 +299,8 @@ which gtdbtk
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="docker.html" class="btn btn-neutral float-right" title="Docker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="pip.html" class="btn btn-neutral float-left" title="pip" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pip.html" class="btn btn-neutral float-right" title="pip" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Installing GTDB-Tk" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
