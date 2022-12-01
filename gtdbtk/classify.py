@@ -366,14 +366,19 @@ class Classify(object):
                 # they still have to be written in the bac120 summary file:
                 if marker_set_id == 'bac120':
                     # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                    # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                    # This is an executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
                     # but they need to be included in one of the summary file
-                    warning_counter = self.add_failed_genomes_to_summary(align_dir,warning_counter, summary_file, prefix)
+                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
                     if summary_file.has_row():
                         summary_file.write()
                         # Symlink to the summary file from the root
                         symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                   os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                        if prodigal_failed_counter > 0:
+                            self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
+                                                f"genome{'' if prodigal_failed_counter == 1 else 's'} "
+                                                f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+
                 continue
 
             # Write the RED dictionary to disk (intermediate file).
@@ -480,7 +485,8 @@ class Classify(object):
                 # This is a executive direction: failed prodigal and genomes with
                 # no markers are not bacterial or archaeal
                 # but they need to be included in one of the summary file
-                warning_counter = self.add_failed_genomes_to_summary(align_dir,warning_counter, summary_file, prefix)
+                prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                warning_counter = warning_counter + prodigal_failed_counter
 
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
@@ -490,7 +496,7 @@ class Classify(object):
                     debug_file.close()
 
             else:
-                warning_counter = 0
+                warning_counter,prodigal_fail_counter = 0
                 classify_tree = self.place_genomes(user_msa_file,
                                                    marker_set_id,
                                                    out_dir,
@@ -523,7 +529,8 @@ class Classify(object):
                 # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
                 # but they need to be included in one of the summary file
                 if marker_set_id == 'bac120':
-                    warning_counter = self.add_failed_genomes_to_summary(align_dir,warning_counter, summary_file, prefix)
+                    prodigal_fail_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    warning_counter = warning_counter + prodigal_fail_counter
 
                 # Symlink to the summary file from the root
                 if marker_set_id == 'bac120':
@@ -547,8 +554,8 @@ class Classify(object):
 
 
             if warning_counter > 0:
-                self.logger.warning(f"{warning_counter} of {len(genomes_to_process)} "
-                                    f"genome{'s' if warning_counter==1 else ''} "
+                self.logger.warning(f"{warning_counter} of {len(genomes_to_process)+prodigal_failed_counter} "
+                                    f"genome{'' if warning_counter==1 else 's'}"
                                     f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
 
             # Write the summary file to disk.
@@ -1190,7 +1197,8 @@ class Classify(object):
                 warning_counter += 1
         return warning_counter
 
-    def add_failed_genomes_to_summary(self, align_dir,warning_counter, summary_file, prefix):
+    def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
+        warning_counter = 0
         prodigal_failed_file = os.path.join(align_dir, PATH_FAILS.format(prefix=prefix))
         align_failed_file = os.path.join(align_dir, PATH_FAILED_ALIGN_GENOMES.format(prefix=prefix))
         for failfile in (prodigal_failed_file, align_failed_file):
