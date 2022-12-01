@@ -3,9 +3,8 @@
 Installing GTDB-Tk
 ==================
 
-GTDB-Tk is available through multiple sources.
-
-If you are unsure which source to install, Bioconda is generally the easiest.
+GTDB-Tk is available through multiple sources, you only need to choose one.
+If you are unsure which one to choose, Bioconda is generally the easiest.
 
 
 Sources
@@ -15,11 +14,11 @@ Sources
 .. toctree::
    :maxdepth: 1
 
-   pip
    bioconda
+   pip
    docker
 
-Alternatively, GTDB-Tk can be run online through `KBase <https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk>`_ (third party).
+Alternatively, GTDB-Tk can be run online through `KBase <https://kbase.us/applist/apps/kb_gtdbtk/run_kb_gtdbtk>`_ (third party). Note that the version may not be the most recent release.
 
 
 Hardware requirements
@@ -127,40 +126,46 @@ GTDB-Tk requires ~66G of external data that needs to be downloaded and unarchive
     tar xvzf gtdbtk_v2_data.tar.gz
 
 
-Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, below are all supported versions:
+.. note:: Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, check the supported versions!
 
 
 .. list-table::
-   :widths: 10 10 10
+   :widths: 10 10 10 20
    :header-rows: 1
 
    * - GTDB Release
      - Minimum version
      - Maximum version
-   * - R207_v2
+     - MD5
+   * - `R207_v2 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz>`_
      - 2.1.0
      - Current
-   * - R207
+     - df468d63265e8096d8ca01244cb95f30
+   * - `R207 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz>`_
      - 2.0.0
      - 2.0.0
-   * - R202
+     - b04c55104b491f84e053a9011b36164a
+   * - `R202 <https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz>`_
      - 1.5.0
      - 1.7.0
-   * - R95
+     - 4986526c2b935fd4dcc2e604c0322517
+   * - `R95 <https://data.gtdb.ecogenomic.org/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz>`_
      - 1.3.0
      - 1.4.2
-   * - R89
+     - 06924c63f4b555ac6fd1525b09901186
+   * - `R89 <https://data.gtdb.ecogenomic.org/releases/release89/89.0/gtdbtk_r89_data.tar.gz>`_
      - 0.3.0
      - 0.1.2
-   * - R86.2
+     - 82966ef36086237d7230955e2bfff759
+   * - `R86.2 <https://data.gtdb.ecogenomic.org/releases/release86/86.2/gtdbtk.r86_v2_data.tar.gz>`_
      - 0.2.1
      - 0.2.2
-   * - R86
+     - f71408d69fa2a289f2cdc734b7a58a02
+   * - `R86 <https://data.gtdb.ecogenomic.org/releases/release86/86.0/gtdbtk_r86_data.tar.gz>`_
      - 0.1.0
      - 0.1.6
-   * - R83
+     - d019b3541746c3673181f24e666594ba
+   * - `R83 <https://data.gtdb.ecogenomic.org/releases/release83/83.0/gtdbtk_r83_data.tar.gz>`_
      - 0.0.6
      - 0.0.7
-
-
-Reference data for prior releases of GTDB-Tk are available at: https://data.ace.uq.edu.au/public/gtdbtk
+     - 9cf523761da843b5787f591f6c5a80de

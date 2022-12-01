@@ -7,16 +7,37 @@
 [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ecogenomic/gtdbtk?sort=date&color=299bec&label=docker)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 
-<b>[GTDB-Tk v2.1.0](https://ecogenomics.github.io/GTDBTk/announcements.html) was released on May 11, 2022. Upgrading is recommended.</b>  
-<b> Please note v2.1.0+ is not compatible with GTDB-Tk package [R207_v1](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz). It is necessary to upgrade to GTDB-Tk package [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz).</b>
+<b>GTDB-Tk v2.1.0+ requires an updated reference package ([R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)), [read more](https://ecogenomics.github.io/GTDBTk/installing/index.html#gtdb-tk-reference-data).</b>
 
-GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes based on the Genome Database Taxonomy ([GTDB](https://gtdb.ecogenomic.org/)). It is designed to work with recent advances that allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
+GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes based 
+on the Genome Database Taxonomy ([GTDB](https://gtdb.ecogenomic.org/)). It is designed to work with recent advances that 
+allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. 
+It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the 
+[GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-Notifications about GTDB-Tk releases will be available through the [GTDB Twitter](https://twitter.com/ace_gtdb) account and the [GTDB Announcements Forum](https://forum.gtdb.ecogenomic.org/c/announcements/10).
+Notifications about GTDB-Tk releases will be available through the [GTDB Twitter](https://twitter.com/ace_gtdb) 
+account and the [GTDB Announcements Forum](https://forum.gtdb.ecogenomic.org/c/announcements/10).
 
-Please post questions and issues related to GTDB-Tk on the Issues section of the GitHub repository. Questions related to the [GTDB](https://gtdb.ecogenomic.org/) can be posted on the [GTDB Forum](https://forum.gtdb.ecogenomic.org/) or sent to the [GTDB team](https://gtdb.ecogenomic.org/about).
+Please post questions and issues related to GTDB-Tk on the Issues section of the GitHub repository. Questions 
+related to the [GTDB](https://gtdb.ecogenomic.org/) can be posted on the [GTDB Forum](https://forum.gtdb.ecogenomic.org/) 
+or sent to the [GTDB team](https://gtdb.ecogenomic.org/about).
 
-## New Features
+
+## 🚀 Getting started
+
+Be sure to check the [hardware requirements](https://ecogenomics.github.io/GTDBTk/installing/index.html), then choose your preferred method:
+
+* [Bioconda](https://ecogenomics.github.io/GTDBTk/installing/bioconda.html)
+* [Docker](https://ecogenomics.github.io/GTDBTk/installing/docker.html)
+* [pip](https://ecogenomics.github.io/GTDBTk/installing/pip.html)
+
+
+## 📖 Documentation
+
+Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDBTk/).
+
+
+## ✨ New Features
 
 GTDB-Tk v2.1.0 includes the following new features:
 - GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple **class**-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **55 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag.  
@@ -26,10 +47,7 @@ This is the main change from v2.0.0. The split tree approach has been modified f
 - `--write_single_copy_genes` flag in now available in the `classify_wf` and `de_novo_wf` workflows.
 
 
-## Documentation
-Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDBTk/).
-
-## References
+## 📚 References
 
 GTDB-Tk is described in:
 
@@ -53,6 +71,7 @@ We strongly encourage you to cite the following 3rd party dependencies:
 * Eddy SR. 2011. [Accelerated profile HMM searches](https://www.ncbi.nlm.nih.gov/pubmed/22039361). <i>PLOS Comp. Biol.</i>, 7:e1002195.
 * Ondov BD, et al. 2016. [Mash: fast genome and metagenome distance estimation using MinHash](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0997-x). <i>Genome Biol</i> 17, 132. doi: 10.1186/s13059-016-0997-x.
 
-## Copyright
+
+## © Copyright
 
 Copyright 2017 Pierre-Alain Chaumeil. See LICENSE for further details.

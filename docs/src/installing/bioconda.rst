@@ -3,28 +3,32 @@
 Bioconda
 ========
 
-Step 1: Install anaconda (if not already done)
-----------------------------------------------
+Step 1: Install conda (if not already done)
+-------------------------------------------
 
-Ensure that ``conda`` on the system path. It is recommended to download `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_.
+We strongly recommend using `Mamba <https://mamba.readthedocs.io/en/latest/installation.html>`_ (much faster!) over `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_/`conda <https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html>`_, but all will work.
 
 
 Step 2: Create the GTDB-Tk environment
 --------------------------------------
 
-.. note:: It is strongly recommended to create a new GTDB-Tk environment for each version of GTDB-Tk released.
+It is strongly recommended to create a new conda environment for each version of GTDB-Tk released.
 
-GTDB-Tk package requires third-party packages from the ``conda-forge`` and ``bioconda`` channels.
+.. warning:: You must always specify the version of GTDB-Tk, as conda may try to install a **very old version (v1.0.2)**.
 
+
+GTDB-Tk requires third-party packages from the ``conda-forge`` and ``bioconda`` channels, make sure to
+specify those channels in that order!
 
 .. code-block:: bash
 
-    # latest version
-    conda create -n gtdbtk -c conda-forge -c bioconda gtdbtk
+    # NOTE: replace 2.1.1 with the version you wish to install
 
-    # specific version (replace 1.3.0 with the version you wish to install, recommended)
-    conda create -n gtdbtk-1.3.0 -c conda-forge -c bioconda gtdbtk=1.3.0
+    # using conda
+    conda create -n gtdbtk-2.1.1 -c conda-forge -c bioconda gtdbtk=2.1.1
 
+    # using mamba (alternative)
+    mamba create -n gtdbtk-2.1.1 -c conda-forge -c bioconda gtdbtk=2.1.1
 
 Step 3: Download and alias the GTDB-Tk reference data
 -----------------------------------------------------
@@ -35,7 +39,7 @@ containing the unarchived :ref:`installing#gtdbtk-reference-data`.
 Automatically
 ^^^^^^^^^^^^^
 
-The conda package is bundled with a script ``download-db.sh`` `(located here) <https://github.com/bioconda/bioconda-recipes/blob/master/recipes/gtdbtk/download-db.sh>`_
+The conda package is bundled with a script ``download-db.sh`` `(source) <https://github.com/bioconda/bioconda-recipes/blob/master/recipes/gtdbtk/download-db.sh>`_
 that will automatically download, and extract the GTDB-Tk reference data. The script will be on the system path so simply run:
 
 .. code-block:: bash
@@ -47,14 +51,13 @@ that will automatically download, and extract the GTDB-Tk reference data. The sc
 Manually
 ^^^^^^^^
 
-You can automatically alias ``GTDBTK_DATA_PATH`` whenever the environment is activated by editing ``{gtdbtk environment path}/etc/conda/activate.d/gtdbtk.sh``, e.g.:
+You can automatically alias ``GTDBTK_DATA_PATH`` whenever the environment is activated by
+`setting environment-specific variables <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables>`_, e.g.:
 
 .. code-block:: bash
 
-    # Determine the GTDB-Tk environment path
-    conda activate gtdbtk-1.3.0
-    which gtdbtk
-    # /miniconda3/envs/gtdbtk-1.3.0/bin/gtdbtk
+    # Activate the GTDB-Tk conda environment
+    conda activate gtdbtk-2.1.1
 
-    # Edit the activate file
-    echo "export GTDBTK_DATA_PATH=/path/to/release/package/" > /miniconda3/envs/gtdbtk-1.3.0/etc/conda/activate.d/gtdbtk.sh
+    # Set the environment variable to the directory containing the GTDB-Tk reference data
+    conda env config vars set GTDBTK_DATA_PATH="/path/to/unarchived/gtdbtk/data";
