@@ -29,7 +29,7 @@ import dendropy
 from numpy import median as np_median
 
 import gtdbtk.config.config as Config
-from gtdbtk.biolib_lite.common import make_sure_path_exists
+from gtdbtk.biolib_lite.common import make_sure_path_exists,canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
@@ -37,20 +37,27 @@ from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.fastani import FastANI
+from gtdbtk.external.mash import QrySketchFile, RefSketchFile, Mash
 from gtdbtk.external.pplacer import Pplacer
+
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
 from gtdbtk.files.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR53, \
     PplacerLowClassifyFileBAC120
 from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
+from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
 from gtdbtk.files.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
+
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.split import Split
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
-    calculate_patristic_distance, tqdm_log, truncate_taxonomy, standardise_taxonomy, limit_rank, aa_percent_msa
+    calculate_patristic_distance, tqdm_log, truncate_taxonomy, standardise_taxonomy, limit_rank, aa_percent_msa, \
+    get_ref_genomes
+
+
 
 sys.setrecursionlimit(15000)
 
@@ -79,6 +86,8 @@ class Classify(object):
 
         self.cpus = max(cpus, 1)
         self.pplacer_cpus = max(pplacer_cpus if pplacer_cpus else cpus, 1)
+
+        self.gtdb_radii = GTDBRadiiFile()
 
         # pplacer seems to hang if more than 64 threads are given, warn the user
         # otherwise let them if they specify pplacer_cpus.
@@ -317,15 +326,64 @@ class Classify(object):
             out_dir,
             prefix,
             scratch_dir=None,
+            prescreen=False,
             debugopt=False,
             fulltreeopt=False):
         """Classify genomes based on position in reference tree."""
 
         _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
+
+        # If prescreen is set to True, then we will first run all genomes against a mash database
+        # of all genomes in the reference package. The next step will be to classify those genomes with
+        # FastANI.
+        # All genomes classified with FastANI will be removed from the input genomes list for the
+        # rest of the pipeline.
+        mash_classified_user_genomes = {}
+        if prescreen:
+            name = 'gtdb_ref_sketch.msh'
+            d_compare = defaultdict(set)
+
+
+            # Run mash screen
+            ref_genomes = get_ref_genomes()
+
+            d_paths = {**genomes, **ref_genomes}
+
+            dir_mash = os.path.join(out_dir, DIR_ANI_REP_INT_MASH)
+            mash = Mash(self.cpus, dir_mash, prefix)
+            self.logger.info(f'Using Mash version {mash.version()}')
+            mash_dir = os.path.join(Config.MASH_DIR,name)
+            mash_results = mash.run(genomes,
+                                    ref_genomes,
+                                    Config.MASH_D_VALUE,
+                                    Config.MASH_K_VALUE,
+                                    Config.MASH_V_VALUE,
+                                    Config.MASH_S_VALUE,
+                                    mash_dir)
+
+            for qry_gid, ref_hits in mash_results.items():
+                d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
+
+            self.logger.info(f'Calculating ANI with FastANI v{FastANI._get_version()}.')
+            fastani = FastANI(self.cpus, force_single=True)
+            fastani_results = fastani.run(d_compare, d_paths)
+
+            mash_classified_user_genomes = self._sort_fastani_results_pre_pplacer(
+                fastani_results,bac_ar_diff)
+
+            len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
+                if 'bac120' in mash_classified_user_genomes else 0
+
+            len_mash_classified_ar53 = len(mash_classified_user_genomes['ar53']) \
+                if 'ar53' in mash_classified_user_genomes else 0
+
+
+            self.logger.info(f'{len_mash_classified_ar53+len_mash_classified_bac120} genome(s) have '
+                             f'been classified using the ANI pre-screening step.')
+
         for marker_set_id in ('ar53', 'bac120'):
-
-
+            warning_counter, prodigal_fail_counter = 0, 0
             if marker_set_id == 'ar53':
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                 marker_summary_fh.read()
@@ -381,21 +439,55 @@ class Classify(object):
 
                 continue
 
-            # Write the RED dictionary to disk (intermediate file).
-            red_dict_file.write()
-
-            percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
+            msa_dict = read_fasta(user_msa_file)
 
             # Read the translation table summary file (identify).
             tln_table_summary_file = TlnTableSummaryFile(align_dir, prefix)
             tln_table_summary_file.read()
 
-            msa_dict = read_fasta(user_msa_file)
+            percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
+
+            # run pplacer to place bins in reference genome tree
+            genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+
+            # if mash_classified_user_genomes is has key marker_set_id, we
+            # need to had those genomes to the summary file and remove those genomes to the list of genomes
+            # to process with pplacer
+            if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+                list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                for row in list_summary_rows:
+                    row = self._add_warning_to_row(row,
+                                                   msa_dict,
+                                                   tln_table_summary_file.genomes,
+                                                   percent_multihit_dict,
+                                                   warning_counter)
+                    summary_file.add_row(row)
+                    if row.gid in genomes_to_process:
+                        genomes_to_process.remove(row.gid)
+
+                # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
+                prescreened_msa_file_path = os.path.join(
+                    out_dir, PATH_BAC120_PRESCREEN_MSA.format(prefix=prefix))
+
+                prescreened_msa_file = open(prescreened_msa_file_path, 'w')
+
+                for gid in genomes_to_process:
+                    prescreened_msa_file.write('>{}\n{}\n'.format(gid, msa_dict.get(gid)))
+                prescreened_msa_file.close()
+                user_msa_file = prescreened_msa_file_path
+
+                # if the new user_msa_file is empty, we need to skip the rest of the loop
+                if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
+                    continue
+
+
+            # Write the RED dictionary to disk (intermediate file).
+            red_dict_file.write()
+
 
             if not fulltreeopt and marker_set_id == 'bac120':
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
-                # run pplacer to place bins in reference genome tree
-                genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+
                 debug_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
 
@@ -427,7 +519,7 @@ class Classify(object):
                 splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                 sorted_high_taxonomy,warning_counter, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
                     high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
-                    tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff)
+                    tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter)
 
                 if debugopt:
                     with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
@@ -496,14 +588,13 @@ class Classify(object):
                     debug_file.close()
 
             else:
-                warning_counter,prodigal_fail_counter = 0
                 classify_tree = self.place_genomes(user_msa_file,
                                                    marker_set_id,
                                                    out_dir,
                                                    prefix,
                                                    scratch_dir)
 
-                genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+                #genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
                 # get taxonomic classification of each user genome
                 debug_file = self._generate_summary_file(
@@ -562,6 +653,23 @@ class Classify(object):
             if disappearing_genomes_file.data:
                 disappearing_genomes_file.write()
             summary_file.write()
+
+    def _add_warning_to_row(self,row,msa_dict,
+                            trans_table_dict,
+                            percent_multihit_dict,
+                            warning_counter):
+
+        row.msa_percent = aa_percent_msa(msa_dict.get(row.gid))
+        row.tln_table = trans_table_dict.get(row.gid)
+
+        warnings = row.warnings
+        if row.gid in percent_multihit_dict:
+            warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                percent_multihit_dict.get(row.gid)))
+        if len(warnings) > 0:
+            row.warnings = ';'.join(set(warnings))
+            warning_counter += 1
+        return row
 
     def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):
         debug_file = None
@@ -1244,6 +1352,78 @@ class Classify(object):
         return note_list
 
 
+    def _sort_fastani_results_pre_pplacer(self,fastani_results,bac_ar_diff):
+        """ When run mash/FastANI on all genomes before using pplacer, we need to sort those results and store them for
+        a later use
+
+        Parameters
+        ----------
+        all_fastani_dict : dictionary listing the fastani ANI for each user genomes against the potential genomes
+
+        """
+        classified_user_genomes = {}
+
+        # sort the dictionary by ani then af
+        for gid in fastani_results.keys():
+            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if
+                              hit['af'] >= Config.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
+                                  canonical_gid(ref_gid))]
+            closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
+            if len(closest) > 0:
+                summary_row = ClassifySummaryFileRow()
+                summary_row.gid = gid
+                summary_row.classification_method = 'mash/ANI'
+                # summary_row.msa_percent = aa_percent_msa(
+                #     msa_dict.get(summary_row.gid))
+                # summary_row.tln_table = trans_table_dict.get(summary_row.gid)
+                if len(closest) > 1:
+                    other_ref = '; '.join(self._formatnote(
+                        closest, [gid]))
+                    if len(other_ref) == 0:
+                        summary_row.other_related_refs = None
+                    else:
+                        summary_row.other_related_refs = other_ref
+                summary_row.note = 'Classification produced based on ANI only'
+
+                fastani_matching_reference = closest[0][0]
+                current_ani = fastani_results.get(gid).get(
+                    fastani_matching_reference).get('ani')
+                current_af = fastani_results.get(gid).get(
+                    fastani_matching_reference).get('af')
+
+                summary_row.fastani_ref = fastani_matching_reference
+                summary_row.fastani_ref_radius = str(
+                    self.species_radius.get(fastani_matching_reference))
+                summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
+                    add_ncbi_prefix(fastani_matching_reference)))
+                summary_row.fastani_ani = round(current_ani, 2)
+                summary_row.fastani_af = current_af
+                taxa_str = ";".join(self.gtdb_taxonomy.get(
+                    add_ncbi_prefix(fastani_matching_reference)))
+                summary_row.classification = standardise_taxonomy(
+                    taxa_str)
+
+                warnings = []
+                # if gid in percent_multihit_dict:
+                #     warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                #         percent_multihit_dict.get(gid)))
+                if gid in bac_ar_diff:
+                    warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                        bac_ar_diff.get(gid).get('bac120'),
+                        bac_ar_diff.get(gid).get('ar53')))
+
+                summary_row.warnings = warnings
+
+                if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
+                    domain = 'bac120'
+                else:
+                    domain = 'ar53'
+                classified_user_genomes.setdefault(domain, []).append(summary_row)
+
+        return classified_user_genomes
+
+
+
 
     def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict,
                               all_fastani_dict, msa_dict, percent_multihit_dict,
@@ -1366,7 +1546,6 @@ class Classify(object):
                                     userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
                                 summary_row.closest_placement_af = all_fastani_dict.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('af')
-                            summary_row.note = 'topological placement and ANI have incongruent species assignments'
                             summary_row.classification_method = 'ANI'
 
                             if len(sorted_dict) > 0:

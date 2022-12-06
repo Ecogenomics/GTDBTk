@@ -458,6 +458,7 @@ class OptionsParser(object):
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
 
+
         genomes, _ = self._genomes_to_process(options.genome_dir,
                                               options.batchfile,
                                               options.extension)
@@ -468,6 +469,7 @@ class OptionsParser(object):
                      out_dir=options.out_dir,
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
+                     prescreen=options.prescreen,
                      debugopt=options.debug,
                      fulltreeopt=options.full_tree)
 
@@ -829,7 +831,7 @@ class OptionsParser(object):
             options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
-            # Added here due to the other mutex argument being include above.
+            # Added here due to the other mutex argument being included above.
             options.skip_trimming = False
             options.min_consensus = None
             options.min_perc_taxa = None
@@ -852,15 +854,6 @@ class OptionsParser(object):
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
-
-            # TODO: Remove this block once the split_tree function is implemented.
-            # if hasattr(options, 'split_tree') and options.split_tree:
-            #     self.logger.warning('The split tree option is not yet '
-            #                         ' supported, overriding value to False.')
-            # options.split_tree = False
-
-            # if options.recalculate_red and options.split_tree:
-            #     raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
             self.classify(options)
         elif options.subparser_name == 'root':
             self.root(options)

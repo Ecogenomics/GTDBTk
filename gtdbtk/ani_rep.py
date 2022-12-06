@@ -14,6 +14,7 @@ from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.mash import Mash
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
+from gtdbtk.tools import get_ref_genomes
 
 
 class ANIRep(object):
@@ -44,23 +45,23 @@ class ANIRep(object):
             dependencies.append('mash')
         check_dependencies(dependencies)
 
-    @staticmethod
-    def _get_ref_genomes():
-        """Returns a dictionary of genome accession to genome path.
-
-        Returns
-        -------
-        dict[str, str]
-            Dict[genome_id] = fasta_path
-        """
-        ref_genomes = dict()
-        with open(FASTANI_GENOME_LIST) as g_path_file:
-            for line in g_path_file:
-                (full_name, path) = line.strip().split()
-                if full_name.endswith(FASTANI_GENOMES_EXT):
-                    accession = full_name.split(FASTANI_GENOMES_EXT)[0]
-                ref_genomes[accession] = os.path.join(FASTANI_DIR, path, full_name)
-        return ref_genomes
+    # @staticmethod
+    # def _get_ref_genomes():
+    #     """Returns a dictionary of genome accession to genome path.
+    #
+    #     Returns
+    #     -------
+    #     dict[str, str]
+    #         Dict[genome_id] = fasta_path
+    #     """
+    #     ref_genomes = dict()
+    #     with open(FASTANI_GENOME_LIST) as g_path_file:
+    #         for line in g_path_file:
+    #             (full_name, path) = line.strip().split()
+    #             if full_name.endswith(FASTANI_GENOMES_EXT):
+    #                 accession = full_name.split(FASTANI_GENOMES_EXT)[0]
+    #             ref_genomes[accession] = os.path.join(FASTANI_DIR, path, full_name)
+    #     return ref_genomes
 
     def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af, mash_db):
         """Runs the pipeline.
@@ -91,7 +92,7 @@ class ANIRep(object):
         self.check_dependencies(no_mash)
 
         self.logger.info('Loading reference genomes.')
-        ref_genomes = self._get_ref_genomes()
+        ref_genomes = get_ref_genomes()
         d_compare = defaultdict(set)
         d_paths = {**genomes, **ref_genomes}
 

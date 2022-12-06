@@ -339,8 +339,7 @@ class Split(object):
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
     def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,
-                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff):
-        warning_counter = 0
+                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,warning_counter):
         mapped_rank = {}
         counter = 0
         high_taxonomy_used = {}
