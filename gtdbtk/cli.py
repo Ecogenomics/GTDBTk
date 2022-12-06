@@ -4,7 +4,8 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL
+from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL, MASH_K_VALUE, MASH_S_VALUE, MASH_D_VALUE, \
+    MASH_V_VALUE
 
 
 @contextmanager
@@ -72,6 +73,11 @@ def __out_dir(group, required):
 def __extension(group):
     group.add_argument('-x', '--extension', type=str, default='fna',
                        help='extension of files to process, ``gz`` = gzipped')
+
+def __prescreen(group):
+    group.add_argument('--prescreen', action="store_true", default=False,
+                       help="Run a pre-screening step to classify genomes using mash and FastANI "
+                            "before the placement in the reference tree.")
 
 
 def __skip_gtdb_refs(group):
@@ -245,22 +251,22 @@ def __no_mash(group):
 
 
 def __mash_k(group):
-    group.add_argument('--mash_k', default=16, type=int,
+    group.add_argument('--mash_k', default=MASH_K_VALUE, type=int,
                        help='k-mer size [1-32]')
 
 
 def __mash_s(group):
-    group.add_argument('--mash_s', default=5000, type=int,
+    group.add_argument('--mash_s', default=MASH_S_VALUE, type=int,
                        help='maximum number of non-redundant hashes')
 
 
 def __mash_d(group):
-    group.add_argument('--mash_d', default=0.1, type=float,
+    group.add_argument('--mash_d', default=MASH_D_VALUE, type=float,
                        help='maximum distance to keep [0-1]')
 
 
 def __mash_v(group):
-    group.add_argument('--mash_v', default=1.0, type=float,
+    group.add_argument('--mash_v', default=MASH_V_VALUE, type=float,
                        help='maximum p-value to keep [0-1]')
 
 
@@ -442,6 +448,7 @@ def get_main_parser():
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __prescreen(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)

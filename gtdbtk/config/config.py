@@ -27,6 +27,7 @@ MSA_FOLDER = os.path.join(GENERIC_PATH, "msa/")
 MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
 PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
 FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
+MASH_DIR = os.path.join(GENERIC_PATH, "mash/")
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
 METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
@@ -226,6 +227,12 @@ FASTANI_SPECIES_THRESHOLD = 95.0
 FASTANI_GENOMES = os.path.join(FASTANI_DIR, "database/")
 FASTANI_GENOME_LIST = os.path.join(FASTANI_DIR, "genome_paths.tsv")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
+
+# Mash configuration
+MASH_K_VALUE = 16
+MASH_S_VALUE = 5000
+MASH_D_VALUE = 0.1
+MASH_V_VALUE = 1.0
 
 # MRCA RED VALUE
 MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")
