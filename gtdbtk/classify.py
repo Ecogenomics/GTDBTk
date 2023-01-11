@@ -29,6 +29,7 @@ import dendropy
 from numpy import median as np_median
 
 import gtdbtk.config.config as Config
+from gtdbtk.ani_rep import ANIRep
 from gtdbtk.biolib_lite.common import make_sure_path_exists,canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.newick import parse_label
@@ -326,9 +327,16 @@ class Classify(object):
             out_dir,
             prefix,
             scratch_dir=None,
-            prescreen=False,
             debugopt=False,
-            fulltreeopt=False):
+            fulltreeopt=False,
+            prescreen=False,
+            no_mash=False,
+            mash_d=Config.MASH_D_VALUE,
+            mash_k=Config.MASH_K_VALUE,
+            mash_v=Config.MASH_V_VALUE,
+            mash_s=Config.MASH_S_VALUE,
+            mash_max_dist=Config.MASH_MAX_DISTANCE,
+            mash_db=None):
         """Classify genomes based on position in reference tree."""
 
         _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
@@ -341,33 +349,14 @@ class Classify(object):
         # rest of the pipeline.
         mash_classified_user_genomes = {}
         if prescreen:
-            name = 'gtdb_ref_sketch.msh'
-            d_compare = defaultdict(set)
-
-
-            # Run mash screen
-            ref_genomes = get_ref_genomes()
-
-            d_paths = {**genomes, **ref_genomes}
-
-            dir_mash = os.path.join(out_dir, DIR_ANI_REP_INT_MASH)
-            mash = Mash(self.cpus, dir_mash, prefix)
-            self.logger.info(f'Using Mash version {mash.version()}')
-            mash_dir = os.path.join(Config.MASH_DIR,name)
-            mash_results = mash.run(genomes,
-                                    ref_genomes,
-                                    Config.MASH_D_VALUE,
-                                    Config.MASH_K_VALUE,
-                                    Config.MASH_V_VALUE,
-                                    Config.MASH_S_VALUE,
-                                    mash_dir)
-
-            for qry_gid, ref_hits in mash_results.items():
-                d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
-
-            self.logger.info(f'Calculating ANI with FastANI v{FastANI._get_version()}.')
-            fastani = FastANI(self.cpus, force_single=True)
-            fastani_results = fastani.run(d_compare, d_paths)
+            # if mash_db finishes with a backslash, it should be considered a directory
+            if mash_db.endswith('/'):
+                make_sure_path_exists(mash_db)
+            if os.path.isdir(mash_db):
+                mash_db = os.path.join(mash_db, Config.MASH_SKETCH_FILE)
+            ani_rep = ANIRep(self.cpus)
+            # we store all the mash information in the classify directory
+            fastani_results = ani_rep.run_mash_fastani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_CLASSIFY), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
 
             mash_classified_user_genomes = self._sort_fastani_results_pre_pplacer(
                 fastani_results,bac_ar_diff)
@@ -456,7 +445,7 @@ class Classify(object):
             if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
                 list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
                 for row in list_summary_rows:
-                    row = self._add_warning_to_row(row,
+                    row,warning_counter = self._add_warning_to_row(row,
                                                    msa_dict,
                                                    tln_table_summary_file.genomes,
                                                    percent_multihit_dict,
@@ -476,13 +465,25 @@ class Classify(object):
                 prescreened_msa_file.close()
                 user_msa_file = prescreened_msa_file_path
 
-                # if the new user_msa_file is empty, we need to skip the rest of the loop
-                if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
-                    continue
+
 
 
             # Write the RED dictionary to disk (intermediate file).
             red_dict_file.write()
+
+            # if the new user_msa_file is empty, we need to skip the rest of the loop
+            if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
+                if summary_file.has_row():
+                    summary_file.write()
+                    # Symlink to the summary file from the root
+                    if marker_set_id == 'bac120':
+                        symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                                  os.path.join(out_dir,
+                                               os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                    elif marker_set_id == 'ar53':
+                        symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
+                continue
 
 
             if not fulltreeopt and marker_set_id == 'bac120':
@@ -558,7 +559,7 @@ class Classify(object):
                                                                   percent_multihit_dict, tln_table_summary_file.genomes,
                                                                   bac_ar_diff, submsa_file_path, red_dict_file.data,
                                                                   summary_file, pplacer_taxonomy_dict,warning_counter,
-                                                                  high_classification, debug_file, debugopt,
+                                                                  high_classification, debug_file,prescreen, debugopt,
                                                                   tree_mapping_file, tree_iter,
                                                                   tree_mapping_dict_reverse)
 
@@ -612,7 +613,7 @@ class Classify(object):
                                  tln_table_summary_file.genomes,
                                  bac_ar_diff, user_msa_file, red_dict_file.data, summary_file,
                                  pplacer_taxonomy_dict,warning_counter, None,
-                                 debug_file, debugopt, None, None, None)
+                                 debug_file,prescreen, debugopt, None, None, None)
                 # add filtered genomes to the summary file
                 warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
 
@@ -645,7 +646,7 @@ class Classify(object):
 
 
             if warning_counter > 0:
-                self.logger.warning(f"{warning_counter} of {len(genomes_to_process)+prodigal_failed_counter} "
+                self.logger.warning(f"{warning_counter} of {len(genomes_to_process)+prodigal_failed_counter+len(mash_classified_user_genomes.get(marker_set_id))} "
                                     f"genome{'' if warning_counter==1 else 's'}"
                                     f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
 
@@ -664,12 +665,17 @@ class Classify(object):
 
         warnings = row.warnings
         if row.gid in percent_multihit_dict:
-            warnings.append('Genome has more than {}% of markers with multiple hits'.format(
-                percent_multihit_dict.get(row.gid)))
-        if len(warnings) > 0:
+            if warnings is not None:
+                warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                    percent_multihit_dict.get(row.gid)))
+            else:
+                warnings = ['Genome has more than {}% of markers with multiple hits'.format(
+                    percent_multihit_dict.get(row.gid))]
+        if warnings:
             row.warnings = ';'.join(set(warnings))
             warning_counter += 1
-        return row
+
+        return row,warning_counter
 
     def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):
         debug_file = None
@@ -1085,7 +1091,7 @@ class Classify(object):
 
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,warning_counter, high_classification,
-                    debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
+                    debug_file,prescreening, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
         # Genomes can be classified by using FastANI or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -1103,6 +1109,7 @@ class Classify(object):
 
         # we run a fastani comparison for each user genomes against the
         # selected genomes in the same genus
+        ##if not prescreening and len(fastani_verification) > 0:
         if len(fastani_verification) > 0:
             fastani = FastANI(cpus=self.cpus, force_single=True)
             d_ani_compare, d_paths = self._get_fastani_genome_path(
@@ -1119,8 +1126,9 @@ class Classify(object):
         classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_fastani_results(
             fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
             trans_table_dict, bac_ar_diff,warning_counter, summary_file)
+        #if not prescreening:
         self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
-                         f'been classified using FastANI and pplacer.')
+                             f'been classified using FastANI and pplacer.')
 
         if tree_mapping_file:
             for genome in classified_user_genomes.keys():
@@ -1412,7 +1420,8 @@ class Classify(object):
                         bac_ar_diff.get(gid).get('bac120'),
                         bac_ar_diff.get(gid).get('ar53')))
 
-                summary_row.warnings = warnings
+                if len(warnings) > 0:
+                    summary_row.warnings = warnings
 
                 if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
                     domain = 'bac120'

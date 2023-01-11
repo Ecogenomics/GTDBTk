@@ -469,9 +469,16 @@ class OptionsParser(object):
                      out_dir=options.out_dir,
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
-                     prescreen=options.prescreen,
                      debugopt=options.debug,
-                     fulltreeopt=options.full_tree)
+                     fulltreeopt=options.full_tree,
+                     prescreen=options.prescreen,
+                     no_mash=options.no_mash,
+                     mash_d=options.mash_d,
+                     mash_k=options.mash_k,
+                     mash_v=options.mash_v,
+                     mash_s=options.mash_s,
+                     mash_db=options.mash_db,
+                     mash_max_dist=options.mash_max_distance)
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
                          'designations. New designations should be based on one or more de novo trees, an '
@@ -812,8 +819,6 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
 
-
-
             if options.write_single_copy_genes and not options.keep_intermediates:
                 self.logger.warning('--write_single_copy_genes flag is set to True,'
                                     ' but --keep_intermediates is set to False. '
@@ -822,6 +827,13 @@ class OptionsParser(object):
                     self.logger.info('Exiting workflow.')
                     sys.exit(0)
 
+            # if options.prescreen is selected,
+            # we need to make sure the options.mash_db is selected too to point to the folder
+            # where the sketch file is.
+            if options.prescreen:
+                if not options.mash_db:
+                    self.logger.error('You must specify a path to the mash database with --mash_db')
+                    sys.exit(1)
 
             #options.write_single_copy_genes = False
 
@@ -854,6 +866,13 @@ class OptionsParser(object):
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
+            # if options.prescreen is selected,
+            # we need to make sure the options.mash_db is selected too to point to the folder
+            # where the sketch file is.
+            if options.prescreen:
+                if not options.mash_db:
+                    self.logger.error('You must specify a path to the mash database with --mash_db')
+                    sys.exit(1)
             self.classify(options)
         elif options.subparser_name == 'root':
             self.root(options)

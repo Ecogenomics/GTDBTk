@@ -28,6 +28,7 @@ MASK_DIR = os.path.join(GENERIC_PATH, "masks/")
 PPLACER_DIR = os.path.join(GENERIC_PATH, "pplacer/")
 FASTANI_DIR = os.path.join(GENERIC_PATH, "fastani/")
 MASH_DIR = os.path.join(GENERIC_PATH, "mash/")
+
 TAX_FOLDER = os.path.join(GENERIC_PATH, "taxonomy/")
 RADII_DIR = os.path.join(GENERIC_PATH, "radii/")
 METADATA_DIR = os.path.join(GENERIC_PATH, "metadata/")
@@ -45,6 +46,8 @@ BACKBONE_RED_DIR = os.path.join(BACKBONE_SPLIT_DIR, 'red')
 CLASS_LEVEL_RED_DIR = os.path.join(CLASS_LEVEL_SPLIT_DIR, 'red')
 
 CLASS_LEVEL_TREE_MAPPING_FILE = os.path.join(CLASS_LEVEL_SPLIT_DIR, 'tree_mapping.tsv')
+
+
 
 BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
 BACKBONE_RED_FILE = os.path.join(BACKBONE_RED_DIR, 'backbone_red_value.tsv')
@@ -229,10 +232,12 @@ FASTANI_GENOME_LIST = os.path.join(FASTANI_DIR, "genome_paths.tsv")
 FASTANI_GENOMES_EXT = "_genomic.fna.gz"
 
 # Mash configuration
+MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'
 MASH_K_VALUE = 16
 MASH_S_VALUE = 5000
 MASH_D_VALUE = 0.1
 MASH_V_VALUE = 1.0
+MASH_MAX_DISTANCE = 0.1
 
 # MRCA RED VALUE
 MRCA_RED_BAC120 = os.path.join(RED_DIR, f"gtdbtk_{VERSION_DATA}_bac120.tsv")

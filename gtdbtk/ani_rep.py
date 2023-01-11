@@ -63,8 +63,50 @@ class ANIRep(object):
     #             ref_genomes[accession] = os.path.join(FASTANI_DIR, path, full_name)
     #     return ref_genomes
 
-    def run(self, genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af, mash_db):
+    def run(self, genomes, no_mash, mash_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af, mash_db):
         """Runs the pipeline.
+
+        Parameters
+        ----------
+        genomes : dict[str, str]
+            Dict[genome_id] = fasta_path
+        no_mash : bool
+            True if Mash should be used for pre-filtering, False otherwise.
+        mash_d : float
+             maximum distance to keep [0-1]
+        out_dir : str
+            The directory to write the output files to.
+        prefix : str
+            The prefix to use when writing output files.
+        mash_k : int
+            k-mer size [1-32]
+        mash_v : float
+            maximum p-value to keep [0-1]
+        mash_s : int
+            maximum number of non-redundant hashes
+        min_af : float
+            alignment fraction to consider closest genome
+        mash_db : Optional[str]
+            The path to read/write the pre-computed Mash reference sketch database.
+        """
+
+        fastani_results = self.run_mash_fastani(genomes, no_mash, mash_d, out_dir,
+                                                prefix, mash_k, mash_v,
+                                                mash_s, max_mash_dist=100, mash_db=mash_db)
+
+        taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
+        ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
+        ANIClosestFile(out_dir,
+                       prefix,
+                       fastani_results,
+                       genomes,
+                       min_af,
+                       taxonomy)
+
+    def run_mash_fastani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
+        """Runs the mash and fastani pipeline.
+        This step is separated from the run function becausue it is called from 2 different
+        functions in the gtdbtk ( classify and ani_reps).
 
         Parameters
         ----------
@@ -98,11 +140,12 @@ class ANIRep(object):
 
         # Pre-filter using Mash if specified.
         if not no_mash:
+
             dir_mash = os.path.join(out_dir, DIR_ANI_REP_INT_MASH)
 
             mash = Mash(self.cpus, dir_mash, prefix)
             self.logger.info(f'Using Mash version {mash.version()}')
-            mash_results = mash.run(genomes, ref_genomes, max_d, mash_k, mash_v, mash_s, mash_db)
+            mash_results = mash.run(genomes, ref_genomes, max_d, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
             for qry_gid, ref_hits in mash_results.items():
                 d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
 
@@ -114,16 +157,7 @@ class ANIRep(object):
         self.logger.info(f'Calculating ANI with FastANI v{FastANI._get_version()}.')
         fastani = FastANI(self.cpus, force_single=True)
         fastani_results = fastani.run(d_compare, d_paths)
-
-        taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
-        ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
-        ANIClosestFile(out_dir,
-                       prefix,
-                       fastani_results,
-                       genomes,
-                       min_af,
-                       taxonomy)
-
+        return fastani_results
 
 class ANISummaryFile(object):
     name = 'ani_summary.tsv'

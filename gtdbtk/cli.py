@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
 from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL, MASH_K_VALUE, MASH_S_VALUE, MASH_D_VALUE, \
-    MASH_V_VALUE
+    MASH_V_VALUE, MASH_MAX_DISTANCE
 
 
 @contextmanager
@@ -269,6 +269,10 @@ def __mash_v(group):
     group.add_argument('--mash_v', default=MASH_V_VALUE, type=float,
                        help='maximum p-value to keep [0-1]')
 
+def __mash_max_distance(group):
+    group.add_argument('--mash_max_distance', default=MASH_MAX_DISTANCE, type=float,
+                       help='Maximum Mash distance to select a potential GTDB genome as representative '
+                            'of a user genome.')
 
 def __mash_db(group):
     group.add_argument('--mash_db', default=None, type=str,
@@ -366,7 +370,16 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
+        with arg_group(parser, 'optional Mash arguments') as grp:
+            __no_mash(grp)
+            __mash_k(grp)
+            __mash_s(grp)
+            __mash_d(grp)
+            __mash_v(grp)
+            __mash_db(grp)
+            __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
+            __prescreen(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
@@ -447,6 +460,14 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
+        with arg_group(parser, 'optional Mash arguments') as grp:
+            __no_mash(grp)
+            __mash_k(grp)
+            __mash_s(grp)
+            __mash_d(grp)
+            __mash_v(grp)
+            __mash_db(grp)
+            __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __prescreen(grp)
             __extension(grp)

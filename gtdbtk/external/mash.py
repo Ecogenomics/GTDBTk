@@ -8,6 +8,7 @@ from typing import Tuple, Dict
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import tqdm_log
+import gtdbtk.config.config as Config
 
 
 class Mash(object):
@@ -44,7 +45,7 @@ class Mash(object):
         except Exception:
             return 'unknown'
 
-    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s, mash_db) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
+    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s, mash_max_dist, mash_db) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
         """Run Mash on a set of reference and query genomes.
 
         Parameters
@@ -61,6 +62,8 @@ class Mash(object):
             Maximum p-value to report.
         mash_s: int
             Maximum number of non-redundant hashes.
+        max_mash_dist : float
+            The maximum Mash distance to consider a genome as a close match.
         mash_db : Optional[str]
             The path to read/write the pre-computed Mash reference sketch database.
 
@@ -74,7 +77,7 @@ class Mash(object):
         # Generate an output file comparing the distances between these genomes.
         mash_dists = DistanceFile(qry_sketch, ref_sketch, self.out_dir, self.prefix,
                                   self.cpus, max_d=mash_d, mash_v=mash_v)
-        results = mash_dists.read()
+        results = mash_dists.read(mash_max_dist)
 
         # Convert the results back to the accession
         path_to_qry = {v: k for (k, v) in qry.items()}
@@ -90,7 +93,7 @@ class DistanceFile(object):
     """The resulting distance file from the mash dist command."""
     name = 'mash_distances.tsv'
 
-    def __init__(self, qry_sketch, ref_sketch, root, prefix, cpus, max_d, mash_v):
+    def __init__(self, qry_sketch, ref_sketch, root, prefix, cpus, max_d, mash_v ,):
         """Create a new Mash distance file using these arguments.
 
         Parameters
@@ -132,7 +135,7 @@ class DistanceFile(object):
         if proc.returncode != 0:
             raise GTDBTkExit(f'Error running Mash dist: {proc.stderr.read()}')
 
-    def read(self) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
+    def read(self,max_mash_dist=100) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
         """Reads the results of the distance file.
 
         Returns
@@ -144,8 +147,9 @@ class DistanceFile(object):
             hits = re.findall(r'(.+)\t(.+)\t(.+)\t(.+)\t(\d+)\/(\d+)\n', fh.read())
         for ref_id, qry_id, dist, p_val, shared_n, shared_d in hits:
             dist, p_val = float(dist), float(p_val)
-            shared_num, shared_den = int(shared_n), int(shared_d)
-            out[qry_id][ref_id] = (dist, p_val, shared_num, shared_den)
+            if dist <= max_mash_dist:
+                shared_num, shared_den = int(shared_n), int(shared_d)
+                out[qry_id][ref_id] = (dist, p_val, shared_num, shared_den)
         return out
 
 
@@ -258,7 +262,7 @@ class QrySketchFile(SketchFile):
 
 
 class RefSketchFile(SketchFile):
-    name = 'gtdb_ref_sketch.msh'
+    name = Config.MASH_SKETCH_FILE
 
     def __init__(self, genomes, root, prefix, cpus, k, s, mash_db=None):
         """Create a query file for a given set of genomes.
