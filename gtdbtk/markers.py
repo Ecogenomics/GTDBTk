@@ -637,9 +637,9 @@ class Markers(object):
                 self.logger.log(Config.LOG_TASK,
                                 f'Masking columns of {domain_str} multiple sequence alignment using canonical mask.')
                 trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa,
-                                                             user_msa,
-                                                             gtdb_msa_mask,
-                                                             min_perc_aa / 100.0)
+                                                            user_msa,
+                                                           gtdb_msa_mask,
+                                                            min_perc_aa / 100.0)
                 self.logger.info('Masked {} alignment from {:,} to {:,} AAs.'.format(
                     domain_str,
                     len(list(user_msa.values())[0]),
