@@ -124,11 +124,15 @@ class ClassifySummaryFile:
     def write(self):
         """Writes the summary file to disk. None will be replaced with N/A"""
         make_sure_path_exists(os.path.dirname(self.path))
+        print(self.path)
         with open(self.path, 'w') as fh:
             fh.write('\t'.join(self.get_col_order()[0]) + '\n')
             for gid, row in sorted(self.rows.items()):
                 buf = list()
-                for data in self.get_col_order(row)[1]:
+                for idx,data in enumerate(self.get_col_order(row)[1]):
+                    # for the red_value field, we want to round the data to 5 decimals after the comma if the value is not None
+                    if idx==self.get_col_order()[0].index('red_value') and data is not None:
+                        data = round(data,5)
                     buf.append(self.none_value if data is None else str(data))
                 fh.write('\t'.join(buf) + '\n')
 
