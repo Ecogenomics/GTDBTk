@@ -74,11 +74,9 @@ def __extension(group):
     group.add_argument('-x', '--extension', type=str, default='fna',
                        help='extension of files to process, ``gz`` = gzipped')
 
-def __prescreen(group):
-    group.add_argument('--prescreen', action="store_true", default=False,
-                       help="Run a pre-screening step to classify genomes using mash and FastANI "
-                            "before the placement in the reference tree.")
-
+def __skip_ani_screen(group):
+    group.add_argument('--skip_ani_screen', action="store_true", default=False,
+                       help="Skip the ani_screening step to classify genomes using mash and FastANI ")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,
@@ -320,6 +318,10 @@ def __write_single_copy_genes(group):
                        help='output unaligned single-copy marker genes')
 
 
+def __prescreen(grp):
+    pass
+
+
 def get_main_parser():
     # Setup the main, and sub parsers.
     main_parser = argparse.ArgumentParser(
@@ -374,12 +376,11 @@ def get_main_parser():
             __no_mash(grp)
             __mash_k(grp)
             __mash_s(grp)
-            __mash_d(grp)
             __mash_v(grp)
             __mash_db(grp)
             __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __prescreen(grp)
+            __skip_ani_screen(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
@@ -469,7 +470,7 @@ def get_main_parser():
             __mash_db(grp)
             __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __prescreen(grp)
+            __skip_ani_screen(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)

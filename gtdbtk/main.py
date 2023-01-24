@@ -16,17 +16,21 @@
 ###############################################################################
 import argparse
 import logging
+import ntpath
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
+from datetime import datetime, timedelta
 from typing import Dict, Tuple
 
 from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.ani_rep import ANIRep
+from gtdbtk.ani_screen import ANIScreener
 from gtdbtk.biolib_lite.common import (check_dir_exists,
                                        check_file_exists,
                                        make_sure_path_exists,
@@ -39,6 +43,7 @@ from gtdbtk.config.output import *
 from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
+from gtdbtk.files.stage_logger import StageLoggerFile, ANI_Screen_Step, Identify_Step, Classify_Step, Align_Step
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.files.batchfile import Batchfile
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFile
@@ -52,7 +57,7 @@ from gtdbtk.tools import symlink_f, get_reference_ids, confirm, assert_outgroup_
 
 class OptionsParser(object):
 
-    def __init__(self, version):
+    def __init__(self, version,output_dir=None):
         """Initialization.
 
         Parameters
@@ -65,7 +70,20 @@ class OptionsParser(object):
         self.version = version
         self._check_package_compatibility()
 
-        self.genomes_to_process = None
+        #Setup the Stage Logger File
+        if output_dir is not None:
+            base_name = ntpath.basename(sys.argv[0])
+            if base_name == '__main__.py':
+                prog_name = __name__.split('.')[0]
+            else:
+                prog_name = base_name
+            #timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')
+            self.stage_logger_file = StageLoggerFile(output_dir=output_dir,
+                                                    version=self.version,
+                                                    command_line=f'{prog_name} {" ".join(sys.argv[1:])}',
+                                                    database_version = Config.VERSION_DATA,
+                                                    database_path=Config.GENERIC_PATH)
+            self.steps = self.stage_logger_file.stage_logger.steps
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
@@ -253,7 +271,7 @@ class OptionsParser(object):
 
         return taxonomy
 
-    def identify(self, options):
+    def identify(self, options , classified_genomes = None):
         """Identify marker genes in genomes.
 
         Parameters
@@ -261,6 +279,10 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
+
+        identify_step = Identify_Step()
+        identify_step.starts_at = datetime.now()
+        identify_step.output_dir = options.out_dir
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -273,7 +295,15 @@ class OptionsParser(object):
         genomes, tln_tables = self._genomes_to_process(options.genome_dir,
                                                        options.batchfile,
                                                        options.extension)
-        self.genomes_to_process = genomes
+        #if self.genomes_to_process does not exist, create it
+        if not hasattr(self, 'genomes_to_process'):
+            self.genomes_to_process = genomes
+
+        if classified_genomes is not None:
+            for marker_set_id in ['bac120', 'ar53']:
+                if marker_set_id in classified_genomes:
+                    for classified_genome in classified_genomes.get(marker_set_id).keys():
+                        genomes.pop(classified_genome, None)
 
         markers = Markers(options.cpus)
         markers.identify(genomes,
@@ -284,6 +314,13 @@ class OptionsParser(object):
                          options.genes,
                          options.write_single_copy_genes)
 
+        identify_step.ends_at = datetime.now()
+        duration = identify_step.ends_at - identify_step.starts_at
+        #we round the duration to the nearest second
+        identify_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        identify_step.status = 'completed'
+
+        self.steps.append(identify_step)
         self.logger.info('Done.')
 
     def align(self, options):
@@ -294,6 +331,10 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
+
+        align_step = Align_Step()
+        align_step.starts_at = datetime.now()
+        align_step.output_dir = options.out_dir
 
         check_dir_exists(options.identify_dir)
         make_sure_path_exists(options.out_dir)
@@ -314,6 +355,14 @@ class OptionsParser(object):
                       options.prefix,
                       options.outgroup_taxon if hasattr(options, 'outgroup_taxon') else None,
                       self.genomes_to_process)
+
+        align_step.ends_at = datetime.now()
+        duration = align_step.ends_at - align_step.starts_at
+        #we round the duration to the nearest second
+        align_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        align_step.status = 'completed'
+
+        self.steps.append(align_step)
 
         self.logger.info('Done.')
 
@@ -453,10 +502,29 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
+        classify_step = Classify_Step()
+        classify_step.starts_at = datetime.now()
+        classify_step.output_dir = options.out_dir
+
+        ani_summary_files = {}
+        processed_steps = [x for x in self.steps if isinstance(x,ANI_Screen_Step)]
+        if len(processed_steps) > 0:
+            previous_ani_step = processed_steps[0]
+            ani_summary_files = previous_ani_step.output_files
+
+
         check_dir_exists(options.align_dir)
         make_sure_path_exists(options.out_dir)
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
+
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            classify_step.input = options.genome_dir
+
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            classify_step.input = options.batchfile
 
 
         genomes, _ = self._genomes_to_process(options.genome_dir,
@@ -464,27 +532,100 @@ class OptionsParser(object):
                                               options.extension)
 
         classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
-        classify.run(genomes=genomes,
+        reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
                      fulltreeopt=options.full_tree,
-                     prescreen=options.prescreen,
+                     skip_ani_screen=options.skip_ani_screen,
                      no_mash=options.no_mash,
-                     mash_d=options.mash_d,
                      mash_k=options.mash_k,
                      mash_v=options.mash_v,
                      mash_s=options.mash_s,
                      mash_db=options.mash_db,
-                     mash_max_dist=options.mash_max_distance)
+                     mash_max_dist=options.mash_max_distance,
+                     ani_summary_files=ani_summary_files
+                     )
+
+        classify_step.ends_at = datetime.now()
+        duration = classify_step.ends_at - classify_step.starts_at
+        classify_step.output_files = reports
+        #we round the duration to the nearest second
+        classify_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        classify_step.status = 'completed'
+
+        self.steps.append(classify_step)
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
                          'designations. New designations should be based on one or more de novo trees, an '
                          'example of which can be produced by Tk in de novo mode.')
 
         self.logger.info('Done.')
+
+    def ani_screen(self, options ):
+        """Run a mash/FastANI screen of all user genomes
+        against the reference genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        ani_step = ANI_Screen_Step()
+        ani_step.starts_at = datetime.now()
+        ani_step.output_dir = options.out_dir
+
+
+
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            ani_step.input = options.genome_dir
+
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            ani_step.input = options.batchfile
+
+        make_sure_path_exists(options.out_dir)
+
+        genomes, tln_tables = self._genomes_to_process(options.genome_dir,
+                                                       options.batchfile,
+                                                       options.extension)
+        self.genomes_to_process = genomes
+
+        make_sure_path_exists(options.out_dir)
+
+        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                              options.batchfile,
+                                              options.extension)
+
+        aniscreener = ANIScreener(options.cpus)
+        classified_genomes,reports = aniscreener.run_aniscreen(
+            genomes=genomes,
+            no_mash=options.no_mash,
+            out_dir=options.out_dir,
+            prefix=options.prefix,
+            mash_k=options.mash_k,
+            mash_v=options.mash_v,
+            mash_s=options.mash_s,
+            mash_max_dist=options.mash_max_distance,
+            mash_db=options.mash_db)
+
+
+        self.logger.info('Done.')
+
+        ani_step.ends_at = datetime.now()
+        duration = ani_step.ends_at - ani_step.starts_at
+        #we round the duration to the nearest second
+        ani_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        ani_step.status = 'completed'
+        ani_step.output_files=reports
+
+        self.steps.append(ani_step)
+
+        return classified_genomes
 
     def trim_msa(self, options):
         """ Trim an untrimmed archaea or bacterial MSA file.
@@ -827,17 +968,23 @@ class OptionsParser(object):
                     self.logger.info('Exiting workflow.')
                     sys.exit(0)
 
-            # if options.prescreen is selected,
+            # if options.skip_aniscreen is false,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if options.prescreen:
+            if not options.skip_ani_screen:
                 if not options.mash_db:
                     self.logger.error('You must specify a path to the mash database with --mash_db')
                     sys.exit(1)
 
             #options.write_single_copy_genes = False
 
-            self.identify(options)
+            #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
+            # in the identify step.
+            classified_genomes = None
+            if not options.skip_ani_screen:
+                classified_genomes = self.ani_screen(options)
+
+            self.identify(options,classified_genomes)
 
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
@@ -855,25 +1002,35 @@ class OptionsParser(object):
 
             self.align(options)
 
+            # because we run ani_screen before the identify step, we do not need to rerun the
+            #ani step again, so we set the skip_aniscreen to True
+            options.skip_ani_screen = True
+
             self.classify(options)
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
 
+            self.stage_logger_file.write()
+
         elif options.subparser_name == 'identify':
             self.identify(options)
+            self.stage_logger_file.write()
         elif options.subparser_name == 'align':
             self.align(options)
+            self.stage_logger_file.write()
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
             # if options.prescreen is selected,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if options.prescreen:
+            if not options.skip_ani_screen:
                 if not options.mash_db:
                     self.logger.error('You must specify a path to the mash database with --mash_db')
                     sys.exit(1)
             self.classify(options)
+            self.stage_logger_file.write()
+
         elif options.subparser_name == 'root':
             self.root(options)
         elif options.subparser_name == 'decorate':

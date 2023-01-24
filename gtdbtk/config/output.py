@@ -49,7 +49,6 @@ PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
 PATH_AR53_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.ar53.disappearing_genomes.tsv')
 PATH_BAC120_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.bac120.disappearing_genomes.tsv')
 
-
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_TREE_MAPPING = join(DIR_CLASSIFY, '{prefix}.bac120.tree.mapping.tsv')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
@@ -61,6 +60,11 @@ PATH_BAC120_CLASS_LEVEL_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix
 PATH_BAC120_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.prescreened.msa.fasta')
 PATH_AR53_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.prescreened.msa.fasta')
 
+#Command: ani_screen
+DIR_ANISCREEN = join(DIR_CLASSIFY, 'ani_screen')
+DIR_ANISCREEN_INTERMEDIATE = join(DIR_ANISCREEN, 'intermediate_results')
+PATH_BAC120_ANI_FASTANI = join(DIR_ANISCREEN, '{prefix}.bac120_fastani.summary.tsv')
+PATH_AR53_ANI_FASTANI = join(DIR_ANISCREEN, '{prefix}.ar53_fastani.summary.tsv')
 
 
 DIR_PPLACER = join(DIR_CLASSIFY_INTERMEDIATE, 'pplacer')
@@ -100,4 +104,3 @@ DIR_ANI_REP_INT_MASH = join(DIR_ANI_REP_INT, 'mash')
 
 # General files
 PATH_WARNINGS = '{prefix}.warnings.log'
-
