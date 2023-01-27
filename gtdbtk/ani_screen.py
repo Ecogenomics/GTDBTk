@@ -1,6 +1,5 @@
 import logging
 import os
-from collections import defaultdict
 
 from gtdbtk.ani_rep import ANIRep, ANISummaryFile
 from gtdbtk.biolib_lite.common import make_sure_path_exists, canonical_gid
@@ -48,19 +47,19 @@ class ANIScreener(object):
         ani_rep = ANIRep(self.cpus)
         # we store all the mash information in the classify directory
         fastani_results = ani_rep.run_mash_fastani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
-                                                   prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
+                                                    prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
 
         taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
 
         mash_classified_user_genomes = self.sort_fastani_ani_screen(
-            fastani_results,taxonomy)
+             fastani_results,taxonomy)
 
         #We write the results in 2 different files for each domain
         reports = {}
         if mash_classified_user_genomes:
             for domain,results in mash_classified_user_genomes.items():
                 ani_summary_file = ANISummaryFile(os.path.join(out_dir,DIR_ANISCREEN),prefix,results,taxonomy,domain)
-                ani_summary_file.write()
+                ani_summary_file.write(ani_screen_step=True)
                 reports[domain] = os.path.join(out_dir,DIR_ANISCREEN,prefix + '.' + domain + '.ani_summary.tsv')
         len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
             if 'bac120' in mash_classified_user_genomes else 0
@@ -79,8 +78,10 @@ class ANIScreener(object):
 
         Parameters
         ----------
-        all_fastani_dict : dictionary listing the fastani ANI for each user genomes against the potential genomes
-
+        fastani_results : dict
+            The results of the FastANI run
+        taxonomy : dict
+            The taxonomy of the reference genomes
         """
         classified_user_genomes = {}
 

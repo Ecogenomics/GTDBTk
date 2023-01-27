@@ -381,6 +381,7 @@ class Classify(object):
         output_files = {}
 
         for marker_set_id in ('ar53', 'bac120'):
+            print('Running pplacer for marker set: {}'.format(marker_set_id))
             warning_counter, prodigal_fail_counter = 0, 0
             if marker_set_id == 'ar53':
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
@@ -422,7 +423,7 @@ class Classify(object):
                 # they still have to be written in the bac120 summary file:
                 if marker_set_id == 'bac120':
                     # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                    # This is an executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                    # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
                     # but they need to be included in one of the summary file
                     prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
                     if summary_file.has_row():
@@ -450,7 +451,7 @@ class Classify(object):
             genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
             # if mash_classified_user_genomes is has key marker_set_id, we
-            # need to had those genomes to the summary file and remove those genomes to the list of genomes
+            # need to add those genomes to the summary file and remove those genomes to the list of genomes
             # to process with pplacer
             if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
                 list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
@@ -623,7 +624,6 @@ class Classify(object):
                                                                    tree_to_process)
 
                 disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
-
                 class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
                                  tln_table_summary_file.genomes,
                                  bac_ar_diff, user_msa_file, red_dict_file.data, summary_file,
@@ -675,7 +675,7 @@ class Classify(object):
                 output_files.setdefault(marker_set_id, []).append(disappearing_genomes_file.path)
             summary_file.write()
             output_files.setdefault(marker_set_id, []).append(summary_file.path)
-            return output_files
+        return output_files
 
     def _add_warning_to_row(self,row,msa_dict,
                             trans_table_dict,
@@ -1391,7 +1391,7 @@ class Classify(object):
 
         Parameters
         ----------
-        all_fastani_dict : dictionary listing the fastani ANI for each user genomes against the potential genomes
+        fastani_results : dictionary listing the fastani ANI for each user genomes against the potential genomes
 
         """
         classified_user_genomes = {}

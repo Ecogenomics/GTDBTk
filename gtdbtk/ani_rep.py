@@ -6,10 +6,7 @@ from typing import List
 from gtdbtk.biolib_lite.common import canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
-from gtdbtk.config.config import (FASTANI_DIR,
-                                  FASTANI_GENOMES_EXT,
-                                  FASTANI_GENOME_LIST,
-                                  TAXONOMY_FILE,
+from gtdbtk.config.config import (TAXONOMY_FILE,
                                   AF_THRESHOLD)
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.exceptions import GTDBTkExit
@@ -70,14 +67,14 @@ class ANIRep(object):
         mash_s : int
             maximum number of non-redundant hashes
         min_af : float
-            alignment fraction to consider closest genome
+            alignment fraction to consider the closest genomes
         mash_db : Optional[str]
             The path to read/write the pre-computed Mash reference sketch database.
         """
-
+        max_mash_dist = mash_d
         fastani_results = self.run_mash_fastani(genomes, no_mash, mash_d, out_dir,
                                                 prefix, mash_k, mash_v,
-                                                mash_s, max_mash_dist=100, mash_db=mash_db)
+                                                mash_s, max_mash_dist, mash_db=mash_db)
 
         taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
         ani_summary_file = ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
@@ -91,7 +88,7 @@ class ANIRep(object):
 
     def run_mash_fastani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
         """Runs the mash and fastani pipeline.
-        This step is separated from the run function becausue it is called from 2 different
+        This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
 
         Parameters
@@ -113,7 +110,7 @@ class ANIRep(object):
         mash_s : int
             maximum number of non-redundant hashes
         min_af : float
-            alignment fraction to consider closest genome
+            alignment fraction to consider the closest genome
         mash_db : Optional[str]
             The path to read/write the pre-computed Mash reference sketch database.
         """
@@ -174,20 +171,21 @@ class ANISummaryFile(object):
         #self._write()
 
     @staticmethod
-    def get_col_order() -> List[str]:
+    def get_col_order(ani_screen_step=False) -> List[str]:
         """Return the column order that will be written. If a row is provided
         then format the row in that specific order."""
         cols = ['user_genome',
                    'reference_genome',
                    'fastani_ani',
                    'fastani_af',
-                   'reference_taxonomy',
-                   'other_related_references(genome_id,species_name,radius,ANI,AF)']
+                   'reference_taxonomy']
+        if ani_screen_step:
+            cols += ['other_related_references(genome_id,species_name,radius,ANI,AF)']
         return cols
 
-    def write(self):
+    def write(self,ani_screen_step=False):
         with open(self.path, 'w') as fh:
-            cols = self.get_col_order()
+            cols = self.get_col_order(ani_screen_step=ani_screen_step)
             fh.write(f'\t'.join(cols) + '\n')
             for qry_gid, ref_hits in sorted(self.results.items()):
                 for ref_gid, ref_hit in sorted(ref_hits.items(), key=lambda x: (-x[1]['af'], -x[1]['ani'], x[0])):
@@ -195,7 +193,10 @@ class ANISummaryFile(object):
                     taxonomy_str = ';'.join(self.taxonomy[canonical_rid])
                     fh.write(f'{qry_gid}\t{ref_gid}')
                     fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
-                    fh.write(f'\t{taxonomy_str}\t{ref_hit.get("other_related_refs","") or ""}\n')
+                    fh.write(f'\t{taxonomy_str}')
+                    if ani_screen_step:
+                        fh.write(f'\t{ref_hit.get("other_related_refs","") or ""}')
+                    fh.write(f'\n')
         self.logger.info(f'Summary of results saved to: {self.path}')
 
     def read(self):
@@ -205,7 +206,7 @@ class ANISummaryFile(object):
         with open(self.path) as fh:
 
             # Load and verify the columns match the expected order.
-            cols_exp = self.get_col_order()
+            cols_exp = self.get_col_order(True)
             cols_cur = fh.readline().strip().split('\t')
             if cols_exp != cols_cur:
                 raise GTDBTkExit(f'The classify summary file columns are inconsistent: {cols_cur}')
@@ -235,7 +236,7 @@ class ANIClosestFile(object):
         genomes : dict[str, str]
             Dict[genome_id] = fasta_path
         min_af : float
-            alignment fraction to consider closest genome
+            alignment fraction to consider the closest genome
         taxonomy: dict[str, tuple[str, str, str, str, str, str, str]]
             d[unique_id] -> [d__<taxon>, ..., s__<taxon>]
         """
