@@ -264,7 +264,7 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG: Skip pplacer
-        run_pplacer = True
+        run_pplacer = False
         if run_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
@@ -376,12 +376,11 @@ class Classify(object):
         if skip_ani_screen and ani_summary_files is not None:
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
             # and use them to generate the final taxonomy file
-            mash_classified_user_genomes = self._load_fastani_results_pre_pplacer(ani_summary_files)
+            mash_classified_user_genomes = self.load_fastani_results_pre_pplacer(ani_summary_files)
 
         output_files = {}
 
         for marker_set_id in ('ar53', 'bac120'):
-            print('Running pplacer for marker set: {}'.format(marker_set_id))
             warning_counter, prodigal_fail_counter = 0, 0
             if marker_set_id == 'ar53':
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
@@ -2134,7 +2133,7 @@ class Classify(object):
                 results.append(v[rank_index])
         return list(set(results))
 
-    def _load_fastani_results_pre_pplacer(self, ani_summary_files):
+    def load_fastani_results_pre_pplacer(self,ani_summary_files):
         """Load the FastANI results for the genomes classified with ANI Screen."""
         fastani_results={}
         for domain,ani_summary_file_path in ani_summary_files.items():
@@ -2176,6 +2175,21 @@ class Classify(object):
 
                 classified_user_genomes.setdefault(domain, []).append(summary_row)
         return classified_user_genomes
+
+    def convert_rows_to_dict(self,list_of_summary_rows):
+        """Convert a list of rows to a dictionary."""
+        dict_of_rows = {}
+        for domain,rows in list_of_summary_rows.items():
+            for row in rows:
+                if row.other_related_refs:
+                    infos ={row.gid:{row.fastani_ref: {'ani': row.fastani_ani,
+                                                 'af': row.fastani_af,
+                                                 'other_refs': row.other_related_refs}}}
+                else:
+                    infos ={row.gid:{row.fastani_ref: {'ani': row.fastani_ani, 'af': row.fastani_af}}}
+                dict_of_rows.setdefault(domain, {}).update(infos)
+
+        return dict_of_rows
 
 
 

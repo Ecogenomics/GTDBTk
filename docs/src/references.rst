@@ -9,6 +9,7 @@ References
    :widths: 100
    :header-rows: 0
 
+   * - Chaumeil PA, et al. 2022. `GTDB-Tk2: memory friendly classification with the genome taxonomy database <https://academic.oup.com/bioinformatics/article/38/23/5315/6758240>`_. *Bioinformatics*, btac672.
    * - Chaumeil PA, et al. 2019. `GTDB-Tk: A toolkit to classify genomes with the Genome Taxonomy Database <https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btz848/5626182>`_. *Bioinformatics*, btz848.
 
 

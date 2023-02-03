@@ -384,3 +384,5 @@ class Decorate(object):
                            schema='newick',
                            suppress_rooting=True,
                            unquoted_underscores=True)
+
+        return {'all':[output_tree]}

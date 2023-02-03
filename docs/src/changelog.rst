@@ -2,12 +2,13 @@
 Change log
 ==========
 
-2.x.x
+2.2.x
 -----
 
 Minor changes:
 
 * (`#433 <https://github.com/Ecogenomics/GTDBTk/issues/433>`_) Added additional checks to ensure that the `--outgroup_taxon` cannot be set to a domain (`root`, `de_novo_wf`).
+* (`#459 <https://github.com/Ecogenomics/GTDBTk/issues/459>`_ / `#462 <https://github.com/Ecogenomics/GTDBTk/issues/462>`_ )
 
 Bug Fixes:
 
