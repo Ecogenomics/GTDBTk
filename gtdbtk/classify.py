@@ -496,7 +496,7 @@ class Classify(object):
                     debug_file.close()
 
             else:
-                warning_counter,prodigal_fail_counter = 0
+                warning_counter,prodigal_fail_counter = 0,0
                 classify_tree = self.place_genomes(user_msa_file,
                                                    marker_set_id,
                                                    out_dir,

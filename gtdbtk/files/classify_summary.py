@@ -124,7 +124,6 @@ class ClassifySummaryFile:
     def write(self):
         """Writes the summary file to disk. None will be replaced with N/A"""
         make_sure_path_exists(os.path.dirname(self.path))
-        print(self.path)
         with open(self.path, 'w') as fh:
             fh.write('\t'.join(self.get_col_order()[0]) + '\n')
             for gid, row in sorted(self.rows.items()):

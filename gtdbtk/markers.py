@@ -207,6 +207,7 @@ class Markers(object):
                 'Using supplied genomes as called genes, skipping Prodigal.')
             genome_dictionary = dict()
             for gid, gpath in genomes.items():
+
                 genome_dictionary[gid] = {'aa_gene_path': gpath,
                                           'translation_table_path': None,
                                           'nt_gene_path': None,
@@ -216,7 +217,7 @@ class Markers(object):
                 # so we can use this symlink in the align step
                 symlink_protein_dir = os.path.join(self.marker_gene_dir, gid)
                 make_sure_path_exists(symlink_protein_dir)
-                symlink_f(gpath, os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
+                symlink_f(os.path.abspath(gpath), os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
 
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.log(Config.LOG_TASK,
