@@ -43,7 +43,7 @@ from gtdbtk.config.output import *
 from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
-from gtdbtk.files.stage_logger import StageLoggerFile, ANI_Screen_Step, Identify_Step, Classify_Step, Align_Step, \
+from gtdbtk.files.stage_logger import StageLoggerFile, ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
     InferStep, RootStep, DecorateStep
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.files.batchfile import Batchfile
@@ -280,7 +280,7 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
-        identify_step = Identify_Step()
+        identify_step = IdentifyStep()
         identify_step.starts_at = datetime.now()
         identify_step.output_dir = options.out_dir
         identify_step.genes = options.genes
@@ -339,7 +339,7 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
-        align_step = Align_Step()
+        align_step = AlignStep()
         align_step.starts_at = datetime.now()
         align_step.output_dir = options.out_dir
         align_step.skip_gtdb_refs = options.skip_gtdb_refs
@@ -379,13 +379,13 @@ class OptionsParser(object):
         duration = align_step.ends_at - align_step.starts_at
         #we round the duration to the nearest second
         align_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        align_step.output_files = reports
         align_step.status = 'completed'
 
         self.stage_logger.steps.append(align_step)
 
         self.logger.info('Done.')
 
-        return reports
 
     def infer(self, options):
         """Infer a tree from a user specified MSA.
@@ -403,7 +403,6 @@ class OptionsParser(object):
         infer_step.prot_model = options.prot_model
         infer_step.no_support = options.no_support
         infer_step.gamma = options.gamma
-        infer_step.classify_dir = options.classify_dir
 
 
         check_file_exists(options.msa_file)
@@ -445,6 +444,8 @@ class OptionsParser(object):
         #we round the duration to the nearest second
         infer_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
         infer_step.status = 'completed'
+
+        self.stage_logger.steps.append(infer_step)
 
         self.logger.info('Done.')
 
@@ -539,7 +540,7 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
-        classify_step = Classify_Step()
+        classify_step = ClassifyStep()
         classify_step.starts_at = datetime.now()
         classify_step.output_dir = options.out_dir
         classify_step.debug_option = options.debug
@@ -553,8 +554,8 @@ class OptionsParser(object):
         classify_step.mash_max_dist = options.mash_max_distance
 
         ani_summary_files = {}
-        if self.stage_logger_file.stage_logger.has_stage(ANI_Screen_Step):
-            previous_ani_step = self.stage_logger_file.stage_logger.get_stage(ANI_Screen_Step)
+        if self.stage_logger_file.stage_logger.has_stage(ANIScreenStep):
+            previous_ani_step = self.stage_logger_file.stage_logger.get_stage(ANIScreenStep)
             ani_summary_files = previous_ani_step.output_files
 
 
@@ -620,7 +621,7 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
-        ani_step = ANI_Screen_Step()
+        ani_step = ANIScreenStep()
         ani_step.starts_at = datetime.now()
         ani_step.output_dir = options.out_dir
         ani_step.mash_db = options.mash_db
@@ -738,6 +739,8 @@ class OptionsParser(object):
         check_file_exists(options.input_tree)
         assert_outgroup_taxon_valid(options.outgroup_taxon)
 
+        root_step.outgroup_taxon = options.outgroup_taxon
+
         root_step.input_tree = options.input_tree
         # set gtdbtk_classification_file exists in options we can use it
         root_step.gtdbtk_classification_file=options.gtdbtk_classification_file if hasattr(options, 'gtdbtk_classification_file') else None
@@ -761,7 +764,6 @@ class OptionsParser(object):
         #we round the duration to the nearest second
         root_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
         root_step.status = 'completed'
-        root_step.output_files=reports
 
         self.stage_logger.steps.append(root_step)
 
@@ -1073,9 +1075,9 @@ class OptionsParser(object):
                 #If the ani_screen step has been ran, we need to skip it.
                 self.stage_logger_file.read()
                 stage_logger = self.stage_logger_file.stage_logger
-                if stage_logger.has_stage(ANI_Screen_Step):
+                if stage_logger.has_stage(ANIScreenStep):
                     # we get the genomes already classified by the ani_screen step
-                    previous_ani_step = stage_logger.get_stage(ANI_Screen_Step)
+                    previous_ani_step = stage_logger.get_stage(ANIScreenStep)
                     if previous_ani_step.is_complete():
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
@@ -1172,5 +1174,8 @@ class OptionsParser(object):
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')
             sys.exit(1)
+
+        if self.stage_logger.steps:
+            self.stage_logger_file.write()
 
         return 0

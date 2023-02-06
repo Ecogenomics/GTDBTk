@@ -152,6 +152,8 @@ class Markers(object):
                         with open(marker_path, 'w') as fh:
                             fh.write('\n'.join(to_write))
 
+        return reports
+
     def identify(self, genomes, tln_tables, out_dir, prefix, force, genes, write_single_copy_genes):
         """Identify marker genes in genomes.
 

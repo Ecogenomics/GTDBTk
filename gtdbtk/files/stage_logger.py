@@ -7,9 +7,7 @@ from pydantic import BaseModel
 class Steps(BaseModel):
     """ Information about a specific step of GTDB-Tk"""
     name: str
-    input: Optional[str]
     output_dir: Optional[str]
-    output_files: Optional[Dict]
     starts_at: Optional[str]
     ends_at: Optional[str]
     duration: Optional[str]
@@ -83,8 +81,6 @@ class InferStep(Steps):
     prot_model: Optional[str]
     no_support: Optional[bool]
     gamma: Optional[bool]
-    classify_dir: Optional[str]
-    output_files: Optional[Dict]
 
 class RootStep(Steps):
     """ Information about the Root step of GTDB-Tk"""
@@ -93,7 +89,6 @@ class RootStep(Steps):
     gtdbtk_classification_file: Optional[str]
     custom_taxonomy_file: Optional[str]
     outgroup_taxon: Optional[str]
-    output_files: Optional[Dict]
 
 class DecorateStep(Steps):
     """ Information about the Decorate step of GTDB-Tk"""
