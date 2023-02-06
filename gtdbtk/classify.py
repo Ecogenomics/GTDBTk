@@ -49,7 +49,6 @@ from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
 from gtdbtk.files.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
-
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.split import Split
@@ -264,7 +263,7 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG: Skip pplacer
-        run_pplacer = False
+        run_pplacer = True
         if run_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
