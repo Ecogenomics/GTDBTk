@@ -22,6 +22,8 @@ class Steps(BaseModel):
 class ANIScreenStep(Steps):
     """ Information about the ANI screen step of GTDB-Tk"""
     name: str = "ANI screen"
+    genome_dir: Optional[str]
+    batchfile: Optional[str]
     mash_k: Optional[str]
     mash_s: Optional[str]
     mash_v: Optional[str]

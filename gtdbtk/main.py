@@ -634,11 +634,11 @@ class OptionsParser(object):
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
-            ani_step.input = options.genome_dir
+            ani_step.genome_dir = options.genome_dir
 
         if options.batchfile:
             check_file_exists(options.batchfile)
-            ani_step.input = options.batchfile
+            ani_step.batchfile = options.batchfile
 
         make_sure_path_exists(options.out_dir)
 
