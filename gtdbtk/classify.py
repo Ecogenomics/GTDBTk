@@ -346,11 +346,12 @@ class Classify(object):
         # rest of the pipeline.
         mash_classified_user_genomes = {}
         if not skip_ani_screen:
-            # if mash_db finishes with a backslash, it should be considered a directory
-            if mash_db.endswith('/'):
-                make_sure_path_exists(mash_db)
-            if os.path.isdir(mash_db):
-                mash_db = os.path.join(mash_db, Config.MASH_SKETCH_FILE)
+            if not no_mash:
+                # if mash_db finishes with a backslash, it should be considered a directory
+                if mash_db.endswith('/'):
+                    make_sure_path_exists(mash_db)
+                if os.path.isdir(mash_db):
+                    mash_db = os.path.join(mash_db, Config.MASH_SKETCH_FILE)
 
             # we set mash_d == mash_max_dist to avoid user to run mash with impossible values
             mash_d = mash_max_dist

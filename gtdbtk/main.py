@@ -71,6 +71,8 @@ class OptionsParser(object):
         self.version = version
         self._check_package_compatibility()
 
+        self.genomes_to_process = None
+
         #Setup the Stage Logger File
         if output_dir is not None:
             base_name = ntpath.basename(sys.argv[0])
@@ -733,7 +735,6 @@ class OptionsParser(object):
 
         root_step = RootStep()
         root_step.starts_at = datetime.now()
-        root_step.output_dir = options.out_dir
 
 
         check_file_exists(options.input_tree)
@@ -765,7 +766,9 @@ class OptionsParser(object):
         root_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
         root_step.status = 'completed'
 
-        self.stage_logger.steps.append(root_step)
+        # if self.stage_logger exists, we add the step to the stage_logger
+        if hasattr(self, 'stage_logger'):
+            self.stage_logger.steps.append(root_step)
 
         self.logger.info('Done.')
 
@@ -780,7 +783,6 @@ class OptionsParser(object):
 
         decorate_step = DecorateStep()
         decorate_step.starts_at = datetime.now()
-        decorate_step.output_dir = options.out_dir
 
         check_file_exists(options.input_tree)
 
@@ -828,7 +830,10 @@ class OptionsParser(object):
         decorate_step.status = 'completed'
         decorate_step.output_files=reports
 
-        self.stage_logger.steps.append(decorate_step)
+        if hasattr(self, 'stage_logger'):
+            self.stage_logger.steps.append(decorate_step)
+
+        self.logger.info('Done.')
 
     def check_install(self):
         """ Verify all GTDB-Tk data files are present.
@@ -1060,10 +1065,10 @@ class OptionsParser(object):
             # if options.skip_aniscreen is false,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if not options.skip_ani_screen:
-                if not options.mash_db:
-                    self.logger.error('You must specify a path to the mash database with --mash_db')
-                    sys.exit(1)
+            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
+                print(options.skip_ani_screen, options.no_mash, options.mash_db)
+                self.logger.error('You must specify a path to the mash database with --mash_db')
+                sys.exit(1)
 
             #options.write_single_copy_genes = False
 
@@ -1127,24 +1132,20 @@ class OptionsParser(object):
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
 
-            self.stage_logger_file.write()
 
         elif options.subparser_name == 'identify':
             self.identify(options)
-            self.stage_logger_file.write()
         elif options.subparser_name == 'align':
             self.align(options)
-            self.stage_logger_file.write()
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
             # if options.skip_ani_screen is not selected,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if not options.skip_ani_screen:
-                if not options.mash_db:
-                    self.logger.error('You must specify a path to the mash database with --mash_db')
-                    sys.exit(1)
+            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
+                print(options.skip_ani_screen, options.no_mash, options.mash_db)
+                self.logger.error('You must specify a path to the mash database with --mash_db')
             self.classify(options)
             self.stage_logger_file.write()
 
@@ -1175,7 +1176,7 @@ class OptionsParser(object):
                               options.subparser_name + '"\n')
             sys.exit(1)
 
-        if self.stage_logger.steps:
+        if hasattr(self,'stage_logger' ) and self.stage_logger.steps:
             self.stage_logger_file.write()
 
         return 0
