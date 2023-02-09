@@ -263,7 +263,7 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG: Skip pplacer
-        run_pplacer = True
+        run_pplacer = False
         if run_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
@@ -1379,7 +1379,7 @@ class Classify(object):
                                                            element[0]),
                                                        round(
                                                            element[1].get('ani'), 2),
-                                                       element[1].get('af'))
+                                                       round(element[1].get('af'),3))
                 note_list.append(note_str)
         return note_list
 
@@ -1426,7 +1426,7 @@ class Classify(object):
                 summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
                     add_ncbi_prefix(fastani_matching_reference)))
                 summary_row.fastani_ani = round(current_ani, 2)
-                summary_row.fastani_af = current_af
+                summary_row.fastani_af = round(current_af, 3)
                 taxa_str = ";".join(self.gtdb_taxonomy.get(
                     add_ncbi_prefix(fastani_matching_reference)))
                 summary_row.classification = standardise_taxonomy(
@@ -1538,7 +1538,7 @@ class Classify(object):
                         summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
                             add_ncbi_prefix(fastani_matching_reference)))
                         summary_row.fastani_ani = round(current_ani, 2)
-                        summary_row.fastani_af = current_af
+                        summary_row.fastani_af = round(current_af,3)
                         if pplacer_leafnode == fastani_matching_reference:
                             if taxa_str.endswith("s__"):
                                 taxa_str = taxa_str + pplacer_leafnode
@@ -1571,8 +1571,8 @@ class Classify(object):
                             if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
                                 summary_row.closest_placement_ani = round(all_fastani_dict.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
-                                summary_row.closest_placement_af = all_fastani_dict.get(
-                                    userleaf.taxon.label).get(pplacer_leafnode).get('af')
+                                summary_row.closest_placement_af = round(all_fastani_dict.get(
+                                    userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
                             summary_row.classification_method = 'ANI'
 
                             if len(sorted_dict) > 0:
@@ -1593,8 +1593,8 @@ class Classify(object):
                         if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
                             summary_row.closest_placement_ani = round(all_fastani_dict.get(
                                 userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
-                            summary_row.closest_placement_af = all_fastani_dict.get(
-                                userleaf.taxon.label).get(pplacer_leafnode).get('af')
+                            summary_row.closest_placement_af = round(all_fastani_dict.get(
+                                userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
 
                         if len(sorted_dict) > 0:
                             other_ref = '; '.join(self.formatnote(
@@ -1656,7 +1656,7 @@ class Classify(object):
                         summary_row.fastani_ani = round(current_ani, 2)
                         current_af = all_fastani_dict.get(userleaf.taxon.label).get(
                             fastani_matching_reference).get('af')
-                        summary_row.fastani_af = current_af
+                        summary_row.fastani_af = round(current_af,3)
                         summary_row.note = 'topological placement and ANI have incongruent species assignments'
                         if len(warnings) > 0:
                             summary_row.warnings = ';'.join(warnings)
@@ -2167,7 +2167,7 @@ class Classify(object):
                 summary_row.fastani_tax = fastani_results.get(gid).get(
                         fastani_matching_reference).get('taxonomy')
                 summary_row.fastani_ani = round(current_ani, 2)
-                summary_row.fastani_af = current_af
+                summary_row.fastani_af = round(current_af,3)
                 taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(fastani_matching_reference)))
                 summary_row.classification = standardise_taxonomy(
