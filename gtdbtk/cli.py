@@ -372,15 +372,16 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
+        with mutex_group(parser, required=True) as grp:
+            __skip_ani_screen(grp)
+            __mash_db(grp)
         with arg_group(parser, 'optional Mash arguments') as grp:
             __no_mash(grp)
             __mash_k(grp)
             __mash_s(grp)
             __mash_v(grp)
-            __mash_db(grp)
             __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __skip_ani_screen(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
@@ -461,16 +462,16 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
+        with mutex_group(parser, required=True) as grp:
+            __skip_ani_screen(grp)
+            __mash_db(grp)
         with arg_group(parser, 'optional Mash arguments') as grp:
             __no_mash(grp)
             __mash_k(grp)
             __mash_s(grp)
-            __mash_d(grp)
             __mash_v(grp)
-            __mash_db(grp)
             __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __skip_ani_screen(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
