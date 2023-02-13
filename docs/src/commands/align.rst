@@ -22,12 +22,14 @@ Files output
 
 
 * :ref:`[prefix].log <files/gtdbtk.log>`
+* :ref:`[prefix].json <files/gtdbtk.json>`
 * :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
-* :ref:`align/[prefix].[domain].msa.fasta.gz <files/msa.fasta>`
-* :ref:`align/[prefix].[domain].user_msa.fasta.gz <files/user_msa.fasta>`
-* :ref:`align/[prefix].[domain].filtered.tsv <files/filtered.tsv>`
-* :ref:`align/intermediate_results/[prefix].[domain].marker_info.tsv <files/marker_info.tsv>`
-
+* align
+    * :ref:`[prefix].[domain].msa.fasta.gz <files/msa.fasta>`
+    * :ref:`[prefix].[domain].user_msa.fasta.gz <files/user_msa.fasta>`
+    * :ref:`[prefix].[domain].filtered.tsv <files/filtered.tsv>`
+    * intermediate_results
+        * :ref:`[prefix].[domain].marker_info.tsv <files/marker_info.tsv>`
 
 Example
 -------

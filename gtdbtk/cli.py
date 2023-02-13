@@ -4,7 +4,8 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL
+from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL, MASH_K_VALUE, MASH_S_VALUE, MASH_D_VALUE, \
+    MASH_V_VALUE, MASH_MAX_DISTANCE
 
 
 @contextmanager
@@ -73,6 +74,9 @@ def __extension(group):
     group.add_argument('-x', '--extension', type=str, default='fna',
                        help='extension of files to process, ``gz`` = gzipped')
 
+def __skip_ani_screen(group):
+    group.add_argument('--skip_ani_screen', action="store_true", default=False,
+                       help="Skip the ani_screening step to classify genomes using mash and FastANI ")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,
@@ -245,24 +249,28 @@ def __no_mash(group):
 
 
 def __mash_k(group):
-    group.add_argument('--mash_k', default=16, type=int,
+    group.add_argument('--mash_k', default=MASH_K_VALUE, type=int,
                        help='k-mer size [1-32]')
 
 
 def __mash_s(group):
-    group.add_argument('--mash_s', default=5000, type=int,
+    group.add_argument('--mash_s', default=MASH_S_VALUE, type=int,
                        help='maximum number of non-redundant hashes')
 
 
 def __mash_d(group):
-    group.add_argument('--mash_d', default=0.1, type=float,
+    group.add_argument('--mash_d', default=MASH_D_VALUE, type=float,
                        help='maximum distance to keep [0-1]')
 
 
 def __mash_v(group):
-    group.add_argument('--mash_v', default=1.0, type=float,
+    group.add_argument('--mash_v', default=MASH_V_VALUE, type=float,
                        help='maximum p-value to keep [0-1]')
 
+def __mash_max_distance(group):
+    group.add_argument('--mash_max_distance', default=MASH_MAX_DISTANCE, type=float,
+                       help='Maximum Mash distance to select a potential GTDB genome as representative '
+                            'of a user genome.')
 
 def __mash_db(group):
     group.add_argument('--mash_db', default=None, type=str,
@@ -308,6 +316,10 @@ def __domain(group, required):
 def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
                        help='output unaligned single-copy marker genes')
+
+
+def __prescreen(grp):
+    pass
 
 
 def get_main_parser():
@@ -360,6 +372,15 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
+        with mutex_group(parser, required=True) as grp:
+            __skip_ani_screen(grp)
+            __mash_db(grp)
+        with arg_group(parser, 'optional Mash arguments') as grp:
+            __no_mash(grp)
+            __mash_k(grp)
+            __mash_s(grp)
+            __mash_v(grp)
+            __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __full_tree(grp)
             __extension(grp)
@@ -441,6 +462,15 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
+        with mutex_group(parser, required=True) as grp:
+            __skip_ani_screen(grp)
+            __mash_db(grp)
+        with arg_group(parser, 'optional Mash arguments') as grp:
+            __no_mash(grp)
+            __mash_k(grp)
+            __mash_s(grp)
+            __mash_v(grp)
+            __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)

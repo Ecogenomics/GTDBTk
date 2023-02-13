@@ -366,6 +366,9 @@ class Translate(object):
                 ncbi_classification = ncbi_lineages[mv_taxon]
                 break
 
+        if not ncbi_classification:
+            ncbi_classification = self.rank_prefix
+
         return ';'.join(ncbi_classification)
 
     def ncbi_majority_vote(self,

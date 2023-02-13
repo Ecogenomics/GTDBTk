@@ -117,6 +117,8 @@ class RerootTree(object):
                                suppress_rooting=True, unquoted_underscores=True)
             self.logger.info(f'Rerooted tree written to: {output_tree}')
 
+        return {'all':[output_tree]}
+
     def midpoint(self, input_tree, output_tree):
         """Reroot tree bat midpoint.
 
