@@ -1,7 +1,7 @@
 .. _files/gtdbtk.json:
 
 gtdbtk.json
-==========
+===========
 
 The console output of GTDB-Tk saved to disk in a JSON format.
 

@@ -39,7 +39,7 @@ Files output
 * ani_screen
     * intermediate_results
         * mash
-            * :ref:`[prefix].mash_distances.tsv <files/mash_distances.tsv>`
+            * :ref:`[prefix].mash_distances.tsv <files/mash_distances.msh>`
             * :ref:`[prefix].user_query_sketch.msh <files/user_query_sketch.msh>`
 * :ref:`[prefix].[domain].summary.tsv <files/summary.tsv>`
 * :ref:`[prefix].log <files/gtdbtk.log>`

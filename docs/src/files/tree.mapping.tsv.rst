@@ -1,6 +1,6 @@
-.. _files/tree_mapping.tsv:
+.. _files/tree.mapping.tsv:
 
-tree_mapping.tsv
+tree.mapping.tsv
 ==================
 
 Map between genomes and the class_level taxonomy tree used to classify them.
