@@ -9,7 +9,7 @@ Minor changes:
 
 * (`#433 <https://github.com/Ecogenomics/GTDBTk/issues/433>`_) Added additional checks to ensure that the `--outgroup_taxon` cannot be set to a domain (`root`, `de_novo_wf`).
 * (`#459 <https://github.com/Ecogenomics/GTDBTk/issues/459>`_ / `#462 <https://github.com/Ecogenomics/GTDBTk/issues/462>`_ ) Fix deprecated np.bool in prodigal_biolib.py. Special thanks to @neoformit for his contribution.
-* (`#466 <http://github.com/Ecogenomics/GTDBTk/issues/466>`_) RED value has been rounded to 5 decimals after the coma.
+* (`#466 <http://github.com/Ecogenomics/GTDBTk/issues/466>`_) RED value has been rounded to 5 decimals after the comma.
 * (`#451 <http://github.com/Ecogenomics/GTDBTk/issues/451>`_) Extra checks have been added when Prodigal fails.
 * (`#448 <http://github.com/Ecogenomics/GTDBTk/issues/448>`_) Warning has been added when all the genomes are filtered out and not classified.
 
