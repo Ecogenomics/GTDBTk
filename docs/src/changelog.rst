@@ -2,6 +2,14 @@
 Change log
 ==========
 
+2.2.1
+-----
+
+Build:
+
+* (`#470 <https://github.com/Ecogenomics/GTDBTk/issues/470>`_) Add missing Pydantic dependency.
+
+
 2.2.0
 -----
 
