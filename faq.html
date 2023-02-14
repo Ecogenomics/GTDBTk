@@ -41,6 +41,8 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
+    <script defer data-domain="ecogenomics.github.io/gtdbtk" src="https://plausible.gtdb.ecogenomic.org/js/script.js"></script>
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-84847737-2"></script>
     <script>
@@ -120,6 +122,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes">GTDB-Tk reaches the memory limit / pplacer crashes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#validating-species-assignments-with-average-nucleotide-identity">Validating species assignments with average nucleotide identity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fastani-using-more-threads-than-allocated">FastANI using more threads than allocated</a></li>
 </ul>
 </li>
 </ul>
@@ -287,6 +290,22 @@ genomes is within the species ANI circumscription radius (typically, 95%) and th
 In some circumstances, the phylogenetic placement of a query genome may not support the species assignment.
 GTDB r207 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the <a class="reference external" href="https://gtdb.ecogenomic.org/">GTDB</a> website.</p>
+</div>
+<div class="section" id="fastani-using-more-threads-than-allocated">
+<h2>FastANI using more threads than allocated<a class="headerlink" href="#fastani-using-more-threads-than-allocated" title="Permalink to this headline">¶</a></h2>
+<p>If you are using FastANI version 1.33 then you may run into an issue where FastANI will use more threads than you allocate.
+This can be problematic if running GTDB-Tk on a HPC where you have a limited number of threads available.</p>
+<p>This issue has been <a class="reference external" href="https://github.com/ParBLiSS/FastANI/issues/101">reported to the FastANI developers (#101)</a>.</p>
+<p>Depending on how you installed GTDB-Tk there are different ways to downgrade FastANI to version 1.32.</p>
+<p><strong>Manual:</strong></p>
+<p>Simplify download and install the FastANI binary from <a class="reference external" href="https://github.com/ParBLiSS/FastANI/releases/tag/v1.32">here</a>.</p>
+<p><strong>Conda:</strong></p>
+<p>From GTDB-Tk v2.0.0 the conda environment will automatically have FastANI v1.3 installed. Otherwise run:</p>
+<p><code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">bioconda</span> <span class="pre">fastani==1.32</span></code></p>
+<p><strong>Docker:</strong></p>
+<p>From GTDB-Tk v2.2.2 the Docker cotnainer will automatically have FastANI v1.32 installed. Otherwise, manually
+build the container from the <a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile">Dockerfile</a>, making
+sure to specify FastANI v1.32.</p>
 </div>
 </div>
 

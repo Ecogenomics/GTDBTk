@@ -68,3 +68,30 @@ genomes is within the species ANI circumscription radius (typically, 95%) and th
 In some circumstances, the phylogenetic placement of a query genome may not support the species assignment.
 GTDB r207 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the `GTDB <https://gtdb.ecogenomic.org/>`_ website.
+
+
+FastANI using more threads than allocated
+-----------------------------------------
+
+If you are using FastANI version 1.33 then you may run into an issue where FastANI will use more threads than you allocate.
+This can be problematic if running GTDB-Tk on a HPC where you have a limited number of threads available.
+
+This issue has been `reported to the FastANI developers (#101) <https://github.com/ParBLiSS/FastANI/issues/101>`_.
+
+Depending on how you installed GTDB-Tk there are different ways to downgrade FastANI to version 1.32.
+
+**Manual:**
+
+Simplify download and install the FastANI binary from `here <https://github.com/ParBLiSS/FastANI/releases/tag/v1.32>`_.
+
+**Conda:**
+
+From GTDB-Tk v2.0.0 the conda environment will automatically have FastANI v1.3 installed. Otherwise run:
+
+``conda install -c bioconda fastani==1.32``
+
+**Docker:**
+
+From GTDB-Tk v2.2.2 the Docker cotnainer will automatically have FastANI v1.32 installed. Otherwise, manually
+build the container from the `Dockerfile <https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile>`_, making
+sure to specify FastANI v1.32.
