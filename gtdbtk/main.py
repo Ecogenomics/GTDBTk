@@ -492,7 +492,7 @@ class OptionsParser(object):
 
             shutil.copytree(input_dir, genome_test_dir)
 
-            args = ['gtdbtk', 'classify_wf', '--genome_dir', genome_test_dir,
+            args = ['gtdbtk', 'classify_wf','--skip_ani_screen', '--genome_dir', genome_test_dir,
                     '--out_dir', output_dir, '--cpus', str(options.cpus), '-f']
             self.logger.info('Command: {}'.format(' '.join(args)))
 
