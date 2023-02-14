@@ -24,11 +24,10 @@ from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
-from gtdbtk.io.classify_summary import ClassifySummaryFileRow
-from gtdbtk.io.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
-from gtdbtk.io.tree_mapping import GenomeMappingFileRow
-from gtdbtk.tools import TreeTraversal, standardise_taxonomy
-
+from gtdbtk.files.classify_summary import ClassifySummaryFileRow
+from gtdbtk.files.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
+from gtdbtk.files.tree_mapping import GenomeMappingFileRow
+from gtdbtk.tools import TreeTraversal, standardise_taxonomy, aa_percent_msa
 
 class Split(object):
     """Determine taxonomic classification of genomes by ML placement using the Split Methods."""
@@ -339,7 +338,8 @@ class Split(object):
 
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
-    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,tree_mapping_file):
+    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,
+                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,warning_counter):
         mapped_rank = {}
         counter = 0
         high_taxonomy_used = {}
@@ -367,6 +367,23 @@ class Split(object):
                     summary_row.pplacer_tax = v.get('pplacer_tax')
                     summary_row.red_value = v.get('rel_dist')
                     summary_row.note = 'classification based on placement in backbone tree'
+                    summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
+                    summary_row.tln_table = trans_table_dict.get(summary_row.gid)
+
+                    warnings = []
+                    if summary_row.gid in percent_multihit_dict:
+                        warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                            percent_multihit_dict.get(summary_row.gid)))
+                    if summary_row.gid in bac_ar_diff:
+                        warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                            bac_ar_diff.get(summary_row.gid).get('bac120'),
+                            bac_ar_diff.get(summary_row.gid).get('ar53')))
+                    if len(warnings) > 0:
+                        if summary_row.warnings is not None:
+                            warnings.extend(summary_row.warnings.split(';'))
+                        summary_row.warnings = ';'.join(set(warnings))
+                        warning_counter += 1
+
 
                     mapping_row = GenomeMappingFileRow()
                     mapping_row.gid = k
@@ -377,4 +394,4 @@ class Split(object):
                     tree_mapping_file.add_row(mapping_row)
                     summary_file.add_row(summary_row)
 
-        return mapped_rank, counter , high_taxonomy_used
+        return mapped_rank,warning_counter, counter , high_taxonomy_used

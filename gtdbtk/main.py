@@ -14,19 +14,23 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.     #
 #                                                                             #
 ###############################################################################
-
+import argparse
 import logging
+import ntpath
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
+from datetime import datetime, timedelta
 from typing import Dict, Tuple
 
 from tqdm import tqdm
 
 import gtdbtk.config.config as Config
 from gtdbtk.ani_rep import ANIRep
+from gtdbtk.ani_screen import ANIScreener
 from gtdbtk.biolib_lite.common import (check_dir_exists,
                                        check_file_exists,
                                        make_sure_path_exists,
@@ -39,20 +43,22 @@ from gtdbtk.config.output import *
 from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
+from gtdbtk.files.stage_logger import StageLoggerFile, ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
+    InferStep, RootStep, DecorateStep
 from gtdbtk.infer_ranks import InferRanks
-from gtdbtk.io.batchfile import Batchfile
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR53
+from gtdbtk.files.batchfile import Batchfile
+from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFile
 from gtdbtk.markers import Markers
 from gtdbtk.misc import Misc
 from gtdbtk.model.enum import Domain
 from gtdbtk.pipeline.export_msa import export_msa
 from gtdbtk.reroot_tree import RerootTree
-from gtdbtk.tools import symlink_f, get_reference_ids, confirm
+from gtdbtk.tools import symlink_f, get_reference_ids, confirm, assert_outgroup_taxon_valid
 
 
 class OptionsParser(object):
 
-    def __init__(self, version):
+    def __init__(self, version,output_dir=None):
         """Initialization.
 
         Parameters
@@ -66,6 +72,21 @@ class OptionsParser(object):
         self._check_package_compatibility()
 
         self.genomes_to_process = None
+
+        #Setup the Stage Logger File
+        if output_dir is not None:
+            base_name = ntpath.basename(sys.argv[0])
+            if base_name == '__main__.py':
+                prog_name = __name__.split('.')[0]
+            else:
+                prog_name = base_name
+            #timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')
+            self.stage_logger_file = StageLoggerFile(output_dir=output_dir,
+                                                    version=self.version,
+                                                    command_line=f'{prog_name} {" ".join(sys.argv[1:])}',
+                                                    database_version = Config.VERSION_DATA,
+                                                    database_path=Config.GENERIC_PATH)
+            self.stage_logger = self.stage_logger_file.stage_logger
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
@@ -204,16 +225,24 @@ class OptionsParser(object):
             check_file_exists(options.gtdbtk_classification_file)
 
             self.logger.info('Reading GTDB-Tk classification file.')
-            gtdbtk_taxonomy = Taxonomy().read(options.gtdbtk_classification_file)
-            del gtdbtk_taxonomy['user_genome']
-            num_reassigned = 0
+            gtdbtk_classify_file = ClassifySummaryFile(path=options.gtdbtk_classification_file)
+            gtdbtk_classify_file.read()
+            gtdbtk_taxonomy = gtdbtk_classify_file.get_gid_taxonomy()
+            if len(gtdbtk_taxonomy) == 0:
+                raise GTDBTkExit(f'No genomes found in GTDB-Tk classification file: {options.gtdbtk_classification_file}')
+
+            num_rep_reassigned = 0
+            num_usr_reassigned = 0
             for gid, taxa in gtdbtk_taxonomy.items():
                 if gid in taxonomy:
-                    num_reassigned += 1
+                    num_rep_reassigned += 1
+                else:
+                    num_usr_reassigned += 1
                 taxonomy[gid] = taxa
 
             self.logger.info(f'Read GTDB-Tk classifications for {len(gtdbtk_taxonomy):,} genomes.')
-            self.logger.info(f'Reassigned taxonomy for {num_reassigned:,} GTDB representative genomes.')
+            self.logger.info(f'Reassigned taxonomy for {num_rep_reassigned:,} GTDB representative '
+                             f'genomes, and {num_usr_reassigned:,} query genomes.')
 
         if options.custom_taxonomy_file:
             # add and overwrite taxonomy for genomes specified in the
@@ -245,7 +274,7 @@ class OptionsParser(object):
 
         return taxonomy
 
-    def identify(self, options):
+    def identify(self, options , classified_genomes = None):
         """Identify marker genes in genomes.
 
         Parameters
@@ -253,22 +282,38 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
+        identify_step = IdentifyStep()
+        identify_step.starts_at = datetime.now()
+        identify_step.output_dir = options.out_dir
+        identify_step.genes = options.genes
+        identify_step.extension = options.extension
+        identify_step.write_single_copy_genes = options.write_single_copy_genes
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
+            identify_step.genome_dir = options.genome_dir
 
         if options.batchfile:
             check_file_exists(options.batchfile)
+            identify_step.batchfile = options.batchfile
 
         make_sure_path_exists(options.out_dir)
 
         genomes, tln_tables = self._genomes_to_process(options.genome_dir,
                                                        options.batchfile,
                                                        options.extension)
-        self.genomes_to_process = genomes
+        #if self.genomes_to_process does not exist, create it
+        if not hasattr(self, 'genomes_to_process'):
+            self.genomes_to_process = genomes
+
+        if classified_genomes is not None:
+            for marker_set_id in ['bac120', 'ar53']:
+                if marker_set_id in classified_genomes:
+                    for classified_genome in classified_genomes.get(marker_set_id).keys():
+                        genomes.pop(classified_genome, None)
 
         markers = Markers(options.cpus)
-        markers.identify(genomes,
+        reports = markers.identify(genomes,
                          tln_tables,
                          options.out_dir,
                          options.prefix,
@@ -276,6 +321,15 @@ class OptionsParser(object):
                          options.genes,
                          options.write_single_copy_genes)
 
+        identify_step.output_files = reports
+
+        identify_step.ends_at = datetime.now()
+        duration = identify_step.ends_at - identify_step.starts_at
+        #we round the duration to the nearest second
+        identify_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        identify_step.status = 'completed'
+
+        self.stage_logger.steps.append(identify_step)
         self.logger.info('Done.')
 
     def align(self, options):
@@ -287,11 +341,27 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
+        align_step = AlignStep()
+        align_step.starts_at = datetime.now()
+        align_step.output_dir = options.out_dir
+        align_step.skip_gtdb_refs = options.skip_gtdb_refs
+        align_step.taxa_filter = options.taxa_filter
+        align_step.min_perc_aa = options.min_perc_aa
+        align_step.custom_msa_filters = options.custom_msa_filters
+        align_step.skip_trimming = options.skip_trimming
+        align_step.rnd_seed = options.rnd_seed
+        align_step.cols_per_gene = options.cols_per_gene
+        align_step.min_consensus = options.min_consensus
+        align_step.max_consensus = options.max_consensus
+        align_step.min_perc_taxa = options.min_perc_taxa
+        align_step.outgroup_taxon = options.outgroup_taxon if hasattr(options, 'outgroup_taxon') else None
+
         check_dir_exists(options.identify_dir)
+        align_step.identify_dir = options.identify_dir
         make_sure_path_exists(options.out_dir)
 
         markers = Markers(options.cpus, options.debug)
-        markers.align(options.identify_dir,
+        reports = markers.align(options.identify_dir,
                       options.skip_gtdb_refs,
                       options.taxa_filter,
                       options.min_perc_aa,
@@ -307,7 +377,17 @@ class OptionsParser(object):
                       options.outgroup_taxon if hasattr(options, 'outgroup_taxon') else None,
                       self.genomes_to_process)
 
+        align_step.ends_at = datetime.now()
+        duration = align_step.ends_at - align_step.starts_at
+        #we round the duration to the nearest second
+        align_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        align_step.output_files = reports
+        align_step.status = 'completed'
+
+        self.stage_logger.steps.append(align_step)
+
         self.logger.info('Done.')
+
 
     def infer(self, options):
         """Infer a tree from a user specified MSA.
@@ -317,6 +397,15 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
+
+        infer_step = InferStep()
+        infer_step.starts_at = datetime.now()
+        infer_step.output_dir = options.out_dir
+        infer_step.msa_file = options.msa_file
+        infer_step.prot_model = options.prot_model
+        infer_step.no_support = options.no_support
+        infer_step.gamma = options.gamma
+
 
         check_file_exists(options.msa_file)
         make_sure_path_exists(options.out_dir)
@@ -343,14 +432,22 @@ class OptionsParser(object):
 
         fasttree = FastTree()
         fasttree.run(output_tree, tree_log, fasttree_log, options.prot_model,
-                     options.no_support, options.gamma, options.msa_file,
-                     options.cpus)
+                      options.no_support, options.gamma, options.msa_file,
+                      options.cpus)
         self.logger.info(f'FastTree version: {fasttree.version}')
 
         if hasattr(options, 'subparser_name') and options.subparser_name == 'infer':
-            symlink_f(output_tree[len(options.out_dir) + 1:],
+            symlink_f(output_tree[len(options.out_dir.rstrip('/')) + 1:],
                       os.path.join(options.out_dir,
                                    os.path.basename(output_tree)))
+
+        infer_step.ends_at = datetime.now()
+        duration = infer_step.ends_at - infer_step.starts_at
+        #we round the duration to the nearest second
+        infer_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        infer_step.status = 'completed'
+
+        self.stage_logger.steps.append(infer_step)
 
         self.logger.info('Done.')
 
@@ -445,29 +542,142 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
+        classify_step = ClassifyStep()
+        classify_step.starts_at = datetime.now()
+        classify_step.output_dir = options.out_dir
+        classify_step.debug_option = options.debug
+        classify_step.full_tree = options.full_tree
+        classify_step.skip_ani_screen = options.skip_ani_screen
+        classify_step.no_mash = options.no_mash
+        classify_step.mash_k = options.mash_k
+        classify_step.mash_v = options.mash_v
+        classify_step.mash_s = options.mash_s
+        classify_step.mash_db = options.mash_db
+        classify_step.mash_max_dist = options.mash_max_distance
+
+        ani_summary_files = {}
+        if self.stage_logger_file.stage_logger.has_stage(ANIScreenStep):
+            previous_ani_step = self.stage_logger_file.stage_logger.get_stage(ANIScreenStep)
+            ani_summary_files = previous_ani_step.output_files
+
+
         check_dir_exists(options.align_dir)
+        classify_step.align_dir = options.align_dir
         make_sure_path_exists(options.out_dir)
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
+            classify_step.scratch_dir = options.scratch_dir
+
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            classify_step.genome_dir = options.genome_dir
+
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            classify_step.batchfile = options.batchfile
 
         genomes, _ = self._genomes_to_process(options.genome_dir,
                                               options.batchfile,
                                               options.extension)
 
         classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
-        classify.run(genomes=genomes,
+        reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,
                      prefix=options.prefix,
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
-                     fulltreeopt=options.full_tree)
+                     fulltreeopt=options.full_tree,
+                     skip_ani_screen=options.skip_ani_screen,
+                     no_mash=options.no_mash,
+                     mash_k=options.mash_k,
+                     mash_v=options.mash_v,
+                     mash_s=options.mash_s,
+                     mash_db=options.mash_db,
+                     mash_max_dist=options.mash_max_distance,
+                     ani_summary_files=ani_summary_files
+                     )
+
+        classify_step.ends_at = datetime.now()
+        duration = classify_step.ends_at - classify_step.starts_at
+        classify_step.output_files = reports
+        #we round the duration to the nearest second
+        classify_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        classify_step.status = 'completed'
+
+        self.stage_logger.steps.append(classify_step)
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
                          'designations. New designations should be based on one or more de novo trees, an '
                          'example of which can be produced by Tk in de novo mode.')
 
         self.logger.info('Done.')
+
+    def ani_screen(self, options ):
+        """Run a mash/FastANI screen of all user genomes
+        against the reference genomes.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+
+        ani_step = ANIScreenStep()
+        ani_step.starts_at = datetime.now()
+        ani_step.output_dir = options.out_dir
+        ani_step.mash_db = options.mash_db
+        ani_step.mash_k = options.mash_k
+        ani_step.mash_v = options.mash_v
+        ani_step.mash_s = options.mash_s
+        ani_step.mash_max_dist = options.mash_max_distance
+
+        if options.genome_dir:
+            check_dir_exists(options.genome_dir)
+            ani_step.genome_dir = options.genome_dir
+
+        if options.batchfile:
+            check_file_exists(options.batchfile)
+            ani_step.batchfile = options.batchfile
+
+        make_sure_path_exists(options.out_dir)
+
+        genomes, tln_tables = self._genomes_to_process(options.genome_dir,
+                                                       options.batchfile,
+                                                       options.extension)
+        self.genomes_to_process = genomes
+
+        make_sure_path_exists(options.out_dir)
+
+        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                              options.batchfile,
+                                              options.extension)
+
+        aniscreener = ANIScreener(options.cpus)
+        classified_genomes,reports = aniscreener.run_aniscreen(
+            genomes=genomes,
+            no_mash=options.no_mash,
+            out_dir=options.out_dir,
+            prefix=options.prefix,
+            mash_k=options.mash_k,
+            mash_v=options.mash_v,
+            mash_s=options.mash_s,
+            mash_max_dist=options.mash_max_distance,
+            mash_db=options.mash_db)
+
+
+        self.logger.info('Done.')
+
+        ani_step.ends_at = datetime.now()
+        duration = ani_step.ends_at - ani_step.starts_at
+        #we round the duration to the nearest second
+        ani_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        ani_step.status = 'completed'
+        ani_step.output_files=reports
+
+        self.stage_logger.steps.append(ani_step)
+
+        return classified_genomes
 
     def trim_msa(self, options):
         """ Trim an untrimmed archaea or bacterial MSA file.
@@ -514,7 +724,7 @@ class OptionsParser(object):
         export_msa(domain=domain, output_file=user_output)
         self.logger.info('Done.')
 
-    def root(self, options):
+    def root(self, options: argparse.Namespace):
         """Root tree using outgroup.
 
         Parameters
@@ -523,7 +733,19 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
+        root_step = RootStep()
+        root_step.starts_at = datetime.now()
+
+
         check_file_exists(options.input_tree)
+        assert_outgroup_taxon_valid(options.outgroup_taxon)
+
+        root_step.outgroup_taxon = options.outgroup_taxon
+
+        root_step.input_tree = options.input_tree
+        # set gtdbtk_classification_file exists in options we can use it
+        root_step.gtdbtk_classification_file=options.gtdbtk_classification_file if hasattr(options, 'gtdbtk_classification_file') else None
+        root_step.custom_taxonomy_file=options.custom_taxonomy_file if hasattr(options, 'custom_taxonomy_file') else None
 
         taxonomy = self._read_taxonomy_files(options)
 
@@ -534,9 +756,19 @@ class OptionsParser(object):
                 outgroup.add(genome_id)
 
         reroot = RerootTree()
-        reroot.root_with_outgroup(options.input_tree,
+        reports = reroot.root_with_outgroup(options.input_tree,
                                   options.output_tree,
                                   outgroup)
+
+        root_step.ends_at = datetime.now()
+        duration = root_step.ends_at - root_step.starts_at
+        #we round the duration to the nearest second
+        root_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        root_step.status = 'completed'
+
+        # if self.stage_logger exists, we add the step to the stage_logger
+        if hasattr(self, 'stage_logger'):
+            self.stage_logger.steps.append(root_step)
 
         self.logger.info('Done.')
 
@@ -549,12 +781,21 @@ class OptionsParser(object):
             The CLI arguments input by the user.
         """
 
+        decorate_step = DecorateStep()
+        decorate_step.starts_at = datetime.now()
+
         check_file_exists(options.input_tree)
 
         taxonomy = self._read_taxonomy_files(options)
 
+        decorate_step.input_tree = options.input_tree
+        # set gtdbtk_classification_file exists in options we can use it
+        decorate_step.gtdbtk_classification_file=options.gtdbtk_classification_file if hasattr(options, 'gtdbtk_classification_file') else None
+        decorate_step.custom_taxonomy_file=options.custom_taxonomy_file if hasattr(options, 'custom_taxonomy_file') else None
+        decorate_step.suffix=options.suffix if hasattr(options, 'suffix') else None
+
         d = Decorate()
-        d.run(options.input_tree,
+        reports = d.run(options.input_tree,
               taxonomy,
               options.output_tree)
 
@@ -581,6 +822,18 @@ class OptionsParser(object):
             else:
                 raise GenomeMarkerSetUnknown(
                     'There was an error determining the marker set.')
+
+        decorate_step.ends_at = datetime.now()
+        duration = decorate_step.ends_at - decorate_step.starts_at
+        #we round the duration to the nearest second
+        decorate_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        decorate_step.status = 'completed'
+        decorate_step.output_files=reports
+
+        if hasattr(self, 'stage_logger'):
+            self.stage_logger.steps.append(decorate_step)
+
+        self.logger.info('Done.')
 
     def check_install(self):
         """ Verify all GTDB-Tk data files are present.
@@ -694,6 +947,7 @@ class OptionsParser(object):
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
+            assert_outgroup_taxon_valid(options.outgroup_taxon)
 
             if options.skip_gtdb_refs and options.custom_taxonomy_file is None:
                 raise GTDBTkExit("When running de_novo_wf, The '--skip_gtdb_refs' flag requires"
@@ -800,8 +1054,6 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'fastANI'])
 
-
-
             if options.write_single_copy_genes and not options.keep_intermediates:
                 self.logger.warning('--write_single_copy_genes flag is set to True,'
                                     ' but --keep_intermediates is set to False. '
@@ -810,16 +1062,56 @@ class OptionsParser(object):
                     self.logger.info('Exiting workflow.')
                     sys.exit(0)
 
+            # if options.skip_aniscreen is false,
+            # we need to make sure the options.mash_db is selected too to point to the folder
+            # where the sketch file is.
+            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
+                self.logger.error('You must specify a path to the mash database with --mash_db')
+                sys.exit(1)
 
             #options.write_single_copy_genes = False
 
-            self.identify(options)
+            classified_genomes = None
+            #We ned to check if the ani screen has already be ran, if so, we need to skip it.
+            #Check is the gtdbtk.json file exists in the output folder
+            if os.path.isfile(self.stage_logger_file.path) and 1==2:
+                #If the file exists, we need to check if the ani_screen step has been ran
+                #If the ani_screen step has been ran, we need to skip it.
+                self.stage_logger_file.read()
+                stage_logger = self.stage_logger_file.stage_logger
+                if stage_logger.has_stage(ANIScreenStep):
+                    # we get the genomes already classified by the ani_screen step
+                    previous_ani_step = stage_logger.get_stage(ANIScreenStep)
+                    if previous_ani_step.is_complete():
+                        self.logger.warning('The ani_screen step has already been completed, we load existing results.')
+                        ani_summary_files = previous_ani_step.output_files
+                        classify_method = Classify()
+                        classified_genomes=classify_method.load_fastani_results_pre_pplacer(ani_summary_files)
+                        classified_genomes = classify_method.convert_rows_to_dict(classified_genomes)
+                        len_mash_classified_bac120 = len(classified_genomes['bac120']) \
+                            if 'bac120' in classified_genomes else 0
+
+                        len_mash_classified_ar53 = len(classified_genomes['ar53']) \
+                            if 'ar53' in classified_genomes else 0
+
+                        self.logger.info(f'{len_mash_classified_ar53 + len_mash_classified_bac120} genome(s) have '
+                                         f'been classified using the ANI pre-screening step.')
+
+                        options.skip_ani_screen = True
+
+            #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
+            # in the identify step.
+
+            if not options.skip_ani_screen:
+                classified_genomes = self.ani_screen(options)
+
+            self.identify(options,classified_genomes)
 
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
             options.taxa_filter = None
             options.custom_msa_filters = False
-            # Added here due to the other mutex argument being include above.
+            # Added here due to the other mutex argument being included above.
             options.skip_trimming = False
             options.min_consensus = None
             options.min_perc_taxa = None
@@ -831,9 +1123,14 @@ class OptionsParser(object):
 
             self.align(options)
 
+            # because we run ani_screen before the identify step, we do not need to rerun the
+            #ani step again, so we set the skip_aniscreen to True
+            options.skip_ani_screen = True
+
             self.classify(options)
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
+
 
         elif options.subparser_name == 'identify':
             self.identify(options)
@@ -842,16 +1139,15 @@ class OptionsParser(object):
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
-
-            # TODO: Remove this block once the split_tree function is implemented.
-            # if hasattr(options, 'split_tree') and options.split_tree:
-            #     self.logger.warning('The split tree option is not yet '
-            #                         ' supported, overriding value to False.')
-            # options.split_tree = False
-
-            # if options.recalculate_red and options.split_tree:
-            #     raise GTDBTkExit('--split_tree and --recalculate_red are mutually exclusive.')
+            # if options.skip_ani_screen is not selected,
+            # we need to make sure the options.mash_db is selected too to point to the folder
+            # where the sketch file is.
+            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
+                print(options.skip_ani_screen, options.no_mash, options.mash_db)
+                self.logger.error('You must specify a path to the mash database with --mash_db')
             self.classify(options)
+            self.stage_logger_file.write()
+
         elif options.subparser_name == 'root':
             self.root(options)
         elif options.subparser_name == 'decorate':
@@ -878,5 +1174,8 @@ class OptionsParser(object):
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')
             sys.exit(1)
+
+        if hasattr(self,'stage_logger' ) and self.stage_logger.steps:
+            self.stage_logger_file.write()
 
         return 0

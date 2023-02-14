@@ -19,11 +19,13 @@ Arguments
 ## Files output
 
 * :ref:`[prefix].log <files/gtdbtk.log>`
+* :ref:`[prefix].json <files/gtdbtk.json>`
 * :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
-* identify/
+* identify
     * :ref:`[prefix].[domain].markers_summary.tsv <files/markers_summary.tsv>`
     * :ref:`[prefix].translation_table_summary.tsv <files/translation_table_summary.tsv>`
-* identify/intermediate_results/marker_genes/[genome_id]/
+    * :ref:`[prefix].failed_genomes.tsv <files/failed_genomes.tsv>`
+    * intermediate_results/marker_genes/[genome_id]/
     * :ref:`[genome_id]_pfam_tophit.tsv <files/pfam_tophit.tsv>`
     * :ref:`[genome_id]_pfam.tsv <files/pfam.tsv>`
     * :ref:`[genome_id]_protein.faa <files/protein.faa>`

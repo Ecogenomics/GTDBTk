@@ -316,7 +316,7 @@ class FastANI(object):
                                 self.logger.warning('You are using FastANI v1.0, it is recommended '
                                                     'that you update to a more recent version.')
                                 self._suppress_v1_warning = True
-                        af = round(float(frac1) / float(frac2), 2)
+                        af = float(frac1) / float(frac2)
                         if path_qry not in out:
                             out[path_qry] = {path_ref: (float(ani), af)}
                         elif path_ref not in out[path_qry]:

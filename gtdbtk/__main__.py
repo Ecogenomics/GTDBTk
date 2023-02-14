@@ -35,7 +35,7 @@ def print_help():
 
   Workflows:
     classify_wf -> Classify genomes by placement in GTDB reference tree
-                     (identify -> align -> classify)
+                     (ani_screening -> identify -> align -> classify)
     de_novo_wf  -> Infer de novo tree and decorate with GTDB taxonomy
                      (identify -> align -> infer -> root -> decorate)
 
@@ -91,10 +91,11 @@ def main():
                  hasattr(args, 'debug') and args.debug)
     logger = logging.getLogger('timestamp')
 
+
     # -------------------------------------------------
     # do what we came here to do
     try:
-        gt_parser = OptionsParser(__version__)
+        gt_parser = OptionsParser(__version__,args.out_dir if hasattr(args, 'out_dir') and args.out_dir else None)
         gt_parser.parse_options(args)
     except SystemExit:
         logger.error('Controlled exit resulting from early termination.')

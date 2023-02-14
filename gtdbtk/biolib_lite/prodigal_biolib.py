@@ -26,6 +26,7 @@ import logging
 import ntpath
 import os
 import shutil
+import subprocess
 import tempfile
 from collections import defaultdict, namedtuple
 
@@ -134,14 +135,24 @@ class Prodigal(object):
                     if self.closed_ends:
                         args += ' -c'
 
-                    cmd = 'prodigal %s -p %s -q -f gff -g %d -a %s -d %s -i %s > %s 2> /dev/null' % (args,
-                                                                                                     proc_str,
-                                                                                                     translation_table,
-                                                                                                     aa_gene_file_tmp,
-                                                                                                     nt_gene_file_tmp,
-                                                                                                     processed_prodigal_input,
-                                                                                                     gff_file_tmp)
-                    os.system(cmd)
+
+                    cmd = ['prodigal',args,'-p',proc_str,'-q',
+                           '-f','gff','-g',str(translation_table),
+                           '-a',aa_gene_file_tmp,'-d',nt_gene_file_tmp,
+                           '-i',processed_prodigal_input,'-o',gff_file_tmp]
+
+                    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE, encoding='utf-8')
+
+                    stdout, stderr = proc.communicate()
+                    #This extra step has been added for the issue 451 where Prodigal can return a free pointer error
+                    if proc.returncode != 0:
+                        self.logger.warning('Error running Prodigal on genome: '
+                                            '{}'.format(genome_file))
+                        self.logger.warning('Error message:')
+                        for line in stderr.splitlines():
+                            print(line)
+                        self.logger.warning('This genome is skipped.')
 
                     # determine coding density
                     prodigalParser = ProdigalGeneFeatureParser(gff_file_tmp)
@@ -375,7 +386,7 @@ class ProdigalGeneFeatureParser(object):
 
         # safe way to calculate coding bases as it accounts
         # for the potential of overlapping genes
-        coding_base_mask = np.zeros(self.last_coding_base[seq_id], dtype=np.bool)
+        coding_base_mask = np.zeros(self.last_coding_base[seq_id], dtype=bool)
         for pos in self.genes[seq_id].values():
             coding_base_mask[pos[0]:pos[1] + 1] = True
 

@@ -35,11 +35,11 @@ from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch, Inc
 from gtdbtk.external.pfam_search import PfamSearch
 from gtdbtk.external.prodigal import Prodigal
 from gtdbtk.external.tigrfam_search import TigrfamSearch
-from gtdbtk.io.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.io.marker.tophit import TopHitPfamFile, TopHitTigrFile
-from gtdbtk.io.marker_info import MarkerInfoFileAR53, MarkerInfoFileBAC120
-from gtdbtk.io.prodigal.tln_table import TlnTableFile
-from gtdbtk.io.prodigal.tln_table_summary import TlnTableSummaryFile
+from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile
+from gtdbtk.files.marker_info import MarkerInfoFileAR53, MarkerInfoFileBAC120
+from gtdbtk.files.prodigal.tln_table import TlnTableFile
+from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.pipeline import align
 from gtdbtk.tools import merge_two_dicts, symlink_f, tqdm_log
 from gtdbtk.trim_msa import TrimMSA
@@ -76,7 +76,7 @@ class Markers(object):
         self.tigrfam_top_hit_suffix = TIGRFAM_TOP_HIT_SUFFIX
 
     def _report_identified_marker_genes(self, gene_dict, outdir, prefix,
-                                        write_single_copy_genes):
+                                        write_single_copy_genes,reports):
         """Report statistics for identified marker genes."""
 
         # Summarise the copy number of each AR53 and BAC120 markers.
@@ -104,16 +104,13 @@ class Markers(object):
 
         # Write each of the summary files to disk.
         ar53_copy_number_file.write()
+        reports.setdefault('ar53',[]).append(ar53_copy_number_file.path)
         bac120_copy_number_file.write()
+        reports.setdefault('bac120',[]).append(bac120_copy_number_file.path)
         tln_summary_file.write()
+        reports.setdefault('all',[]).append(tln_summary_file.path)
 
         # Create a symlink to store the summary files in the root.
-        # symlink_f(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix),
-        #           os.path.join(outdir, os.path.basename(PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))))
-        # symlink_f(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix),
-        #           os.path.join(outdir, os.path.basename(PATH_AR53_MARKER_SUMMARY.format(prefix=prefix))))
-        # symlink_f(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix),
-        #           os.path.join(outdir, os.path.basename(PATH_TLN_TABLE_SUMMARY.format(prefix=prefix))))
         if os.path.exists(os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix)))):
             symlink_f(PATH_FAILS.format(prefix=prefix),
                       os.path.join(outdir, os.path.basename(PATH_FAILS.format(prefix=prefix))))
@@ -155,6 +152,8 @@ class Markers(object):
                         with open(marker_path, 'w') as fh:
                             fh.write('\n'.join(to_write))
 
+        return reports
+
     def identify(self, genomes, tln_tables, out_dir, prefix, force, genes, write_single_copy_genes):
         """Identify marker genes in genomes.
 
@@ -183,12 +182,15 @@ class Markers(object):
         """
         check_dependencies(['prodigal', 'hmmsearch'])
 
+        reports = {}
+
         self.logger.info(f'Identifying markers in {len(genomes):,} genomes with '
                          f'{self.cpus} threads.')
 
         self.marker_gene_dir = os.path.join(out_dir, DIR_MARKER_GENE)
         self.failed_genomes = os.path.join(
             out_dir, PATH_FAILS.format(prefix=prefix))
+        reports.setdefault('all',[]).append(self.failed_genomes)
 
         if not genes:
             prodigal = Prodigal(self.cpus,
@@ -207,6 +209,7 @@ class Markers(object):
                 'Using supplied genomes as called genes, skipping Prodigal.')
             genome_dictionary = dict()
             for gid, gpath in genomes.items():
+
                 genome_dictionary[gid] = {'aa_gene_path': gpath,
                                           'translation_table_path': None,
                                           'nt_gene_path': None,
@@ -216,7 +219,7 @@ class Markers(object):
                 # so we can use this symlink in the align step
                 symlink_protein_dir = os.path.join(self.marker_gene_dir, gid)
                 make_sure_path_exists(symlink_protein_dir)
-                symlink_f(gpath, os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
+                symlink_f(os.path.abspath(gpath), os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
 
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.log(Config.LOG_TASK,
@@ -246,8 +249,10 @@ class Markers(object):
 
         self.logger.log(Config.LOG_TASK,
                         'Summarising identified marker genes.')
-        self._report_identified_marker_genes(genome_dictionary, out_dir, prefix,
-                                             write_single_copy_genes)
+        reports = self._report_identified_marker_genes(genome_dictionary, out_dir, prefix,
+                                             write_single_copy_genes,reports)
+
+        return reports
 
     def _path_to_identify_data(self, identity_dir, warn=True):
         """Get path to genome data produced by 'identify' command."""
@@ -465,6 +470,8 @@ class Markers(object):
               genomes_to_process=None):
         """Align marker genes in genomes."""
 
+        reports = {}
+
         # read genomes that failed identify steps to skip them
         failed_genomes_file = os.path.join(os.path.join(
             identify_dir, PATH_FAILS.format(prefix=prefix)))
@@ -637,9 +644,9 @@ class Markers(object):
                 self.logger.log(Config.LOG_TASK,
                                 f'Masking columns of {domain_str} multiple sequence alignment using canonical mask.')
                 trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa,
-                                                             user_msa,
-                                                             gtdb_msa_mask,
-                                                             min_perc_aa / 100.0)
+                                                            user_msa,
+                                                           gtdb_msa_mask,
+                                                            min_perc_aa / 100.0)
                 self.logger.info('Masked {} alignment from {:,} to {:,} AAs.'.format(
                     domain_str,
                     len(list(user_msa.values())[0]),
@@ -662,6 +669,8 @@ class Markers(object):
                         perc_alignment = valid_bases * 100.0 / len(pruned_seq)
                     fout.write(
                         f'{pruned_seq_id}\tInsufficient number of amino acids in MSA ({perc_alignment:.1f}%)\n')
+            reports.setdefault(marker_set_id, []).append(marker_filtered_genomes)
+
 
             # write out MSAs
             if not skip_gtdb_refs:
@@ -669,6 +678,7 @@ class Markers(object):
                                  f'{domain_str} GTDB and user genomes.')
                 self._write_msa(trimmed_seqs, marker_msa_path,
                                 gtdb_taxonomy, zip_output=True)
+                reports.setdefault(marker_set_id, []).append(marker_msa_path)
 
             trimmed_user_msa = {k: v for k, v in trimmed_seqs.items()
                                 if k in user_msa}
@@ -677,6 +687,7 @@ class Markers(object):
                                  f'{domain_str} user genomes.')
                 self._write_msa(trimmed_user_msa,
                                 marker_user_msa_path, gtdb_taxonomy, zip_output=True)
+                reports.setdefault(marker_set_id, []).append(marker_user_msa_path)
             else:
                 self.logger.info(
                     f'All {domain_str} user genomes have been filtered out.')
@@ -687,6 +698,9 @@ class Markers(object):
             with open(no_marker_filtered_genomes, 'w') as fout:
                 for no_marker_gid in no_marker_gids:
                     fout.write(f'{no_marker_gid}\tNo bacterial or archaeal marker\n')
+            reports.setdefault('all', []).append(no_marker_filtered_genomes)
+
+        return reports
 
     def _write_individual_markers(self, user_msa, marker_set_id, marker_list, out_dir, prefix):
         marker_dir = join(out_dir, DIR_ALIGN_MARKERS)

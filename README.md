@@ -7,8 +7,6 @@
 [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/ecogenomic/gtdbtk?sort=date&color=299bec&label=docker)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 [![Docker Pulls](https://img.shields.io/docker/pulls/ecogenomic/gtdbtk?color=299bec&label=pulls)](https://hub.docker.com/r/ecogenomic/gtdbtk)
 
-<b>GTDB-Tk v2.1.0+ requires an updated reference package ([R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)), [read more](https://ecogenomics.github.io/GTDBTk/installing/index.html#gtdb-tk-reference-data).</b>
-
 GTDB-Tk is a software toolkit for assigning objective taxonomic classifications to bacterial and archaeal genomes based 
 on the Genome Database Taxonomy ([GTDB](https://gtdb.ecogenomic.org/)). It is designed to work with recent advances that 
 allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtained directly from environmental samples. 
@@ -39,13 +37,15 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.1.0 includes the following new features:
-- GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple **class**-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **55 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag.  
-This is the main change from v2.0.0. The split tree approach has been modified from order-level trees to class-level trees to resolve specific classification issues (See [#383](https://github.com/Ecogenomics/GTDBTk/issues/383)). 
-- Genomes that cannot be assigned to a domain (e.g. genomes with no bacterial or archaeal markers or genomes with no genes called by Prodigal) are now reported in the `gtdbtk.bac120.summary.tsv` as 'Unclassified'
-- Genomes filtered out during the alignment step are now reported in the `gtdbtk.bac120.summary.tsv` or `gtdbtk.ar53.summary.tsv` as 'Unclassified Bacteria/Archaea'
-- `--write_single_copy_genes` flag in now available in the `classify_wf` and `de_novo_wf` workflows.
+GTDB-Tk v2.2.0+ includes the following new features:
+- GTDB-TK `classify` and `classify_wf` have changed in version 2.2.0+. There is now an ANI classification stage (`ANI screen`) that precedes classification by placement in a reference tree.
+  - **This is now the default behavior for `classify` and `classify_wf`.**
+  - In `classify`, user genomes are first compared against a Mash database comprised of all GTDB representative genomes and genome pairs of sufficient similarity processed by FastANI. User genomes classified to a GTDB representative based on FastANI results are not run through pplacer. 
+  - In the `classify_wf` workflow, genomes are classified using Mash and FastANI before executing the identify step. User genomes classified with FastANI are not run through the remainder of the pipeline (identify, align, classify).
+  - To classify genomes without the additional `ani_screen` step, use the `--skip_ani_screen` flag.
 
+## 📈 Performance
+Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time subsantially (between 25% and 60% in our testing).
 
 ## 📚 References
 

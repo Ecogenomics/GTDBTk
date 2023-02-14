@@ -21,7 +21,7 @@ import tempfile
 import unittest
 
 from gtdbtk.config.config import CONCAT_AR53, CONCAT_BAC120, MASK_AR53, MASK_DIR, MASK_BAC120
-from gtdbtk.io.classify_summary import ClassifySummaryFileAR53
+from gtdbtk.files.classify_summary import ClassifySummaryFileAR53
 from gtdbtk.tools import sha256
 
 

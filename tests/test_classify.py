@@ -26,7 +26,7 @@ import gtdbtk.config.config as Config
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
-from gtdbtk.io.pplacer_classification import PplacerClassifyFileAR53
+from gtdbtk.files.pplacer_classification import PplacerClassifyFileAR53
 
 
 class TestClassify(unittest.TestCase):

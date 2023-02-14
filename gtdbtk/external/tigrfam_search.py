@@ -22,7 +22,7 @@ import subprocess
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
-from gtdbtk.io.marker.tophit import TopHitTigrFile
+from gtdbtk.files.marker.tophit import TopHitTigrFile
 from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 
@@ -138,7 +138,7 @@ class TigrfamSearch(object):
                 args = ['hmmsearch', '-o', hmmsearch_out, '--tblout', output_hit_file,
                         '--noali', '--notextw', '--cut_nc', '--cpu',
                         str(self.cpus_per_genome), self.tigrfam_hmms, gene_file]
-                p = subprocess.Popen(args, stdout=subprocess.PIPE, encoding='utf-8')
+                p = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 stdout, stderr = p.communicate()
 
                 if p.returncode != 0:

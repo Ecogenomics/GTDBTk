@@ -24,7 +24,7 @@ import subprocess
 from gtdbtk.biolib_lite.prodigal_biolib import Prodigal as BioLibProdigal
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 from gtdbtk.exceptions import ProdigalException
-from gtdbtk.io.prodigal.tln_table import TlnTableFile
+from gtdbtk.files.prodigal.tln_table import TlnTableFile
 from gtdbtk.tools import sha256, file_has_checksum, tqdm_log
 
 

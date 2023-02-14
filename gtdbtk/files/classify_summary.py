@@ -17,50 +17,61 @@
 
 import logging
 import os
+from typing import Dict, List, Tuple, Optional, Union
 
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.config.output import PATH_AR53_SUMMARY_OUT, PATH_BAC120_SUMMARY_OUT
 from gtdbtk.exceptions import GTDBTkExit
 
 
-class ClassifySummaryFileRow(object):
+class ClassifySummaryFileRow:
     """A row contained within the ClassifySummaryFile object."""
 
+    __slots__ = ('gid', 'classification', 'fastani_ref', 'fastani_ref_radius',
+                 'fastani_tax', 'fastani_ani', 'fastani_af', 'closest_placement_ref',
+                 'closest_placement_radius', 'closest_placement_tax', 'closest_placement_ani',
+                 'closest_placement_af', 'pplacer_tax', 'classification_method',
+                 'note', 'other_related_refs', 'msa_percent', 'tln_table',
+                 'red_value', 'warnings')
+
     def __init__(self):
-        """Initialise the row, default all of the values to None."""
-        self.gid = None
-        self.classification = None
-        self.fastani_ref = None
-        self.fastani_ref_radius = None
-        self.fastani_tax = None
-        self.fastani_ani = None
-        self.fastani_af = None
-        self.closest_placement_ref = None
-        self.closest_placement_radius = None
-        self.closest_placement_tax = None
-        self.closest_placement_ani = None
-        self.closest_placement_af = None
-        self.pplacer_tax = None
-        self.classification_method = None
-        self.note = None
-        self.other_related_refs = None
-        self.msa_percent = None
-        self.tln_table = None
-        self.red_value = None
-        self.warnings = None
+        """Initialise the row, default all the values to None."""
+        self.gid: Optional[str] = None
+        self.classification: Optional[str] = None
+        self.fastani_ref: Optional[str] = None
+        self.fastani_ref_radius: Optional[float] = None
+        self.fastani_tax: Optional[str] = None
+        self.fastani_ani: Optional[float] = None
+        self.fastani_af: Optional[float] = None
+        self.closest_placement_ref: Optional[str] = None
+        self.closest_placement_radius: Optional[float] = None
+        self.closest_placement_tax: Optional[str] = None
+        self.closest_placement_ani: Optional[float] = None
+        self.closest_placement_af: Optional[float] = None
+        self.pplacer_tax: Optional[str] = None
+        self.classification_method: Optional[str] = None
+        self.note: Optional[str] = None
+        self.other_related_refs: Optional[str] = None
+        self.msa_percent: Optional[float] = None
+        self.tln_table: Optional[int] = None
+        self.red_value: Optional[float] = None
+        self.warnings: Optional[str] = None
 
 
-class ClassifySummaryFile(object):
+class ClassifySummaryFile:
     """Store the GTDB-Tk classify summary output."""
 
-    def __init__(self, path: str, marker_set: str):
+    __slots__ = ('logger', 'path', 'marker_set', 'rows', 'none_value')
+
+    def __init__(self, path: str, marker_set: Optional[str] = None):
         self.logger = logging.getLogger('timestamp')
-        self.path = path
-        self.marker_set = marker_set
-        self.rows = dict()  # keyed by user_genome
-        self.none_value = 'N/A'
+        self.path: str = path
+        self.marker_set: Optional[str] = marker_set
+        self.rows: Dict[str, ClassifySummaryFileRow] = dict()  # keyed by user_genome
+        self.none_value: str = 'N/A'
 
     @staticmethod
-    def get_col_order(row: ClassifySummaryFileRow = None):
+    def get_col_order(row: ClassifySummaryFileRow = None) -> Tuple[List[str], List[Union[str, float, int]]]:
         """Return the column order that will be written. If a row is provided
         then format the row in that specific order."""
         if row is None:
@@ -80,8 +91,7 @@ class ClassifySummaryFile(object):
                    ('pplacer_taxonomy', row.pplacer_tax),
                    ('classification_method', row.classification_method),
                    ('note', row.note),
-                   ('other_related_references(genome_id,species_name,radius,ANI,AF)',
-                    row.other_related_refs),
+                   ('other_related_references(genome_id,species_name,radius,ANI,AF)', row.other_related_refs),
                    ('msa_percent', row.msa_percent),
                    ('translation_table', row.tln_table),
                    ('red_value', row.red_value),
@@ -97,18 +107,31 @@ class ClassifySummaryFile(object):
             raise GTDBTkExit(f'Attempting to add duplicate row: {row.gid}')
         self.rows[row.gid] = row
 
-    def has_row(self):
+    def has_row(self) -> bool:
         if self.rows.items():
             return True
         return False
 
+    def get_gid_taxonomy(self) -> Dict[str, List[str]]:
+        out = dict()
+        for gid, row in self.rows.items():
+            split_tax = row.classification.split(';')
+            if len(split_tax) != 7:
+                raise GTDBTkExit(f'Expected a 7-rank taxonomy for {gid} but got {row.classification}')
+            out[gid] = split_tax
+        return out
+
     def write(self):
         """Writes the summary file to disk. None will be replaced with N/A"""
+        make_sure_path_exists(os.path.dirname(self.path))
         with open(self.path, 'w') as fh:
             fh.write('\t'.join(self.get_col_order()[0]) + '\n')
             for gid, row in sorted(self.rows.items()):
                 buf = list()
-                for data in self.get_col_order(row)[1]:
+                for idx,data in enumerate(self.get_col_order(row)[1]):
+                    # for the red_value field, we want to round the data to 5 decimals after the comma if the value is not None
+                    if idx==self.get_col_order()[0].index('red_value') and data is not None:
+                        data = round(data,5)
                     buf.append(self.none_value if data is None else str(data))
                 fh.write('\t'.join(buf) + '\n')
 
@@ -165,5 +188,3 @@ class ClassifySummaryFileBAC120(ClassifySummaryFile):
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))
         super().__init__(path, 'bac120')
-
-

@@ -2,6 +2,38 @@
 Change log
 ==========
 
+2.2.0
+-----
+
+Minor changes:
+
+* (`#433 <https://github.com/Ecogenomics/GTDBTk/issues/433>`_) Added additional checks to ensure that the `--outgroup_taxon` cannot be set to a domain (`root`, `de_novo_wf`).
+* (`#459 <https://github.com/Ecogenomics/GTDBTk/issues/459>`_ / `#462 <https://github.com/Ecogenomics/GTDBTk/issues/462>`_ ) Fix deprecated np.bool in prodigal_biolib.py. Special thanks to @neoformit for his contribution.
+* (`#466 <http://github.com/Ecogenomics/GTDBTk/issues/466>`_) RED value has been rounded to 5 decimals after the comma.
+* (`#451 <http://github.com/Ecogenomics/GTDBTk/issues/451>`_) Extra checks have been added when Prodigal fails.
+* (`#448 <http://github.com/Ecogenomics/GTDBTk/issues/448>`_) Warning has been added when all the genomes are filtered out and not classified.
+
+Bug Fixes:
+
+* (`#420 <https://github.com/Ecogenomics/GTDBTk/issues/420>`_) Fixed an issue where GTDB-Tk might hang when classifying TIGRFAM markers (`identify`, `classify_wf`, `de_novo_wf`). Special thanks to @lfenske-93 and @sjaenick for their contribution.
+* (`#428 <https://github.com/Ecogenomics/GTDBTk/issues/428>`_) Fixed an issue where the `--gtdbtk_classification_file` would raise an error trying to read the `classify` summary (`root`, `de_novo_wf`).
+* (`#439 <https://github.com/Ecogenomics/GTDBTk/issues/439>`_) Fix the pipeline when using protein files instead of nucleotide files. symlink uses absolute path instead.
+
+
+
+
+2.1.1
+-----
+
+Documentation:
+
+* (`#410 <https://github.com/Ecogenomics/GTDBTk/issues/410>`_) Add documentation for `convert_to_itol`
+
+Bug Fixes:
+
+* (`#399 <https://github.com/Ecogenomics/GTDBTk/issues/399>`_) Fix `--genes` option attempting to create a directory.
+* (`#400 <https://github.com/Ecogenomics/GTDBTk/issues/400>`_) Updated contig.py to fix inconsistent pplacer paths causing the program to crash.
+
 
 2.1.0
 -----
