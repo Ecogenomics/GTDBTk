@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ani_rep &mdash; GTDB-Tk 2.1.1 documentation</title>
+  <title>ani_rep &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.1.1
+                2.2.0
               </div>
             
           
@@ -124,14 +124,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Commands</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="align.html">align</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">ani_rep</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#optional Mash arguments">optional Mash arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#optional FastANI arguments">optional FastANI arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#files-output">Files output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
@@ -261,93 +254,6 @@
 <p>Compute the ANI of input genomes to all GTDB-Tk representative genomes.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">ani_rep</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
-                      <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mash</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_k</span> <span class="n">MASH_K</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">mash_s</span> <span class="n">MASH_S</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_d</span> <span class="n">MASH_D</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_v</span> <span class="n">MASH_V</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">mash_db</span> <span class="n">MASH_DB</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="mutually exclusive required arguments">
-<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--genome_dir</kbd></dt>
-<dd><p>directory containing genome files in FASTA format</p>
-</dd>
-<dt><kbd>--batchfile</kbd></dt>
-<dd><p>path to file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table [optional])</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--out_dir</kbd></dt>
-<dd><p>directory to output files</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="optional Mash arguments">
-<h3>optional Mash arguments<a class="headerlink" href="#optional Mash arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--no_mash</kbd></dt>
-<dd><p>skip pre-filtering of genomes using Mash</p>
-</dd>
-<dt><kbd>--mash_k</kbd></dt>
-<dd><p>k-mer size [1-32]</p>
-<p>Default: 16</p>
-</dd>
-<dt><kbd>--mash_s</kbd></dt>
-<dd><p>maximum number of non-redundant hashes</p>
-<p>Default: 5000</p>
-</dd>
-<dt><kbd>--mash_d</kbd></dt>
-<dd><p>maximum distance to keep [0-1]</p>
-<p>Default: 0.1</p>
-</dd>
-<dt><kbd>--mash_v</kbd></dt>
-<dd><p>maximum p-value to keep [0-1]</p>
-<p>Default: 1.0</p>
-</dd>
-<dt><kbd>--mash_db</kbd></dt>
-<dd><p>path to save/read (if exists) the Mash reference sketch database (.msh)</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="optional FastANI arguments">
-<h3>optional FastANI arguments<a class="headerlink" href="#optional FastANI arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--min_af</kbd></dt>
-<dd><p>minimum alignment fraction to assign genome to a species cluster</p>
-<p>Default: 0.5</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>-x, --extension</kbd></dt>
-<dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
-<p>Default: “fna”</p>
-</dd>
-<dt><kbd>--prefix</kbd></dt>
-<dd><p>prefix for all output files</p>
-<p>Default: “gtdbtk”</p>
-</dd>
-<dt><kbd>--cpus</kbd></dt>
-<dd><p>number of CPUs to use</p>
-<p>Default: 1</p>
-</dd>
-<dt><kbd>--tmpdir</kbd></dt>
-<dd><p>specify alternative directory for temporary files</p>
-<p>Default: “/tmp”</p>
-</dd>
-<dt><kbd>--debug</kbd></dt>
-<dd><p>create intermediate files for debugging purposes</p>
-</dd>
-</dl>
-</div>
 </div>
 <div class="section" id="files-output">
 <h2>Files output<a class="headerlink" href="#files-output" title="Permalink to this headline">¶</a></h2>
@@ -372,7 +278,7 @@
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="input">
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk ani_rep --genome_dir genomes/ --out_dir ani_rep/ --cpus <span class="m">70</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>ani_rep<span class="w"> </span>--genome_dir<span class="w"> </span>genomes/<span class="w"> </span>--out_dir<span class="w"> </span>ani_rep/<span class="w"> </span>--cpus<span class="w"> </span><span class="m">70</span>
 </pre></div>
 </div>
 </div>
@@ -412,7 +318,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2022, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

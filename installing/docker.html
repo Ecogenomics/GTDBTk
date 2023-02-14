@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Docker &mdash; GTDB-Tk 2.1.1 documentation</title>
+  <title>Docker &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.1.1
+                2.2.0
               </div>
             
           
@@ -270,7 +270,7 @@ will use this to read input genomes, and write output files, e.g.: <code class="
 <li><p><code class="docutils literal notranslate"><span class="pre">/host/gtdbtk_io:/data</span></code></p></li>
 </ul>
 <p>For example, the classify workflow for genome_a, and genome_b an be run as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run -v /host/gtdbtk_io:/data -v /host/release_data:/refdata ecogenomic/gtdbtk classify_wf --genome_dir /data/genomes --out_dir /data/output
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/host/gtdbtk_io:/data<span class="w"> </span>-v<span class="w"> </span>/host/release_data:/refdata<span class="w"> </span>ecogenomic/gtdbtk<span class="w"> </span>classify_wf<span class="w"> </span>--genome_dir<span class="w"> </span>/data/genomes<span class="w"> </span>--out_dir<span class="w"> </span>/data/output
 </pre></div>
 </div>
 <p>Note:</p>
@@ -295,7 +295,7 @@ will use this to read input genomes, and write output files, e.g.: <code class="
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2022, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

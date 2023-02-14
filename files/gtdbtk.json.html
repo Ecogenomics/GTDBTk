@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify.tree &mdash; GTDB-Tk 2.2.0 documentation</title>
+  <title>gtdbtk.json &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -22,7 +22,7 @@
   
 
   
-    <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/files/classify.tree.html" />
+    <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/files/gtdbtk.json.html" />
 
   
   <!--[if lt IE 9]>
@@ -58,8 +58,8 @@
 
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="fasttree.log" href="fasttree.log.html" />
-    <link rel="prev" title="classification_pplacer.tsv" href="classification_pplacer.tsv.html" />
+    <link rel="next" title="failed.genomes.tsv" href="failed_genomes.tsv.html" />
+    <link rel="prev" title="tree.mapping.tsv" href="tree.mapping.tsv.html" />
  
 </head>
 
@@ -126,11 +126,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ani_closest.tsv.html">ani_closest.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ani_summary.tsv.html">ani_summary.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classification_pplacer.tsv.html">classification_pplacer.tsv</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">classify.tree</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#produced-by">Produced by</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="classify.tree.html">classify.tree</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fasttree.log.html">fasttree.log</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filtered.tsv.html">filtered.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gtdbtk.log.html">gtdbtk.log</a></li>
@@ -160,7 +156,11 @@
 <li class="toctree-l2"><a class="reference internal" href="user_msa.fasta.html">user_msa.fasta</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user_query_sketch.msh.html">user_query_sketch.msh</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tree.mapping.tsv.html">tree.mapping.tsv</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gtdbtk.json.html">gtdbtk.json</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">gtdbtk.json</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#produced-by">Produced by</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="failed_genomes.tsv.html">failed.genomes.tsv</a></li>
 </ul>
 </li>
@@ -220,14 +220,14 @@
         
           <li><a href="index.html">Files</a> &raquo;</li>
         
-      <li>classify.tree</li>
+      <li>gtdbtk.json</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
             
-              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/files/classify.tree.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/files/gtdbtk.json.rst" class="fa fa-github"> Edit on GitHub</a>
             
           
         
@@ -265,21 +265,46 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="classify-tree">
-<span id="files-classify-tree"></span><h1>classify.tree<a class="headerlink" href="#classify-tree" title="Permalink to this headline">¶</a></h1>
-<p>Reference tree in Newick format containing query genomes placed with pplacer.</p>
+<div class="section" id="gtdbtk-json">
+<span id="files-gtdbtk-json"></span><h1>gtdbtk.json<a class="headerlink" href="#gtdbtk-json" title="Permalink to this headline">¶</a></h1>
+<p>The console output of GTDB-Tk saved to disk in a JSON format.</p>
 <div class="section" id="produced-by">
 <h2>Produced by<a class="headerlink" href="#produced-by" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
+<li><p><a class="reference internal" href="../commands/align.html#commands-align"><span class="std std-ref">align</span></a></p></li>
+<li><p><a class="reference internal" href="../commands/align.html#commands-align"><span class="std std-ref">align</span></a></p></li>
 <li><p><a class="reference internal" href="../commands/classify.html#commands-classify"><span class="std std-ref">classify</span></a></p></li>
 <li><p><a class="reference internal" href="../commands/classify_wf.html#commands-classify-wf"><span class="std std-ref">classify_wf</span></a></p></li>
+<li><p><a class="reference internal" href="../commands/de_novo_wf.html#commands-de-novo-wf"><span class="std std-ref">de_novo_wf</span></a></p></li>
+<li><p><a class="reference internal" href="../commands/identify.html#commands-identify"><span class="std std-ref">identify</span></a></p></li>
+<li><p><a class="reference internal" href="../commands/infer.html#commands-infer"><span class="std std-ref">infer</span></a></p></li>
 </ul>
-</div></blockquote>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>((((((((((((((((((((((GB_GCA_002498125.1:0.17454,UBA10207:0.18672)&#39;1.0:g__UBA52...
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+    &quot;version&quot;: &quot;2.1.1&quot;,
+    &quot;command_line&quot;: &quot;gtdbtk classify_wf --batchfile /srv/projects/gtdbtk/test_new_features/gems_benchmark/3lines_batchfile.tsv --out_dir /srv/projects/gtdbtk/test_new_features/gems_benchmark/classify_wf_outdir_prescreen_3lines/ --keep_intermediates --cpus 20 --mash_db /srv/projects/gtdbtk/test_new_features/gems_benchmark/mash_sketch/cli/&quot;,
+    &quot;database_version&quot;: &quot;r207&quot;,
+    &quot;database_path&quot;: &quot;/srv/projects/gtdbtk/test_new_features/release207_v2/&quot;,
+    &quot;steps&quot;: [
+        {
+            &quot;name&quot;: &quot;ANI screen&quot;,
+            &quot;input&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/3lines_batchfile.tsv&quot;,
+            &quot;output_dir&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/classify_wf_outdir_prescreen_3lines/&quot;,
+            &quot;output_files&quot;: {
+                &quot;bac120&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/classify_wf_outdir_prescreen_3lines/classify/ani_screen/gtdbtk.bac120.ani_summary.tsv&quot;
+            },
+            &quot;starts_at&quot;: &quot;2023-02-01T08:02:17.814231&quot;,
+            &quot;ends_at&quot;: &quot;2023-02-01T08:02:27.782442&quot;,
+            &quot;duration&quot;: &quot;0:00:09&quot;,
+            &quot;status&quot;: &quot;completed&quot;,
+            &quot;mash_k&quot;: 16,
+            &quot;mash_s&quot;: 5000,
+            &quot;mash_v&quot;: 1.0,
+            &quot;mash_max_dist&quot;: 0.1,
+            &quot;mash_db&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/mash_sketch/cli/&quot;
+        },
 </pre></div>
 </div>
 </div>
@@ -291,8 +316,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="fasttree.log.html" class="btn btn-neutral float-right" title="fasttree.log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="classification_pplacer.tsv.html" class="btn btn-neutral float-left" title="classification_pplacer.tsv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="failed_genomes.tsv.html" class="btn btn-neutral float-right" title="failed.genomes.tsv" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tree.mapping.tsv.html" class="btn btn-neutral float-left" title="tree.mapping.tsv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

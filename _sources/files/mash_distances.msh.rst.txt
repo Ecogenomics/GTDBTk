@@ -8,6 +8,8 @@ The raw output of the distance from each genome to the GTDB-Tk reference genomes
 Produced by
 -----------
 * :ref:`commands/ani_rep`
+* :ref:`commands/classify`
+* :ref:`commands/classify_wf`
 
 Example
 -------

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>convert_to_itol &mdash; GTDB-Tk 2.1.1 documentation</title>
+  <title>convert_to_itol &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.1.1
+                2.2.0
               </div>
             
           
@@ -128,11 +128,7 @@
 <li class="toctree-l2"><a class="reference internal" href="classify.html">classify</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classify_wf.html">classify_wf</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">convert_to_itol</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
@@ -257,35 +253,12 @@
 <p>The <cite>convert_to_itol</cite> command will remove internal labels from Newick tree, making it suitable for visualization in <a class="reference external" href="http://itol.embl.de/">iTOL</a>.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">convert_to_itol</span> <span class="o">--</span><span class="n">input_tree</span> <span class="n">INPUT_TREE</span> <span class="o">--</span><span class="n">output_tree</span>
-                              <span class="n">OUTPUT_TREE</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--input_tree</kbd></dt>
-<dd><p>path to the unrooted tree in Newick format</p>
-</dd>
-<dt><kbd>--output_tree</kbd></dt>
-<dd><p>path to output the tree</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--debug</kbd></dt>
-<dd><p>create intermediate files for debugging purposes</p>
-</dd>
-</dl>
-</div>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="input">
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk convert_to_itol --input some_tree.tree --output itol.tree
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>convert_to_itol<span class="w"> </span>--input<span class="w"> </span>some_tree.tree<span class="w"> </span>--output<span class="w"> </span>itol.tree
 </pre></div>
 </div>
 </div>
@@ -316,7 +289,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2022, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

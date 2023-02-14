@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Example &mdash; GTDB-Tk 2.1.1 documentation</title>
+  <title>Example &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Change log" href="../changelog.html" />
-    <link rel="prev" title="user_query_sketch.msh" href="../files/user_query_sketch.msh.html" />
+    <link rel="prev" title="failed.genomes.tsv" href="../files/failed_genomes.tsv.html" />
  
 </head>
 
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.1.1
+                2.2.0
               </div>
             
           
@@ -506,12 +506,12 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the directory.</span>
-!mkdir -p /tmp/gtdbtk <span class="o">&amp;&amp;</span> <span class="nb">cd</span> /tmp/gtdbtk
+!mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/gtdbtk<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/tmp/gtdbtk
 
 <span class="c1"># Obtain the genomes.</span>
-!mkdir -p /tmp/gtdbtk/genomes
-!wget -q https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/003/947/435/GCF_003947435.1_ASM394743v1/GCF_003947435.1_ASM394743v1_genomic.fna.gz -O /tmp/gtdbtk/genomes/genome_a.fna.gz
-!wget -q https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/011/125/GCA_002011125.1_ASM201112v1/GCA_002011125.1_ASM201112v1_genomic.fna.gz -O /tmp/gtdbtk/genomes/genome_b.fna.gz
+!mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/gtdbtk/genomes
+!wget<span class="w"> </span>-q<span class="w"> </span>https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/003/947/435/GCF_003947435.1_ASM394743v1/GCF_003947435.1_ASM394743v1_genomic.fna.gz<span class="w"> </span>-O<span class="w"> </span>/tmp/gtdbtk/genomes/genome_a.fna.gz
+!wget<span class="w"> </span>-q<span class="w"> </span>https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/011/125/GCA_002011125.1_ASM201112v1/GCA_002011125.1_ASM201112v1_genomic.fna.gz<span class="w"> </span>-O<span class="w"> </span>/tmp/gtdbtk/genomes/genome_b.fna.gz
 </pre></div>
 </div>
 </div>
@@ -523,7 +523,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls -l /tmp/gtdbtk/genomes
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls<span class="w"> </span>-l<span class="w"> </span>/tmp/gtdbtk/genomes
 </pre></div>
 </div>
 </div>
@@ -531,7 +531,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk identify --genome_dir /tmp/gtdbtk/genomes --out_dir /tmp/gtdbtk/identify --extension gz --cpus <span class="m">2</span>
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk<span class="w"> </span>identify<span class="w"> </span>--genome_dir<span class="w"> </span>/tmp/gtdbtk/genomes<span class="w"> </span>--out_dir<span class="w"> </span>/tmp/gtdbtk/identify<span class="w"> </span>--extension<span class="w"> </span>gz<span class="w"> </span>--cpus<span class="w"> </span><span class="m">2</span>
 </pre></div>
 </div>
 </div>
@@ -563,7 +563,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls /tmp/gtdbtk/identify/identify/intermediate_results/marker_genes/genome_a.fna/
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls<span class="w"> </span>/tmp/gtdbtk/identify/identify/intermediate_results/marker_genes/genome_a.fna/
 </pre></div>
 </div>
 </div>
@@ -588,7 +588,7 @@ genome_a.fna_protein.gff             prodigal_translation_table.tsv.sha256
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!cat /tmp/gtdbtk/identify/identify/gtdbtk.ar53.markers_summary.tsv
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!cat<span class="w"> </span>/tmp/gtdbtk/identify/identify/gtdbtk.ar53.markers_summary.tsv
 </pre></div>
 </div>
 </div>
@@ -611,7 +611,7 @@ genome_b.fna    50      0       0       3       PF00410.20,PF00466.21,PF00687.22
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk align --identify_dir /tmp/gtdbtk/identify --out_dir /tmp/gtdbtk/align --cpus <span class="m">2</span>
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk<span class="w"> </span>align<span class="w"> </span>--identify_dir<span class="w"> </span>/tmp/gtdbtk/identify<span class="w"> </span>--out_dir<span class="w"> </span>/tmp/gtdbtk/align<span class="w"> </span>--cpus<span class="w"> </span><span class="m">2</span>
 </pre></div>
 </div>
 </div>
@@ -647,7 +647,7 @@ genome_b.fna    50      0       0       3       PF00410.20,PF00466.21,PF00687.22
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls /tmp/gtdbtk/align/align/
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls<span class="w"> </span>/tmp/gtdbtk/align/align/
 </pre></div>
 </div>
 </div>
@@ -669,7 +669,7 @@ gtdbtk.ar53.msa.fasta.gz  intermediate_results
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk classify --genome_dir /tmp/gtdbtk/genomes --align_dir /tmp/gtdbtk/align --out_dir /tmp/gtdbtk/classify -x gz --cpus <span class="m">2</span>
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk<span class="w"> </span>classify<span class="w"> </span>--genome_dir<span class="w"> </span>/tmp/gtdbtk/genomes<span class="w"> </span>--align_dir<span class="w"> </span>/tmp/gtdbtk/align<span class="w"> </span>--out_dir<span class="w"> </span>/tmp/gtdbtk/classify<span class="w"> </span>-x<span class="w"> </span>gz<span class="w"> </span>--cpus<span class="w"> </span><span class="m">2</span>
 </pre></div>
 </div>
 </div>
@@ -700,7 +700,7 @@ gtdbtk.ar53.msa.fasta.gz  intermediate_results
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls /tmp/gtdbtk/classify
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!ls<span class="w"> </span>/tmp/gtdbtk/classify
 </pre></div>
 </div>
 </div>
@@ -731,14 +731,14 @@ classify  gtdbtk.ar53.summary.tsv  gtdbtk.log  gtdbtk.warnings.log
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="../changelog.html" class="btn btn-neutral float-right" title="Change log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="../files/user_query_sketch.msh.html" class="btn btn-neutral float-left" title="user_query_sketch.msh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../files/failed_genomes.tsv.html" class="btn btn-neutral float-left" title="failed.genomes.tsv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2022, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

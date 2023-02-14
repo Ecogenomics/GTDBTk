@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify &mdash; GTDB-Tk 2.1.1 documentation</title>
+  <title>classify &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.1.1
+                2.2.0
               </div>
             
           
@@ -126,12 +126,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ani_rep.html">ani_rep</a></li>
 <li class="toctree-l2"><a class="reference internal" href="check_install.html">check_install</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">classify</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#files-output">Files output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
@@ -259,88 +254,55 @@
 <p>Determine taxonomic classification of genomes.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">classify</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
-                       <span class="o">--</span><span class="n">align_dir</span> <span class="n">ALIGN_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="section" id="mutually exclusive required arguments">
-<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--genome_dir</kbd></dt>
-<dd><p>directory containing genome files in FASTA format</p>
-</dd>
-<dt><kbd>--batchfile</kbd></dt>
-<dd><p>path to file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table [optional])</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--align_dir</kbd></dt>
-<dd><p>output directory of ‘align’ command</p>
-</dd>
-<dt><kbd>--out_dir</kbd></dt>
-<dd><p>directory to output files</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>-x, --extension</kbd></dt>
-<dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
-<p>Default: “fna”</p>
-</dd>
-<dt><kbd>--prefix</kbd></dt>
-<dd><p>prefix for all output files</p>
-<p>Default: “gtdbtk”</p>
-</dd>
-<dt><kbd>--cpus</kbd></dt>
-<dd><p>number of CPUs to use</p>
-<p>Default: 1</p>
-</dd>
-<dt><kbd>--pplacer_cpus</kbd></dt>
-<dd><p>number of CPUs to use during pplacer placement</p>
-</dd>
-<dt><kbd>--scratch_dir</kbd></dt>
-<dd><p>reduce pplacer memory usage by writing to disk (slower).</p>
-</dd>
-<dt><kbd>-f, --full_tree</kbd></dt>
-<dd><p>use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk approach (version &lt; 2) and requires more than 320 GB of RAM to load the reference tree</p>
-</dd>
-<dt><kbd>--min_af</kbd></dt>
-<dd><p>minimum alignment fraction to assign genome to a species cluster</p>
-<p>Default: 0.5</p>
-</dd>
-<dt><kbd>--tmpdir</kbd></dt>
-<dd><p>specify alternative directory for temporary files</p>
-<p>Default: “/tmp”</p>
-</dd>
-<dt><kbd>--debug</kbd></dt>
-<dd><p>create intermediate files for debugging purposes</p>
-</dd>
-</dl>
-</div>
 </div>
 <div class="section" id="files-output">
 <h2>Files output<a class="headerlink" href="#files-output" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><dl class="simple">
 <dt>classify</dt><dd><ul>
+<li><p><a class="reference internal" href="../files/summary.tsv.html#files-summary-tsv"><span class="std std-ref">[prefix].[domain].summary.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/classify.tree.html#files-classify-tree"><span class="std std-ref">[prefix].backbone.[domain].classify.tree</span></a></p></li>
+<li><p><a class="reference internal" href="../files/tree.mapping.tsv.html#files-tree-mapping-tsv"><span class="std std-ref">[prefix].[domain].tree.mapping.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/classify.tree.html#files-classify-tree"><span class="std std-ref">[prefix].[domain].classify.tree.[index].tree</span></a></p></li>
 <li><dl class="simple">
 <dt>intermediate_results</dt><dd><ul>
-<li><p><a class="reference internal" href="../files/classification_pplacer.tsv.html#files-classification-pplacer-tsv"><span class="std std-ref">[prefix].[domain].classification_pplacer.tsv</span></a></p></li>
-<li><p><a class="reference internal" href="../files/classify.tree.html#files-classify-tree"><span class="std std-ref">[prefix].[domain].classify.tree</span></a></p></li>
+<li><p><a class="reference internal" href="../files/classification_pplacer.tsv.html#files-classification-pplacer-tsv"><span class="std std-ref">[prefix].[domain].backbone.classification_pplacer.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/classification_pplacer.tsv.html#files-classification-pplacer-tsv"><span class="std std-ref">[prefix].[domain].class_level.classification_pplacer_tree_[index].tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/msa.fasta.html#files-msa-fasta"><span class="std std-ref">[prefix].[domain].prescreened.msa.fasta</span></a></p></li>
+<li><p><a class="reference internal" href="../files/red_dictionary.tsv.html#files-red-dictionary-tsv"><span class="std std-ref">[prefix].[domain].red_dictionary.tsv</span></a></p></li>
 <li><dl class="simple">
 <dt>pplacer</dt><dd><ul>
-<li><p><a class="reference internal" href="../files/pplacer.domain.json.html#files-pplacer-domain-json"><span class="std std-ref">pplacer.[domain].json</span></a></p></li>
-<li><p><a class="reference internal" href="../files/pplacer.domain.out.html#files-pplacer-domain-out"><span class="std std-ref">pplacer.[domain].out</span></a></p></li>
-<li><p><a class="reference internal" href="../files/red_dictionary.tsv.html#files-red-dictionary-tsv"><span class="std std-ref">[prefix].[domain].red_dictionary.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/pplacer.domain.json.html#files-pplacer-domain-json"><span class="std std-ref">pplacer.backbone.[domain].json</span></a></p></li>
+<li><p><a class="reference internal" href="../files/pplacer.domain.out.html#files-pplacer-domain-out"><span class="std std-ref">pplacer.backbone.[domain].out</span></a></p></li>
+<li><dl class="simple">
+<dt>tree_[index]</dt><dd><ul>
+<li><p><a class="reference internal" href="../files/user_msa.fasta.html#files-user-msa-fasta"><span class="std std-ref">[prefix].[domain].user_msa.fasta</span></a></p></li>
+<li><p><a class="reference internal" href="../files/pplacer.domain.out.html#files-pplacer-domain-out"><span class="std std-ref">pplacer.class_level.[domain].out</span></a></p></li>
+<li><p><a class="reference internal" href="../files/pplacer.domain.json.html#files-pplacer-domain-json"><span class="std std-ref">pplacer.class_level.[domain].json</span></a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>ani_screen</dt><dd><ul>
+<li><dl class="simple">
+<dt>intermediate_results</dt><dd><ul>
+<li><dl class="simple">
+<dt>mash</dt><dd><ul>
+<li><p><a class="reference internal" href="../files/mash_distances.msh.html#files-mash-distances-msh"><span class="std std-ref">[prefix].mash_distances.tsv</span></a></p></li>
+<li><p><a class="reference internal" href="../files/user_query_sketch.msh.html#files-user-query-sketch-msh"><span class="std std-ref">[prefix].user_query_sketch.msh</span></a></p></li>
 </ul>
 </dd>
 </dl>
@@ -355,6 +317,7 @@
 </li>
 <li><p><a class="reference internal" href="../files/summary.tsv.html#files-summary-tsv"><span class="std std-ref">[prefix].[domain].summary.tsv</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.log.html#files-gtdbtk-log"><span class="std std-ref">[prefix].log</span></a></p></li>
+<li><p><a class="reference internal" href="../files/gtdbtk.json.html#files-gtdbtk-json"><span class="std std-ref">[prefix].json</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.warnings.log.html#files-gtdbtk-warnings-log"><span class="std std-ref">[prefix].warnings.log</span></a></p></li>
 </ul>
 </div>
@@ -362,25 +325,35 @@
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="input">
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk classify --genome_dir genomes/ --align_dir align_output/ --out_dir classify_output --cpus <span class="m">3</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify<span class="w"> </span>--genome_dir<span class="w"> </span>genomes/<span class="w"> </span>--align_dir<span class="w"> </span>align_output/<span class="w"> </span>--out_dir<span class="w"> </span>classify_output<span class="w"> </span>--cpus<span class="w"> </span><span class="m">3</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2022-04-11 12:02:06] INFO: GTDB-Tk v2.0.0
-[2022-04-11 12:02:06] INFO: gtdbtk classify --genome_dir /tmp/gtdbtk/genomes --align_dir /tmp/gtdbtk/align --out_dir /tmp/gtdbtk/classify -x gz --cpus 2
-[2022-04-11 12:02:06] INFO: Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
-[2022-04-11 12:02:07] TASK: Placing 2 archaeal genomes into reference tree with pplacer using 2 CPUs (be patient).
-[2022-04-11 12:02:07] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
-[2022-04-11 12:07:06] INFO: Calculating RED values based on reference tree.
-[2022-04-11 12:07:06] TASK: Traversing tree to determine classification method.
-[2022-04-11 12:07:06] INFO: Completed 2 genomes in 0.00 seconds (18,558.87 genomes/second).
-[2022-04-11 12:07:06] TASK: Calculating average nucleotide identity using FastANI (v1.32).
-[2022-04-11 12:07:08] INFO: Completed 4 comparisons in 1.61 seconds (2.49 comparisons/second).
-[2022-04-11 12:07:08] INFO: 2 genome(s) have been classified using FastANI and pplacer.
-[2022-04-11 12:07:08] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
-[2022-04-11 12:07:08] INFO: Done.
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2023-02-08 12:53:42] INFO: GTDB-Tk v2.2.0
+[2023-02-08 12:53:42] INFO: gtdbtk classify --align_dir align_3lines/ --batchfile 3lines_batchfile.tsv --out_dir 3classify_ani --mash_db mash_db_dir/ --cpus 20
+[2023-02-08 12:53:42] INFO: Using GTDB-Tk reference data version r207: /path/to/gtdbtk/database/release207_v2/
+[2023-02-08 12:53:43] INFO: Loading reference genomes.
+[2023-02-08 12:53:43] INFO: Using Mash version 2.2.2
+[2023-02-08 12:53:43] INFO: Loading data from existing Mash sketch file: 3classify_ani/classify/ani_screen/intermediate_results/mash/gtdbtk.user_query_sketch.msh
+[2023-02-08 12:53:43] INFO: Loading data from existing Mash sketch file: mash_db_dir/gtdb_ref_sketch.msh
+[2023-02-08 12:53:46] INFO: Calculating Mash distances.
+[2023-02-08 12:53:49] INFO: Calculating ANI with FastANI v1.3.
+[2023-02-08 12:53:49] INFO: Completed 12 comparisons in 0.44 seconds (27.54 comparisons/second).
+[2023-02-08 12:53:49] INFO: 2 genome(s) have been classified using the ANI pre-screening step.
+[2023-02-08 12:53:49] TASK: Placing 1 bacterial genomes into backbone reference tree with pplacer using 20 CPUs (be patient).
+[2023-02-08 12:53:49] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
+[2023-02-08 12:55:02] INFO: Calculating RED values based on reference tree.
+[2023-02-08 12:55:03] INFO: 1 out of 1 have an class assignments. Those genomes will be reclassified.
+[2023-02-08 12:55:03] TASK: Placing 1 bacterial genomes into class-level reference tree 5 (1/1) with pplacer using 20 CPUs (be patient).
+[2023-02-08 12:57:38] INFO: Calculating RED values based on reference tree.
+[2023-02-08 12:57:40] TASK: Traversing tree to determine classification method.
+[2023-02-08 12:57:40] INFO: Completed 1 genome in 0.04 seconds (23.86 genomes/second).
+[2023-02-08 12:57:40] INFO: 0 genome(s) have been classified using FastANI and pplacer.
+[2023-02-08 12:57:40] WARNING: 1 of 3 genome has a warning (see summary file).
+[2023-02-08 12:57:40] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+[2023-02-08 12:57:40] INFO: Done.
 </pre></div>
 </div>
 </div>
@@ -401,7 +374,7 @@
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2022, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

@@ -9,3 +9,5 @@ Produced by
 -----------
 
 * :ref:`commands/ani_rep`
+* :ref:`commands/classify`
+* :ref:`commands/classify_wf`

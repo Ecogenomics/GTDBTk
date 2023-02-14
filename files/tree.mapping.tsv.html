@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify.tree &mdash; GTDB-Tk 2.2.0 documentation</title>
+  <title>tree.mapping.tsv &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -22,7 +22,7 @@
   
 
   
-    <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/files/classify.tree.html" />
+    <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/files/tree.mapping.tsv.html" />
 
   
   <!--[if lt IE 9]>
@@ -58,8 +58,8 @@
 
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="fasttree.log" href="fasttree.log.html" />
-    <link rel="prev" title="classification_pplacer.tsv" href="classification_pplacer.tsv.html" />
+    <link rel="next" title="gtdbtk.json" href="gtdbtk.json.html" />
+    <link rel="prev" title="user_query_sketch.msh" href="user_query_sketch.msh.html" />
  
 </head>
 
@@ -126,11 +126,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ani_closest.tsv.html">ani_closest.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ani_summary.tsv.html">ani_summary.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classification_pplacer.tsv.html">classification_pplacer.tsv</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">classify.tree</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#produced-by">Produced by</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="classify.tree.html">classify.tree</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fasttree.log.html">fasttree.log</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filtered.tsv.html">filtered.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="gtdbtk.log.html">gtdbtk.log</a></li>
@@ -159,7 +155,11 @@
 <li class="toctree-l2"><a class="reference internal" href="unrooted.tree.html">unrooted.tree</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user_msa.fasta.html">user_msa.fasta</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user_query_sketch.msh.html">user_query_sketch.msh</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tree.mapping.tsv.html">tree.mapping.tsv</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">tree.mapping.tsv</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#produced-by">Produced by</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="gtdbtk.json.html">gtdbtk.json</a></li>
 <li class="toctree-l2"><a class="reference internal" href="failed_genomes.tsv.html">failed.genomes.tsv</a></li>
 </ul>
@@ -220,14 +220,14 @@
         
           <li><a href="index.html">Files</a> &raquo;</li>
         
-      <li>classify.tree</li>
+      <li>tree.mapping.tsv</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
             
-              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/files/classify.tree.rst" class="fa fa-github"> Edit on GitHub</a>
+              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/files/tree.mapping.tsv.rst" class="fa fa-github"> Edit on GitHub</a>
             
           
         
@@ -265,21 +265,22 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="classify-tree">
-<span id="files-classify-tree"></span><h1>classify.tree<a class="headerlink" href="#classify-tree" title="Permalink to this headline">¶</a></h1>
-<p>Reference tree in Newick format containing query genomes placed with pplacer.</p>
+<div class="section" id="tree-mapping-tsv">
+<span id="files-tree-mapping-tsv"></span><h1>tree.mapping.tsv<a class="headerlink" href="#tree-mapping-tsv" title="Permalink to this headline">¶</a></h1>
+<p>Map between genomes and the class_level taxonomy tree used to classify them.</p>
 <div class="section" id="produced-by">
 <h2>Produced by<a class="headerlink" href="#produced-by" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
-<li><p><a class="reference internal" href="../commands/classify.html#commands-classify"><span class="std std-ref">classify</span></a></p></li>
 <li><p><a class="reference internal" href="../commands/classify_wf.html#commands-classify-wf"><span class="std std-ref">classify_wf</span></a></p></li>
+<li><p><a class="reference internal" href="../commands/classify.html#commands-classify"><span class="std std-ref">classify</span></a></p></li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>((((((((((((((((((((((GB_GCA_002498125.1:0.17454,UBA10207:0.18672)&#39;1.0:g__UBA52...
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>user_genome is_ani_classification   class_tree_mapped       classification_rule
+3300006853_26       False   5       Rule 3
 </pre></div>
 </div>
 </div>
@@ -291,8 +292,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="fasttree.log.html" class="btn btn-neutral float-right" title="fasttree.log" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="classification_pplacer.tsv.html" class="btn btn-neutral float-left" title="classification_pplacer.tsv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gtdbtk.json.html" class="btn btn-neutral float-right" title="gtdbtk.json" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="user_query_sketch.msh.html" class="btn btn-neutral float-left" title="user_query_sketch.msh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

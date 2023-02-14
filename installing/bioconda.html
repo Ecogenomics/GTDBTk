@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Bioconda &mdash; GTDB-Tk 2.1.1 documentation</title>
+  <title>Bioconda &mdash; GTDB-Tk 2.2.0 documentation</title>
   
 
   
@@ -87,7 +87,7 @@
             
             
               <div class="version">
-                2.1.1
+                2.2.0
               </div>
             
           
@@ -259,10 +259,10 @@ specify those channels in that order!</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: replace 2.1.1 with the version you wish to install</span>
 
 <span class="c1"># using conda</span>
-conda create -n gtdbtk-2.1.1 -c conda-forge -c bioconda <span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.1.1
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gtdbtk-2.1.1<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span><span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.1.1
 
 <span class="c1"># using mamba (alternative)</span>
-mamba create -n gtdbtk-2.1.1 -c conda-forge -c bioconda <span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.1.1
+mamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gtdbtk-2.1.1<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span><span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.1.1
 </pre></div>
 </div>
 </div>
@@ -283,10 +283,10 @@ that will automatically download, and extract the GTDB-Tk reference data. The sc
 <p>You can automatically alias <code class="docutils literal notranslate"><span class="pre">GTDBTK_DATA_PATH</span></code> whenever the environment is activated by
 <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables">setting environment-specific variables</a>, e.g.:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate the GTDB-Tk conda environment</span>
-conda activate gtdbtk-2.1.1
+conda<span class="w"> </span>activate<span class="w"> </span>gtdbtk-2.1.1
 
 <span class="c1"># Set the environment variable to the directory containing the GTDB-Tk reference data</span>
-conda env config vars <span class="nb">set</span> <span class="nv">GTDBTK_DATA_PATH</span><span class="o">=</span><span class="s2">&quot;/path/to/unarchived/gtdbtk/data&quot;</span><span class="p">;</span>
+conda<span class="w"> </span>env<span class="w"> </span>config<span class="w"> </span>vars<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">GTDBTK_DATA_PATH</span><span class="o">=</span><span class="s2">&quot;/path/to/unarchived/gtdbtk/data&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -307,7 +307,7 @@ conda env config vars <span class="nb">set</span> <span class="nv">GTDBTK_DATA_P
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2022, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

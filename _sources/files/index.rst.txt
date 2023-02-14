@@ -41,4 +41,7 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
    unrooted.tree
    user_msa.fasta
    user_query_sketch.msh
+   tree.mapping.tsv
+   gtdbtk.json
+   failed_genomes.tsv
 
