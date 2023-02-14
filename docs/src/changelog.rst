@@ -7,7 +7,7 @@ Change log
 
 Bug Fixes:
 
-* Fix Pplacer issue
+* (`#471 <https://github.com/Ecogenomics/GTDBTk/issues/471>`_) Fix Pplacer issue
 
 
 2.2.1
