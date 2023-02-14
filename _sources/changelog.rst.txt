@@ -2,6 +2,14 @@
 Change log
 ==========
 
+2.2.2
+-----
+
+Bug Fixes:
+
+* Fix Pplacer issue
+
+
 2.2.1
 -----
 
