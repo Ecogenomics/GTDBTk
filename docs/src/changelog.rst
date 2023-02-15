@@ -2,6 +2,13 @@
 Change log
 ==========
 
+2.2.3
+-----
+
+Bug Fixes:
+
+* Fix prodigal_fail_counter issue
+
 2.2.2
 -----
 

@@ -381,7 +381,7 @@ class Classify(object):
         output_files = {}
 
         for marker_set_id in ('ar53', 'bac120'):
-            warning_counter, prodigal_fail_counter = 0, 0
+            warning_counter, prodigal_failed_counter = 0, 0
             if marker_set_id == 'ar53':
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                 marker_summary_fh.read()
@@ -635,8 +635,8 @@ class Classify(object):
                 # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
                 # but they need to be included in one of the summary file
                 if marker_set_id == 'bac120':
-                    prodigal_fail_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                    warning_counter = warning_counter + prodigal_fail_counter
+                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    warning_counter = warning_counter + prodigal_failed_counter
 
                 # Symlink to the summary file from the root
                 if marker_set_id == 'bac120':
