@@ -58,7 +58,7 @@ from gtdbtk.tools import symlink_f, get_reference_ids, confirm, assert_outgroup_
 
 class OptionsParser(object):
 
-    def __init__(self, version,output_dir=None):
+    def __init__(self, version,output_dir=None,stage_logger_file=None):
         """Initialization.
 
         Parameters
@@ -81,8 +81,10 @@ class OptionsParser(object):
             else:
                 prog_name = base_name
             #timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')
-            self.stage_logger_file = StageLoggerFile(output_dir=output_dir,
-                                                    version=self.version,
+
+        if stage_logger_file is not None:
+            self.stage_logger_file = stage_logger_file
+            self.stage_logger_file.setStageLogger(version=self.version,
                                                     command_line=f'{prog_name} {" ".join(sys.argv[1:])}',
                                                     database_version = Config.VERSION_DATA,
                                                     database_path=Config.GENERIC_PATH)
@@ -580,7 +582,7 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
+        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af,options.skip_pplacer)
         reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,

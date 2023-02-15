@@ -123,10 +123,12 @@ class StageLogger(BaseModel):
             return None
 
 class StageLoggerFile:
-    def __init__(self,version:str, command_line: str,
-                 database_version: str, database_path: str,
-                 output_dir: str):
+    def __init__(self,output_dir: str):
         self.output_dir = output_dir
+
+    # We generate the StageLogger object
+    def setStageLogger(self, version:str, command_line: str,
+                 database_version: str, database_path: str):
         self.path = os.path.join(self.output_dir, "gtdbtk.json")
         self.stage_logger = StageLogger(version = version,
                                         command_line=command_line,

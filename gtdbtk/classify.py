@@ -62,10 +62,12 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None):
+    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None,skip_pplacer=False):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
+
+        self.skip_pplacer = skip_pplacer
 
         self.taxonomy_file = Config.TAXONOMY_FILE
         self.af_threshold = af_threshold if af_threshold else Config.AF_THRESHOLD
@@ -263,10 +265,12 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG: Skip pplacer
-        run_pplacer = True
-        if run_pplacer:
+        #run_pplacer = True
+        if not self.skip_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
+        else:
+            self.logger.warning('Skipping pplacer for debug purposes.')
 
         # extract tree
         tree_file = None
@@ -381,7 +385,7 @@ class Classify(object):
         output_files = {}
 
         for marker_set_id in ('ar53', 'bac120'):
-            warning_counter, prodigal_fail_counter = 0, 0
+            warning_counter, prodigal_failed_counter = 0, 0
             if marker_set_id == 'ar53':
                 marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                 marker_summary_fh.read()
@@ -635,8 +639,8 @@ class Classify(object):
                 # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
                 # but they need to be included in one of the summary file
                 if marker_set_id == 'bac120':
-                    prodigal_fail_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                    warning_counter = warning_counter + prodigal_fail_counter
+                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    warning_counter = warning_counter + prodigal_failed_counter
 
                 # Symlink to the summary file from the root
                 if marker_set_id == 'bac120':
@@ -661,7 +665,7 @@ class Classify(object):
 
 
             if warning_counter > 0:
-                sum_of_genomes =  len(genomes_to_process)+prodigal_failed_counter
+                sum_of_genomes =  len(genomes_to_process) + prodigal_failed_counter
                 if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
                     sum_of_genomes +=len(mash_classified_user_genomes.get(marker_set_id))
                 self.logger.warning(f"{warning_counter} of {sum_of_genomes} "
