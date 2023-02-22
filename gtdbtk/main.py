@@ -43,8 +43,8 @@ from gtdbtk.config.output import *
 from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
-from gtdbtk.files.stage_logger import StageLoggerFile, ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
-    InferStep, RootStep, DecorateStep
+from gtdbtk.files.stage_logger import ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
+    InferStep, RootStep, DecorateStep, StageLogger
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.files.batchfile import Batchfile
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFile
@@ -58,7 +58,7 @@ from gtdbtk.tools import symlink_f, get_reference_ids, confirm, assert_outgroup_
 
 class OptionsParser(object):
 
-    def __init__(self, version,output_dir=None,stage_logger_file=None):
+    def __init__(self, version,output_dir=None):
         """Initialization.
 
         Parameters
@@ -82,13 +82,15 @@ class OptionsParser(object):
                 prog_name = base_name
             #timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')
 
-        if stage_logger_file is not None:
-            self.stage_logger_file = stage_logger_file
-            self.stage_logger_file.setStageLogger(version=self.version,
-                                                    command_line=f'{prog_name} {" ".join(sys.argv[1:])}',
-                                                    database_version = Config.VERSION_DATA,
-                                                    database_path=Config.GENERIC_PATH)
-            self.stage_logger = self.stage_logger_file.stage_logger
+        #setup the stage logger
+        if output_dir is not None:
+            self.stage_logger = StageLogger()
+            self.stage_logger.version=self.version
+            self.stage_logger.command_line=f'{prog_name} {" ".join(sys.argv[1:])}'
+            self.stage_logger.database_version = Config.VERSION_DATA
+            self.stage_logger.database_path=Config.GENERIC_PATH
+            self.stage_logger.output_dir=output_dir
+            self.stage_logger.path = os.path.join(output_dir, "gtdbtk.json")
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
@@ -558,8 +560,8 @@ class OptionsParser(object):
         classify_step.mash_max_dist = options.mash_max_distance
 
         ani_summary_files = {}
-        if self.stage_logger_file.stage_logger.has_stage(ANIScreenStep):
-            previous_ani_step = self.stage_logger_file.stage_logger.get_stage(ANIScreenStep)
+        if self.stage_logger.has_stage(ANIScreenStep):
+            previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
             ani_summary_files = previous_ani_step.output_files
 
 
@@ -1076,14 +1078,13 @@ class OptionsParser(object):
             classified_genomes = None
             #We ned to check if the ani screen has already be ran, if so, we need to skip it.
             #Check is the gtdbtk.json file exists in the output folder
-            if os.path.isfile(self.stage_logger_file.path) and 1==2:
+            if os.path.isfile(self.stage_logger.path):
                 #If the file exists, we need to check if the ani_screen step has been ran
                 #If the ani_screen step has been ran, we need to skip it.
-                self.stage_logger_file.read()
-                stage_logger = self.stage_logger_file.stage_logger
-                if stage_logger.has_stage(ANIScreenStep):
+                self.stage_logger.read_existing_steps()
+                if self.stage_logger.has_stage(ANIScreenStep):
                     # we get the genomes already classified by the ani_screen step
-                    previous_ani_step = stage_logger.get_stage(ANIScreenStep)
+                    previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
                     if previous_ani_step.is_complete():
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
@@ -1100,6 +1101,9 @@ class OptionsParser(object):
                                          f'been classified using the ANI pre-screening step.')
 
                         options.skip_ani_screen = True
+                        self.stage_logger.reset_steps(keep_steps=['ANI screen'])
+                else:
+                    self.stage_logger.reset_steps()
 
             #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
             # in the identify step.
@@ -1148,7 +1152,6 @@ class OptionsParser(object):
                 print(options.skip_ani_screen, options.no_mash, options.mash_db)
                 self.logger.error('You must specify a path to the mash database with --mash_db')
             self.classify(options)
-            self.stage_logger_file.write()
 
         elif options.subparser_name == 'root':
             self.root(options)
@@ -1177,7 +1180,5 @@ class OptionsParser(object):
                               options.subparser_name + '"\n')
             sys.exit(1)
 
-        if hasattr(self,'stage_logger' ) and self.stage_logger.steps:
-            self.stage_logger_file.write()
 
         return 0
