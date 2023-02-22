@@ -49,6 +49,8 @@ from gtdbtk.config.output import (PATH_BAC120_TREE_FILE,
                                   PATH_AR53_SUMMARY_OUT)
 from gtdbtk.exceptions import GTDBTkExit
 
+FAMILY_IDX = 4
+SPECIES_IDX = 6
 
 class Translate(object):
     """Translate GTDB to NCBI classification via majority vote."""
@@ -196,6 +198,7 @@ class Translate(object):
         gtdb_sp_clusters = defaultdict(set)
         gid_to_gtdb_family = {}
         gtdb_family_to_rids = defaultdict(set)
+        gtdb_sp_to_rid = {}
         for domain, metadata_file in [('archaeal', ar53_metadata_file),
                                       ('bacterial', bac120_metadata_file)]:
             # Only process those domains which have been provided as an input.
@@ -240,15 +243,16 @@ class Translate(object):
                     if gid == rep_id:
                         # genome is a GTDB representative
                         gtdb_taxonomy = tokens[gtdb_taxonomy_index]
-                        gtdb_family = [t.strip()
-                                       for t in gtdb_taxonomy.split(';')][4]
+                        gtdb_taxa = [t.strip() for t in gtdb_taxonomy.split(';')]
+                        gtdb_family = gtdb_taxa[FAMILY_IDX]
                         gtdb_family_to_rids[gtdb_family].add(gid)
 
                         gid_to_gtdb_family[gid] = gtdb_family
+                        gtdb_sp_to_rid[gtdb_taxa[SPECIES_IDX]] = rep_id
 
                     gtdb_sp_clusters[rep_id].add(gid)
 
-        return ncbi_taxa, ncbi_lineages, gtdb_sp_clusters, gid_to_gtdb_family, gtdb_family_to_rids
+        return ncbi_taxa, ncbi_lineages, gtdb_sp_clusters, gid_to_gtdb_family, gtdb_family_to_rids, gtdb_sp_to_rid
 
     def resolve_majority_vote(self, taxon_counter, num_votes):
         """Resolve majority vote taxon.
@@ -381,6 +385,7 @@ class Translate(object):
                            ncbi_sp_classification,
                            gid_to_gtdb_family,
                            gtdb_family_to_rids,
+                           gtdb_sp_to_rid,
                            output_file):
         """Get NCBI majority vote classification for each user genome."""
 
@@ -445,7 +450,7 @@ class Translate(object):
                 # get NCBI majority vote classification for
                 # any genomes only placed in the backbone tree
                 remaining_gids = set(gtdbtk_assignments) - processed_gids
-                if len(remaining_gids) > 0:
+                if len(remaining_gids) > 0 and backbone_tree:
                     self.logger.info(f' - parsing {backbone_tree}')
                     tree = dendropy.Tree.get_from_path(backbone_tree,
                                                        schema='newick',
@@ -468,10 +473,16 @@ class Translate(object):
 
                     # get majority vote NCBI classification for each genome in tree
                     for gid, gtdb_taxa in gtdbtk_assignments.items():
-                        # check if genome must be classified based
-                        # on its placement in the backbone tree
+                        # check if genome has already been classified
                         if gid not in remaining_gids:
                             continue
+
+                        # check if genome is in backbone tree
+                        # (it will not be in any tree if classified via ANI screen)
+                        if gid not in leaf_node_map:
+                            continue
+
+                        processed_gids.add(gid)
 
                         ncbi_rep_ids = self.get_ncbi_descendants(
                             leaf_node_map[gid],
@@ -490,6 +501,21 @@ class Translate(object):
                             gid,
                             ';'.join(gtdb_taxa),
                             ncbi_mv))
+
+                # get NCBI majority vote classification for genomes
+                # assigned to a GTDB species cluster via ANI screening
+                # (i.e. genomes not in a reference tree)
+                remaining_gids = set(gtdbtk_assignments) - processed_gids
+                for gid in remaining_gids:
+                    gtdb_taxa = gtdbtk_assignments[gid]
+
+                    gtdb_sp_rid = gtdb_sp_to_rid[gtdb_taxa[SPECIES_IDX]]
+                    ncbi_mv = ncbi_sp_classification[gtdb_sp_rid]
+
+                    fout.write('{}\t{}\t{}\n'.format(
+                            gid,
+                            ';'.join(gtdb_taxa),
+                            ';'.join(ncbi_mv)))
 
     def run(self,
             gtdbtk_output_dir,
@@ -542,7 +568,8 @@ class Translate(object):
          ncbi_lineages,
          gtdb_sp_clusters,
          gid_to_gtdb_family,
-         gtdb_family_to_rids) = self.parse_gtdb_metadata(ar53_metadata_file, bac120_metadata_file)
+         gtdb_family_to_rids,
+         gtdb_sp_to_rid) = self.parse_gtdb_metadata(ar53_metadata_file, bac120_metadata_file)
 
         self.logger.info(
             f' - read NCBI taxonomy for {len(ncbi_taxa):,} genomes')
@@ -578,6 +605,7 @@ class Translate(object):
             ncbi_sp_classification,
             gid_to_gtdb_family,
             gtdb_family_to_rids,
+            gtdb_sp_to_rid,
             output_file)
 
         self.logger.info(f'Results written to: {output_file}')
