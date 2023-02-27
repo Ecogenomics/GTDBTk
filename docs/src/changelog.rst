@@ -2,6 +2,29 @@
 Change log
 ==========
 
+2.2.3
+-----
+
+Bug Fixes:
+
+* Fix prodigal_fail_counter issue
+
+2.2.2
+-----
+
+Bug Fixes:
+
+* (`#471 <https://github.com/Ecogenomics/GTDBTk/issues/471>`_) Fix Pplacer issue
+
+
+2.2.1
+-----
+
+Build:
+
+* (`#470 <https://github.com/Ecogenomics/GTDBTk/issues/470>`_) Add missing Pydantic dependency.
+
+
 2.2.0
 -----
 
