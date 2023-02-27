@@ -133,7 +133,6 @@ def main():
     finally:
         # if stageLogger instance is defined, write out the stage log file
         if StageLogger.instance:
-            a=1
             StageLogger().write()
 
 

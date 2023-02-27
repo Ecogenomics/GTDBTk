@@ -1081,7 +1081,11 @@ class OptionsParser(object):
 
             #options.write_single_copy_genes = False
 
+            #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
+            # in the identify step.
+            all_classified_ani = False
             classified_genomes = None
+
             #We ned to check if the ani screen has already be ran, if so, we need to skip it.
             #Check is the gtdbtk.json file exists in the output folder
             if os.path.isfile(self.stage_logger.path):
@@ -1107,13 +1111,21 @@ class OptionsParser(object):
                                          f'been classified using the ANI pre-screening step.')
 
                         options.skip_ani_screen = True
+
+                        set_classified_genomes = set(
+                            [item for sublist in list(v.keys() for k, v in classified_genomes.items()) for item in
+                             sublist])
+                        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                                              options.batchfile,
+                                                              options.extension)
+
+                        if set_classified_genomes == set(genomes):
+                            all_classified_ani = True
+
                         self.stage_logger.reset_steps(keep_steps=['ANI screen'])
                 else:
                     self.stage_logger.reset_steps()
 
-            #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
-            # in the identify step.
-            all_classified_ani = False
             if not options.skip_ani_screen:
                 all_classified_ani,classified_genomes = self.ani_screen(options)
 
