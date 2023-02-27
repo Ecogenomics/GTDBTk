@@ -62,10 +62,12 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None):
+    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None,skip_pplacer=False):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
+
+        self.skip_pplacer = skip_pplacer
 
         self.taxonomy_file = Config.TAXONOMY_FILE
         self.af_threshold = af_threshold if af_threshold else Config.AF_THRESHOLD
@@ -263,10 +265,12 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG: Skip pplacer
-        run_pplacer = True
-        if run_pplacer:
+        #run_pplacer = True
+        if not self.skip_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
+        else:
+            self.logger.warning('Skipping pplacer for debug purposes.')
 
         # extract tree
         tree_file = None
