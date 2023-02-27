@@ -2,12 +2,19 @@
 Change log
 ==========
 
+2.2.3
+-----
+
+Bug Fixes:
+
+* Fix prodigal_fail_counter issue
+
 2.2.2
 -----
 
 Bug Fixes:
 
-* Fix Pplacer issue
+* (`#471 <https://github.com/Ecogenomics/GTDBTk/issues/471>`_) Fix Pplacer issue
 
 
 2.2.1

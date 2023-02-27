@@ -22,7 +22,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 from datetime import datetime, timedelta
 from typing import Dict, Tuple
 
@@ -537,7 +536,7 @@ class OptionsParser(object):
         self.logger.info('Test has successfully finished.')
         return True
 
-    def classify(self, options):
+    def classify(self, options,all_classified_ani=False):
         """Determine taxonomic classification of genomes.
 
         Parameters
@@ -564,9 +563,9 @@ class OptionsParser(object):
             previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
             ani_summary_files = previous_ani_step.output_files
 
-
-        check_dir_exists(options.align_dir)
-        classify_step.align_dir = options.align_dir
+        if not all_classified_ani:
+            check_dir_exists(options.align_dir)
+            classify_step.align_dir = options.align_dir
         make_sure_path_exists(options.out_dir)
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
@@ -599,7 +598,8 @@ class OptionsParser(object):
                      mash_s=options.mash_s,
                      mash_db=options.mash_db,
                      mash_max_dist=options.mash_max_distance,
-                     ani_summary_files=ani_summary_files
+                     ani_summary_files=ani_summary_files,
+                     all_classified_ani=all_classified_ani
                      )
 
         classify_step.ends_at = datetime.now()
@@ -681,7 +681,13 @@ class OptionsParser(object):
 
         self.stage_logger.steps.append(ani_step)
 
-        return classified_genomes
+        # check if all genomes were classified
+        all_classified=False
+        set_classified_genomes = set([item for sublist in list(v.keys() for k,v in classified_genomes.items()) for item in sublist ])
+        if set_classified_genomes == set(genomes):
+            all_classified=True
+
+        return all_classified,classified_genomes
 
     def trim_msa(self, options):
         """ Trim an untrimmed archaea or bacterial MSA file.
@@ -1107,33 +1113,36 @@ class OptionsParser(object):
 
             #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
             # in the identify step.
-
+            all_classified_ani = False
             if not options.skip_ani_screen:
-                classified_genomes = self.ani_screen(options)
+                all_classified_ani,classified_genomes = self.ani_screen(options)
 
-            self.identify(options,classified_genomes)
-
+            # if all genomes have been classified by the ani_screen step, we do not need to run the identify step
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
-            options.taxa_filter = None
-            options.custom_msa_filters = False
-            # Added here due to the other mutex argument being included above.
-            options.skip_trimming = False
-            options.min_consensus = None
-            options.min_perc_taxa = None
-            options.skip_gtdb_refs = False
-            options.cols_per_gene = None
-            options.max_consensus = None
-            options.rnd_seed = None
-            options.skip_trimming = False
+            if all_classified_ani:
+                self.logger.info('All genomes have been classified by the ANI screening step, Identify and Align steps will be skipped.')
+            else:
+                self.identify(options,classified_genomes)
+                options.taxa_filter = None
+                options.custom_msa_filters = False
+                # Added here due to the other mutex argument being included above.
+                options.skip_trimming = False
+                options.min_consensus = None
+                options.min_perc_taxa = None
+                options.skip_gtdb_refs = False
+                options.cols_per_gene = None
+                options.max_consensus = None
+                options.rnd_seed = None
+                options.skip_trimming = False
 
-            self.align(options)
+                self.align(options)
 
             # because we run ani_screen before the identify step, we do not need to rerun the
             #ani step again, so we set the skip_aniscreen to True
             options.skip_ani_screen = True
 
-            self.classify(options)
+            self.classify(options,all_classified_ani= all_classified_ani)
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
 

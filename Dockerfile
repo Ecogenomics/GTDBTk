@@ -36,9 +36,9 @@ RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplace
 # ---------------------------------------------------------------------------- #
 # ----------------------------- INSTALL FASTANI ------------------------------ #
 # ---------------------------------------------------------------------------- #
-RUN wget https://github.com/ParBLiSS/FastANI/releases/download/v1.33/fastANI-Linux64-v1.33.zip -q && \
-    unzip fastANI-Linux64-v1.33.zip -d /usr/bin && \
-    rm fastANI-Linux64-v1.33.zip
+RUN wget https://github.com/ParBLiSS/FastANI/releases/download/v1.32/fastANI-Linux64-v1.32.zip -q && \
+    unzip fastANI-Linux64-v1.32.zip -d /usr/bin && \
+    rm fastANI-Linux64-v1.32.zip
 
 # ---------------------------------------------------------------------------- #
 # --------------------- SET GTDB-TK MOUNTED DIRECTORIES ---------------------- #
