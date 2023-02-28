@@ -2,6 +2,19 @@
 Change log
 ==========
 
+2.2.4
+-----
+
+Bug Fixes:
+* (`#475 <https://github.com/Ecogenomics/GTDBTk/issues/475>`_) If all genomes are classified using ANI, Tk will skip the identify step and align steps
+
+Minor changes:
+* Add hidden '--skip_pplacer' flag to skip pplacer step ( useful for debugging)
+* Improve documentation
+* Convert stage_logger to a Singleton class
+* Use existing ANI results if available
+
+
 2.2.3
 -----
 
