@@ -22,7 +22,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 from datetime import datetime, timedelta
 from typing import Dict, Tuple
 
@@ -43,8 +42,8 @@ from gtdbtk.config.output import *
 from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
-from gtdbtk.files.stage_logger import StageLoggerFile, ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
-    InferStep, RootStep, DecorateStep
+from gtdbtk.files.stage_logger import ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
+    InferStep, RootStep, DecorateStep, StageLogger
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.files.batchfile import Batchfile
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFile
@@ -81,12 +80,16 @@ class OptionsParser(object):
             else:
                 prog_name = base_name
             #timestamp_logger.info(f'{prog_name} {" ".join(sys.argv[1:])}')
-            self.stage_logger_file = StageLoggerFile(output_dir=output_dir,
-                                                    version=self.version,
-                                                    command_line=f'{prog_name} {" ".join(sys.argv[1:])}',
-                                                    database_version = Config.VERSION_DATA,
-                                                    database_path=Config.GENERIC_PATH)
-            self.stage_logger = self.stage_logger_file.stage_logger
+
+        #setup the stage logger
+        if output_dir is not None:
+            self.stage_logger = StageLogger()
+            self.stage_logger.version=self.version
+            self.stage_logger.command_line=f'{prog_name} {" ".join(sys.argv[1:])}'
+            self.stage_logger.database_version = Config.VERSION_DATA
+            self.stage_logger.database_path=Config.GENERIC_PATH
+            self.stage_logger.output_dir=output_dir
+            self.stage_logger.path = os.path.join(output_dir, "gtdbtk.json")
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
@@ -533,7 +536,7 @@ class OptionsParser(object):
         self.logger.info('Test has successfully finished.')
         return True
 
-    def classify(self, options):
+    def classify(self, options,all_classified_ani=False):
         """Determine taxonomic classification of genomes.
 
         Parameters
@@ -556,13 +559,13 @@ class OptionsParser(object):
         classify_step.mash_max_dist = options.mash_max_distance
 
         ani_summary_files = {}
-        if self.stage_logger_file.stage_logger.has_stage(ANIScreenStep):
-            previous_ani_step = self.stage_logger_file.stage_logger.get_stage(ANIScreenStep)
+        if self.stage_logger.has_stage(ANIScreenStep):
+            previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
             ani_summary_files = previous_ani_step.output_files
 
-
-        check_dir_exists(options.align_dir)
-        classify_step.align_dir = options.align_dir
+        if not all_classified_ani:
+            check_dir_exists(options.align_dir)
+            classify_step.align_dir = options.align_dir
         make_sure_path_exists(options.out_dir)
         if options.scratch_dir:
             make_sure_path_exists(options.scratch_dir)
@@ -580,7 +583,7 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af)
+        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af,options.skip_pplacer)
         reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,
@@ -595,7 +598,8 @@ class OptionsParser(object):
                      mash_s=options.mash_s,
                      mash_db=options.mash_db,
                      mash_max_dist=options.mash_max_distance,
-                     ani_summary_files=ani_summary_files
+                     ani_summary_files=ani_summary_files,
+                     all_classified_ani=all_classified_ani
                      )
 
         classify_step.ends_at = datetime.now()
@@ -677,7 +681,13 @@ class OptionsParser(object):
 
         self.stage_logger.steps.append(ani_step)
 
-        return classified_genomes
+        # check if all genomes were classified
+        all_classified=False
+        set_classified_genomes = set([item for sublist in list(v.keys() for k,v in classified_genomes.items()) for item in sublist ])
+        if set_classified_genomes == set(genomes):
+            all_classified=True
+
+        return all_classified,classified_genomes
 
     def trim_msa(self, options):
         """ Trim an untrimmed archaea or bacterial MSA file.
@@ -1071,17 +1081,20 @@ class OptionsParser(object):
 
             #options.write_single_copy_genes = False
 
+            #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
+            # in the identify step.
+            all_classified_ani = False
             classified_genomes = None
+
             #We ned to check if the ani screen has already be ran, if so, we need to skip it.
             #Check is the gtdbtk.json file exists in the output folder
-            if os.path.isfile(self.stage_logger_file.path) and 1==2:
+            if os.path.isfile(self.stage_logger.path):
                 #If the file exists, we need to check if the ani_screen step has been ran
                 #If the ani_screen step has been ran, we need to skip it.
-                self.stage_logger_file.read()
-                stage_logger = self.stage_logger_file.stage_logger
-                if stage_logger.has_stage(ANIScreenStep):
+                self.stage_logger.read_existing_steps()
+                if self.stage_logger.has_stage(ANIScreenStep):
                     # we get the genomes already classified by the ani_screen step
-                    previous_ani_step = stage_logger.get_stage(ANIScreenStep)
+                    previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
                     if previous_ani_step.is_complete():
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
@@ -1099,35 +1112,49 @@ class OptionsParser(object):
 
                         options.skip_ani_screen = True
 
-            #Before identify step, we run the ani_screen step, these genomes classify with this step will not continue
-            # in the identify step.
+                        set_classified_genomes = set(
+                            [item for sublist in list(v.keys() for k, v in classified_genomes.items()) for item in
+                             sublist])
+                        genomes, _ = self._genomes_to_process(options.genome_dir,
+                                                              options.batchfile,
+                                                              options.extension)
+
+                        if set_classified_genomes == set(genomes):
+                            all_classified_ani = True
+
+                        self.stage_logger.reset_steps(keep_steps=['ANI screen'])
+                else:
+                    self.stage_logger.reset_steps()
 
             if not options.skip_ani_screen:
-                classified_genomes = self.ani_screen(options)
+                all_classified_ani,classified_genomes = self.ani_screen(options)
 
-            self.identify(options,classified_genomes)
-
+            # if all genomes have been classified by the ani_screen step, we do not need to run the identify step
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
-            options.taxa_filter = None
-            options.custom_msa_filters = False
-            # Added here due to the other mutex argument being included above.
-            options.skip_trimming = False
-            options.min_consensus = None
-            options.min_perc_taxa = None
-            options.skip_gtdb_refs = False
-            options.cols_per_gene = None
-            options.max_consensus = None
-            options.rnd_seed = None
-            options.skip_trimming = False
+            if all_classified_ani:
+                self.logger.info('All genomes have been classified by the ANI screening step, Identify and Align steps will be skipped.')
+            else:
+                self.identify(options,classified_genomes)
+                options.taxa_filter = None
+                options.custom_msa_filters = False
+                # Added here due to the other mutex argument being included above.
+                options.skip_trimming = False
+                options.min_consensus = None
+                options.min_perc_taxa = None
+                options.skip_gtdb_refs = False
+                options.cols_per_gene = None
+                options.max_consensus = None
+                options.rnd_seed = None
+                options.skip_trimming = False
 
-            self.align(options)
+                self.align(options)
 
             # because we run ani_screen before the identify step, we do not need to rerun the
             #ani step again, so we set the skip_aniscreen to True
             options.skip_ani_screen = True
 
-            self.classify(options)
+            self.classify(options,all_classified_ani= all_classified_ani)
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
 
@@ -1146,7 +1173,6 @@ class OptionsParser(object):
                 print(options.skip_ani_screen, options.no_mash, options.mash_db)
                 self.logger.error('You must specify a path to the mash database with --mash_db')
             self.classify(options)
-            self.stage_logger_file.write()
 
         elif options.subparser_name == 'root':
             self.root(options)
@@ -1175,7 +1201,5 @@ class OptionsParser(object):
                               options.subparser_name + '"\n')
             sys.exit(1)
 
-        if hasattr(self,'stage_logger' ) and self.stage_logger.steps:
-            self.stage_logger_file.write()
 
         return 0

@@ -1,3 +1,4 @@
+import json
 import os
 from typing import List, Optional, Dict
 
@@ -101,58 +102,117 @@ class DecorateStep(Steps):
     suffix: Optional[str]
     output_files: Optional[Dict]
 
-class StageLogger(BaseModel):
-    version : str
-    command_line: str
-    database_version: str
-    database_path: str
-    steps: List[Steps]
 
-    def has_stage(self, stage_object: object) -> bool:
-        processed_steps = [x for x in self.steps if isinstance(x,stage_object)]
-        if len(processed_steps) > 0:
-            return True
-        else:
-            return False
 
-    def get_stage(self, stage_object: object) -> object:
-        processed_steps = [x for x in self.steps if isinstance(x,stage_object)]
-        if len(processed_steps) > 0:
-            return processed_steps[0]
-        else:
-            return None
+class StageLogger(object):
+    class __StageLogger(BaseModel):
 
-class StageLoggerFile:
-    def __init__(self,version:str, command_line: str,
-                 database_version: str, database_path: str,
-                 output_dir: str):
-        self.output_dir = output_dir
-        self.path = os.path.join(self.output_dir, "gtdbtk.json")
-        self.stage_logger = StageLogger(version = version,
-                                        command_line=command_line,
-                                        database_version=database_version,
-                                        database_path=database_path,
-                                        steps=[])
-    def write(self):
-        with open(self.path, "w") as f:
-            f.write(self.stage_logger.json(indent=4))
+        version: Optional[str]
+        command_line: Optional[str]
+        database_version: Optional[str]
+        database_path: Optional[str]
+        steps: List[Steps]
+        output_dir: Optional[str]
+        path: Optional[str]
 
-    def read(self):
-        with open(self.path, "r") as f:
-            self.stage_logger = StageLogger.parse_raw(f.read())
-            steps = []
-            for step in self.stage_logger.steps:
-                if step.name == "ANI screen":
-                    step_object = ANI_Screen_Step(**step.dict())
-                elif step.name == "identify":
-                    step_object = Identify_Step(**step.dict())
-                elif step.name == "align":
-                    step_object = Align_Step(**step.dict())
-                elif step.name == "classify":
-                    step_object = Classify_Step(**step.dict())
-                elif step.name == "infer":
-                    step_object = InferStep(**step.dict())
-                else:
-                    raise Exception(f"Unknown step name {step.name}")
-                steps.append(step_object)
-            self.stage_logger.steps = steps
+        def __str__(self):
+            return repr(self) + self.val
+
+        def write(self):
+            with open(self.path, "w") as f:
+                f.write(self.json(indent=4))
+
+        def has_stage(self, stage_object: object) -> bool:
+            processed_steps = [x for x in self.steps if isinstance(x, stage_object)]
+            if len(processed_steps) > 0:
+                return True
+            else:
+                return False
+
+        def get_stage(self, stage_object: object) -> object:
+            processed_steps = [x for x in self.steps if isinstance(x, stage_object)]
+            if len(processed_steps) > 0:
+                return processed_steps[0]
+            else:
+                return None
+
+        # create reset steps function, which takes an optional list of steps to keep
+        # if no list is provided, all steps are removed
+
+        def reset_steps(self, keep_steps: List[str] = None):
+            if keep_steps is None:
+                self.steps = []
+            else:
+                self.steps = [x for x in self.steps if x.name in keep_steps]
+
+        def read_existing_steps(self):
+            with open(self.path, "r") as f:
+                data = json.load(f)
+                #stage_logger = self.parse_obj(data)
+                steps = []
+                for step in data.get('steps'):
+                    if step.get('name') == "ANI screen":
+                        step_object = ANIScreenStep(**step)
+                    elif step.get('name') == "identify":
+                        step_object = IdentifyStep(**step)
+                    elif step.get('name') == "align":
+                        step_object = AlignStep(**step)
+                    elif step.get('name') == "classify":
+                        step_object = ClassifyStep(**step)
+                    elif step.get('name') == "infer":
+                        step_object = InferStep(**step)
+                    else:
+                        raise Exception(f"Unknown step name {step.name}")
+                    steps.append(step_object)
+                self.steps = steps
+
+    instance = None
+    def __new__(cls): # __new__ always a classmethod
+        if not StageLogger.instance:
+            StageLogger.instance = StageLogger.__StageLogger(steps=[])
+        return StageLogger.instance
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+    def __setattr__(self, name):
+        return setattr(self.instance, name)
+
+
+
+
+
+# class StageLoggerFile:
+#     def __init__(self,output_dir: str):
+#         self.output_dir = output_dir
+#
+#     # We generate the StageLogger object
+#     def setStageLogger(self, version:str, command_line: str,
+#                  database_version: str, database_path: str):
+#         self.path = os.path.join(self.output_dir, "gtdbtk.json")
+#         self.stage_logger = StageLogger(version = version,
+#                                         command_line=command_line,
+#                                         database_version=database_version,
+#                                         database_path=database_path,
+#                                         steps=[])
+#     def write(self):
+#         with open(self.path, "w") as f:
+#             f.write(self.stage_logger.json(indent=4))
+#
+#     def read(self):
+#         with open(self.path, "r") as f:
+#             self.stage_logger = StageLogger.parse_raw(f.read())
+#             steps = []
+#             for step in self.stage_logger.steps:
+#                 if step.name == "ANI screen":
+#                     step_object = ANIScreenStep(**step.dict())
+#                 elif step.name == "identify":
+#                     step_object = IdentifyStep(**step.dict())
+#                 elif step.name == "align":
+#                     step_object = AlignStep(**step.dict())
+#                 elif step.name == "classify":
+#                     step_object = ClassifyStep(**step.dict())
+#                 elif step.name == "infer":
+#                     step_object = InferStep(**step.dict())
+#                 else:
+#                     raise Exception(f"Unknown step name {step.name}")
+#                 steps.append(step_object)
+#             self.stage_logger.steps = steps

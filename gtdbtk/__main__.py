@@ -24,6 +24,7 @@ from gtdbtk.cli import get_main_parser
 from gtdbtk.biolib_lite.exceptions import BioLibError
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.exceptions import *
+from gtdbtk.files.stage_logger import StageLogger
 from gtdbtk.main import OptionsParser
 from gtdbtk.tools import get_gtdbtk_latest_version
 
@@ -95,7 +96,8 @@ def main():
     # -------------------------------------------------
     # do what we came here to do
     try:
-        gt_parser = OptionsParser(__version__,args.out_dir if hasattr(args, 'out_dir') and args.out_dir else None)
+        gt_parser = OptionsParser(__version__,
+                                  args.out_dir if hasattr(args, 'out_dir') and args.out_dir else None)
         gt_parser.parse_options(args)
     except SystemExit:
         logger.error('Controlled exit resulting from early termination.')
@@ -128,6 +130,13 @@ def main():
         msg += '=' * 80
         logger.error(msg)
         sys.exit(1)
+    finally:
+        # if stageLogger instance is defined, write out the stage log file
+        if StageLogger.instance:
+            StageLogger().write()
+
+
+
 
 
 if __name__ == '__main__':

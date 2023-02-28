@@ -42,10 +42,11 @@ GTDB-Tk v2.2.0+ includes the following new features:
   - **This is now the default behavior for `classify` and `classify_wf`.**
   - In `classify`, user genomes are first compared against a Mash database comprised of all GTDB representative genomes and genome pairs of sufficient similarity processed by FastANI. User genomes classified to a GTDB representative based on FastANI results are not run through pplacer. 
   - In the `classify_wf` workflow, genomes are classified using Mash and FastANI before executing the identify step. User genomes classified with FastANI are not run through the remainder of the pipeline (identify, align, classify).
+  - `classify_wf` and `classify` have now **an extra mutually exclusive required argument**: You can either pick `--skip_ani_screen` (to skip the ani_screening step to classify genomes using mash and FastANI) or `--mash_db` path to save/read (if exists) the Mash reference sketch database.
   - To classify genomes without the additional `ani_screen` step, use the `--skip_ani_screen` flag.
 
 ## 📈 Performance
-Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time subsantially (between 25% and 60% in our testing).
+Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).
 
 ## 📚 References
 

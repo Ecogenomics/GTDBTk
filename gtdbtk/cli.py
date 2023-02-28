@@ -176,6 +176,11 @@ def __debug(group):
     group.add_argument('--debug', action="store_true", default=False,
                        help='create intermediate files for debugging purposes')
 
+# This argument should be hidden from help
+def __skip_pplacer(group):
+    group.add_argument('--skip_pplacer', action="store_true", default=False,
+                       help=argparse.SUPPRESS)
+
 
 def __help(group):
     group.add_argument('-h', '--help', action="help", help="show help message")
@@ -317,11 +322,6 @@ def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
                        help='output unaligned single-copy marker genes')
 
-
-def __prescreen(grp):
-    pass
-
-
 def get_main_parser():
     # Setup the main, and sub parsers.
     main_parser = argparse.ArgumentParser(
@@ -396,6 +396,7 @@ def get_main_parser():
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)
+            __skip_pplacer(grp)
             __help(grp)
 
     # Identify marker genes in genomes.
@@ -481,6 +482,7 @@ def get_main_parser():
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)
+            __skip_pplacer(grp)
             __help(grp)
 
     # Root a tree using an outgroup.

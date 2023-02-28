@@ -62,10 +62,12 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None):
+    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None,skip_pplacer=False):
         """Initialize."""
 
         check_dependencies(['pplacer', 'guppy', 'fastANI'])
+
+        self.skip_pplacer = skip_pplacer
 
         self.taxonomy_file = Config.TAXONOMY_FILE
         self.af_threshold = af_threshold if af_threshold else Config.AF_THRESHOLD
@@ -263,10 +265,12 @@ class Classify(object):
         if levelopt is None or levelopt == 'high':
             self.logger.info(f'pplacer version: {pplacer.version}')
         # #DEBUG: Skip pplacer
-        run_pplacer = True
-        if run_pplacer:
+        #run_pplacer = True
+        if not self.skip_pplacer:
             pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
                         user_msa_file, pplacer_out, pplacer_mmap_file)
+        else:
+            self.logger.warning('Skipping pplacer for debug purposes.')
 
         # extract tree
         tree_file = None
@@ -333,10 +337,11 @@ class Classify(object):
             mash_s=Config.MASH_S_VALUE,
             mash_max_dist=Config.MASH_MAX_DISTANCE,
             mash_db=None,
-            ani_summary_files=None):
+            ani_summary_files=None,
+            all_classified_ani=False):
         """Classify genomes based on position in reference tree."""
-
-        _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
+        if not all_classified_ani:
+            _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
 
         # If prescreen is set to True, then we will first run all genomes against a mash database
@@ -380,114 +385,24 @@ class Classify(object):
 
         output_files = {}
 
-        for marker_set_id in ('ar53', 'bac120'):
-            warning_counter, prodigal_failed_counter = 0, 0
-            if marker_set_id == 'ar53':
-                marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
-                marker_summary_fh.read()
-                if os.path.isfile(os.path.join(align_dir,
-                                               PATH_AR53_USER_MSA.format(prefix=prefix))):
-                    user_msa_file = os.path.join(align_dir,
-                                                 PATH_AR53_USER_MSA.format(prefix=prefix))
-                else:
-                    user_msa_file = os.path.join(align_dir,
-                                                 PATH_AR53_USER_MSA.format(prefix=prefix) + '.gz')
-                summary_file = ClassifySummaryFileAR53(out_dir, prefix)
-                red_dict_file = REDDictFileAR53(out_dir, prefix)
-                disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
-                pplacer_classify_file = PplacerClassifyFileAR53(out_dir, prefix)
-            elif marker_set_id == 'bac120':
-                marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
-                marker_summary_fh.read()
-                if os.path.isfile(os.path.join(align_dir,
-                                               PATH_BAC120_USER_MSA.format(prefix=prefix))):
-                    user_msa_file = os.path.join(align_dir,
-                                                 PATH_BAC120_USER_MSA.format(prefix=prefix))
-                else:
-                    user_msa_file = os.path.join(align_dir,
-                                                 PATH_BAC120_USER_MSA.format(prefix=prefix) + '.gz')
-                summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
-                red_dict_file = REDDictFileBAC120(out_dir, prefix)
-                disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
-                pplacer_classify_file = PplacerClassifyFileBAC120(out_dir, prefix)
-                if not fulltreeopt:
-                    tree_mapping_file = GenomeMappingFile(out_dir, prefix)
-            else:
-                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
-
-            if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
-                # file will not exist if there are no User genomes from a given domain
-                #
-                # But if there is Unclassified genomes without domain,
-                # they still have to be written in the bac120 summary file:
-                if marker_set_id == 'bac120':
-                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                    # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
-                    # but they need to be included in one of the summary file
-                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                    if summary_file.has_row():
-                        summary_file.write()
-                        output_files.setdefault(marker_set_id, []).append(summary_file.path)
-                        # Symlink to the summary file from the root
-                        symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                                  os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                        if prodigal_failed_counter > 0:
-                            self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
-                                                f"genome{'' if prodigal_failed_counter == 1 else 's'} "
-                                                f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
-
-                continue
-
-            msa_dict = read_fasta(user_msa_file)
-
-            # Read the translation table summary file (identify).
-            tln_table_summary_file = TlnTableSummaryFile(align_dir, prefix)
-            tln_table_summary_file.read()
-
-            percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
-
-            # run pplacer to place bins in reference genome tree
-            genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
-
+        # if all genomes were classified with FastANI, we can stop here
+        # we write the summary files
+        if all_classified_ani:
             # if mash_classified_user_genomes is has key marker_set_id, we
             # need to add those genomes to the summary file and remove those genomes to the list of genomes
             # to process with pplacer
-            if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
-                for row in list_summary_rows:
-                    row,warning_counter = self._add_warning_to_row(row,
-                                                   msa_dict,
-                                                   tln_table_summary_file.genomes,
-                                                   percent_multihit_dict,
-                                                   warning_counter)
-                    summary_file.add_row(row)
-                    if row.gid in genomes_to_process:
-                        genomes_to_process.remove(row.gid)
-
-                # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
-                prescreened_msa_file_path = os.path.join(
-                    out_dir, PATH_BAC120_PRESCREEN_MSA.format(prefix=prefix))
-                #makes sure the path exists
-                make_sure_path_exists(os.path.dirname(prescreened_msa_file_path))
-
-                prescreened_msa_file = open(prescreened_msa_file_path, 'w')
-
-                for gid in genomes_to_process:
-                    prescreened_msa_file.write('>{}\n{}\n'.format(gid, msa_dict.get(gid)))
-                prescreened_msa_file.close()
-                user_msa_file = prescreened_msa_file_path
-
-
-
-
-            # Write the RED dictionary to disk (intermediate file).
-            red_dict_file.write()
-
-            # if the new user_msa_file is empty, we need to skip the rest of the loop
-            if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
-                if summary_file.has_row():
+            for marker_set_id in ('ar53', 'bac120'):
+                if marker_set_id == 'ar53':
+                    summary_file = ClassifySummaryFileAR53(out_dir, prefix)
+                elif marker_set_id == 'bac120':
+                    summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+                if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+                    list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                    for row in list_summary_rows:
+                        summary_file.add_row(row)
                     summary_file.write()
-                    # Symlink to the summary file from the root
+                # Symlink to the summary file from the root
+                if summary_file.has_row():
                     if marker_set_id == 'bac120':
                         symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                   os.path.join(out_dir,
@@ -495,185 +410,303 @@ class Classify(object):
                     elif marker_set_id == 'ar53':
                         symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
                                   os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
-                continue
-
-
-            if not fulltreeopt and marker_set_id == 'bac120':
-                splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
-
-                debug_file = self._generate_summary_file(
-                    marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
-
-                high_classify_tree = self.place_genomes(user_msa_file,
-                                                        marker_set_id,
-                                                        out_dir,
-                                                        prefix,
-                                                        scratch_dir,
-                                                        'high')
-                output_files.setdefault(marker_set_id, []).append(high_classify_tree)
-
-                tree = self._assign_mrca_red(
-                    high_classify_tree, marker_set_id, 'high')
-
-                high_classification = splitter.get_high_pplacer_taxonomy(
-                    out_dir, marker_set_id, prefix, user_msa_file, tree)
-
-                disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in high_classification]
-                if disappearing_genomes:
-                    for disappearing_genome in disappearing_genomes:
-                        disappearing_genomes_file.add_genome(disappearing_genome, 'Backbone')
-
-                tree_mapping_dict = {}
-                tree_mapping_dict_reverse = {}
-                with open(Config.CLASS_LEVEL_TREE_MAPPING_FILE) as ltmf:
-                    for line in ltmf:
-                        k, v = line.strip().split()
-                        tree_mapping_dict[k] = v
-                        tree_mapping_dict_reverse.setdefault(v, []).append(k)
-
-                splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
-                sorted_high_taxonomy,warning_counter, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
-                    high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
-                    tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter)
-
-                if debugopt:
-                    with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
-                        for l, b in high_taxonomy_used.items():
-                            htu.write(l + '\t' + str(b[0]) + '\t' + str(b[1]) + '\t' + str(b[2]) +'\n')
-
-                self.logger.info(
-                    f"{len_sorted_genomes} out of {len(genomes_to_process)} have an class assignments. Those genomes "
-                    f"will be reclassified.")
-
-                for idx, tree_iter in enumerate(
-                        sorted(sorted_high_taxonomy, key=lambda z: len(sorted_high_taxonomy[z]), reverse=True)):
-                    listg = sorted_high_taxonomy.get(tree_iter)
-                    low_classify_tree, submsa_file_path = self._place_in_low_tree(
-                        tree_iter, len(sorted_high_taxonomy), idx + 1, listg, msa_dict, marker_set_id, prefix,
-                        scratch_dir, out_dir)
-                    output_files.setdefault(marker_set_id, []).append(low_classify_tree)
-                    genomes_to_process_subtree = [seq_id for seq_id, _seq in read_seq(submsa_file_path)]
-                    mrca_lowtree = self._assign_mrca_red(
-                        low_classify_tree, marker_set_id, 'low', tree_iter)
-                    pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix, tree_iter)
-                    pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
-                                                                       marker_set_id, user_msa_file, mrca_lowtree)
-                    disappearing_genomes = [seq_id for seq_id in genomes_to_process_subtree if
-                                            seq_id not in pplacer_taxonomy_dict]
-                    if disappearing_genomes:
-                        self.logger.warning(
-                            f"{len(disappearing_genomes)} out of {len(genomes_to_process_subtree)} have not been"
-                            f" properly placed by pplacer. This is a known issue with pplacer but we do "
-                            f"not have a solution currently. Those missing genomes are written to "
-                            f"the {disappearing_genomes_file.file_name} file. We recommend rerunning "
-                            f"those genomes through GTDB-Tk to 'fix' the problem.")
-                        for disappearing_genome in disappearing_genomes:
-                            disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
-
-                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes, msa_dict,
-                                                                  percent_multihit_dict, tln_table_summary_file.genomes,
-                                                                  bac_ar_diff, submsa_file_path, red_dict_file.data,
-                                                                  summary_file, pplacer_taxonomy_dict,warning_counter,
-                                                                  high_classification, debug_file,skip_ani_screen, debugopt,
-                                                                  tree_mapping_file, tree_iter,
-                                                                  tree_mapping_dict_reverse)
-
-                    if debugopt:
-                        with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
-                            for l, b in class_level_classification.items():
-                                olf.write(l + '\t' + str(b) + '\n')
-                            for l, b in classified_user_genomes.items():
-                                olf.write(l + '\t' + str(b) + '\n')
-
-
-                # add filtered genomes to the summary file
-                warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
-
-                # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                # This is a executive direction: failed prodigal and genomes with
-                # no markers are not bacterial or archaeal
-                # but they need to be included in one of the summary file
-                prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                warning_counter = warning_counter + prodigal_failed_counter
-
-                # Symlink to the summary file from the root
-                symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                          os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-
-                if debugopt:
-                    debug_file.close()
-
-            else:
-                classify_tree = self.place_genomes(user_msa_file,
-                                                   marker_set_id,
-                                                   out_dir,
-                                                   prefix,
-                                                   scratch_dir)
-
-                #genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
-
-                # get taxonomic classification of each user genome
-                debug_file = self._generate_summary_file(
-                    marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
-
-                tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
-                pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
-                                                                   marker_set_id,
-                                                                   user_msa_file,
-                                                                   tree_to_process)
-
-                disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
-                class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
-                                 tln_table_summary_file.genomes,
-                                 bac_ar_diff, user_msa_file, red_dict_file.data, summary_file,
-                                 pplacer_taxonomy_dict,warning_counter, None,
-                                 debug_file,skip_ani_screen, debugopt, None, None, None)
-                # add filtered genomes to the summary file
-                warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
-
-                # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
-                # but they need to be included in one of the summary file
-                if marker_set_id == 'bac120':
-                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                    warning_counter = warning_counter + prodigal_failed_counter
-
-                # Symlink to the summary file from the root
-                if marker_set_id == 'bac120':
-                    symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                elif marker_set_id == 'ar53':
-                    symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
+                    output_files.setdefault(marker_set_id, []).append(summary_file.path)
+            return output_files
+        else:
+            for marker_set_id in ('ar53', 'bac120'):
+                warning_counter, prodigal_failed_counter = 0, 0
+                if marker_set_id == 'ar53':
+                    marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
+                    marker_summary_fh.read()
+                    if os.path.isfile(os.path.join(align_dir,
+                                                   PATH_AR53_USER_MSA.format(prefix=prefix))):
+                        user_msa_file = os.path.join(align_dir,
+                                                     PATH_AR53_USER_MSA.format(prefix=prefix))
+                    else:
+                        user_msa_file = os.path.join(align_dir,
+                                                     PATH_AR53_USER_MSA.format(prefix=prefix) + '.gz')
+                    summary_file = ClassifySummaryFileAR53(out_dir, prefix)
+                    red_dict_file = REDDictFileAR53(out_dir, prefix)
+                    disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
+                    pplacer_classify_file = PplacerClassifyFileAR53(out_dir, prefix)
+                elif marker_set_id == 'bac120':
+                    marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
+                    marker_summary_fh.read()
+                    if os.path.isfile(os.path.join(align_dir,
+                                                   PATH_BAC120_USER_MSA.format(prefix=prefix))):
+                        user_msa_file = os.path.join(align_dir,
+                                                     PATH_BAC120_USER_MSA.format(prefix=prefix))
+                    else:
+                        user_msa_file = os.path.join(align_dir,
+                                                     PATH_BAC120_USER_MSA.format(prefix=prefix) + '.gz')
+                    summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+                    red_dict_file = REDDictFileBAC120(out_dir, prefix)
+                    disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
+                    pplacer_classify_file = PplacerClassifyFileBAC120(out_dir, prefix)
+                    if not fulltreeopt:
+                        tree_mapping_file = GenomeMappingFile(out_dir, prefix)
                 else:
                     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
-                if disappearing_genomes:
-                    for disappearing_genome in disappearing_genomes:
-                        disappearing_genomes_file.add_genome(disappearing_genome, 'N/A')
+                if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
+                    # file will not exist if there are no User genomes from a given domain
+                    #
+                    # But if there is Unclassified genomes without domain,
+                    # they still have to be written in the bac120 summary file:
+                    if marker_set_id == 'bac120':
+                        # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                        # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
+                        # but they need to be included in one of the summary file
+                        prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                        if summary_file.has_row():
+                            summary_file.write()
+                            output_files.setdefault(marker_set_id, []).append(summary_file.path)
+                            # Symlink to the summary file from the root
+                            symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                                      os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                            if prodigal_failed_counter > 0:
+                                self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
+                                                    f"genome{'' if prodigal_failed_counter == 1 else 's'} "
+                                                    f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
 
-                if debugopt:
-                    debug_file.close()
+                    continue
 
-            if not fulltreeopt and marker_set_id == 'bac120':
-                tree_mapping_file.write()
-                output_files.setdefault(marker_set_id, []).append(tree_mapping_file.path)
+                msa_dict = read_fasta(user_msa_file)
 
+                # Read the translation table summary file (identify).
+                tln_table_summary_file = TlnTableSummaryFile(align_dir, prefix)
+                tln_table_summary_file.read()
 
-            if warning_counter > 0:
-                sum_of_genomes =  len(genomes_to_process)+prodigal_failed_counter
+                percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
+
+                # run pplacer to place bins in reference genome tree
+                genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+
+                # if mash_classified_user_genomes is has key marker_set_id, we
+                # need to add those genomes to the summary file and remove those genomes to the list of genomes
+                # to process with pplacer
                 if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                    sum_of_genomes +=len(mash_classified_user_genomes.get(marker_set_id))
-                self.logger.warning(f"{warning_counter} of {sum_of_genomes} "
-                                    f"genome{'' if warning_counter==1 else 's'}"
-                                    f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
+                    list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                    for row in list_summary_rows:
+                        row,warning_counter = self._add_warning_to_row(row,
+                                                       msa_dict,
+                                                       tln_table_summary_file.genomes,
+                                                       percent_multihit_dict,
+                                                       warning_counter)
+                        summary_file.add_row(row)
+                        if row.gid in genomes_to_process:
+                            genomes_to_process.remove(row.gid)
 
-            # Write the summary file to disk.
-            if disappearing_genomes_file.data:
-                disappearing_genomes_file.write()
-                output_files.setdefault(marker_set_id, []).append(disappearing_genomes_file.path)
-            summary_file.write()
-            output_files.setdefault(marker_set_id, []).append(summary_file.path)
+                    # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
+                    prescreened_msa_file_path = os.path.join(
+                        out_dir, PATH_BAC120_PRESCREEN_MSA.format(prefix=prefix))
+                    #makes sure the path exists
+                    make_sure_path_exists(os.path.dirname(prescreened_msa_file_path))
+
+                    prescreened_msa_file = open(prescreened_msa_file_path, 'w')
+
+                    for gid in genomes_to_process:
+                        prescreened_msa_file.write('>{}\n{}\n'.format(gid, msa_dict.get(gid)))
+                    prescreened_msa_file.close()
+                    user_msa_file = prescreened_msa_file_path
+
+
+
+
+                # Write the RED dictionary to disk (intermediate file).
+                red_dict_file.write()
+
+                # if the new user_msa_file is empty, we need to skip the rest of the loop
+                if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
+                    if summary_file.has_row():
+                        summary_file.write()
+                        # Symlink to the summary file from the root
+                        if marker_set_id == 'bac120':
+                            symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                                      os.path.join(out_dir,
+                                                   os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                        elif marker_set_id == 'ar53':
+                            symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
+                                      os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
+                    continue
+
+
+                if not fulltreeopt and marker_set_id == 'bac120':
+                    splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
+
+                    debug_file = self._generate_summary_file(
+                        marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
+
+                    high_classify_tree = self.place_genomes(user_msa_file,
+                                                            marker_set_id,
+                                                            out_dir,
+                                                            prefix,
+                                                            scratch_dir,
+                                                            'high')
+                    output_files.setdefault(marker_set_id, []).append(high_classify_tree)
+
+                    tree = self._assign_mrca_red(
+                        high_classify_tree, marker_set_id, 'high')
+
+                    high_classification = splitter.get_high_pplacer_taxonomy(
+                        out_dir, marker_set_id, prefix, user_msa_file, tree)
+
+                    disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in high_classification]
+                    if disappearing_genomes:
+                        for disappearing_genome in disappearing_genomes:
+                            disappearing_genomes_file.add_genome(disappearing_genome, 'Backbone')
+
+                    tree_mapping_dict = {}
+                    tree_mapping_dict_reverse = {}
+                    with open(Config.CLASS_LEVEL_TREE_MAPPING_FILE) as ltmf:
+                        for line in ltmf:
+                            k, v = line.strip().split()
+                            tree_mapping_dict[k] = v
+                            tree_mapping_dict_reverse.setdefault(v, []).append(k)
+
+                    splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
+                    sorted_high_taxonomy,warning_counter, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
+                        high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
+                        tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter)
+
+                    if debugopt:
+                        with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
+                            for l, b in high_taxonomy_used.items():
+                                htu.write(l + '\t' + str(b[0]) + '\t' + str(b[1]) + '\t' + str(b[2]) +'\n')
+
+                    self.logger.info(
+                        f"{len_sorted_genomes} out of {len(genomes_to_process)} have an class assignments. Those genomes "
+                        f"will be reclassified.")
+
+                    for idx, tree_iter in enumerate(
+                            sorted(sorted_high_taxonomy, key=lambda z: len(sorted_high_taxonomy[z]), reverse=True)):
+                        listg = sorted_high_taxonomy.get(tree_iter)
+                        low_classify_tree, submsa_file_path = self._place_in_low_tree(
+                            tree_iter, len(sorted_high_taxonomy), idx + 1, listg, msa_dict, marker_set_id, prefix,
+                            scratch_dir, out_dir)
+                        output_files.setdefault(marker_set_id, []).append(low_classify_tree)
+                        genomes_to_process_subtree = [seq_id for seq_id, _seq in read_seq(submsa_file_path)]
+                        mrca_lowtree = self._assign_mrca_red(
+                            low_classify_tree, marker_set_id, 'low', tree_iter)
+                        pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix, tree_iter)
+                        pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
+                                                                           marker_set_id, user_msa_file, mrca_lowtree)
+                        disappearing_genomes = [seq_id for seq_id in genomes_to_process_subtree if
+                                                seq_id not in pplacer_taxonomy_dict]
+                        if disappearing_genomes:
+                            self.logger.warning(
+                                f"{len(disappearing_genomes)} out of {len(genomes_to_process_subtree)} have not been"
+                                f" properly placed by pplacer. This is a known issue with pplacer but we do "
+                                f"not have a solution currently. Those missing genomes are written to "
+                                f"the {disappearing_genomes_file.file_name} file. We recommend rerunning "
+                                f"those genomes through GTDB-Tk to 'fix' the problem.")
+                            for disappearing_genome in disappearing_genomes:
+                                disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
+
+                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes, msa_dict,
+                                                                      percent_multihit_dict, tln_table_summary_file.genomes,
+                                                                      bac_ar_diff, submsa_file_path, red_dict_file.data,
+                                                                      summary_file, pplacer_taxonomy_dict,warning_counter,
+                                                                      high_classification, debug_file,skip_ani_screen, debugopt,
+                                                                      tree_mapping_file, tree_iter,
+                                                                      tree_mapping_dict_reverse)
+
+                        if debugopt:
+                            with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
+                                for l, b in class_level_classification.items():
+                                    olf.write(l + '\t' + str(b) + '\n')
+                                for l, b in classified_user_genomes.items():
+                                    olf.write(l + '\t' + str(b) + '\n')
+
+
+                    # add filtered genomes to the summary file
+                    warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
+
+                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                    # This is a executive direction: failed prodigal and genomes with
+                    # no markers are not bacterial or archaeal
+                    # but they need to be included in one of the summary file
+                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    warning_counter = warning_counter + prodigal_failed_counter
+
+                    # Symlink to the summary file from the root
+                    symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+
+                    if debugopt:
+                        debug_file.close()
+
+                else:
+                    classify_tree = self.place_genomes(user_msa_file,
+                                                       marker_set_id,
+                                                       out_dir,
+                                                       prefix,
+                                                       scratch_dir)
+
+                    #genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+
+                    # get taxonomic classification of each user genome
+                    debug_file = self._generate_summary_file(
+                        marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
+
+                    tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
+                    pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
+                                                                       marker_set_id,
+                                                                       user_msa_file,
+                                                                       tree_to_process)
+
+                    disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
+                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
+                                     tln_table_summary_file.genomes,
+                                     bac_ar_diff, user_msa_file, red_dict_file.data, summary_file,
+                                     pplacer_taxonomy_dict,warning_counter, None,
+                                     debug_file,skip_ani_screen, debugopt, None, None, None)
+                    # add filtered genomes to the summary file
+                    warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
+
+                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                    # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                    # but they need to be included in one of the summary file
+                    if marker_set_id == 'bac120':
+                        prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                        warning_counter = warning_counter + prodigal_failed_counter
+
+                    # Symlink to the summary file from the root
+                    if marker_set_id == 'bac120':
+                        symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                    elif marker_set_id == 'ar53':
+                        symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
+                                  os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
+                    else:
+                        raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
+
+                    if disappearing_genomes:
+                        for disappearing_genome in disappearing_genomes:
+                            disappearing_genomes_file.add_genome(disappearing_genome, 'N/A')
+
+                    if debugopt:
+                        debug_file.close()
+
+                if not fulltreeopt and marker_set_id == 'bac120':
+                    tree_mapping_file.write()
+                    output_files.setdefault(marker_set_id, []).append(tree_mapping_file.path)
+
+
+                if warning_counter > 0:
+                    sum_of_genomes =  len(genomes_to_process)+prodigal_failed_counter
+                    if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+                        sum_of_genomes +=len(mash_classified_user_genomes.get(marker_set_id))
+                    self.logger.warning(f"{warning_counter} of {sum_of_genomes} "
+                                        f"genome{'' if warning_counter==1 else 's'}"
+                                        f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
+
+                # Write the summary file to disk.
+                if disappearing_genomes_file.data:
+                    disappearing_genomes_file.write()
+                    output_files.setdefault(marker_set_id, []).append(disappearing_genomes_file.path)
+                summary_file.write()
+                output_files.setdefault(marker_set_id, []).append(summary_file.path)
         return output_files
 
     def _add_warning_to_row(self,row,msa_dict,
@@ -2154,8 +2187,10 @@ class Classify(object):
 
                 if 'other_refs' in fastani_results.get(gid).get(
                     fastani_matching_reference):
-                    summary_row.other_related_refs = fastani_results.get(gid).get(
-                    fastani_matching_reference).get('other_refs')
+                    other_refs = fastani_results.get(gid).get(
+                        fastani_matching_reference).get('other_refs')
+                    if other_refs:
+                        summary_row.other_related_refs = other_refs
                 current_ani = fastani_results.get(gid).get(
                         fastani_matching_reference).get('ani')
                 current_af = fastani_results.get(gid).get(
