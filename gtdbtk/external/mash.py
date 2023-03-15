@@ -210,7 +210,11 @@ class SketchFile(object):
 
     def _is_consistent(self):
         """Returns True if the sketch was generated from the genomes."""
-        return set(self.data.keys()) == set(self.genomes.values())
+        # to compare the consistency of the sketch file, we need to compare only the file names, not the full paths
+        # the mash_db can be moves to another folder in the cloud so the full path will be different
+        data_keys = set(map(os.path.basename,self.data.keys()))
+        genomes_values = set(map(os.path.basename,self.genomes.values()))
+        return data_keys == genomes_values
 
     def _generate(self):
         """Generate a new sketch file."""
