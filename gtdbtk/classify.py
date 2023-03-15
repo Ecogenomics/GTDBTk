@@ -331,6 +331,7 @@ class Classify(object):
             debugopt=False,
             fulltreeopt=False,
             skip_ani_screen=False,
+            genes=False,
             no_mash=False,
             mash_k=Config.MASH_K_VALUE,
             mash_v=Config.MASH_V_VALUE,
@@ -351,7 +352,10 @@ class Classify(object):
         # rest of the pipeline.
         mash_classified_user_genomes = {}
         if not skip_ani_screen:
-            if not no_mash:
+            if genes:
+                self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
+                skip_ani_screen = True
+            elif not no_mash:
                 # if mash_db finishes with a backslash, it should be considered a directory
                 if mash_db.endswith('/'):
                     make_sure_path_exists(mash_db)
@@ -511,8 +515,6 @@ class Classify(object):
                     user_msa_file = prescreened_msa_file_path
 
 
-
-
                 # Write the RED dictionary to disk (intermediate file).
                 red_dict_file.write()
 
@@ -604,10 +606,10 @@ class Classify(object):
                                 disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
                         class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes, msa_dict,
-                                                                      percent_multihit_dict, tln_table_summary_file.genomes,
+                                                                      percent_multihit_dict,genes, tln_table_summary_file.genomes,
                                                                       bac_ar_diff, submsa_file_path, red_dict_file.data,
                                                                       summary_file, pplacer_taxonomy_dict,warning_counter,
-                                                                      high_classification, debug_file,skip_ani_screen, debugopt,
+                                                                      high_classification, debug_file, debugopt,
                                                                       tree_mapping_file, tree_iter,
                                                                       tree_mapping_dict_reverse)
 
@@ -1144,9 +1146,9 @@ class Classify(object):
 
         return class_level_classification,warning_counter
 
-    def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
+    def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict,genes, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,warning_counter, high_classification,
-                    debug_file,prescreening, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
+                    debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
         # Genomes can be classified by using FastANI or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -1156,8 +1158,10 @@ class Classify(object):
         tt = TreeTraversal()
 
         self.logger.log(Config.LOG_TASK, 'Traversing tree to determine classification method.')
-        fastani_verification, qury_nodes = self._get_fastani_verification(tree, self.reference_ids, tt)
-
+        if genes:
+            fastani_verification = {}
+        else:
+            fastani_verification, qury_nodes = self._get_fastani_verification(tree, self.reference_ids, tt)
 
         #DEBUG: Skip FastANI step
         #fastani_verification = {}
@@ -1176,14 +1180,15 @@ class Classify(object):
         else:
             all_fastani_dict = {}
 
-
-
         classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_fastani_results(
             fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
             trans_table_dict, bac_ar_diff,warning_counter, summary_file)
         #if not prescreening:
-        self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
+        if not genes:
+            self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
                              f'been classified using FastANI and pplacer.')
+        else:
+            self.logger.info('ANI classification has been skipped (--genes option used).')
 
         if tree_mapping_file:
             for genome in classified_user_genomes.keys():

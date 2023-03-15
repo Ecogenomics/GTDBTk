@@ -11,6 +11,14 @@ GTDB-Tk uses the GTDB taxonomy (`https://gtdb.ecogenomic.org/ <https://gtdb.ecog
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.
 
+Can you combine the bacterial and archaeal trees into a single tree?
+--------------------------------------------------------------------
+
+
+The bacterial and archaeal trees are inferred from different marker genes. Currently, the correct rootings of these trees remain an open area of research.
+GTDB-Tk does not provide a tool to merge the trees but It is possible to artificially combine them by manipulating the Newick files.
+One solution would be to use (`DendroPy <https://dendropy.org/>`_); a Python library used for phylogenetic computing.
+
 
 .. _faq_pplacer:
 
@@ -92,6 +100,6 @@ From GTDB-Tk v2.0.0 the conda environment will automatically have FastANI v1.3 i
 
 **Docker:**
 
-From GTDB-Tk v2.2.2 the Docker cotnainer will automatically have FastANI v1.32 installed. Otherwise, manually
+From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the `Dockerfile <https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile>`_, making
 sure to specify FastANI v1.32.
