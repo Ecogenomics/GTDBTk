@@ -7,6 +7,8 @@ Load the reference package. This will fail if the directory doesn't exist.
 """
 try:
     GENERIC_PATH = os.environ['GTDBTK_DATA_PATH']
+    #expand the variables in the path
+    GENERIC_PATH = os.path.expandvars(GENERIC_PATH)
 except KeyError:
     print('\n' + '=' * 80)
     print(' ERROR '.center(80))
