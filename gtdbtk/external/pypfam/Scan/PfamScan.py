@@ -77,14 +77,14 @@ class PfamScan(object):
         self._hmmscan_cutoff = list()
         if 'e_seq' in kwargs:
             if not kwargs['e_seq'] > 0:
-                sys.ext('FATAL: the E-value sequence cut-off "-e_seq" must be positive non-zero number')
+                sys.exit('FATAL: the E-value sequence cut-off "-e_seq" must be positive non-zero number')
             self._hmmscan_cutoff += ['-E', kwargs['e_seq']]
 
         if 'e_dom' in kwargs:
             if 'e_seq' not in kwargs:
                 sys.exit('FATAL: if you supply "-e_dom" you must also supply "-e_seq"')
             if not kwargs['e_dom'] > 0:
-                sys.ext('FATAL: the E-value domain cut-off "-e_dom" must be positive non-zero number')
+                sys.exit('FATAL: the E-value domain cut-off "-e_dom" must be positive non-zero number')
             self._hmmscan_cutoff += ['--domE', kwargs['e_dom']]
 
         if 'b_seq' in kwargs:
