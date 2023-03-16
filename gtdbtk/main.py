@@ -592,6 +592,7 @@ class OptionsParser(object):
                      debugopt=options.debug,
                      fulltreeopt=options.full_tree,
                      skip_ani_screen=options.skip_ani_screen,
+                     genes=options.genes,
                      no_mash=options.no_mash,
                      mash_k=options.mash_k,
                      mash_v=options.mash_v,
@@ -610,6 +611,12 @@ class OptionsParser(object):
         classify_step.status = 'completed'
 
         self.stage_logger.steps.append(classify_step)
+
+        if options.genes:
+            self.logger.warning('The final classification predicted may be less accurate '
+                                'due to the use of amino acid files instead of nucleotide files as input to the pipeline.'
+                                ' Without nucleotides files, the ANI classification step of the workflow has been skipped and therefore'
+                                ' no ANI matches with existing species in GTDB could be reported.')
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
                          'designations. New designations should be based on one or more de novo trees, an '
@@ -1123,8 +1130,16 @@ class OptionsParser(object):
                             all_classified_ani = True
 
                         self.stage_logger.reset_steps(keep_steps=['ANI screen'])
+                    else:
+                        self.stage_logger.reset_steps()
                 else:
                     self.stage_logger.reset_steps()
+
+            if options.genes:
+                if not options.skip_ani_screen:
+                    self.logger.warning('The --genes flag is set to True. The ANI screening step will be skipped.')
+                    options.skip_ani_screen = True
+
 
             if not options.skip_ani_screen:
                 all_classified_ani,classified_genomes = self.ani_screen(options)

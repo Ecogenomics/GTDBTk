@@ -34,7 +34,8 @@ def __temp_dir(group):
 
 def __genes(group):
     group.add_argument('--genes', action='store_true', default=False,
-                       help='indicates input files contain called genes (skip gene calling)')
+                       help='indicates input files contain called genes (skip gene calling).Warning: This flag will also skip '
+                            'the ANI comparison steps (ani_screen and classification).')
 
 
 def __genome_dir(group):
@@ -478,6 +479,7 @@ def get_main_parser():
             __cpus(grp)
             __pplacer_cpus(grp)
             __scratch_dir(grp)
+            __genes(grp)
             __full_tree(grp)
             __min_af(grp)
             __temp_dir(grp)
