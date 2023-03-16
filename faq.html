@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>FAQ &mdash; GTDB-Tk 2.2.4 documentation</title>
+  <title>FAQ &mdash; GTDB-Tk 2.2.5 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.2.4
+                2.2.5
               </div>
             
           
@@ -120,6 +120,7 @@
 <li class="toctree-l1"><a class="reference internal" href="installing/index.html">Installing GTDB-Tk</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">Can you combine the bacterial and archaeal trees into a single tree?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes">GTDB-Tk reaches the memory limit / pplacer crashes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#validating-species-assignments-with-average-nucleotide-identity">Validating species assignments with average nucleotide identity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fastani-using-more-threads-than-allocated">FastANI using more threads than allocated</a></li>
@@ -238,6 +239,12 @@
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.</p>
 </div>
+<div class="section" id="can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">
+<h2>Can you combine the bacterial and archaeal trees into a single tree?<a class="headerlink" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree" title="Permalink to this headline">¶</a></h2>
+<p>The bacterial and archaeal trees are inferred from different marker genes. Currently, the correct rootings of these trees remain an open area of research.
+GTDB-Tk does not provide a tool to merge the trees but It is possible to artificially combine them by manipulating the Newick files.
+One solution would be to use (<a class="reference external" href="https://dendropy.org/">DendroPy</a>); a Python library used for phylogenetic computing.</p>
+</div>
 <div class="section" id="gtdb-tk-reaches-the-memory-limit-pplacer-crashes">
 <span id="faq-pplacer"></span><h2>GTDB-Tk reaches the memory limit / pplacer crashes<a class="headerlink" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes" title="Permalink to this headline">¶</a></h2>
 <p>The host may report that GTDB-Tk has exceeded the memory requirements due to how <code class="docutils literal notranslate"><span class="pre">pplacer</span></code> is implemented.
@@ -303,7 +310,7 @@ This can be problematic if running GTDB-Tk on a HPC where you have a limited num
 <p>From GTDB-Tk v2.0.0 the conda environment will automatically have FastANI v1.3 installed. Otherwise run:</p>
 <p><code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">bioconda</span> <span class="pre">fastani==1.32</span></code></p>
 <p><strong>Docker:</strong></p>
-<p>From GTDB-Tk v2.2.2 the Docker cotnainer will automatically have FastANI v1.32 installed. Otherwise, manually
+<p>From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the <a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile">Dockerfile</a>, making
 sure to specify FastANI v1.32.</p>
 </div>
