@@ -615,7 +615,7 @@ class OptionsParser(object):
         if options.genes:
             self.logger.warning('The final classification predicted may be less accurate '
                                 'due to the use of amino acid files instead of nucleotide files as input to the pipeline.'
-                                'Without nucleotides files, the ANI classification step of the workflow has been skipped and therefore'
+                                ' Without nucleotides files, the ANI classification step of the workflow has been skipped and therefore'
                                 ' no ANI matches with existing species in GTDB could be reported.')
 
         self.logger.info('Note that Tk classification mode is insufficient for publication of new taxonomic '
@@ -1130,6 +1130,8 @@ class OptionsParser(object):
                             all_classified_ani = True
 
                         self.stage_logger.reset_steps(keep_steps=['ANI screen'])
+                    else:
+                        self.stage_logger.reset_steps()
                 else:
                     self.stage_logger.reset_steps()
 
