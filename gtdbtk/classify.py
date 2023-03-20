@@ -605,13 +605,15 @@ class Classify(object):
                             for disappearing_genome in disappearing_genomes:
                                 disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
-                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes, msa_dict,
-                                                                      percent_multihit_dict,genes, tln_table_summary_file.genomes,
-                                                                      bac_ar_diff, submsa_file_path, red_dict_file.data,
-                                                                      summary_file, pplacer_taxonomy_dict,warning_counter,
-                                                                      high_classification, debug_file, debugopt,
-                                                                      tree_mapping_file, tree_iter,
-                                                                      tree_mapping_dict_reverse)
+                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes,
+                                                                                                               msa_dict,percent_multihit_dict,
+                                                                                                               genes, tln_table_summary_file.genomes,
+                                                                                                               bac_ar_diff, submsa_file_path,
+                                                                                                               red_dict_file.data,summary_file,
+                                                                                                               pplacer_taxonomy_dict,warning_counter,
+                                                                                                               high_classification, debug_file,
+                                                                                                               debugopt,tree_mapping_file,
+                                                                                                               tree_iter,tree_mapping_dict_reverse)
 
                         if debugopt:
                             with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
@@ -658,11 +660,15 @@ class Classify(object):
                                                                        tree_to_process)
 
                     disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
-                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes, msa_dict, percent_multihit_dict,
-                                     tln_table_summary_file.genomes,
-                                     bac_ar_diff, user_msa_file, red_dict_file.data, summary_file,
-                                     pplacer_taxonomy_dict,warning_counter, None,
-                                     debug_file,skip_ani_screen, debugopt, None, None, None)
+                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes,
+                                                                                                           msa_dict, percent_multihit_dict,
+                                                                                                           genes,tln_table_summary_file.genomes,
+                                                                                                           bac_ar_diff, user_msa_file,
+                                                                                                           red_dict_file.data, summary_file,
+                                                                                                           pplacer_taxonomy_dict,warning_counter,
+                                                                                                           None,debug_file,
+                                                                                                           debugopt,None,
+                                                                                                           None, None)
                     # add filtered genomes to the summary file
                     warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
 
