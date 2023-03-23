@@ -2,6 +2,32 @@
 Change log
 ==========
 
+2.2.6
+-----
+
+Bug Fixes:
+
+* (`#493 <https://github.com/Ecogenomics/GTDBTk/issues/493>`_) Fix issue with --full-tree flag (related to skipping ANI steps)
+
+Minor changes:
+
+* Change URL for documentation to 'https://ecogenomics.github.io/GTDBTk/installing/index.html'
+* Improve portability of the ANI_screen step by regenerating the paths of reference genomes in the current filesystem for mash_db.msh
+
+
+2.2.5
+-----
+
+Bug Fixes:
+* gtdbtk.json is now reset when the pipeline is re run and the status of ani_Screen is not 'complete'
+
+Minor changes:
+* When using '--genes' , ANI steps are skipped and Warnings are raised to the user to
+    inform them that classification is less accurate.
+* (`#486 <https://github.com/Ecogenomics/GTDBTk/issues/486>`_) Environment variables can be used in GTDBTK_DATA_PATH
+* 'is_consistent' function in 'mash.py' compares only the filenames, not the full paths
+* Add cutoff arguments to PfamScan ( Thanks @AroneyS for the contribution)
+
 
 2.2.5
 -----
