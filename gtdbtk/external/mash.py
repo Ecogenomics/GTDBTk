@@ -79,13 +79,18 @@ class Mash(object):
                                   self.cpus, max_d=mash_d, mash_v=mash_v)
         results = mash_dists.read(mash_max_dist)
 
+        # mash_db can be moved from filesystem to filesystem, so we need to update the path in the mash_db to
+        # reflect the new location.
+        current_ref = {os.path.basename(v): v for v in ref.values()}
+
         # Convert the results back to the accession
         path_to_qry = {v: k for (k, v) in qry.items()}
         path_to_ref = {v: k for (k, v) in ref.items()}
         out = defaultdict(dict)
         for qry_path, ref_hits in results.items():
             for ref_path, hit in ref_hits.items():
-                out[path_to_qry[qry_path]][path_to_ref[ref_path]] = hit
+                current_ref_path = current_ref[ref_path]
+                out[path_to_qry[qry_path]][path_to_ref[current_ref_path]] = hit
         return out
 
 
@@ -149,7 +154,7 @@ class DistanceFile(object):
             dist, p_val = float(dist), float(p_val)
             if dist <= max_mash_dist:
                 shared_num, shared_den = int(shared_n), int(shared_d)
-                out[qry_id][ref_id] = (dist, p_val, shared_num, shared_den)
+                out[qry_id][os.path.basename(ref_id)] = (dist, p_val, shared_num, shared_den)
         return out
 
 
