@@ -76,13 +76,24 @@ class PfamScan(object):
 
         self._hmmscan_cutoff = list()
         if 'e_seq' in kwargs:
-            sys.exit('FATAL: -e_seq functionality has not been implemented in Python')
+            if not kwargs['e_seq'] > 0:
+                sys.exit('FATAL: the E-value sequence cut-off "-e_seq" must be positive non-zero number')
+            self._hmmscan_cutoff += ['-E', kwargs['e_seq']]
+
         if 'e_dom' in kwargs:
-            sys.exit('FATAL: -e_dom functionality has not been implemented in Python')
+            if 'e_seq' not in kwargs:
+                sys.exit('FATAL: if you supply "-e_dom" you must also supply "-e_seq"')
+            if not kwargs['e_dom'] > 0:
+                sys.exit('FATAL: the E-value domain cut-off "-e_dom" must be positive non-zero number')
+            self._hmmscan_cutoff += ['--domE', kwargs['e_dom']]
+
         if 'b_seq' in kwargs:
-            sys.exit('FATAL: -b_seq functionality has not been implemented in Python')
+            self._hmmscan_cutoff += ['-T', kwargs['b_seq']]
+
         if 'b_dom' in kwargs:
-            sys.exit('FATAL: -b_dom functionality has not been implemented in Python')
+            if 'b_seq' not in kwargs:
+                sys.exit('FATAL: if you supply "-b_dom" you must also supply "-b_seq"')
+            self._hmmscan_cutoff += ['--domT', kwargs['b_dom']]
 
         if not self._hmmscan_cutoff:
             self._hmmscan_cutoff.append('--cut_ga')

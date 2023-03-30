@@ -40,8 +40,7 @@ Bug Fixes:
 
 Minor changes:
 
-* When using '--genes' , ANI steps are skipped and Warnings are raised to the user to
-    inform them that classification is less accurate.
+* When using '--genes' , ANI steps are skipped and Warnings are raised to the user to inform them that classification is less accurate.
 * (`#486 <https://github.com/Ecogenomics/GTDBTk/issues/486>`_) Environment variables can be used in GTDBTK_DATA_PATH
 * 'is_consistent' function in 'mash.py' compares only the filenames, not the full paths
 * Add cutoff arguments to PfamScan ( Thanks @AroneyS for the contribution)
@@ -50,9 +49,11 @@ Minor changes:
 -----
 
 Bug Fixes:
+
 * (`#475 <https://github.com/Ecogenomics/GTDBTk/issues/475>`_) If all genomes are classified using ANI, Tk will skip the identify step and align steps
 
 Minor changes:
+
 * Add hidden '--skip_pplacer' flag to skip pplacer step ( useful for debugging)
 * Improve documentation
 * Convert stage_logger to a Singleton class
