@@ -86,44 +86,82 @@ Output
 
 .. code-block:: text
 
-    [2022-04-11 12:48:53] INFO: GTDB-Tk v2.0.0
-    [2022-04-11 12:48:53] INFO: gtdbtk classify_wf --genome_dir genomes/ --out_dir classify_wf_out --cpus 3 -x gz
-    [2022-04-11 12:48:53] INFO: Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
-    [2022-04-11 12:48:53] INFO: Identifying markers in 3 genomes with 3 threads.
-    [2022-04-11 12:48:53] TASK: Running Prodigal V2.6.3 to identify genes.
-    [2022-04-11 12:49:04] INFO: Completed 3 genomes in 10.96 seconds (3.65 seconds/genome).
-    [2022-04-11 12:49:04] TASK: Identifying TIGRFAM protein families.
-    [2022-04-11 12:49:10] INFO: Completed 3 genomes in 5.88 seconds (1.96 seconds/genome).
-    [2022-04-11 12:49:10] TASK: Identifying Pfam protein families.
-    [2022-04-11 12:49:10] INFO: Completed 3 genomes in 0.41 seconds (7.30 genomes/second).
-    [2022-04-11 12:49:10] INFO: Annotations done using HMMER 3.1b2 (February 2015).
-    [2022-04-11 12:49:10] TASK: Summarising identified marker genes.
-    [2022-04-11 12:49:11] INFO: Completed 3 genomes in 0.07 seconds (40.18 genomes/second).
-    [2022-04-11 12:49:11] INFO: Done.
-    [2022-04-11 12:49:11] INFO: Aligning markers in 3 genomes with 3 CPUs.
-    [2022-04-11 12:49:11] INFO: Processing 3 genomes identified as archaeal.
-    [2022-04-11 12:49:11] INFO: Read concatenated alignment for 3,412 GTDB genomes.
-    [2022-04-11 12:49:11] TASK: Generating concatenated alignment for each marker.
-    [2022-04-11 12:49:11] INFO: Completed 3 genomes in 0.02 seconds (167.25 genomes/second).
-    [2022-04-11 12:49:11] TASK: Aligning 52 identified markers using hmmalign 3.1b2 (February 2015).
-    [2022-04-11 12:49:11] INFO: Completed 52 markers in 0.54 seconds (96.16 markers/second).
-    [2022-04-11 12:49:11] TASK: Masking columns of archaeal multiple sequence alignment using canonical mask.
-    [2022-04-11 12:49:16] INFO: Completed 3,415 sequences in 4.15 seconds (822.38 sequences/second).
-    [2022-04-11 12:49:16] INFO: Masked archaeal alignment from 13,540 to 10,153 AAs.
-    [2022-04-11 12:49:16] INFO: 0 archaeal user genomes have amino acids in <10.0% of columns in filtered MSA.
-    [2022-04-11 12:49:16] INFO: Creating concatenated alignment for 3,415 archaeal GTDB and user genomes.
-    [2022-04-11 12:49:18] INFO: Creating concatenated alignment for 3 archaeal user genomes.
-    [2022-04-11 12:49:18] INFO: Done.
-    [2022-04-11 12:49:18] TASK: Placing 3 archaeal genomes into reference tree with pplacer using 3 CPUs (be patient).
-    [2022-04-11 12:49:18] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
-    [2022-04-11 12:54:22] INFO: Calculating RED values based on reference tree.
-    [2022-04-11 12:54:23] TASK: Traversing tree to determine classification method.
-    [2022-04-11 12:54:23] INFO: Completed 3 genomes in 0.00 seconds (23,563.51 genomes/second).
-    [2022-04-11 12:54:23] TASK: Calculating average nucleotide identity using FastANI (v1.32).
-    [2022-04-11 12:54:25] INFO: Completed 6 comparisons in 1.96 seconds (3.06 comparisons/second).
-    [2022-04-11 12:54:25] INFO: 3 genome(s) have been classified using FastANI and pplacer.
-    [2022-04-11 12:54:25] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
-    [2022-04-11 12:54:25] INFO: Done.
-    [2022-04-11 12:54:25] INFO: Removing intermediate files.
-    [2022-04-11 12:54:25] INFO: Intermediate files removed.
-    [2022-04-11 12:54:25] INFO: Done.
+    [2023-02-22 16:10:50] INFO: GTDB-Tk v2.2.3
+    [2023-02-22 16:10:50] INFO: gtdbtk classify_wf --batchfile 3lines_batchfile.tsv --out_dir classify_wf_outdir_test --keep_intermediates --cpus 20 --mash_db mash_sketch/cli/mash_db.msh
+    [2023-02-22 16:10:50] INFO: Using GTDB-Tk reference data version r207: /srv/projects/gtdbtk/test_new_features/release207_v2/
+    [2023-02-22 16:10:50] INFO: Loading reference genomes.
+    [2023-02-22 16:10:51] INFO: Using Mash version 2.3
+    [2023-02-22 16:10:51] INFO: Loading data from existing Mash sketch file: classify_wf_outdir_test/classify/ani_screen/intermediate_results/mash/gtdbtk.user_query_sketch.msh
+    [2023-02-22 16:10:51] INFO: Creating Mash sketch file: mash_sketch/cli/mash_db.msh
+    [2023-02-22 16:10:51] INFO: Calculating RED values based on reference tree.
+    [2023-02-22 16:10:54] TASK: Traversing tree to determine classification method.
+    [2023-02-22 16:10:54] INFO: Completed 1 genome in 0.00 seconds (2,335.36 genomes/second).
+    [2023-02-22 16:10:54] TASK: Calculating average nucleotide identity using FastANI (v1.3).
+    [2023-02-22 16:10:57] INFO: Completed 34 comparisons in 2.27 seconds (14.95 comparisons/second).
+    [2023-02-22 16:10:57] INFO: 0 genome(s) have been classified using FastANI and pplacer.
+    [2023-02-22 16:10:57] TASK: Placing 1 bacterial genomes into class-level reference tree 5 (2/2) with pplacer using 20 CPUs (be patient).
+    [2023-02-22 16:14:29] INFO: Calculating RED values based on reference tree.
+    [2023-02-22 16:14:31] TASK: Traversing tree to determine classification method.
+    [2023-02-22 16:14:31] INFO: Completed 1 genome in 0.06 seconds (16.77 genomes/second).
+    [2023-02-22 16:14:31] INFO: 0 genome(s) have been classified using FastANI and pplacer.
+    [2023-02-22 16:14:31] WARNING: 1 of 3 genome has a warning (see summary file).
+    [2023-02-22 16:14:31] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+    [2023-02-22 16:14:31] INFO: Done.
+    [2023-02-22 16:20:06] INFO: Completed 65,703 genomes in 9.25 minutes (7,103.32 genomes/minute).
+    [2023-02-22 16:20:06] INFO: Calculating Mash distances.
+    [2023-02-22 16:20:10] INFO: Calculating ANI with FastANI v1.3.
+    [2023-02-22 16:20:11] INFO: Completed 12 comparisons in 0.63 seconds (18.90 comparisons/second).
+    [2023-02-22 16:20:11] INFO: Summary of results saved to: classify_wf_outdir_test_mash/classify/ani_screen/gtdbtk.bac120.ani_summary.tsv
+    [2023-02-22 16:20:11] INFO: 1 genome(s) have been classified using the ANI pre-screening step.
+    [2023-02-22 16:20:11] INFO: Done.
+    [2023-02-22 16:20:11] INFO: 1 genome(s) have been classified using the ANI pre-screening step.
+    [2023-02-22 16:20:11] INFO: Done.
+    [2023-02-22 16:20:11] INFO: Identifying markers in 2 genomes with 20 threads.
+    [2023-02-22 16:20:11] TASK: Running Prodigal V2.6.3 to identify genes.
+    [2023-02-22 16:20:12] INFO: Completed 2 genomes in 0.22 seconds (9.07 genomes/second).
+    [2023-02-22 16:20:12] WARNING: Prodigal skipped 2 genomes due to pre-existing data, see warnings.log
+    [2023-02-22 16:20:12] TASK: Identifying TIGRFAM protein families.
+    [2023-02-22 16:20:12] INFO: Completed 2 genomes in 0.03 seconds (65.39 genomes/second).
+    [2023-02-22 16:20:12] WARNING: TIGRFAM skipped 2 genomes due to pre-existing data, see warnings.log
+    [2023-02-22 16:20:12] TASK: Identifying Pfam protein families.
+    [2023-02-22 16:20:12] INFO: Completed 2 genomes in 0.03 seconds (68.36 genomes/second).
+    [2023-02-22 16:20:12] WARNING: Pfam skipped 2 genomes due to pre-existing data, see warnings.log
+    [2023-02-22 16:20:12] INFO: Annotations done using HMMER 3.1b2 (February 2015).
+    [2023-02-22 16:20:12] TASK: Summarising identified marker genes.
+    [2023-02-22 16:20:12] INFO: Completed 2 genomes in 0.06 seconds (32.55 genomes/second).
+    [2023-02-22 16:20:12] INFO: Done.
+    [2023-02-22 16:20:12] INFO: Aligning markers in 2 genomes with 20 CPUs.
+    [2023-02-22 16:20:12] INFO: Processing 2 genomes identified as bacterial.
+    [2023-02-22 16:20:21] INFO: Read concatenated alignment for 62,291 GTDB genomes.
+    [2023-02-22 16:20:21] TASK: Generating concatenated alignment for each marker.
+    [2023-02-22 16:20:22] INFO: Completed 2 genomes in 0.03 seconds (79.85 genomes/second).
+    [2023-02-22 16:20:23] TASK: Aligning 100 identified markers using hmmalign 3.1b2 (February 2015).
+    [2023-02-22 16:20:25] INFO: Completed 100 markers in 1.06 seconds (93.94 markers/second).
+    [2023-02-22 16:20:25] TASK: Masking columns of bacterial multiple sequence alignment using canonical mask.
+    [2023-02-22 16:22:21] INFO: Completed 62,293 sequences in 1.93 minutes (32,233.24 sequences/minute).
+    [2023-02-22 16:22:21] INFO: Masked bacterial alignment from 41,084 to 5,036 AAs.
+    [2023-02-22 16:22:21] INFO: 0 bacterial user genomes have amino acids in <10.0% of columns in filtered MSA.
+    [2023-02-22 16:22:22] INFO: Creating concatenated alignment for 62,293 bacterial GTDB and user genomes.
+    [2023-02-22 16:22:46] INFO: Creating concatenated alignment for 2 bacterial user genomes.
+    [2023-02-22 16:22:46] INFO: Done.
+    [2023-02-22 16:22:47] TASK: Placing 2 bacterial genomes into backbone reference tree with pplacer using 20 CPUs (be patient).
+    [2023-02-22 16:22:47] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
+    [2023-02-22 16:25:01] INFO: Calculating RED values based on reference tree.
+    [2023-02-22 16:25:02] INFO: 2 out of 2 have an class assignments. Those genomes will be reclassified.
+    [2023-02-22 16:25:02] TASK: Placing 1 bacterial genomes into class-level reference tree 6 (1/2) with pplacer using 20 CPUs (be patient).
+    [2023-02-22 16:29:46] INFO: Calculating RED values based on reference tree.
+    [2023-02-22 16:29:48] TASK: Traversing tree to determine classification method.
+    [2023-02-22 16:29:48] INFO: Completed 1 genome in 0.00 seconds (2,391.28 genomes/second).
+    [2023-02-22 16:29:48] TASK: Calculating average nucleotide identity using FastANI (v1.3).
+    [2023-02-22 16:29:50] INFO: Completed 34 comparisons in 1.53 seconds (22.22 comparisons/second).
+    [2023-02-22 16:29:50] INFO: 0 genome(s) have been classified using FastANI and pplacer.
+    [2023-02-22 16:29:50] TASK: Placing 1 bacterial genomes into class-level reference tree 5 (2/2) with pplacer using 20 CPUs (be patient).
+    [2023-02-22 16:33:17] INFO: Calculating RED values based on reference tree.
+    [2023-02-22 16:33:19] TASK: Traversing tree to determine classification method.
+    [2023-02-22 16:33:19] INFO: Completed 1 genome in 0.06 seconds (17.02 genomes/second).
+    [2023-02-22 16:33:19] INFO: 0 genome(s) have been classified using FastANI and pplacer.
+    [2023-02-22 16:33:19] WARNING: 1 of 3 genome has a warning (see summary file).
+    [2023-02-22 16:33:19] INFO: 0 genome(s) have been classified using FastANI and pplacer.
+    [2023-02-22 16:33:19] WARNING: 1 of 3 genome has a warning (see summary file).
+    [2023-02-22 16:33:19] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+    [2023-02-22 16:33:19] INFO: Done.

@@ -119,11 +119,18 @@
 <li class="toctree-l1"><a class="reference internal" href="announcements.html">Announcements</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installing/index.html">Installing GTDB-Tk</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">Can you combine the bacterial and archaeal trees into a single tree?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes">GTDB-Tk reaches the memory limit / pplacer crashes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#validating-species-assignments-with-average-nucleotide-identity">Validating species assignments with average nucleotide identity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fastani-using-more-threads-than-allocated">FastANI using more threads than allocated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#taxonomy-faq">Taxonomy FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">Can you combine the bacterial and archaeal trees into a single tree?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-faq">GTDB-Tk FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes">GTDB-Tk reaches the memory limit / pplacer crashes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">How is GTDB-Tk validating species assignments using average nucleotide identity?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#why-is-fastani-using-more-threads-than-allocated">Why is FastANI using more threads than allocated?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -233,20 +240,25 @@
 </style>
 <div class="section" id="faq">
 <span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="taxonomy-faq">
+<h2>Taxonomy FAQ<a class="headerlink" href="#taxonomy-faq" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">
-<h2>Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?<a class="headerlink" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names" title="Permalink to this headline">¶</a></h2>
+<h3>Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?<a class="headerlink" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names" title="Permalink to this headline">¶</a></h3>
 <p>GTDB-Tk uses the GTDB taxonomy (<a class="reference external" href="https://gtdb.ecogenomic.org/">https://gtdb.ecogenomic.org/</a>).
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.</p>
 </div>
 <div class="section" id="can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">
-<h2>Can you combine the bacterial and archaeal trees into a single tree?<a class="headerlink" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree" title="Permalink to this headline">¶</a></h2>
+<h3>Can you combine the bacterial and archaeal trees into a single tree?<a class="headerlink" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree" title="Permalink to this headline">¶</a></h3>
 <p>The bacterial and archaeal trees are inferred from different marker genes. Currently, the correct rootings of these trees remain an open area of research.
 GTDB-Tk does not provide a tool to merge the trees but It is possible to artificially combine them by manipulating the Newick files.
 One solution would be to use (<a class="reference external" href="https://dendropy.org/">DendroPy</a>); a Python library used for phylogenetic computing.</p>
 </div>
+</div>
+<div class="section" id="gtdb-tk-faq">
+<h2>GTDB-Tk FAQ<a class="headerlink" href="#gtdb-tk-faq" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="gtdb-tk-reaches-the-memory-limit-pplacer-crashes">
-<span id="faq-pplacer"></span><h2>GTDB-Tk reaches the memory limit / pplacer crashes<a class="headerlink" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes" title="Permalink to this headline">¶</a></h2>
+<span id="faq-pplacer"></span><h3>GTDB-Tk reaches the memory limit / pplacer crashes<a class="headerlink" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes" title="Permalink to this headline">¶</a></h3>
 <p>The host may report that GTDB-Tk has exceeded the memory requirements due to how <code class="docutils literal notranslate"><span class="pre">pplacer</span></code> is implemented.
 Briefly, this is only the reported value and is not true for how much memory is actually in use.</p>
 <p>When pplacer runs, it goes through several steps notable detailed below:</p>
@@ -288,8 +300,8 @@ Due to how copy-on-write is implemented, this is the same memory space and is no
 memory, but the host will report 300 GB of memory in use.</p>
 <p>Using the <code class="docutils literal notranslate"><span class="pre">--scratch_dir</span></code> parameter and <code class="docutils literal notranslate"><span class="pre">--pplacer_cpus</span> <span class="pre">1</span></code> may help.</p>
 </div>
-<div class="section" id="validating-species-assignments-with-average-nucleotide-identity">
-<h2>Validating species assignments with average nucleotide identity<a class="headerlink" href="#validating-species-assignments-with-average-nucleotide-identity" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">
+<h3>How is GTDB-Tk validating species assignments using average nucleotide identity?<a class="headerlink" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity" title="Permalink to this headline">¶</a></h3>
 <p>GTDB-Tk uses <a class="reference external" href="https://github.com/ParBLiSS/FastANI">FastANI</a> to estimate the ANI between genomes.
 We recommend you have FastANI &gt;= 1.32 as this version introduces a fix that makes the results deterministic.
 A query genome is only classified as belonging to the same species as a reference genome if the ANI between the
@@ -298,8 +310,8 @@ In some circumstances, the phylogenetic placement of a query genome may not supp
 GTDB r207 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the <a class="reference external" href="https://gtdb.ecogenomic.org/">GTDB</a> website.</p>
 </div>
-<div class="section" id="fastani-using-more-threads-than-allocated">
-<h2>FastANI using more threads than allocated<a class="headerlink" href="#fastani-using-more-threads-than-allocated" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="why-is-fastani-using-more-threads-than-allocated">
+<h3>Why is FastANI using more threads than allocated?<a class="headerlink" href="#why-is-fastani-using-more-threads-than-allocated" title="Permalink to this headline">¶</a></h3>
 <p>If you are using FastANI version 1.33 then you may run into an issue where FastANI will use more threads than you allocate.
 This can be problematic if running GTDB-Tk on a HPC where you have a limited number of threads available.</p>
 <p>This issue has been <a class="reference external" href="https://github.com/ParBLiSS/FastANI/issues/101">reported to the FastANI developers (#101)</a>.</p>
@@ -313,6 +325,17 @@ This can be problematic if running GTDB-Tk on a HPC where you have a limited num
 <p>From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the <a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile">Dockerfile</a>, making
 sure to specify FastANI v1.32.</p>
+</div>
+<div class="section" id="what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">
+<h3>What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?<a class="headerlink" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">Starting with GTDB-Tk v2.2+, the <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code> function require an extra parameter to run: <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> or <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>.</div>
+<div class="line">With this new version of Tk, The first stage of <code class="docutils literal notranslate"><span class="pre">classify</span></code> pipelines (<code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code>) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.</div>
+<div class="line">Using the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.</div>
+<div class="line">If no database are available ( i.e. this is the first time running classify ), the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will sketch a new Mash database that can be used for subsequent calls.</div>
+<div class="line">The <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code> option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.</div>
+</div>
+</div>
 </div>
 </div>
 

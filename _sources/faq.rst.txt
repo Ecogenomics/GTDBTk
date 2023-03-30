@@ -3,16 +3,19 @@
 FAQ
 ===
 
-Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?
---------------------------------------------------------------------------------------------------
+Taxonomy FAQ
+------------
 
+Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GTDB-Tk uses the GTDB taxonomy (`https://gtdb.ecogenomic.org/ <https://gtdb.ecogenomic.org/>`_).
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.
 
+
 Can you combine the bacterial and archaeal trees into a single tree?
---------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 The bacterial and archaeal trees are inferred from different marker genes. Currently, the correct rootings of these trees remain an open area of research.
@@ -20,10 +23,13 @@ GTDB-Tk does not provide a tool to merge the trees but It is possible to artific
 One solution would be to use (`DendroPy <https://dendropy.org/>`_); a Python library used for phylogenetic computing.
 
 
+GTDB-Tk FAQ
+------------
+
 .. _faq_pplacer:
 
 GTDB-Tk reaches the memory limit / pplacer crashes
---------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The host may report that GTDB-Tk has exceeded the memory requirements due to how ``pplacer`` is implemented.
 Briefly, this is only the reported value and is not true for how much memory is actually in use.
@@ -66,8 +72,8 @@ memory, but the host will report 300 GB of memory in use.
 Using the ``--scratch_dir`` parameter and ``--pplacer_cpus 1`` may help.
 
 
-Validating species assignments with average nucleotide identity
----------------------------------------------------------------
+How is GTDB-Tk validating species assignments using average nucleotide identity?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GTDB-Tk uses `FastANI <https://github.com/ParBLiSS/FastANI>`_ to estimate the ANI between genomes.
 We recommend you have FastANI >= 1.32 as this version introduces a fix that makes the results deterministic.
@@ -78,8 +84,8 @@ GTDB r207 strictly uses ANI to circumscribe species and GTDB-Tk follows this met
 The species-specific ANI circumscription radii are available from the `GTDB <https://gtdb.ecogenomic.org/>`_ website.
 
 
-FastANI using more threads than allocated
------------------------------------------
+Why is FastANI using more threads than allocated?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are using FastANI version 1.33 then you may run into an issue where FastANI will use more threads than you allocate.
 This can be problematic if running GTDB-Tk on a HPC where you have a limited number of threads available.
@@ -103,3 +109,12 @@ From GTDB-Tk v2.0.0 the conda environment will automatically have FastANI v1.3 i
 From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the `Dockerfile <https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile>`_, making
 sure to specify FastANI v1.32.
+
+What is the difference between the mutually exclusive options ``--mash_db`` and ``--skip_ani_screen``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+| Starting with GTDB-Tk v2.2+, the ``classify_wf`` and ``classify`` function require an extra parameter to run: ``--mash_db`` or ``--skip_ani_screen``.
+| With this new version of Tk, The first stage of ``classify`` pipelines (``classify_wf`` and ``classify``) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.
+| Using the ``--mash_db`` option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.
+| If no database are available ( i.e. this is the first time running classify ), the ``--mash_db`` option will sketch a new Mash database that can be used for subsequent calls.
+| The ``--skip_ani_screen`` option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.

@@ -272,14 +272,17 @@
 </div>
 <div class="section" id="id3">
 <h2>2.2.5<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>Bug Fixes:
-* gtdbtk.json is now reset when the pipeline is re run and the status of ani_Screen is not ‘complete’</p>
-<p>Minor changes:
-* When using ‘–genes’ , ANI steps are skipped and Warnings are raised to the user to</p>
-<blockquote>
-<div><p>inform them that classification is less accurate.</p>
-</div></blockquote>
+<p>Bug Fixes:</p>
 <ul class="simple">
+<li><p>gtdbtk.json is now reset when the pipeline is re run and the status of ani_Screen is not ‘complete’</p></li>
+</ul>
+<p>Minor changes:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>When using ‘–genes’ , ANI steps are skipped and Warnings are raised to the user to</dt><dd><p>inform them that classification is less accurate.</p>
+</dd>
+</dl>
+</li>
 <li><p>(<a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/issues/486">#486</a>) Environment variables can be used in GTDBTK_DATA_PATH</p></li>
 <li><p>‘is_consistent’ function in ‘mash.py’ compares only the filenames, not the full paths</p></li>
 <li><p>Add cutoff arguments to PfamScan ( Thanks &#64;AroneyS for the contribution)</p></li>
