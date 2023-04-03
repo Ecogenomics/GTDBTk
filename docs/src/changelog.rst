@@ -2,6 +2,15 @@
 Change log
 ==========
 
+2.3.0
+-----
+
+Minor changes:
+
+* (`#491 <https://github.com/Ecogenomics/GTDBTk/issues/491>`_) (`#498 <https://github.com/Ecogenomics/GTDBTk/issues/498>`_) Allow GTDB-Tk to show ``--help`` and ``-v`` without ``GTDBTK_DATA_PATH`` being set.
+  * WARNING: This is a breaking change if you are importing GTDB-Tk as a library and importing values from ``gtdbtk.config.config``, instead you need to import as ``from gtdbtk.config.common import CONFIG`` then access values via ``CONFIG.<var>``
+
+
 2.2.6
 -----
 
