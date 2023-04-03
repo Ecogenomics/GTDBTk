@@ -19,7 +19,7 @@ import os
 from typing import Dict
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.config import RED_DIST_ARC_DICT, RED_DIST_BAC_DICT
+from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import PATH_AR53_RED_DICT, PATH_BAC120_RED_DICT
 
 
@@ -46,7 +46,7 @@ class REDDictFileAR53(REDDictFile):
 
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_AR53_RED_DICT.format(prefix=prefix))
-        super().__init__(path, RED_DIST_ARC_DICT)
+        super().__init__(path, CONFIG.RED_DIST_ARC_DICT)
 
 
 class REDDictFileBAC120(REDDictFile):
@@ -54,4 +54,4 @@ class REDDictFileBAC120(REDDictFile):
 
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_RED_DICT.format(prefix=prefix))
-        super().__init__(path, RED_DIST_BAC_DICT)
+        super().__init__(path, CONFIG.RED_DIST_BAC_DICT)

@@ -22,7 +22,7 @@ import shutil
 
 import dendropy
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.newick import parse_label
@@ -53,9 +53,9 @@ class Misc(object):
             The path to the output trimmed MSA.
         """
         if maskid == 'bac' and mask_type == 'reference':
-            mask = os.path.join(Config.MASK_DIR, Config.MASK_BAC120)
+            mask = os.path.join(CONFIG.MASK_DIR, CONFIG.MASK_BAC120)
         elif maskid == 'arc' and mask_type == 'reference':
-            mask = os.path.join(Config.MASK_DIR, Config.MASK_AR53)
+            mask = os.path.join(CONFIG.MASK_DIR, CONFIG.MASK_AR53)
         elif mask_type == 'file':
             mask = maskid
         else:
@@ -220,8 +220,8 @@ class Misc(object):
         ok = True
 
         # Compute the hash for each directory
-        self.logger.info(f'Checking integrity of reference package: {Config.GENERIC_PATH}')
-        for obj_path, expected_hash in Config.REF_HASHES.items():
+        self.logger.info(f'Checking integrity of reference package: {CONFIG.GENERIC_PATH}')
+        for obj_path, expected_hash in CONFIG.REF_HASHES.items():
             base_name = obj_path[:-1] if obj_path.endswith('/') else obj_path
             base_name = base_name.split('/')[-1]
             user_hash = sha1_dir(obj_path, progress=True)

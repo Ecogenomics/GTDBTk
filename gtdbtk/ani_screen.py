@@ -8,9 +8,8 @@ from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import DIR_ANISCREEN
 
-from gtdbtk.config.config import (TAXONOMY_FILE, MASH_SKETCH_FILE, AF_THRESHOLD)
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
-
+from gtdbtk.config.common import CONFIG
 
 class ANIScreener(object):
     """Computes a list of genomes to a list of representatives."""
@@ -39,7 +38,7 @@ class ANIScreener(object):
         if mash_db.endswith('/'):
             make_sure_path_exists(mash_db)
         if os.path.isdir(mash_db):
-            mash_db = os.path.join(mash_db, MASH_SKETCH_FILE)
+            mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
         #we set mash_d == mash_max_dist to avoid user to run mash with impossible values
         mash_d = mash_max_dist
@@ -49,7 +48,7 @@ class ANIScreener(object):
         fastani_results = ani_rep.run_mash_fastani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
                                                     prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
 
-        taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
+        taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
 
         mash_classified_user_genomes = self.sort_fastani_ani_screen(
              fastani_results,taxonomy)
@@ -88,7 +87,7 @@ class ANIScreener(object):
         # sort the dictionary by ani then af
         for gid in fastani_results.keys():
             thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if
-                              hit['af'] >= AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
+                              hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
                                   canonical_gid(ref_gid))]
             all_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items()]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))

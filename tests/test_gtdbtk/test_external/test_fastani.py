@@ -20,14 +20,14 @@ import tempfile
 import unittest
 import json
 from gtdbtk.external.fastani import FastANI
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 
 class TestFastANI(unittest.TestCase):
 
     def setUp(self):
         self.dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         self.cpus = 1
-        self.genome_root = Config.FASTANI_GENOMES
+        self.genome_root = CONFIG.FASTANI_GENOMES
 
     def tearDown(self):
         shutil.rmtree(self.dir_tmp)

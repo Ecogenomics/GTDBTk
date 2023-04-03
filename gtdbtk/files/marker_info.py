@@ -18,19 +18,23 @@
 import os
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.config import AR53_MARKERS, BAC120_MARKERS, TIGRFAM_HMMS, PFAM_HMM_DIR
+from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import PATH_AR53_MARKER_INFO, PATH_BAC120_MARKER_INFO
 
 
 class MarkerInfoFile(object):
     """Store the GTDB-Tk RED dictionary."""
 
-    marker_paths = {"PFAM": os.path.join(PFAM_HMM_DIR, 'individual_hmms'),
-                    "TIGRFAM": os.path.join(os.path.dirname(TIGRFAM_HMMS), 'individual_hmms')}
-
     def __init__(self, path: str, markers: dict):
         self.path = path
         self.markers = self._parse_markers(markers)
+
+    @property
+    def marker_paths(self):
+        return {
+            "PFAM": os.path.join(CONFIG.PFAM_HMM_DIR, 'individual_hmms'),
+            "TIGRFAM": os.path.join(os.path.dirname(CONFIG.TIGRFAM_HMMS), 'individual_hmms')
+        }
 
     def _parse_markers(self, markers):
         out = dict()
@@ -71,7 +75,7 @@ class MarkerInfoFileAR53(MarkerInfoFile):
 
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_AR53_MARKER_INFO.format(prefix=prefix))
-        super().__init__(path, AR53_MARKERS)
+        super().__init__(path, CONFIG.AR53_MARKERS)
 
 
 class MarkerInfoFileBAC120(MarkerInfoFile):
@@ -79,4 +83,4 @@ class MarkerInfoFileBAC120(MarkerInfoFile):
 
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_MARKER_INFO.format(prefix=prefix))
-        super().__init__(path, BAC120_MARKERS)
+        super().__init__(path, CONFIG.BAC120_MARKERS)

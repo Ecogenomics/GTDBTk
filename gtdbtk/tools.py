@@ -14,7 +14,7 @@ from itertools import islice
 import dendropy
 from tqdm import tqdm
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 from gtdbtk.exceptions import GTDBTkExit
 
@@ -34,7 +34,7 @@ def get_reference_ids():
         An immutable set with short and long accessions (e.g. GB_GCA_ and GCA_).
     """
     results = set()
-    with open(Config.TAXONOMY_FILE) as tf:
+    with open(CONFIG.TAXONOMY_FILE) as tf:
         for line in tf:
             raw_id = line.split('\t')[0]
             results.add(raw_id)
@@ -53,12 +53,12 @@ def get_ref_genomes():
         Dict[genome_id] = fasta_path
     """
     ref_genomes = dict()
-    with open(Config.FASTANI_GENOME_LIST) as g_path_file:
+    with open(CONFIG.FASTANI_GENOME_LIST) as g_path_file:
         for line in g_path_file:
             (full_name, path) = line.strip().split()
-            if full_name.endswith(Config.FASTANI_GENOMES_EXT):
-                accession = full_name.split(Config.FASTANI_GENOMES_EXT)[0]
-            ref_genomes[accession] = os.path.join(Config.FASTANI_DIR, path, full_name)
+            if full_name.endswith(CONFIG.FASTANI_GENOMES_EXT):
+                accession = full_name.split(CONFIG.FASTANI_GENOMES_EXT)[0]
+            ref_genomes[accession] = os.path.join(CONFIG.FASTANI_DIR, path, full_name)
     return ref_genomes
 
 def aa_percent_msa(aa_string):
@@ -290,11 +290,11 @@ def get_proc_memory_gb(pid):
 
 
 def get_gtdbtk_latest_version():
-    if not Config.GTDBTK_VER_CHECK:
+    if not CONFIG.GTDBTK_VER_CHECK:
         return None
     try:
         resp = json.loads(urllib.request.urlopen('https://pypi.org/pypi/gtdbtk/json',
-                                                 timeout=Config.GTDBTK_VER_TIMEOUT).read().decode('utf-8'))
+                                                 timeout=CONFIG.GTDBTK_VER_TIMEOUT).read().decode('utf-8'))
         return resp['info']['version']
     except Exception:
         return None

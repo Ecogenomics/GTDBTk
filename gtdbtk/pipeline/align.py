@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 from collections import defaultdict
 
-from gtdbtk.config.config import LOG_TASK
+from gtdbtk.config.common import CONFIG
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.hmm_aligner import HmmAligner
 from gtdbtk.files.marker.copy_number import CopyNumberFile
@@ -215,7 +215,7 @@ def align_marker_set(gid_dict, marker_info_file: MarkerInfoFile, copy_number_fil
     """
     logger = logging.getLogger('timestamp')
 
-    logger.log(LOG_TASK, f'Generating concatenated alignment for each marker.')
+    logger.log(CONFIG.LOG_TASK, f'Generating concatenated alignment for each marker.')
     single_copy_hits = get_single_copy_hits(gid_dict, copy_number_file, cpus)
 
     with tempfile.TemporaryDirectory(prefix='gtdbtk_tmp_') as dir_tmp:
@@ -230,7 +230,7 @@ def align_marker_set(gid_dict, marker_info_file: MarkerInfoFile, copy_number_fil
 
         # Run hmmalign on all of the markers (in order of largest)
         hmmer_v = HmmAligner.get_version()
-        logger.log(LOG_TASK, f'Aligning {len(marker_paths)} identified markers using hmmalign {hmmer_v}.')
+        logger.log(CONFIG.LOG_TASK, f'Aligning {len(marker_paths)} identified markers using hmmalign {hmmer_v}.')
         queue = list()
         for marker_id, marker_path in sorted(marker_paths.items(),
                                              key=lambda z: -marker_info_file.markers[z[0]]['size']):

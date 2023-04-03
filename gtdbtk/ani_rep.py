@@ -6,8 +6,7 @@ from typing import List
 from gtdbtk.biolib_lite.common import canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
-from gtdbtk.config.config import (TAXONOMY_FILE,
-                                  AF_THRESHOLD)
+from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.fastani import FastANI
@@ -76,7 +75,7 @@ class ANIRep(object):
                                                 prefix, mash_k, mash_v,
                                                 mash_s, max_mash_dist, mash_db=mash_db)
 
-        taxonomy = Taxonomy().read(TAXONOMY_FILE, canonical_ids=True)
+        taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
         ani_summary_file = ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
         ani_summary_file.write()
         ANIClosestFile(out_dir,
@@ -269,7 +268,7 @@ class ANIClosestFile(object):
                         fh.write(f'{gid}\t{ref_gid}')
                         fh.write(f'\t{closest_ani}\t{closest_af}')
                         fh.write(f'\t{taxonomy_str}')
-                        fh.write(f'\t{closest_ani >= gtdb_ani_radius and closest_af >= AF_THRESHOLD}\n')
+                        fh.write(f'\t{closest_ani >= gtdb_ani_radius and closest_af >= CONFIG.AF_THRESHOLD}\n')
                     else:
                         fh.write(f'{gid}\tno result\tno result\tno result\tno result\tno result\n')
                 else:
