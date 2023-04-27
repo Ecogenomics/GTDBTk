@@ -460,6 +460,7 @@ class Classify(object):
                         # add filtered genomes to the summary file
                         warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
                                                                                marker_set_id, prefix)
+
                     # But if there is Unclassified genomes without domain,
                     # they still have to be written in the bac120 summary file:
                     elif marker_set_id == 'bac120':
@@ -471,6 +472,13 @@ class Classify(object):
                         # add filtered genomes to the summary file
                         warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
                                                                                marker_set_id, prefix)
+
+                    # we add all genomes classified with ANI
+                    if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+                        list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                        for row in list_summary_rows:
+                            summary_file.add_row(row)
+
                     if summary_file.has_row():
                         summary_file.write()
                         output_files.setdefault(marker_set_id, []).append(summary_file.path)
@@ -1381,16 +1389,17 @@ class Classify(object):
         else:
             filtered_file = os.path.join(align_dir,PATH_AR53_FILTERED_GENOMES.format(prefix=prefix))
             domain = 'Archaea'
-
-        with open(filtered_file) as fin:
-            for line in fin:
-                infos = line.strip().split('\t')
-                summary_row = ClassifySummaryFileRow()
-                summary_row.gid = infos[0]
-                summary_row.classification = f'Unclassified {domain}'
-                summary_row.warnings = infos[1]
-                summary_file.add_row(summary_row)
-                warning_counter += 1
+        # if file exists:
+        if os.path.exists(filtered_file):
+            with open(filtered_file) as fin:
+                for line in fin:
+                    infos = line.strip().split('\t')
+                    summary_row = ClassifySummaryFileRow()
+                    summary_row.gid = infos[0]
+                    summary_row.classification = f'Unclassified {domain}'
+                    summary_row.warnings = infos[1]
+                    summary_file.add_row(summary_row)
+                    warning_counter += 1
         return warning_counter
 
     def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
