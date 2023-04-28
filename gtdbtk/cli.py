@@ -317,6 +317,10 @@ def __domain(group, required):
     group.add_argument('--domain', required=required, choices=['arc', 'bac'],
                        help="domain to export")
 
+def __all_ranks(group):
+    group.add_argument('--all_ranks', default=False, action='store_true',
+                       help='add all missing ranks to the leaf nodes if they are present in the reference tree.')
+
 
 def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
@@ -582,6 +586,17 @@ def get_main_parser():
             __input_tree(grp, required=True)
             __output_tree(grp, required=True)
         with arg_group(parser, 'optional arguments') as grp:
+            __debug(grp)
+            __help(grp)
+
+    # Convert genome ids to species names.
+    with subparser(sub_parsers, 'convert_to_species', 'Replace GTDB genomes ids with GTDB Species name.') as parser:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
+            __custom_taxonomy_file(grp)
+            __all_ranks(grp)
             __debug(grp)
             __help(grp)
 
