@@ -911,6 +911,20 @@ class OptionsParser(object):
         r.convert_to_itol(options.input_tree, options.output_tree)
         self.logger.info('Done.')
 
+    def convert_to_species(self, options):
+        """Change GTDB genomes ids to GTDb species name in the tree.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        check_file_exists(options.input_tree)
+
+        r = Misc()
+        r.convert_to_species(options.input_tree, options.output_tree,options.custom_taxonomy_file,options.all_ranks)
+        self.logger.info('Done.')
+
     def remove_labels(self, options):
         """Remove labels from tree.
 
@@ -1201,6 +1215,8 @@ class OptionsParser(object):
             self.remove_labels(options)
         elif options.subparser_name == 'convert_to_itol':
             self.convert_to_itol(options)
+        elif options.subparser_name == 'convert_to_species':
+            self.convert_to_species(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':
