@@ -7,7 +7,7 @@ GTDB-Tk 2.3.0 available
 *May 09, 2023*
 
 * GTDB-Tk version ``2.3.0`` is now available.
-* This version of GTDB-Tk **does not** a new version of the GTDB-Tk reference package.
+* This version of GTDB-Tk **does not** require a new version of the GTDB-Tk reference package.
 
 
 GTDB R214 available

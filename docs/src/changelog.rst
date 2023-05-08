@@ -7,8 +7,7 @@ Change log
 
 Bug Fixes:
 
-* (`#508 <https://github.com/Ecogenomics/GTDBTk/issues/508>`_) (`#509 <https://github.com/Ecogenomics/GTDBTk/issues/509>`_) If **ALL**
-    genomes for a specific domain are either filtered out or classified with ANI they are now reported in the summary file.
+* (`#508 <https://github.com/Ecogenomics/GTDBTk/issues/508>`_) (`#509 <https://github.com/Ecogenomics/GTDBTk/issues/509>`_) If **ALL** genomes for a specific domain are either filtered out or classified with ANI they are now reported in the summary file.
 
 Minor changes:
 
