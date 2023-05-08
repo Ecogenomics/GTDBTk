@@ -55,7 +55,7 @@ def print_help():
     export_msa         -> Export the untrimmed archaeal or bacterial MSA file
     remove_labels      -> Remove labels (bootstrap values, node labels) from an Newick tree
     convert_to_itol    -> Convert a GTDB-Tk Newick tree to an iTOL tree
-    convert_to_species -> Convert to GTDB genome IDs to GTDB species names
+    convert_to_species -> Convert GTDB genome IDs to GTDB species names
  
 
   Testing:

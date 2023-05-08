@@ -102,7 +102,7 @@ class __GTDBTkCommonConfig:
     MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'
     MASH_K_VALUE = 16
     MASH_S_VALUE = 5000
-    MASH_MAX_DISTANCE = 0.1
+    MASH_MAX_DISTANCE = 0.15
     MASH_D_VALUE = MASH_MAX_DISTANCE
     MASH_V_VALUE = 1.0
 
