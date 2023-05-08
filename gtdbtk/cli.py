@@ -317,10 +317,16 @@ def __domain(group, required):
     group.add_argument('--domain', required=required, choices=['arc', 'bac'],
                        help="domain to export")
 
+def __db_version(group):
+    group.add_argument('--db_version', type = int, default = None,
+                       help="GTDB-Tk version package to test for compatibility.")
+
 
 def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
                        help='output unaligned single-copy marker genes')
+
+
 
 def get_main_parser():
     # Setup the main, and sub parsers.
@@ -598,6 +604,7 @@ def get_main_parser():
     with subparser(sub_parsers, 'check_install', 'Verify third party programs and '
                                                  'GTDB reference package.') as parser:
         with arg_group(parser, 'optional arguments') as grp:
+            __db_version(grp)
             __debug(grp)
             __help(grp)
 

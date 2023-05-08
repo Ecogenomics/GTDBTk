@@ -190,7 +190,7 @@ class Misc(object):
                 shutil.rmtree(intermediate_infer)
         self.logger.info('Intermediate files removed.')
 
-    def check_install(self):
+    def check_install(self,db_version):
         """Check that all reference files exist.
 
         Returns
@@ -221,7 +221,9 @@ class Misc(object):
 
         # Compute the hash for each directory
         self.logger.info(f'Checking integrity of reference package: {CONFIG.GENERIC_PATH}')
-        for obj_path, expected_hash in CONFIG.REF_HASHES.items():
+        ref_hashes = CONFIG.get_REF_HASHES(db_version)
+
+        for obj_path, expected_hash in ref_hashes.items():
             base_name = obj_path[:-1] if obj_path.endswith('/') else obj_path
             base_name = base_name.split('/')[-1]
             user_hash = sha1_dir(obj_path, progress=True)

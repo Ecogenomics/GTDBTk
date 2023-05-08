@@ -12,6 +12,7 @@ class __GTDBTkCommonConfig:
     """
 
     MIN_REF_DATA_VERSION = 'r207'
+    COMPATIBLE_REF_DATA_VERSIONS = ['r207','r214']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
     CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
@@ -327,19 +328,37 @@ class __GTDBTkCommonConfig:
     def MRCA_RED_AR53(self):
         return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_ar53.tsv")
 
-    @property
-    def REF_HASHES(self):
-        return {
-            self.PPLACER_DIR: '20903925a856a58b102a7b0ce160c5cbd2cf675b',
-            self.MASK_DIR: '50e414a9de18170e8cb97f990f89ff60a0fe29d5',
-            self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
-            self.RADII_DIR: '8fd13b1c5d7a7b073ba96fb628581613b293a374',
-            self.MSA_FOLDER: '24f250d7cf0eb0bc65dccd2f3c9247e553ea322f',
-            self.METADATA_DIR: '9772fbeac1311b31e10293fa610eb33aa1ec8e15',
-            self.TAX_FOLDER: '6fb0233b05633242369b40c026fd1ee53e266afa',
-            self.FASTANI_DIR: '973c456c02f55bb82908a6811c7076e207e9b206',
-            self.RED_DIR: '7b8b67b3157204b470c9eb809d3c39c4effffabc'
-        }
+    def get_REF_HASHES(self,version=None):
+        compatible_versions = [int(x.replace('r','')) for x in CONFIG.COMPATIBLE_REF_DATA_VERSIONS]
+        if version is not None and version not in compatible_versions:
+            raise ValueError(f"Version {version} is not compatible with this version of GTDB-Tk. Compatible versions are {compatible_versions}")
+
+        if version is None or version==214:
+            return {
+                self.PPLACER_DIR: '6786e9fc16b31db7d6eaaa9f8cfa87a8a4974434',
+                self.MASK_DIR: '8d5a2139feabbb70789c62155f3761d2aeed1601',
+                self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
+                self.RADII_DIR: '4753acc920001a1400788ee89cb4632900449055',
+                self.MSA_FOLDER: '75df495678a121497e14346b453caf42f4b03922',
+                self.METADATA_DIR: 'a089cc36bf79a40c7506019accc5f93e940d9fed',
+                self.TAX_FOLDER: '89b12cf8106f326887599dcb30ef94ebba142035',
+                self.FASTANI_DIR: 'e12824beccc15fe67a373e2aa8eee72feecf89c6',
+                self.RED_DIR: 'c24a2f48bb0c1df38f92a8f526aa846f596c94c6'
+            }
+        elif version==207:
+            return {
+                self.PPLACER_DIR: '20903925a856a58b102a7b0ce160c5cbd2cf675b',
+                self.MASK_DIR: '50e414a9de18170e8cb97f990f89ff60a0fe29d5',
+                self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
+                self.RADII_DIR: '8fd13b1c5d7a7b073ba96fb628581613b293a374',
+                self.MSA_FOLDER: '24f250d7cf0eb0bc65dccd2f3c9247e553ea322f',
+                self.METADATA_DIR: '9772fbeac1311b31e10293fa610eb33aa1ec8e15',
+                self.TAX_FOLDER: '6fb0233b05633242369b40c026fd1ee53e266afa',
+                self.FASTANI_DIR: '973c456c02f55bb82908a6811c7076e207e9b206',
+                self.RED_DIR: '7b8b67b3157204b470c9eb809d3c39c4effffabc'
+            }
+
+    REF_HASHES = property(get_REF_HASHES)
 
 
 # Export the class for import by other modules

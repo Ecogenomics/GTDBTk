@@ -852,7 +852,7 @@ class OptionsParser(object):
 
         self.logger.info('Done.')
 
-    def check_install(self):
+    def check_install(self,options):
         """ Verify all GTDB-Tk data files are present.
 
         Raises
@@ -862,7 +862,7 @@ class OptionsParser(object):
         """
         self.logger.info("Running install verification")
         misc = Misc()
-        misc.check_install()
+        misc.check_install(options.db_version)
         self.logger.info('Done.')
 
     def infer_ranks(self, options):
@@ -1210,7 +1210,7 @@ class OptionsParser(object):
                                 'fastANI'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':
-            self.check_install()
+            self.check_install(options)
         else:
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')
