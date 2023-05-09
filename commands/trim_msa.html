@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>trim_msa &mdash; GTDB-Tk 2.2.6 documentation</title>
+  <title>trim_msa &mdash; GTDB-Tk 2.3.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.2.6
+                2.3.0
               </div>
             
           
@@ -138,7 +138,12 @@
 <li class="toctree-l2"><a class="reference internal" href="root.html">root</a></li>
 <li class="toctree-l2"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">trim_msa</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
@@ -256,6 +261,42 @@
 mask present in the reference data.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">trim_msa</span> <span class="o">--</span><span class="n">untrimmed_msa</span> <span class="n">UNTRIMMED_MSA</span> <span class="o">--</span><span class="n">output</span> <span class="n">OUTPUT</span>
+                       <span class="p">(</span><span class="o">--</span><span class="n">mask_file</span> <span class="n">MASK_FILE</span> <span class="o">|</span> <span class="o">--</span><span class="n">reference_mask</span> <span class="p">{</span><span class="n">arc</span><span class="p">,</span><span class="n">bac</span><span class="p">})</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="required named arguments">
+<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--untrimmed_msa</kbd></dt>
+<dd><p>path to the untrimmed MSA file</p>
+</dd>
+<dt><kbd>--output</kbd></dt>
+<dd><p>output file</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="mutually exclusive required arguments">
+<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--mask_file</kbd></dt>
+<dd><p>path to a custom mask file for trimming the MSA</p>
+</dd>
+<dt><kbd>--reference_mask</kbd></dt>
+<dd><p>Possible choices: arc, bac</p>
+<p>reference mask already present in GTDB-Tk</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--debug</kbd></dt>
+<dd><p>create intermediate files for debugging purposes</p>
+</dd>
+</dl>
+</div>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>

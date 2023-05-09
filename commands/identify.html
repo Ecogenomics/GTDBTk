@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>identify &mdash; GTDB-Tk 2.2.6 documentation</title>
+  <title>identify &mdash; GTDB-Tk 2.3.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.2.6
+                2.3.0
               </div>
             
           
@@ -134,7 +134,12 @@
 <li class="toctree-l2"><a class="reference internal" href="decorate.html">decorate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="export_msa.html">export_msa</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">identify</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
@@ -255,6 +260,65 @@
 <p>Identify marker genes in genome(s). The following heuristic is used to establish the translation table used by Prodigal: use table 11 unless the coding density using table 4 is 5% higher than when using table 11 and the coding density under table 4 is &gt;70%. Distinguishing between tables 4 and 25 is challenging so GTDB-Tk does not attempt to distinguish between these two tables. If you know the correct translation table for your genomes this can be provided to GTDB-Tk in the <cite>–batchfile</cite>.</p>
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">identify</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
+                       <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">force</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">write_single_copy_genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="mutually exclusive required arguments">
+<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--genome_dir</kbd></dt>
+<dd><p>directory containing genome files in FASTA format</p>
+</dd>
+<dt><kbd>--batchfile</kbd></dt>
+<dd><p>path to file describing genomes - tab separated in 2 or 3 columns (FASTA file, genome ID, translation table [optional])</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="required named arguments">
+<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--out_dir</kbd></dt>
+<dd><p>directory to output files</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-x, --extension</kbd></dt>
+<dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
+<p>Default: “fna”</p>
+</dd>
+<dt><kbd>--prefix</kbd></dt>
+<dd><p>prefix for all output files</p>
+<p>Default: “gtdbtk”</p>
+</dd>
+<dt><kbd>--genes</kbd></dt>
+<dd><p>indicates input files contain called genes (skip gene calling).Warning: This flag will also skip the ANI comparison steps (ani_screen and classification).</p>
+</dd>
+<dt><kbd>--cpus</kbd></dt>
+<dd><p>number of CPUs to use</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--force</kbd></dt>
+<dd><p>continue processing if an error occurs on a single genome</p>
+</dd>
+<dt><kbd>--write_single_copy_genes</kbd></dt>
+<dd><p>output unaligned single-copy marker genes</p>
+</dd>
+<dt><kbd>--tmpdir</kbd></dt>
+<dd><p>specify alternative directory for temporary files</p>
+<p>Default: “/tmp”</p>
+</dd>
+<dt><kbd>--debug</kbd></dt>
+<dd><p>create intermediate files for debugging purposes</p>
+</dd>
+</dl>
+</div>
 <p>## Files output</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../files/gtdbtk.log.html#files-gtdbtk-log"><span class="std std-ref">[prefix].log</span></a></p></li>

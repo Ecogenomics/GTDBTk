@@ -2,6 +2,21 @@
 Change log
 ==========
 
+2.3.0
+-----
+
+Bug Fixes:
+
+* (`#508 <https://github.com/Ecogenomics/GTDBTk/issues/508>`_) (`#509 <https://github.com/Ecogenomics/GTDBTk/issues/509>`_) If **ALL** genomes for a specific domain are either filtered out or classified with ANI they are now reported in the summary file.
+
+Minor changes:
+
+* (`#491 <https://github.com/Ecogenomics/GTDBTk/issues/491>`_) (`#498 <https://github.com/Ecogenomics/GTDBTk/issues/498>`_) Allow GTDB-Tk to show ``--help`` and ``-v`` without ``GTDBTK_DATA_PATH`` being set.
+  * WARNING: This is a breaking change if you are importing GTDB-Tk as a library and importing values from ``gtdbtk.config.config``, instead you need to import as ``from gtdbtk.config.common import CONFIG`` then access values via ``CONFIG.<var>``
+* (`#508 <https://github.com/Ecogenomics/GTDBTk/issues/508>`_) Mash distance is changed from 0.1 to 0.15 . This is will increase the number of FastANI comparisons but will cover cases wheere genomes have a larger Mash distance but a small ANI.
+* (`#497 <https://github.com/Ecogenomics/GTDBTk/issues/497>`_) Add a ``convert_to_species`` function is GTDB-Tk to replace GCA/GCF ids with their GTDB species name
+* Add ``--db_version`` flag to ``check_install`` to check the version of previous GTDB-Tk packages.
+
 2.2.6
 -----
 
