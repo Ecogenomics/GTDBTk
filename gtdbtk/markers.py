@@ -25,7 +25,7 @@ from typing import Dict, Tuple, Optional
 import gzip
 import numpy as np
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.seq_io import read_fasta
@@ -65,13 +65,13 @@ class Markers(object):
         self.gff_file_suffix = GFF_FILE_SUFFIX
         self.checksum_suffix = CHECKSUM_SUFFIX
 
-        self.taxonomy_file = Config.TAXONOMY_FILE
+        self.taxonomy_file = CONFIG.TAXONOMY_FILE
 
-        self.pfam_hmm_dir = Config.PFAM_HMM_DIR
+        self.pfam_hmm_dir = CONFIG.PFAM_HMM_DIR
         self.pfam_suffix = PFAM_SUFFIX
         self.pfam_top_hit_suffix = PFAM_TOP_HIT_SUFFIX
 
-        self.tigrfam_hmms = Config.TIGRFAM_HMMS
+        self.tigrfam_hmms = CONFIG.TIGRFAM_HMMS
         self.tigrfam_suffix = TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = TIGRFAM_TOP_HIT_SUFFIX
 
@@ -123,11 +123,11 @@ class Markers(object):
 
             # Iterate over each domain.
             marker_doms = list()
-            marker_doms.append((Config.AR53_MARKERS['PFAM'] +
-                                Config.AR53_MARKERS['TIGRFAM'],
+            marker_doms.append((CONFIG.AR53_MARKERS['PFAM'] +
+                                CONFIG.AR53_MARKERS['TIGRFAM'],
                                 ar53_copy_number_file, 'ar53'))
-            marker_doms.append((Config.BAC120_MARKERS['PFAM'] +
-                                Config.BAC120_MARKERS['TIGRFAM'],
+            marker_doms.append((CONFIG.BAC120_MARKERS['PFAM'] +
+                                CONFIG.BAC120_MARKERS['TIGRFAM'],
                                 bac120_copy_number_file, 'bac120'))
             for marker_names, marker_file, marker_d in marker_doms:
 
@@ -201,7 +201,7 @@ class Markers(object):
                                 self.gff_file_suffix,
                                 force)
             self.logger.log(
-                Config.LOG_TASK, f'Running Prodigal {prodigal.version} to identify genes.')
+                CONFIG.LOG_TASK, f'Running Prodigal {prodigal.version} to identify genes.')
             genome_dictionary = prodigal.run(genomes, tln_tables)
 
         else:
@@ -222,7 +222,7 @@ class Markers(object):
                 symlink_f(os.path.abspath(gpath), os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
 
         # annotated genes against TIGRFAM and Pfam databases
-        self.logger.log(Config.LOG_TASK,
+        self.logger.log(CONFIG.LOG_TASK,
                         'Identifying TIGRFAM protein families.')
         gene_files = [(db_genome_id, genome_dictionary[db_genome_id]['aa_gene_path'])
                       for db_genome_id in genome_dictionary.keys()]
@@ -235,7 +235,7 @@ class Markers(object):
                                     self.marker_gene_dir)
         tigr_search.run(gene_files)
 
-        self.logger.log(Config.LOG_TASK, 'Identifying Pfam protein families.')
+        self.logger.log(CONFIG.LOG_TASK, 'Identifying Pfam protein families.')
         pfam_search = PfamSearch(self.cpus,
                                  self.pfam_hmm_dir,
                                  self.protein_file_suffix,
@@ -247,7 +247,7 @@ class Markers(object):
         self.logger.info(
             f'Annotations done using HMMER {tigr_search.version}.')
 
-        self.logger.log(Config.LOG_TASK,
+        self.logger.log(CONFIG.LOG_TASK,
                         'Summarising identified marker genes.')
         reports = self._report_identified_marker_genes(genome_dictionary, out_dir, prefix,
                                              write_single_copy_genes,reports)
@@ -414,8 +414,8 @@ class Markers(object):
         ar_gids = set()
         bac_ar_diff = {}
         for gid in bac_count:
-            arc_aa_per = (ar_count[gid] * 100.0 / Config.AR_MARKER_COUNT)
-            bac_aa_per = (bac_count[gid] * 100.0 / Config.BAC_MARKER_COUNT)
+            arc_aa_per = (ar_count[gid] * 100.0 / CONFIG.AR_MARKER_COUNT)
+            bac_aa_per = (bac_count[gid] * 100.0 / CONFIG.BAC_MARKER_COUNT)
             if bac_aa_per >= arc_aa_per:
                 bac_gids.add(gid)
             else:
@@ -534,8 +534,8 @@ class Markers(object):
 
         self.logger.info(
             f'Aligning markers in {len(genomic_files):,} genomes with {self.cpus} CPUs.')
-        dom_iter = ((bac_gids, Config.CONCAT_BAC120, Config.MASK_BAC120, "bac120", 'bacterial', CopyNumberFileBAC120),
-                    (ar_gids, Config.CONCAT_AR53, Config.MASK_AR53, "ar53", 'archaeal', CopyNumberFileAR53))
+        dom_iter = ((bac_gids, CONFIG.CONCAT_BAC120, CONFIG.MASK_BAC120, "bac120", 'bacterial', CopyNumberFileBAC120),
+                    (ar_gids, CONFIG.CONCAT_AR53, CONFIG.MASK_AR53, "ar53", 'archaeal', CopyNumberFileAR53))
 
         # For some genomes, it is possible to have no markers.
         no_marker_gids = bac_gids.union(ar_gids)
@@ -576,7 +576,7 @@ class Markers(object):
                                                     gtdb_taxonomy,
                                                     taxa_filter,
                                                     outgroup_taxon)
-            gtdb_msa_mask = os.path.join(Config.MASK_DIR, mask_file)
+            gtdb_msa_mask = os.path.join(CONFIG.MASK_DIR, mask_file)
 
             # Generate the user MSA.
             user_msa = align.align_marker_set(
@@ -641,7 +641,7 @@ class Markers(object):
                     self.logger.info(
                         f'Filtered genomes include {len(filtered_user_genomes)} user submitted genomes.')
             else:
-                self.logger.log(Config.LOG_TASK,
+                self.logger.log(CONFIG.LOG_TASK,
                                 f'Masking columns of {domain_str} multiple sequence alignment using canonical mask.')
                 trimmed_seqs, pruned_seqs = self._apply_mask(gtdb_msa,
                                                             user_msa,

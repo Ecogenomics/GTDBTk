@@ -28,7 +28,7 @@ import dendropy
 
 from numpy import median as np_median
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.ani_rep import ANIRep, ANISummaryFile
 from gtdbtk.biolib_lite.common import make_sure_path_exists,canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
@@ -69,8 +69,8 @@ class Classify(object):
 
         self.skip_pplacer = skip_pplacer
 
-        self.taxonomy_file = Config.TAXONOMY_FILE
-        self.af_threshold = af_threshold if af_threshold else Config.AF_THRESHOLD
+        self.taxonomy_file = CONFIG.TAXONOMY_FILE
+        self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
         self.order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
@@ -110,7 +110,7 @@ class Classify(object):
     @staticmethod
     def parse_radius_file():
         results = {}
-        with open(Config.RADII_FILE) as f:
+        with open(CONFIG.RADII_FILE) as f:
             for line in f:
                 infos = line.strip().split('\t')
                 gid = infos[1]
@@ -159,16 +159,16 @@ class Classify(object):
         mem_gb = get_memory_gb()
         if mem_gb is not None:
             mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and levelopt is None and mem_total < Config.PPLACER_MIN_RAM_BAC_FULL:
-                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC_FULL,
+            if marker_set_id == 'bac120' and levelopt is None and mem_total < CONFIG.PPLACER_MIN_RAM_BAC_FULL:
+                self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_BAC_FULL,
                                                        domain='bacterial',
                                                        cur_gb=mem_total))
-            if marker_set_id == 'bac120' and levelopt == 'high' and mem_total < Config.PPLACER_MIN_RAM_BAC_SPLIT:
-                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_BAC_SPLIT,
+            if marker_set_id == 'bac120' and levelopt == 'high' and mem_total < CONFIG.PPLACER_MIN_RAM_BAC_SPLIT:
+                self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_BAC_SPLIT,
                                                        domain='bacterial',
                                                        cur_gb=mem_total))
-            elif marker_set_id == 'ar53' and mem_total < Config.PPLACER_MIN_RAM_ARC:
-                self.logger.warning(mem_warning.format(req_gb=Config.PPLACER_MIN_RAM_ARC,
+            elif marker_set_id == 'ar53' and mem_total < CONFIG.PPLACER_MIN_RAM_ARC:
+                self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_ARC,
                                                        domain='archaeal',
                                                        cur_gb=mem_total))
 
@@ -200,35 +200,35 @@ class Classify(object):
         pplacer_ref_pkg = None
         if marker_set_id == 'bac120':
             if levelopt is None:
-                self.logger.log(Config.LOG_TASK,
+                self.logger.log(CONFIG.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
                                 f'into reference tree with pplacer using '
                                 f'{self.pplacer_cpus} CPUs (be patient).')
-                pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
-                                               Config.PPLACER_BAC120_REF_PKG)
+                pplacer_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
+                                               CONFIG.PPLACER_BAC120_REF_PKG)
 
             elif levelopt == 'high':
-                self.logger.log(Config.LOG_TASK,
+                self.logger.log(CONFIG.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
                                 f'into backbone reference tree with pplacer using '
                                 f'{self.pplacer_cpus} CPUs (be patient).')
-                pplacer_ref_pkg = os.path.join(Config.BACKBONE_PPLACER_DIR,
-                                               Config.BACKBONE_PPLACER_REF_PKG)
+                pplacer_ref_pkg = os.path.join(CONFIG.BACKBONE_PPLACER_DIR,
+                                               CONFIG.BACKBONE_PPLACER_REF_PKG)
             elif levelopt == 'low':
-                self.logger.log(Config.LOG_TASK,
+                self.logger.log(CONFIG.LOG_TASK,
                                 f'Placing {num_genomes:,} bacterial genomes '
                                 f'into class-level reference tree {tree_iter} ({idx_tree}/{number_low_trees}) with '
                                 f'pplacer using {self.pplacer_cpus} CPUs '
                                 f'(be patient).')
-                pplacer_ref_pkg = os.path.join(Config.CLASS_LEVEL_PPLACER_DIR,
-                                               Config.CLASS_LEVEL_PPLACER_REF_PKG.format(iter=tree_iter))
+                pplacer_ref_pkg = os.path.join(CONFIG.CLASS_LEVEL_PPLACER_DIR,
+                                               CONFIG.CLASS_LEVEL_PPLACER_REF_PKG.format(iter=tree_iter))
         elif marker_set_id == 'ar53':
-            self.logger.log(Config.LOG_TASK,
+            self.logger.log(CONFIG.LOG_TASK,
                             f'Placing {num_genomes:,} archaeal genomes into '
                             f'reference tree with pplacer using '
                             f'{self.pplacer_cpus} CPUs (be patient).')
-            pplacer_ref_pkg = os.path.join(Config.PPLACER_DIR,
-                                           Config.PPLACER_AR53_REF_PKG)
+            pplacer_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
+                                           CONFIG.PPLACER_AR53_REF_PKG)
         else:
             raise GenomeMarkerSetUnknown(f'Unknown marker set: {marker_set_id}')
 
@@ -318,7 +318,7 @@ class Classify(object):
         for gid, marker_dict in marker_summary_fh.genomes.items():
             multi_hits_percent = (100 * len(marker_dict['mul'])) / \
                                  len(marker_summary_fh.marker_names)
-            if multi_hits_percent >= Config.DEFAULT_MULTIHIT_THRESHOLD:
+            if multi_hits_percent >= CONFIG.DEFAULT_MULTIHIT_THRESHOLD:
                 results[gid] = round(multi_hits_percent, 1)
         return results
 
@@ -333,10 +333,10 @@ class Classify(object):
             skip_ani_screen=False,
             genes=False,
             no_mash=False,
-            mash_k=Config.MASH_K_VALUE,
-            mash_v=Config.MASH_V_VALUE,
-            mash_s=Config.MASH_S_VALUE,
-            mash_max_dist=Config.MASH_MAX_DISTANCE,
+            mash_k=CONFIG.MASH_K_VALUE,
+            mash_v=CONFIG.MASH_V_VALUE,
+            mash_s=CONFIG.MASH_S_VALUE,
+            mash_max_dist=CONFIG.MASH_MAX_DISTANCE,
             mash_db=None,
             ani_summary_files=None,
             all_classified_ani=False):
@@ -360,7 +360,7 @@ class Classify(object):
                 if mash_db.endswith('/'):
                     make_sure_path_exists(mash_db)
                 if os.path.isdir(mash_db):
-                    mash_db = os.path.join(mash_db, Config.MASH_SKETCH_FILE)
+                    mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
             # we set mash_d == mash_max_dist to avoid user to run mash with impossible values
             mash_d = mash_max_dist
@@ -455,23 +455,45 @@ class Classify(object):
                 if (not os.path.exists(user_msa_file)) or (os.path.getsize(user_msa_file) < 30):
                     # file will not exist if there are no User genomes from a given domain
                     #
+                    if marker_set_id == 'ar53':
+                        # we still add the filtered genomes to the summary file
+                        # add filtered genomes to the summary file
+                        warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
+                                                                               marker_set_id, prefix)
+
                     # But if there is Unclassified genomes without domain,
                     # they still have to be written in the bac120 summary file:
-                    if marker_set_id == 'bac120':
+                    elif marker_set_id == 'bac120':
                         # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
                         # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
                         # but they need to be included in one of the summary file
                         prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                        if summary_file.has_row():
-                            summary_file.write()
-                            output_files.setdefault(marker_set_id, []).append(summary_file.path)
-                            # Symlink to the summary file from the root
+                        # we also add the filtered genomes to the summary file
+                        # add filtered genomes to the summary file
+                        warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
+                                                                               marker_set_id, prefix)
+
+                    # we add all genomes classified with ANI
+                    if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+                        list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                        for row in list_summary_rows:
+                            summary_file.add_row(row)
+
+                    if summary_file.has_row():
+                        summary_file.write()
+                        output_files.setdefault(marker_set_id, []).append(summary_file.path)
+                        # Symlink to the summary file from the root
+                        if marker_set_id == 'ar53':
+                            symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
+                                      os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
+                        elif marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                       os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                            if prodigal_failed_counter > 0:
-                                self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
-                                                    f"genome{'' if prodigal_failed_counter == 1 else 's'} "
-                                                    f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                        if prodigal_failed_counter > 0:
+                            self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
+                                                f"genome{'' if prodigal_failed_counter == 1 else 's'} "
+                                                f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+
 
                     continue
 
@@ -560,7 +582,7 @@ class Classify(object):
 
                     tree_mapping_dict = {}
                     tree_mapping_dict_reverse = {}
-                    with open(Config.CLASS_LEVEL_TREE_MAPPING_FILE) as ltmf:
+                    with open(CONFIG.CLASS_LEVEL_TREE_MAPPING_FILE) as ltmf:
                         for line in ltmf:
                             k, v = line.strip().split()
                             tree_mapping_dict[k] = v
@@ -1163,7 +1185,7 @@ class Classify(object):
         # Persist descendant information for efficient traversal.
         tt = TreeTraversal()
 
-        self.logger.log(Config.LOG_TASK, 'Traversing tree to determine classification method.')
+        self.logger.log(CONFIG.LOG_TASK, 'Traversing tree to determine classification method.')
         if genes:
             fastani_verification = {}
         else:
@@ -1179,7 +1201,7 @@ class Classify(object):
             fastani = FastANI(cpus=self.cpus, force_single=True)
             d_ani_compare, d_paths = self._get_fastani_genome_path(
                 fastani_verification, genomes)
-            self.logger.log(Config.LOG_TASK,
+            self.logger.log(CONFIG.LOG_TASK,
                             f'Calculating average nucleotide identity using '
                             f'FastANI (v{fastani.version}).')
             all_fastani_dict = fastani.run(d_ani_compare, d_paths)
@@ -1247,13 +1269,13 @@ class Classify(object):
         tt = TreeTraversal()
 
         if levelopt is None:
-            red_file = Config.MRCA_RED_BAC120
+            red_file = CONFIG.MRCA_RED_BAC120
         elif levelopt == 'high':
-            red_file = Config.BACKBONE_RED_FILE
+            red_file = CONFIG.BACKBONE_RED_FILE
         elif levelopt == 'low':
-            red_file = Config.CLASS_LEVEL_RED_FILE.format(iter=tree_iter)
+            red_file = CONFIG.CLASS_LEVEL_RED_FILE.format(iter=tree_iter)
         if marker_set_id == 'ar53':
-            red_file = Config.MRCA_RED_AR53
+            red_file = CONFIG.MRCA_RED_AR53
 
         # create map from leave labels to tree nodes
         leaf_node_map = {}
@@ -1367,16 +1389,17 @@ class Classify(object):
         else:
             filtered_file = os.path.join(align_dir,PATH_AR53_FILTERED_GENOMES.format(prefix=prefix))
             domain = 'Archaea'
-
-        with open(filtered_file) as fin:
-            for line in fin:
-                infos = line.strip().split('\t')
-                summary_row = ClassifySummaryFileRow()
-                summary_row.gid = infos[0]
-                summary_row.classification = f'Unclassified {domain}'
-                summary_row.warnings = infos[1]
-                summary_file.add_row(summary_row)
-                warning_counter += 1
+        # if file exists:
+        if os.path.exists(filtered_file):
+            with open(filtered_file) as fin:
+                for line in fin:
+                    infos = line.strip().split('\t')
+                    summary_row = ClassifySummaryFileRow()
+                    summary_row.gid = infos[0]
+                    summary_row.classification = f'Unclassified {domain}'
+                    summary_row.warnings = infos[1]
+                    summary_file.add_row(summary_row)
+                    warning_counter += 1
         return warning_counter
 
     def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
@@ -1442,7 +1465,7 @@ class Classify(object):
         # sort the dictionary by ani then af
         for gid in fastani_results.keys():
             thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if
-                              hit['af'] >= Config.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
+                              hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
                                   canonical_gid(ref_gid))]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
             if len(closest) > 0:
@@ -1807,15 +1830,15 @@ class Classify(object):
                                            preserve_underscores=True)
 
         self.logger.info('Reading taxonomy from file.')
-        taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
+        taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE)
 
         # determine taxa to be used for inferring distribution
         trusted_taxa = None
         taxa_for_dist_inference = self._filter_taxa_for_dist_inference(tree,
                                                                        taxonomy,
                                                                        trusted_taxa,
-                                                                       Config.RED_MIN_CHILDREN,
-                                                                       Config.RED_MIN_SUPPORT)
+                                                                       CONFIG.RED_MIN_CHILDREN,
+                                                                       CONFIG.RED_MIN_SUPPORT)
 
         phylum_rel_dists, rel_node_dists = self.median_rd_over_phyla(tree,
                                                                      taxa_for_dist_inference,
@@ -2153,14 +2176,14 @@ class Classify(object):
                 # TODEL UBA genomes
                 if shortleaf.startswith("UBA"):
                     ref_path = os.path.join(
-                        Config.FASTANI_GENOMES,
+                        CONFIG.FASTANI_GENOMES,
                         'UBA',
-                        shortleaf + Config.FASTANI_GENOMES_EXT)
+                        shortleaf + CONFIG.FASTANI_GENOMES_EXT)
                 else:
                     ref_path = os.path.join(
-                        Config.FASTANI_GENOMES,
+                        CONFIG.FASTANI_GENOMES,
                         self.parse_leaf_to_dir_path(shortleaf),
-                        shortleaf + Config.FASTANI_GENOMES_EXT)
+                        shortleaf + CONFIG.FASTANI_GENOMES_EXT)
 
                 if not os.path.isfile(ref_path):
                     raise GTDBTkExit(f'Reference genome missing from FastANI database: {ref_path}')

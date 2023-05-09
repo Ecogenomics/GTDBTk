@@ -22,7 +22,8 @@ import shutil
 
 import dendropy
 
-import gtdbtk.config.config as Config
+from gtdbtk.biolib_lite.taxonomy import Taxonomy
+from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.logger import colour
 from gtdbtk.biolib_lite.newick import parse_label
@@ -53,9 +54,9 @@ class Misc(object):
             The path to the output trimmed MSA.
         """
         if maskid == 'bac' and mask_type == 'reference':
-            mask = os.path.join(Config.MASK_DIR, Config.MASK_BAC120)
+            mask = os.path.join(CONFIG.MASK_DIR, CONFIG.MASK_BAC120)
         elif maskid == 'arc' and mask_type == 'reference':
-            mask = os.path.join(Config.MASK_DIR, Config.MASK_AR53)
+            mask = os.path.join(CONFIG.MASK_DIR, CONFIG.MASK_AR53)
         elif mask_type == 'file':
             mask = maskid
         else:
@@ -158,6 +159,52 @@ class Misc(object):
 
         intree.write_to_path(output_file, schema='newick', suppress_rooting=True,unquoted_underscores=True)
 
+    def convert_to_species(self, input_file, output_file,custom_taxonomy_file=None,all_ranks=False):
+        """Change GTDB genomes ids to GTDb species name in the tree.
+
+        Parameters
+        ----------
+        input_file : str
+            The path to the input Newick tree.
+        output_file : str
+            The path to the output Newick tree.
+        """
+
+        self.logger.info("Convert GTDB-Tk tree...")
+        intree= dendropy.Tree.get_from_path(input_file,
+                                           schema='newick',
+                                           rooting='force-rooted',
+                                           preserve_underscores=True)
+
+        # get all leaves from the tree
+        leaves = intree.leaf_nodes()
+        #load the taxonomy file
+        taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE)
+        #load the custom taxonomy file
+        if custom_taxonomy_file:
+            self.logger.info("Loading custom taxonomy file...")
+            custom_taxonomy = Taxonomy().read(custom_taxonomy_file)
+            #check intersection between custom taxonomy and taxonomy
+            intersection = set(custom_taxonomy.keys()).intersection(set(taxonomy.keys()))
+            if len(intersection) > 0:
+                self.logger.warning("{} genomes are present in both custom taxonomy and taxonomy file. The custom taxonomy will be used.".format(len(intersection)))
+            #update taxonomy with custom taxonomy
+            taxonomy.update(custom_taxonomy)
+
+
+        #get the species name for each genome
+        for leaf in leaves:
+            if leaf.taxon.label in taxonomy:
+                # get the label from parent node
+                if all_ranks:
+                    leaf.taxon.label = ';'.join(taxonomy[leaf.taxon.label])
+                else:
+                    leaf.taxon.label = taxonomy[leaf.taxon.label][-1]
+
+        #write the tree
+        intree.write_to_path(output_file, schema='newick', suppress_rooting=True,unquoted_underscores=True)
+
+
 
     def remove_intermediate_files(self,output_dir,wf_name):
         """Remove intermediate files.
@@ -190,7 +237,7 @@ class Misc(object):
                 shutil.rmtree(intermediate_infer)
         self.logger.info('Intermediate files removed.')
 
-    def check_install(self):
+    def check_install(self,db_version):
         """Check that all reference files exist.
 
         Returns
@@ -220,8 +267,10 @@ class Misc(object):
         ok = True
 
         # Compute the hash for each directory
-        self.logger.info(f'Checking integrity of reference package: {Config.GENERIC_PATH}')
-        for obj_path, expected_hash in Config.REF_HASHES.items():
+        self.logger.info(f'Checking integrity of reference package: {CONFIG.GENERIC_PATH}')
+        ref_hashes = CONFIG.get_REF_HASHES(db_version)
+
+        for obj_path, expected_hash in ref_hashes.items():
             base_name = obj_path[:-1] if obj_path.endswith('/') else obj_path
             base_name = base_name.split('/')[-1]
             user_hash = sha1_dir(obj_path, progress=True)

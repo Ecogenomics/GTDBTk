@@ -21,7 +21,7 @@ from typing import Set, Dict, List, Union
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.seq_io import read_fasta
-from gtdbtk.config.config import BAC120_MARKERS, AR53_MARKERS
+from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
@@ -159,7 +159,7 @@ class CopyNumberFileAR53(CopyNumberFile):
 
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_AR53_MARKER_SUMMARY.format(prefix=prefix))
-        super().__init__(path, 'ar53', AR53_MARKERS)
+        super().__init__(path, 'ar53', CONFIG.AR53_MARKERS)
 
 
 class CopyNumberFileBAC120(CopyNumberFile):
@@ -167,4 +167,4 @@ class CopyNumberFileBAC120(CopyNumberFile):
 
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
-        super().__init__(path, 'bac120', BAC120_MARKERS)
+        super().__init__(path, 'bac120', CONFIG.BAC120_MARKERS)

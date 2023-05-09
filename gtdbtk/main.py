@@ -27,7 +27,7 @@ from typing import Dict, Tuple
 
 from tqdm import tqdm
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.ani_rep import ANIRep
 from gtdbtk.ani_screen import ANIScreener
 from gtdbtk.biolib_lite.common import (check_dir_exists,
@@ -86,20 +86,20 @@ class OptionsParser(object):
             self.stage_logger = StageLogger()
             self.stage_logger.version=self.version
             self.stage_logger.command_line=f'{prog_name} {" ".join(sys.argv[1:])}'
-            self.stage_logger.database_version = Config.VERSION_DATA
-            self.stage_logger.database_path=Config.GENERIC_PATH
+            self.stage_logger.database_version = CONFIG.VERSION_DATA
+            self.stage_logger.database_path=CONFIG.GENERIC_PATH
             self.stage_logger.output_dir=output_dir
             self.stage_logger.path = os.path.join(output_dir, "gtdbtk.json")
 
     def _check_package_compatibility(self):
         """Check that GTDB-Tk is using the most up-to-date reference package."""
-        pkg_ver = float(Config.VERSION_DATA.replace('r', ''))
-        min_ver = float(Config.MIN_REF_DATA_VERSION.replace('r', ''))
+        pkg_ver = float(CONFIG.VERSION_DATA.replace('r', ''))
+        min_ver = float(CONFIG.MIN_REF_DATA_VERSION.replace('r', ''))
         self.logger.info(f'Using GTDB-Tk reference data version '
-                         f'{Config.VERSION_DATA}: {Config.GENERIC_PATH}')
+                         f'{CONFIG.VERSION_DATA}: {CONFIG.GENERIC_PATH}')
         if pkg_ver < min_ver:
             self.logger.warning(colour(f'You are not using the reference data '
-                                       f'intended for this release: {Config.MIN_REF_DATA_VERSION}',
+                                       f'intended for this release: {CONFIG.MIN_REF_DATA_VERSION}',
                                        ['bright'], fg='yellow'))
 
     def _verify_genome_id(self, genome_id: str) -> bool:
@@ -220,7 +220,7 @@ class OptionsParser(object):
         """Read and merge taxonomy files."""
 
         self.logger.info('Reading GTDB taxonomy for representative genomes.')
-        taxonomy = Taxonomy().read(Config.TAXONOMY_FILE)
+        taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE)
 
         if options.gtdbtk_classification_file:
             # add and overwrite taxonomy for genomes specified in the
@@ -852,7 +852,7 @@ class OptionsParser(object):
 
         self.logger.info('Done.')
 
-    def check_install(self):
+    def check_install(self,options):
         """ Verify all GTDB-Tk data files are present.
 
         Raises
@@ -862,7 +862,7 @@ class OptionsParser(object):
         """
         self.logger.info("Running install verification")
         misc = Misc()
-        misc.check_install()
+        misc.check_install(options.db_version)
         self.logger.info('Done.')
 
     def infer_ranks(self, options):
@@ -909,6 +909,20 @@ class OptionsParser(object):
 
         r = Misc()
         r.convert_to_itol(options.input_tree, options.output_tree)
+        self.logger.info('Done.')
+
+    def convert_to_species(self, options):
+        """Change GTDB genomes ids to GTDb species name in the tree.
+
+        Parameters
+        ----------
+        options : argparse.Namespace
+            The CLI arguments input by the user.
+        """
+        check_file_exists(options.input_tree)
+
+        r = Misc()
+        r.convert_to_species(options.input_tree, options.output_tree,options.custom_taxonomy_file,options.all_ranks)
         self.logger.info('Done.')
 
     def remove_labels(self, options):
@@ -1201,6 +1215,8 @@ class OptionsParser(object):
             self.remove_labels(options)
         elif options.subparser_name == 'convert_to_itol':
             self.convert_to_itol(options)
+        elif options.subparser_name == 'convert_to_species':
+            self.convert_to_species(options)
         elif options.subparser_name == 'trim_msa':
             self.trim_msa(options)
         elif options.subparser_name == 'export_msa':
@@ -1210,7 +1226,7 @@ class OptionsParser(object):
                                 'fastANI'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':
-            self.check_install()
+            self.check_install(options)
         else:
             self.logger.error('Unknown GTDB-Tk command: "' +
                               options.subparser_name + '"\n')

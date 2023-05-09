@@ -1,15 +1,17 @@
 from gtdbtk.biolib_lite.common import canonical_gid
-from gtdbtk.config.config import RADII_FILE
-
+from gtdbtk.config.common import CONFIG
 
 class GTDBRadiiFile(object):
     """A wrapper for the gtdb_radii.tsv file included in the reference data."""
-    path = RADII_FILE
 
     def __init__(self):
         self._rep_idx = None
         self._species_idx = None
         self._read()
+
+    @property
+    def path(self):
+        return CONFIG.RADII_FILE
 
     def _read(self):
         """Read the file and create any data."""

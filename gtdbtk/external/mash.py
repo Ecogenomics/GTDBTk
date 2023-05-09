@@ -8,7 +8,7 @@ from typing import Tuple, Dict
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import tqdm_log
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 
 
 class Mash(object):
@@ -271,7 +271,7 @@ class QrySketchFile(SketchFile):
 
 
 class RefSketchFile(SketchFile):
-    name = Config.MASH_SKETCH_FILE
+    name = CONFIG.MASH_SKETCH_FILE
 
     def __init__(self, genomes, root, prefix, cpus, k, s, mash_db=None):
         """Create a query file for a given set of genomes.

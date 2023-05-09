@@ -22,7 +22,7 @@ import unittest
 
 import dendropy
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
@@ -38,7 +38,7 @@ class TestClassify(unittest.TestCase):
         self.pplacer_dir_reference = 'tests/data/pplacer_dir_reference'
         self.aln_dir_ref = 'tests/data/align_dir_reference/align'
         self.user_msa_file = os.path.join(self.aln_dir_ref, 'gtdbtk.ar53.user_msa.fasta')
-        self.taxonomy_file = Config.TAXONOMY_FILE
+        self.taxonomy_file = CONFIG.TAXONOMY_FILE
         self.gtdb_taxonomy = Taxonomy().read(self.taxonomy_file)
 
     def tearDown(self):

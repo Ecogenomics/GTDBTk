@@ -4,8 +4,7 @@ from contextlib import contextmanager
 
 from gtdbtk.biolib_lite.custom_help_formatter import ChangeTempAction
 from gtdbtk.biolib_lite.custom_help_formatter import CustomHelpFormatter
-from gtdbtk.config.config import AF_THRESHOLD, PPLACER_MIN_RAM_BAC_FULL, MASH_K_VALUE, MASH_S_VALUE, MASH_D_VALUE, \
-    MASH_V_VALUE, MASH_MAX_DISTANCE
+from gtdbtk.config.common import CONFIG
 
 
 @contextmanager
@@ -63,7 +62,7 @@ def __bacteria(group):
 def __outgroup_taxon(group, required):
     group.add_argument('--outgroup_taxon', type=str, default=None, required=required,
                        help="taxon to use as outgroup (e.g., "
-                            "``p__Patescibacteria`` or ``p__Altarchaeota``)")
+                            "``p__Patescibacteria`` or ``p__Altiarchaeota``)")
 
 
 def __out_dir(group, required):
@@ -205,7 +204,7 @@ def __scratch_dir(group):
 def __full_tree(group):
     group.add_argument('-f', '--full_tree', default=False, action='store_true',
                        help='use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk '
-                            f'approach (version < 2) and requires more than {PPLACER_MIN_RAM_BAC_FULL} GB of RAM to load the reference tree')
+                            f'approach (version < 2) and requires more than {CONFIG.PPLACER_MIN_RAM_BAC_FULL} GB of RAM to load the reference tree')
 
 
 def __identify_dir(group, required):
@@ -255,26 +254,26 @@ def __no_mash(group):
 
 
 def __mash_k(group):
-    group.add_argument('--mash_k', default=MASH_K_VALUE, type=int,
+    group.add_argument('--mash_k', default=CONFIG.MASH_K_VALUE, type=int,
                        help='k-mer size [1-32]')
 
 
 def __mash_s(group):
-    group.add_argument('--mash_s', default=MASH_S_VALUE, type=int,
+    group.add_argument('--mash_s', default=CONFIG.MASH_S_VALUE, type=int,
                        help='maximum number of non-redundant hashes')
 
 
 def __mash_d(group):
-    group.add_argument('--mash_d', default=MASH_D_VALUE, type=float,
+    group.add_argument('--mash_d', default=CONFIG.MASH_D_VALUE, type=float,
                        help='maximum distance to keep [0-1]')
 
 
 def __mash_v(group):
-    group.add_argument('--mash_v', default=MASH_V_VALUE, type=float,
+    group.add_argument('--mash_v', default=CONFIG.MASH_V_VALUE, type=float,
                        help='maximum p-value to keep [0-1]')
 
 def __mash_max_distance(group):
-    group.add_argument('--mash_max_distance', default=MASH_MAX_DISTANCE, type=float,
+    group.add_argument('--mash_max_distance', default=CONFIG.MASH_MAX_DISTANCE, type=float,
                        help='Maximum Mash distance to select a potential GTDB genome as representative '
                             'of a user genome.')
 
@@ -284,7 +283,7 @@ def __mash_db(group):
 
 
 def __min_af(group):
-    group.add_argument('--min_af', type=float, default=AF_THRESHOLD,
+    group.add_argument('--min_af', type=float, default=CONFIG.AF_THRESHOLD,
                        help='minimum alignment fraction to assign genome to a species cluster')
 
 
@@ -317,6 +316,14 @@ def __reference_mask(group):
 def __domain(group, required):
     group.add_argument('--domain', required=required, choices=['arc', 'bac'],
                        help="domain to export")
+
+def __all_ranks(group):
+    group.add_argument('--all_ranks', default=False, action='store_true',
+                       help='add all missing ranks to the leaf nodes if they are present in the reference tree.')
+
+def __db_version(group):
+    group.add_argument('--db_version', type = int, default = None,
+                       help="GTDB-Tk version package to test for compatibility.")
 
 
 def __write_single_copy_genes(group):
@@ -586,6 +593,17 @@ def get_main_parser():
             __debug(grp)
             __help(grp)
 
+    # Convert genome ids to species names.
+    with subparser(sub_parsers, 'convert_to_species', 'Replace GTDB genomes ids with GTDB Species name.') as parser:
+        with arg_group(parser, 'required named arguments') as grp:
+            __input_tree(grp, required=True)
+            __output_tree(grp, required=True)
+        with arg_group(parser, 'optional arguments') as grp:
+            __custom_taxonomy_file(grp)
+            __all_ranks(grp)
+            __debug(grp)
+            __help(grp)
+
     # Export MSA.
     with subparser(sub_parsers, 'export_msa', 'Export the untrimmed archaeal or bacterial MSA file.') as parser:
         with arg_group(parser, 'required named arguments') as grp:
@@ -599,6 +617,7 @@ def get_main_parser():
     with subparser(sub_parsers, 'check_install', 'Verify third party programs and '
                                                  'GTDB reference package.') as parser:
         with arg_group(parser, 'optional arguments') as grp:
+            __db_version(grp)
             __debug(grp)
             __help(grp)
 

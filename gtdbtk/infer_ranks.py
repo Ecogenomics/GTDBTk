@@ -21,12 +21,7 @@ import dendropy
 
 from gtdbtk.biolib_lite.newick import parse_label, create_label
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
-from gtdbtk.config.config import (TAXONOMY_FILE,
-                                  RED_DIST_BAC_DICT,
-                                  RED_DIST_ARC_DICT,
-                                  MRCA_RED_BAC120,
-                                  MRCA_RED_AR53,
-                                  RED_INTERVAL)
+from gtdbtk.config.common import CONFIG
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.relative_distance import RelativeDistance
 
@@ -43,7 +38,7 @@ class InferRanks(object):
         """Get domain on ingroup taxon."""
 
         # read GTDB taxonomy in order to establish domain on ingroup taxon
-        gtdb_taxonomy = Taxonomy().read(TAXONOMY_FILE)
+        gtdb_taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE)
         ingroup_domain = None
         for taxa in gtdb_taxonomy.values():
             if ingroup_taxon in taxa:
@@ -60,9 +55,9 @@ class InferRanks(object):
 
         # get median RED values for domain
         if ingroup_domain == 'd__Bacteria':
-            median_reds = RED_DIST_BAC_DICT
+            median_reds = CONFIG.RED_DIST_BAC_DICT
         elif ingroup_domain == 'd__Archaea':
-            median_reds = RED_DIST_ARC_DICT
+            median_reds = CONFIG.RED_DIST_ARC_DICT
         else:
             raise GTDBTkExit(f'Unrecognized GTDB domain: {ingroup_domain}.')
 
@@ -100,9 +95,9 @@ class InferRanks(object):
     def _find_ingroup_red(self, ingroup_node, ingroup_domain, tree):
         """Find RED of the ingroup taxon."""
 
-        red_file = MRCA_RED_BAC120
+        red_file = CONFIG.MRCA_RED_BAC120
         if ingroup_domain == 'd__Archaea':
-            red_file = MRCA_RED_AR53
+            red_file = CONFIG.MRCA_RED_AR53
 
         # create map from leave labels to tree nodes
         leaf_node_map = {}
@@ -132,7 +127,7 @@ class InferRanks(object):
             rank_label = Taxonomy.rank_labels[rank_idx]
 
             abs_red_diff = abs(node_red - median_red)
-            if abs_red_diff <= RED_INTERVAL:
+            if abs_red_diff <= CONFIG.RED_INTERVAL:
                 red_ranks[rank_label] = abs_red_diff
 
         red_ranks_label = []

@@ -33,13 +33,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Extract config values
-        working-directory: ${{ github.workspace }}/master/gtdbtk/config
-        run: |
-          grep AF_THRESHOLD config.py > config2.py
-          grep PPLACER_MIN_RAM_BAC_FULL config.py >> config2.py
-          mv config2.py config.py
-
       - name: Build documentation
         working-directory: ${{ github.workspace }}/master/docs
         run: make html

@@ -23,7 +23,7 @@ import sys
 
 from tqdm import tqdm
 
-from gtdbtk.config.config import LOG_TASK
+from gtdbtk.config.common import CONFIG
 from .common import make_sure_path_exists
 
 
@@ -128,7 +128,7 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
                                      datefmt="%Y-%m-%d %H:%M:%S")
 
         def format(self, record):
-            if record.levelno == LOG_TASK:
+            if record.levelno == CONFIG.LOG_TASK:
                 return self.task_fmt.format(record)
             if record.levelno >= logging.ERROR:
                 return self.err_fmt.format(record)
@@ -162,7 +162,7 @@ def logger_setup(log_dir, log_file, program_name, version, silent, debug=False):
 
         def format(self, record):
             record.msg = self.ansi_escape.sub('', record.msg)
-            if record.levelno == LOG_TASK:
+            if record.levelno == CONFIG.LOG_TASK:
                 return self.task_fmt.format(record)
             if record.levelno >= logging.ERROR:
                 return self.err_fmt.format(record)

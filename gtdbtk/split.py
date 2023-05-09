@@ -18,7 +18,7 @@ import os
 
 import logging
 
-import gtdbtk.config.config as Config
+from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_fasta
@@ -69,7 +69,7 @@ class Split(object):
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        red_bac_dict = Config.RED_DIST_BAC_DICT
+        red_bac_dict = CONFIG.RED_DIST_BAC_DICT
 
         # We get the pplacer taxonomy for comparison
         user_genome_ids = set(read_fasta(user_msa_file).keys())

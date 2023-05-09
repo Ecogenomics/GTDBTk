@@ -33,12 +33,12 @@ Hardware requirements
      - Storage
      - Time
    * - Archaea
-     - ~34 GB
-     - ~65 GB
+     - ~45 GB
+     - ~85 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~55GB (320 GB when using --full_tree)
-     - ~65 GB
+     - ~65GB (410 GB when using --full_tree)
+     - ~85 GB
      - ~1 hour / 1,000 genomes @ 64 CPUs
 
 .. note::
@@ -117,13 +117,13 @@ Please cite these tools if you use GTDB-Tk in your work.
 GTDB-Tk reference data
 ----------------------
 
-GTDB-Tk requires ~66G of external data that needs to be downloaded and unarchived:
+GTDB-Tk requires ~84G of external data that needs to be downloaded and unarchived:
 
 .. code-block:: bash
 
-    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz
-    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz  (or, mirror)
-    tar xvzf gtdbtk_v2_data.tar.gz
+    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
+    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz  (or, mirror)
+    tar xvzf gtdbtk_data.tar.gz
 
 
 .. note:: Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, check the supported versions!
@@ -137,6 +137,10 @@ GTDB-Tk requires ~66G of external data that needs to be downloaded and unarchive
      - Minimum version
      - Maximum version
      - MD5
+   * - `R214 <https://data.gtdb.ecogenomic.org/releases/release214/214.0/auxillary_files/gtdbtk_r214_data.tar.gz>`_
+     - 2.1.0
+     - Current
+     - 630745840850c532546996b22da14c27
    * - `R207_v2 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz>`_
      - 2.1.0
      - Current
