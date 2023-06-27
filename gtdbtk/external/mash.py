@@ -211,7 +211,7 @@ class SketchFile(object):
             raise GTDBTkExit(f'Error reading Mash sketch file {self.path}:\n{stderr}')
 
         for hashes, length, path in re.findall(r'(\d+)\t(\d+)\t(.+).*\n', stdout):
-            self.data[path] = (int(hashes), int(length))
+            self.data[path.strip()] = (int(hashes), int(length))
 
     def _is_consistent(self):
         """Returns True if the sketch was generated from the genomes."""
