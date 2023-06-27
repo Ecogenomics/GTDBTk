@@ -210,7 +210,7 @@ class SketchFile(object):
         if proc.returncode != 0:
             raise GTDBTkExit(f'Error reading Mash sketch file {self.path}:\n{stderr}')
 
-        for hashes, length, path in re.findall(r'^(\d+)\t(\d+)\t(.+).*\n', stdout):
+        for hashes, length, path in re.findall(r'(\d+)\t(\d+)\t(.+).*\n', stdout):
             self.data[path] = (int(hashes), int(length))
 
     def _is_consistent(self):
