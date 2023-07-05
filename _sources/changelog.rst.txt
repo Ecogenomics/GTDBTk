@@ -2,6 +2,17 @@
 Change log
 ==========
 
+2.3.2
+-----
+
+Bug Fixes:
+
+* (`#528 <https://github.com/Ecogenomics/GTDBTk/issues/528>`_) (`#529 <https://github.com/Ecogenomics/GTDBTk/issues/529>`_) setup.py has been modified to restrict pydantic version to >=1.9.2 and < 2.0a1
+
+Minor Changes:
+
+* (`#526 <https://github.com/Ecogenomics/GTDBTk/issues/526>`_) change captures the Mash stderr in a separate buffer ( Thanks @wasade for your contribution)
+
 2.3.0
 -----
 
