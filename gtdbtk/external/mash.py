@@ -234,14 +234,17 @@ class SketchFile(object):
             args = list(map(str, args))
             proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, encoding='utf-8')
+            stderr_lines = []
             with tqdm_log(total=len(self.genomes), unit='genome') as p_bar:
                 for line in iter(proc.stderr.readline, ''):
+                    stderr_lines.append(line)
                     if line.startswith('Sketching'):
                         p_bar.update()
             proc.wait()
 
             if proc.returncode != 0 or not os.path.isfile(self.path):
-                raise GTDBTkExit(f'Error generating Mash sketch: {proc.stderr.read()}')
+                raise GTDBTkExit(f'Error generating Mash sketch:\n'
+                                 f'{"".join(stderr_lines)}')
 
 
 class QrySketchFile(SketchFile):
