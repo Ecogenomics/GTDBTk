@@ -75,6 +75,7 @@ class ClassifyStep(Steps):
     mash_s: Optional[str]
     mash_db: Optional[str]
     mash_max_dist: Optional[str]
+    de_novo_species: Optional[str]
     output_files: Optional[Dict]
 
 class InferStep(Steps):

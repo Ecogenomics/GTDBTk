@@ -330,6 +330,12 @@ def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
                        help='output unaligned single-copy marker genes')
 
+
+def __de_novo_species(grp):
+    grp.add_argument('--de_novo_species', type=str, default=None,
+                       help="path to a file containing the QC results ( supports CheckM v1 and v2, but also generic file )")
+
+
 def get_main_parser():
     # Setup the main, and sub parsers.
     main_parser = argparse.ArgumentParser(
@@ -481,6 +487,7 @@ def get_main_parser():
             __mash_v(grp)
             __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
+            __de_novo_species(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)

@@ -36,7 +36,7 @@ from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
-from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
+from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit, GenomeNotInQCFile
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
 
@@ -49,6 +49,7 @@ from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
 from gtdbtk.files.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
+from gtdbtk.genome_clustering import GenomeClustering
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.split import Split
@@ -339,7 +340,8 @@ class Classify(object):
             mash_max_dist=CONFIG.MASH_MAX_DISTANCE,
             mash_db=None,
             ani_summary_files=None,
-            all_classified_ani=False):
+            all_classified_ani=False,
+            de_novo_species_file=None):
         """Classify genomes based on position in reference tree."""
         if not all_classified_ani:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
@@ -522,6 +524,18 @@ class Classify(object):
                         summary_file.add_row(row)
                         if row.gid in genomes_to_process:
                             genomes_to_process.remove(row.gid)
+
+                    # we run a dereplication if the qc_file is provided
+                    if de_novo_species_file:
+                        qcfile = GenomeClustering(de_novo_species_file, genomes)
+                        qc_genomes = qcfile.parse(genomes_to_process)
+                        # make sure all genomes in genomes are in qc_genomes
+                        for gid in genomes_to_process:
+                            if gid not in qc_genomes:
+                                raise GenomeNotInQCFile(f'{gid} is not in the de_novo_species file')
+
+                        qc_genomes_cluster = qcfile.species_cluster()
+                        print(qc_genomes_cluster)
 
                     # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
                     prescreened_msa_file_path = os.path.join(

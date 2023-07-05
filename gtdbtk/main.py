@@ -557,6 +557,7 @@ class OptionsParser(object):
         classify_step.mash_s = options.mash_s
         classify_step.mash_db = options.mash_db
         classify_step.mash_max_dist = options.mash_max_distance
+        classify_step.de_novo_species = options.de_novo_species
 
         ani_summary_files = {}
         if self.stage_logger.has_stage(ANIScreenStep):
@@ -600,7 +601,8 @@ class OptionsParser(object):
                      mash_db=options.mash_db,
                      mash_max_dist=options.mash_max_distance,
                      ani_summary_files=ani_summary_files,
-                     all_classified_ani=all_classified_ani
+                     all_classified_ani=all_classified_ani,
+                     de_novo_species_file=options.de_novo_species,
                      )
 
         classify_step.ends_at = datetime.now()
