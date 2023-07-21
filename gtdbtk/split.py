@@ -339,7 +339,7 @@ class Split(object):
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
     def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,
-                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,warning_counter):
+                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,warning_counter,qc_genomes_cluster):
         mapped_rank = {}
         counter = 0
         high_taxonomy_used = {}
@@ -361,29 +361,36 @@ class Split(object):
                     counter += 1
                     high_taxonomy_used[k] = ["TERMINAL",v.get('tk_tax_terminal'),v.get('tk_tax_red')]
                 else:
-                    summary_row = ClassifySummaryFileRow()
-                    summary_row.gid = k
-                    summary_row.classification = v.get('tk_tax_red')
-                    summary_row.pplacer_tax = v.get('pplacer_tax')
-                    summary_row.red_value = v.get('rel_dist')
-                    summary_row.note = 'classification based on placement in backbone tree'
-                    summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
-                    summary_row.tln_table = trans_table_dict.get(summary_row.gid)
-
-                    warnings = []
-                    if summary_row.gid in percent_multihit_dict:
-                        warnings.append('Genome has more than {}% of markers with multiple hits'.format(
-                            percent_multihit_dict.get(summary_row.gid)))
-                    if summary_row.gid in bac_ar_diff:
-                        warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                            bac_ar_diff.get(summary_row.gid).get('bac120'),
-                            bac_ar_diff.get(summary_row.gid).get('ar53')))
-                    if len(warnings) > 0:
-                        if summary_row.warnings is not None:
-                            warnings.extend(summary_row.warnings.split(';'))
-                        summary_row.warnings = ';'.join(set(warnings))
-                        warning_counter += 1
-
+                    if k in qc_genomes_cluster:
+                        cluster_inc = qc_genomes_cluster[k].get('increment')
+                        warning_counter,summary_file = self.add_backbone_classification(id=k,infos=v,rep=k,
+                                                         summary_file=summary_file,
+                                                         msa_dict=msa_dict,
+                                                         trans_table_dict=trans_table_dict,
+                                                         percent_multihit_dict=percent_multihit_dict,
+                                                         bac_ar_diff=bac_ar_diff,
+                                                         warning_counter=warning_counter,
+                                                         cluster_inc=cluster_inc)
+                        for clustered_id,clustered_infos in qc_genomes_cluster[k].get('members'):
+                            warning_counter, summary_file = self.add_backbone_classification(id=clustered_id, infos=v,
+                                                                                             rep=k,
+                                                                                             summary_file=summary_file,
+                                                                                             msa_dict=msa_dict,
+                                                                                             trans_table_dict=trans_table_dict,
+                                                                                             percent_multihit_dict=percent_multihit_dict,
+                                                                                             bac_ar_diff=bac_ar_diff,
+                                                                                             warning_counter=warning_counter,
+                                                                                             cluster_inc=cluster_inc,
+                                                                                             ani=clustered_infos.get('ani'),
+                                                                                             af=clustered_infos.get('af'))
+                    else:
+                        warning_counter,summary_file = self.add_backbone_classification(id=k, infos=v, rep=k,
+                                                         summary_file=summary_file,
+                                                         msa_dict=msa_dict,
+                                                         trans_table_dict=trans_table_dict,
+                                                         percent_multihit_dict=percent_multihit_dict,
+                                                         bac_ar_diff=bac_ar_diff,
+                                                         warning_counter=warning_counter)
 
                     mapping_row = GenomeMappingFileRow()
                     mapping_row.gid = k
@@ -392,6 +399,52 @@ class Split(object):
                     mapping_row.rule = 'Rule 1'
 
                     tree_mapping_file.add_row(mapping_row)
-                    summary_file.add_row(summary_row)
+
 
         return mapped_rank,warning_counter, counter , high_taxonomy_used
+
+    def add_backbone_classification(self, id, infos, rep,
+                                    summary_file,
+                                    msa_dict,trans_table_dict,
+                                    percent_multihit_dict,
+                                    bac_ar_diff,warning_counter,
+                                    cluster_inc=None,
+                                    ani=None,af=None):
+        summary_row = ClassifySummaryFileRow()
+        summary_row.gid = id
+        if cluster_inc is not None and infos.get('tk_tax_red').split(';')[6] == 's__':
+            temp_taxonomy = infos.get('tk_tax_red').split(';')
+            temp_taxonomy[6] = CONFIG.DEFAULT_SPECIES_CLUSTERS.format(inc=cluster_inc)
+            summary_row.classification = ';'.join(temp_taxonomy)
+        else:
+            summary_row.classification = infos.get('tk_tax_red')
+        summary_row.pplacer_tax = infos.get('pplacer_tax')
+        summary_row.red_value = infos.get('rel_dist')
+        summary_row.note = 'Classification based on placement in backbone tree'
+        if id == rep:
+            summary_row.note += ';'.join(summary_row.note.split(';').append('Selected to be representative genome for the species cluster'))
+            summary_row.pplacer_tax = infos.get('pplacer_tax')
+            summary_row.red_value = infos.get('rel_dist')
+        else:
+            summary_row.note = f'Represented by genome {rep} ' \
+                                         f'(ANI:{round(ani,2)}%,AF:{round(af,2)}).'
+        summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
+        summary_row.tln_table = trans_table_dict.get(summary_row.gid)
+
+        warnings = []
+        if summary_row.gid in percent_multihit_dict:
+            warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                percent_multihit_dict.get(summary_row.gid)))
+        if summary_row.gid in bac_ar_diff:
+            warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                bac_ar_diff.get(summary_row.gid).get('bac120'),
+                bac_ar_diff.get(summary_row.gid).get('ar53')))
+        if len(warnings) > 0:
+            if summary_row.warnings is not None:
+                warnings.extend(summary_row.warnings.split(';'))
+            summary_row.warnings = ';'.join(set(warnings))
+            warning_counter += 1
+        summary_file.add_row(summary_row)
+        return  warning_counter,summary_file
+
+

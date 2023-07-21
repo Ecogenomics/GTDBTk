@@ -113,6 +113,9 @@ class __GTDBTkCommonConfig:
     # Internal settings used for logging.
     LOG_TASK = 21
 
+    # Default name for species clusters
+    DEFAULT_SPECIES_CLUSTERS = 's__NovelCluster sp{inc}'
+
     # To avoid multiple hits of parsing files
     _generic_path = None
     _red_dist_bac_dict = None

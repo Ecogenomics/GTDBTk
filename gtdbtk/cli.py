@@ -396,6 +396,7 @@ def get_main_parser():
             __mash_v(grp)
             __mash_max_distance(grp)
         with arg_group(parser, 'optional arguments') as grp:
+            __de_novo_species(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)

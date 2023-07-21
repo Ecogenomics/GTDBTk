@@ -45,7 +45,7 @@ class Mash(object):
         except Exception:
             return 'unknown'
 
-    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s, mash_max_dist, mash_db) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
+    def run(self, qry, ref, mash_d, mash_k, mash_v, mash_s, mash_max_dist, mash_db,all_vs_all=False) -> Dict[str, Dict[str, Tuple[float, float, int, int]]]:
         """Run Mash on a set of reference and query genomes.
 
         Parameters
@@ -72,7 +72,10 @@ class Mash(object):
         dict[query_id][ref_id] = (dist, p_val, shared_numerator, shared_denominator)
         """
         qry_sketch = QrySketchFile(qry, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
-        ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s, mash_db)
+        if all_vs_all:
+            ref_sketch = QrySketchFile(qry, self.out_dir, self.prefix, self.cpus, mash_k, mash_s)
+        else:
+            ref_sketch = RefSketchFile(ref, self.out_dir, self.prefix, self.cpus, mash_k, mash_s, mash_db)
 
         # Generate an output file comparing the distances between these genomes.
         mash_dists = DistanceFile(qry_sketch, ref_sketch, self.out_dir, self.prefix,
@@ -225,8 +228,9 @@ class SketchFile(object):
         """Generate a new sketch file."""
         with tempfile.TemporaryDirectory(prefix='gtdbtk_mash_tmp_') as dir_tmp:
             path_genomes = os.path.join(dir_tmp, 'genomes.txt')
+            sorted_paths = sorted(self.genomes.values())
             with open(path_genomes, 'w') as fh:
-                for path in self.genomes.values():
+                for path in sorted_paths:
                     fh.write(f'{path}\n')
 
             args = ['mash', 'sketch', '-l', '-p', self.cpus, path_genomes, '-o',

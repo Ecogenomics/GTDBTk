@@ -86,7 +86,7 @@ class FastANI(object):
         except Exception:
             return False
 
-    def run(self, dict_compare, dict_paths):
+    def run(self, dict_compare, dict_paths,verbose=True):
         """Runs FastANI in batch mode.
 
         Parameters
@@ -154,7 +154,8 @@ class FastANI(object):
                                 args=(q_worker, q_writer, q_results))
                      for _ in range(self.cpus)]
 
-        p_writer = mp.Process(target=self._writer, args=(q_writer, n_total))
+
+        p_writer = mp.Process(target=self._writer, args=(q_writer, n_total,verbose))
 
         # Start each of the threads.
         try:
@@ -227,7 +228,7 @@ class FastANI(object):
 
         return True
 
-    def _writer(self, q_writer, n_total):
+    def _writer(self, q_writer, n_total,verbose=True):
         """The writer function, which reports the progress of the workers.
 
         Parameters
@@ -237,9 +238,10 @@ class FastANI(object):
         n_total : int
             The total number of items to be processed.
         """
-        with tqdm_log(unit='comparison', total=n_total) as p_bar:
-            for _ in iter(q_writer.get, None):
-                p_bar.update()
+        if verbose:
+            with tqdm_log(unit='comparison', total=n_total) as p_bar:
+                for _ in iter(q_writer.get, None):
+                    p_bar.update()
 
     def run_proc(self, q, r, ql, rl, output):
         """Runs the FastANI process.

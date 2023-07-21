@@ -343,6 +343,11 @@ class Classify(object):
             all_classified_ani=False,
             de_novo_species_file=None):
         """Classify genomes based on position in reference tree."""
+
+        # we set mash_d == mash_max_dist to avoid user to run mash with impossible values
+        mash_d = mash_max_dist
+
+
         if not all_classified_ani:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
@@ -364,8 +369,7 @@ class Classify(object):
                 if os.path.isdir(mash_db):
                     mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
-            # we set mash_d == mash_max_dist to avoid user to run mash with impossible values
-            mash_d = mash_max_dist
+
 
             ani_rep = ANIRep(self.cpus)
             # we store all the mash information in the classify directory
@@ -509,12 +513,50 @@ class Classify(object):
 
                 # run pplacer to place bins in reference genome tree
                 genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+                all_genomes_to_process = genomes_to_process.copy()
+
+
 
                 # if mash_classified_user_genomes is has key marker_set_id, we
                 # need to add those genomes to the summary file and remove those genomes to the list of genomes
                 # to process with pplacer
+                qc_genomes_cluster = {}
                 if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+
                     list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+
+                    for row in list_summary_rows:
+                        if row.gid in genomes_to_process:
+                            genomes_to_process.remove(row.gid)
+
+                    # we run a dereplication if the qc_file is provided
+                    if de_novo_species_file:
+                        qcfile = GenomeClustering(de_novo_species_file, genomes,out_dir,
+                                                  prefix, mash_d, mash_k, mash_v,
+                                                  mash_s,cpus=self.cpus)
+                        qc_genomes = qcfile.parse(genomes_to_process)
+                        # make sure all genomes in genomes are in qc_genomes
+                        for gid in genomes_to_process:
+                            if gid not in qc_genomes:
+                                raise GenomeNotInQCFile(f'{gid} is not in the de_novo_species file')
+
+                        self.logger.info(f'QC file provided. Dereplicating {len(genomes_to_process)} genomes.')
+                        qc_genomes_cluster = qcfile.species_cluster(all_genomes_to_process,marker_set_id)
+                        self.logger.info(f'{len(qc_genomes_cluster)} species clusters found.')
+
+                    # before writing the list of rows, we need to make sure the genomes are still the closest to a GTDB rep
+                    # and not a new of the 'user rep'
+                    if qc_genomes_cluster:
+                        self.logger.info('All representatives are selected. Checking if existing clusters need to be updated.')
+                        qc_genomes_cluster, changing_reps_genomes = qcfile.compare_gtdb_reps(qc_genomes_cluster,marker_set_id,list_summary_rows)
+                        self.logger.info(f'{len(changing_reps_genomes)} genomes have been reclustered.')
+                        # we remove the row from the list_summary_rows if the gid is in changing_reps_genomes
+                        list_summary_rows = [row for row in list_summary_rows if row.gid not in changing_reps_genomes]
+                        mash_classified_user_genomes[marker_set_id] = list_summary_rows
+                        genomes_to_process = list(qc_genomes_cluster.keys())
+
+
+
                     for row in list_summary_rows:
                         row,warning_counter = self._add_warning_to_row(row,
                                                        msa_dict,
@@ -522,20 +564,8 @@ class Classify(object):
                                                        percent_multihit_dict,
                                                        warning_counter)
                         summary_file.add_row(row)
-                        if row.gid in genomes_to_process:
-                            genomes_to_process.remove(row.gid)
 
-                    # we run a dereplication if the qc_file is provided
-                    if de_novo_species_file:
-                        qcfile = GenomeClustering(de_novo_species_file, genomes)
-                        qc_genomes = qcfile.parse(genomes_to_process)
-                        # make sure all genomes in genomes are in qc_genomes
-                        for gid in genomes_to_process:
-                            if gid not in qc_genomes:
-                                raise GenomeNotInQCFile(f'{gid} is not in the de_novo_species file')
 
-                        qc_genomes_cluster = qcfile.species_cluster()
-                        print(qc_genomes_cluster)
 
                     # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
                     prescreened_msa_file_path = os.path.join(
@@ -605,7 +635,7 @@ class Classify(object):
                     splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                     sorted_high_taxonomy,warning_counter, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
                         high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
-                        tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter)
+                        tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter,qc_genomes_cluster)
 
                     if debugopt:
                         with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
@@ -649,7 +679,8 @@ class Classify(object):
                                                                                                                pplacer_taxonomy_dict,warning_counter,
                                                                                                                high_classification, debug_file,
                                                                                                                debugopt,tree_mapping_file,
-                                                                                                               tree_iter,tree_mapping_dict_reverse)
+                                                                                                               tree_iter,tree_mapping_dict_reverse,
+                                                                                                               qc_genomes_cluster)
 
                         if debugopt:
                             with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
@@ -704,7 +735,7 @@ class Classify(object):
                                                                                                            pplacer_taxonomy_dict,warning_counter,
                                                                                                            None,debug_file,
                                                                                                            debugopt,None,
-                                                                                                           None, None)
+                                                                                                           None, None,qc_genomes_cluster)
                     # add filtered genomes to the summary file
                     warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
 
@@ -888,7 +919,7 @@ class Classify(object):
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                                user_msa_file, red_dict,warning_counter, summary_file, pplacer_taxonomy_dict,
                                high_classification, debug_file, debugopt, classified_user_genomes,
-                               unclassified_user_genomes, tt,tree_iter,tree_mapping_file, valid_classes,valid_phyla):
+                               unclassified_user_genomes, tt,tree_iter,tree_mapping_file, valid_classes,valid_phyla,qc_genomes_cluster):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
         user_genome_ids = user_genome_ids.difference(set(classified_user_genomes.keys()))
         class_level_classification = dict()
@@ -1069,7 +1100,7 @@ class Classify(object):
                     # no classification in class level tree so must
                     # use the classification in the backbone tree
                     final_split = backbone_tax
-                    notes.append('classification based on placement in backbone tree')
+                    notes.append('Classification based on placement in backbone tree')
                     mapping_row.mapped_tree = 'backbone'
                     mapping_row.rule = 'Rule 1'
                     pplacer_taxonomy_to_report = ';'.join(backbone_tax)
@@ -1081,7 +1112,7 @@ class Classify(object):
                     # class-level classification down to the rank of class
                     final_split = class_level_tax
                     mapping_row.rule = 'Rule 2'
-                    notes.append('classification based on placement in class-level tree')
+                    notes.append('Classification based on placement in class-level tree')
 
                 elif class_level_tax[self.CLASS_IDX] in valid_classes:
                     # class classification in the class-level tree
@@ -1091,7 +1122,7 @@ class Classify(object):
                     # backbone tree
                     final_split = class_level_tax
                     mapping_row.rule = 'Rule 3'
-                    notes.append('classification based on placement in class-level tree')
+                    notes.append('Classification based on placement in class-level tree')
                     warnings.append('backbone tree has incongruent class classification')
 
                 elif class_level_tax[self.PHYLUM_IDX] in valid_phyla \
@@ -1102,7 +1133,7 @@ class Classify(object):
                     # rank of phylum
                     final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
                     mapping_row.rule = 'Rule 4'
-                    notes.append('classification based on placement in class-level tree')
+                    notes.append('Classification based on placement in class-level tree')
                     warnings.append('classification restricted to valid phylum')
 
                 elif class_level_tax[self.PHYLUM_IDX] in valid_phyla:
@@ -1113,7 +1144,7 @@ class Classify(object):
                     # backbone tree down to the rank of phylum
                     final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
                     mapping_row.rule = 'Rule 5'
-                    notes.append('classification based on placement in class-level tree')
+                    notes.append('Classification based on placement in class-level tree')
                     warnings.append('backbone tree has incongruent phylum classification')
 
                 else:
@@ -1128,7 +1159,7 @@ class Classify(object):
                             consensus.append(self.order_rank[idx])
                     final_split = consensus
                     mapping_row.rule = 'Rule 6'
-                    notes.append('classification based on consensus between backbone and class-level tree')
+                    notes.append('Classification based on consensus between backbone and class-level tree')
 
                 summary_row = ClassifySummaryFileRow()
                 if leaf.taxon.label in unclassified_user_genomes:
@@ -1179,7 +1210,46 @@ class Classify(object):
                 if summary_row.note is not None:
                     notes.extend(summary_row.note.split(';'))
                 summary_row.note = ';'.join(set(notes))
-            summary_file.add_row(summary_row)
+
+            # we need to add all the genomes from the qc_genomes_cluster if it does exists
+            # and we need to increment the cluster number
+            # if this genome is  in the qc_genome_cluster,we changed the species name from empty to novel
+            # species cluster generic name
+            if summary_row.gid in qc_genomes_cluster and summary_row.classification.endswith('s__'):
+                classification_list = summary_row.classification.split(';')
+                increment_number=qc_genomes_cluster.get(summary_row.gid).get('increment')
+                classification_list[6] = CONFIG.DEFAULT_SPECIES_CLUSTERS.format(inc=increment_number)
+                summary_row.classification = ';'.join(classification_list)
+                if summary_row.note is not None:
+                    summary_note = summary_row.note.split(';')
+                    summary_note.append('Selected to be representative genome for the species cluster')
+                else:
+                    summary_note = ['Selected to be representative genome for the species cluster']
+                summary_row.note=';'.join(summary_note)
+                summary_file.add_row(summary_row)
+                for clustered_genome,clustered_genome_info in qc_genomes_cluster.get(summary_row.gid).get('members'):
+                    clustered_summary_row = ClassifySummaryFileRow()
+                    clustered_summary_row.gid = clustered_genome
+                    clustered_summary_row.tln_table = trans_table_dict.get(clustered_genome)
+                    clustered_summary_row.classification = ';'.join(classification_list)
+                    clustered_summary_row.msa_percent = aa_percent_msa(msa_dict.get(clustered_genome))
+                    rounded_ani = round(clustered_genome_info.get('ani'), 2)
+                    rounded_af = round(clustered_genome_info.get('af'), 2)
+                    clustered_summary_row.classification_method = 'dereplication_ani'
+                    clustered_summary_row.note = f'Represented by genome {summary_row.gid} ' \
+                                                 f'(ANI:{rounded_ani}%,AF:{rounded_af})'
+                    warnings = []
+                    if clustered_summary_row.gid in percent_multihit_dict:
+                        warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                            percent_multihit_dict.get(clustered_summary_row.gid)))
+                    if clustered_summary_row.gid in bac_ar_diff:
+                        warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                            bac_ar_diff.get(clustered_summary_row.gid).get('bac120'),
+                            bac_ar_diff.get(clustered_summary_row.gid).get('ar53')))
+                    summary_file.add_row(clustered_summary_row)
+
+            else:
+                summary_file.add_row(summary_row)
 
             if debugopt:
                 debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
@@ -1190,7 +1260,7 @@ class Classify(object):
 
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict,genes, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,warning_counter, high_classification,
-                    debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
+                    debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse,qc_genomes_cluster):
         # Genomes can be classified by using FastANI or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -1224,7 +1294,7 @@ class Classify(object):
 
         classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_fastani_results(
             fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
-            trans_table_dict, bac_ar_diff,warning_counter, summary_file)
+            trans_table_dict, bac_ar_diff,warning_counter, summary_file, qc_genomes_cluster)
         #if not prescreening:
         if not genes:
             self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
@@ -1255,7 +1325,7 @@ class Classify(object):
                                                                  pplacer_taxonomy_dict, high_classification,
                                                                  debug_file, debugopt, classified_user_genomes,
                                                                  unclassified_user_genomes, tt,tree_iter,tree_mapping_file,
-                                                                 class_in_spe_tree, phyla_in_spe_tree)
+                                                                 class_in_spe_tree, phyla_in_spe_tree,qc_genomes_cluster)
 
         return class_level_classification,classified_user_genomes,warning_counter
 
@@ -1493,7 +1563,7 @@ class Classify(object):
                         summary_row.other_related_refs = None
                     else:
                         summary_row.other_related_refs = other_ref
-                summary_row.note = 'classification based on ANI only'
+                summary_row.note = 'Classification based on ANI only'
 
                 fastani_matching_reference = closest[0][0]
                 current_ani = fastani_results.get(gid).get(
@@ -1535,7 +1605,7 @@ class Classify(object):
 
     def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict,
                               all_fastani_dict, msa_dict, percent_multihit_dict,
-                              trans_table_dict, bac_ar_diff,warning_counter, summary_file):
+                              trans_table_dict, bac_ar_diff,warning_counter, summary_file, qc_genomes_cluster):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -1630,7 +1700,7 @@ class Classify(object):
                             summary_row.closest_placement_tax = summary_row.fastani_tax
                             summary_row.closest_placement_ani = summary_row.fastani_ani
                             summary_row.closest_placement_af = summary_row.fastani_af
-                            summary_row.note = 'topological placement and ANI have congruent species assignments'
+                            summary_row.note = 'Topological placement and ANI have congruent species assignments.'
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self.formatnote(
                                     sorted_dict,self.gtdb_taxonomy,self.species_radius, [fastani_matching_reference]))
@@ -1738,11 +1808,40 @@ class Classify(object):
                         current_af = all_fastani_dict.get(userleaf.taxon.label).get(
                             fastani_matching_reference).get('af')
                         summary_row.fastani_af = round(current_af,3)
-                        summary_row.note = 'topological placement and ANI have incongruent species assignments'
+                        summary_row.note = 'Topological placement and ANI have incongruent species assignments'
                         if len(warnings) > 0:
                             summary_row.warnings = ';'.join(warnings)
 
-                        summary_file.add_row(summary_row)
+                        # if this genome is  in the qc_genome_cluster,we changed the species name from empty to novel
+                        # species cluster generic name
+                        if summary_row.gid in qc_genomes_cluster and summary_row.classification.endswith('s__'):
+                            classification_list = ';'.join(summary_row.classification.split(';'))
+                            classification_list[6] = CONFIG.DEFAULT_SPECIES_CLUSTERS.format(inc=qc_genomes_cluster.get(summary_row.gid).get('increment'))
+                            summary_row.classification = ';'.join(classification_list)
+                            summary_row.note += ';Selected to be representative genome for the species cluster'
+                            summary_file.add_row(summary_row)
+                            for clustered_genome,clustered_genome_info in qc_genomes_cluster.get(summary_row.gid).get('members'):
+                                clustered_summary_row = ClassifySummaryFileRow()
+                                clustered_summary_row.gid = clustered_genome
+                                clustered_summary_row.tln_table = trans_table_dict.get(clustered_genome)
+                                clustered_summary_row.classification = ';'.join(classification_list)
+                                clustered_summary_row.msa_percent = aa_percent_msa(msa_dict.get(clustered_genome))
+                                clustered_summary_row.note = f'Represented by genome {summary_row.gid} ' \
+                                                 f'(ANI:{clustered_genome_info.get("ani")}%,AF:{clustered_genome_info.get("af")}).'
+                                warnings = []
+                                if clustered_summary_row.gid in percent_multihit_dict:
+                                    warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                                        percent_multihit_dict.get(clustered_summary_row.gid)))
+                                if clustered_summary_row.gid in bac_ar_diff:
+                                    warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                                        bac_ar_diff.get(clustered_summary_row.gid).get('bac120'),
+                                        bac_ar_diff.get(clustered_summary_row.gid).get('ar53')))
+                                summary_file.add_row(clustered_summary_row)
+
+                        else:
+                            summary_file.add_row(summary_row)
+
+
                         classified_user_genomes[userleaf.taxon.label] = standardise_taxonomy(taxa_str)
                     else:
                         warnings.append("Genome not assigned to closest species as "
@@ -2229,7 +2328,7 @@ class Classify(object):
                 summary_row = ClassifySummaryFileRow()
                 summary_row.gid = gid
                 summary_row.classification_method = 'ani_screen'
-                summary_row.note = 'classification based on ANI only'
+                summary_row.note = 'Classification based on ANI only'
 
                 fastani_matching_reference = list(ani_results)[0]
 

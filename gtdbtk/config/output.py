@@ -102,5 +102,8 @@ PATH_AR53_DECORATED_TREE = join(DIR_INFER, '{prefix}.ar53.decorated.tree')
 DIR_ANI_REP_INT = join('intermediate_results')
 DIR_ANI_REP_INT_MASH = join(DIR_ANI_REP_INT, 'mash')
 
+# Path for dereplication
+DIR_ANI_REP_INT_DEREP = join(DIR_ANI_REP_INT, 'derep')
+
 # General files
 PATH_WARNINGS = '{prefix}.warnings.log'

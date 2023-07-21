@@ -1201,7 +1201,6 @@ class OptionsParser(object):
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
             if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
-                print(options.skip_ani_screen, options.no_mash, options.mash_db)
                 self.logger.error('You must specify a path to the mash database with --mash_db')
             self.classify(options)
 
