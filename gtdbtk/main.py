@@ -1109,7 +1109,7 @@ class OptionsParser(object):
             all_classified_ani = False
             classified_genomes = None
 
-            #We ned to check if the ani screen has already be ran, if so, we need to skip it.
+            #We need to check if the ani screen has already be ran, if so, we need to skip it.
             #Check is the gtdbtk.json file exists in the output folder
             if os.path.isfile(self.stage_logger.path):
                 #If the file exists, we need to check if the ani_screen step has been ran

@@ -56,8 +56,36 @@ class QCedGenome:
 
             numAmbiguousBases += seq.count('N') + seq.count('n')
         self.ambiguous_bases = numAmbiguousBases
-        self.contig_count = len(seqs)
+        self.contig_count = len(self.identify_contigs(seqs))
         self.calculateGenomeScore()
+
+    def identify_contigs(self,seqs, contig_break=CONTIG_BREAK):
+        """Break scaffolds into contigs.
+
+        Parameters
+        ----------
+        seqs : dict[seq_id] -> seq
+            Sequences indexed by sequence ids.
+        contig_break : str
+            Motif used to split scaffolds into contigs.
+
+        Returns
+        -------
+        dict : dict[seq_id] -> seq
+            Contigs indexed by sequence ids.
+        """
+
+        contigs = {}
+        for seq_id, seq in seqs.items():
+            seq = seq.upper()
+            contig_count = 0
+            for contig in seq.split(contig_break):
+                contig = contig.strip('N')
+                if contig:
+                    contigs[seq_id + '_c' + str(contig_count)] = contig
+                    contig_count += 1
+
+        return contigs
 
     def calculateGenomeScore(self):
         """ Calculate the genome score based on the completeness and contamination values ,number of contigs and ambiguous bases."""
@@ -77,11 +105,12 @@ class GenomeClustering(object):
     checkm1_headers =['Bin Id','Completeness','Contamination']
     generic_headers = ['Name','Completeness','Contamination']
 
-    def __init__(self,path:str,genome_path:dict,output_dir,prefix,max_d, mash_k, mash_v, mash_s,cpus:int = 1):
+    def __init__(self,path:str,genome_path:dict,user_genomes_radii:dict,output_dir,prefix,max_d, mash_k, mash_v, mash_s,cpus:int = 1):
         self.logger = logging.getLogger('timestamp')
         self.genome_path = genome_path
         self.de_novo_file_path: str = path
         self.de_novo_file_format=0# 0: generic, 1: checkm1, 2: checkm2
+        self.user_genomes_radii = user_genomes_radii
         self.qc_genomes = None
         self.cpus=cpus
         self.intermediates_directory = output_dir
@@ -130,14 +159,13 @@ class GenomeClustering(object):
         mash = Mash(self.cpus, dir_mash, self.prefix)
 
         ref_genomes = {gid: self.genome_path[gid] for gid in all_genomes_to_process}
-
         mash_results = mash.run(ref_genomes, ref_genomes, self.max_d, self.mash_k, self.mash_v, self.mash_s, mash_max_dist=100, mash_db=dir_mash,all_vs_all = True)
 
         with tqdm_log(unit='genome', total=len_sorted_genomes) as p_bar:
             while len(sorted_genomes) > 1:
                 #we pick the first one as rep
                 rep_id = sorted_genomes[0][0]
-                sp_cluster[rep_id] = {'increment':increment,'members':[]}
+                sp_cluster[rep_id] = {'increment':increment,'members':[],'radius':self.user_genomes_radii[rep_id]}
                 #we compare the rep to all the other genomes
                 other_genomes = list(zip(*sorted_genomes[1:]))[0]
                 # we run fastANI between the rep and all the other genomes
@@ -151,9 +179,10 @@ class GenomeClustering(object):
                     fastani_results = dict()
                 processed_genomes = (rep_id,)
 
-                if rep_id in fastani_results:
+                if rep_id in fastani_results.keys():
                     thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[rep_id].items() if
-                                      hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= CONFIG.FASTANI_SPECIES_THRESHOLD]
+                                      hit['af'] >= CONFIG.AF_THRESHOLD
+                                      and hit['ani'] >= (max(self.user_genomes_radii[rep_id],self.user_genomes_radii[ref_gid]))]
                     closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
                     sp_cluster[rep_id]['members']=closest
                     if len(closest)>0:

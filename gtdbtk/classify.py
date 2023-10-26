@@ -357,25 +357,25 @@ class Classify(object):
         # FastANI.
         # All genomes classified with FastANI will be removed from the input genomes list for the
         # rest of the pipeline.
-        mash_classified_user_genomes = {}
+        mash_classified_user_genomes,user_genomes_radii = {},{}
+
+        if genes and not skip_ani_screen:
+            self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
+            skip_ani_screen = True
+
         if not skip_ani_screen:
-            if genes:
-                self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
-                skip_ani_screen = True
-            elif not no_mash:
+            if not no_mash:
                 # if mash_db finishes with a backslash, it should be considered a directory
                 if mash_db.endswith('/'):
                     make_sure_path_exists(mash_db)
                 if os.path.isdir(mash_db):
                     mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
-
-
             ani_rep = ANIRep(self.cpus)
             # we store all the mash information in the classify directory
             fastani_results = ani_rep.run_mash_fastani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
 
-            mash_classified_user_genomes = self._sort_fastani_results_pre_pplacer(
+            mash_classified_user_genomes,user_genomes_radii = self._sort_fastani_results_pre_pplacer(
                 fastani_results,bac_ar_diff)
 
             len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
@@ -531,7 +531,8 @@ class Classify(object):
 
                     # we run a dereplication if the qc_file is provided
                     if de_novo_species_file:
-                        qcfile = GenomeClustering(de_novo_species_file, genomes,out_dir,
+                        qcfile = GenomeClustering(de_novo_species_file, genomes,
+                                                  user_genomes_radii,out_dir,
                                                   prefix, mash_d, mash_k, mash_v,
                                                   mash_s,cpus=self.cpus)
                         qc_genomes = qcfile.parse(genomes_to_process)
@@ -784,7 +785,8 @@ class Classify(object):
                 output_files.setdefault(marker_set_id, []).append(summary_file.path)
         return output_files
 
-    def _add_warning_to_row(self,row,msa_dict,
+    @staticmethod
+    def _add_warning_to_row(row, msa_dict,
                             trans_table_dict,
                             percent_multihit_dict,
                             warning_counter):
@@ -1431,7 +1433,8 @@ class Classify(object):
 
         return tree
 
-    def _get_pplacer_taxonomy(self, pplacer_classify_file, marker_set_id, user_msa_file, tree):
+    @staticmethod
+    def _get_pplacer_taxonomy(pplacer_classify_file, marker_set_id, user_msa_file, tree):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
 
         Parameters
@@ -1486,7 +1489,8 @@ class Classify(object):
                     warning_counter += 1
         return warning_counter
 
-    def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
+    @staticmethod
+    def add_failed_genomes_to_summary(align_dir, summary_file, prefix):
         warning_counter = 0
         prodigal_failed_file = os.path.join(align_dir, PATH_FAILS.format(prefix=prefix))
         align_failed_file = os.path.join(align_dir, PATH_FAILED_ALIGN_GENOMES.format(prefix=prefix))
@@ -1545,60 +1549,77 @@ class Classify(object):
 
         """
         classified_user_genomes = {}
+        user_genomes_radii = {}
 
         # sort the dictionary by ani then af
         for gid in fastani_results.keys():
-            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if
-                              hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
-                                  canonical_gid(ref_gid))]
+            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if \
+                              hit['af'] >= self.gtdb_radii.get_rep_af(canonical_gid(ref_gid))]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
             if len(closest) > 0:
-                summary_row = ClassifySummaryFileRow()
-                summary_row.gid = gid
-                summary_row.classification_method = 'ani_screen'
-                if len(closest) > 1:
+                set_to_closest_rep = False
+                closest_rep,closet_rep_infos = closest[0]
+                if closet_rep_infos['ani'] >= self.gtdb_radii.get_rep_ani(canonical_gid(closest_rep)):
+                    set_to_closest_rep = True
+                    # remove the closest rep from the list
+                    closest = closest[1:]
+                    
+                    summary_row = ClassifySummaryFileRow()
+                    summary_row.gid = gid
+                    summary_row.classification_method = 'ani_screen'
+
+                    warnings = []
+                    if set_to_closest_rep  :
+                        fastani_matching_reference = closest_rep
+                        current_ani = fastani_results.get(gid).get(
+                            fastani_matching_reference).get('ani')
+                        current_af = fastani_results.get(gid).get(
+                            fastani_matching_reference).get('af')
+
+                        summary_row.fastani_ref = fastani_matching_reference
+                        summary_row.fastani_ref_radius = str(
+                            self.species_radius.get(fastani_matching_reference))
+                        summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(fastani_matching_reference)))
+                        summary_row.fastani_ani = round(current_ani, 2)
+                        summary_row.fastani_af = round(current_af, 3)
+                        taxa_str = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(fastani_matching_reference)))
+                        summary_row.classification = standardise_taxonomy(
+                            taxa_str)
+
+                        if gid in bac_ar_diff:
+                            warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                                bac_ar_diff.get(gid).get('bac120'),
+                                bac_ar_diff.get(gid).get('ar53')))
+
+                        if len(warnings) > 0:
+                            summary_row.warnings = warnings
+                        summary_row.note = 'Classification based on ANI only'
+
+                else:
+                    # we set the radii of all user genomes
+                    user_genomes_radii[gid] = {'radius': max(95,self.species_radius.get(closest_rep))}
+
+                if len(closest) > 0:
                     other_ref = '; '.join(self.formatnote(
-                        closest,self.gtdb_taxonomy,self.species_radius, [gid]))
-                    if len(other_ref) == 0:
-                        summary_row.other_related_refs = None
-                    else:
-                        summary_row.other_related_refs = other_ref
-                summary_row.note = 'Classification based on ANI only'
+                        closest, self.gtdb_taxonomy, self.species_radius, [gid]))
 
-                fastani_matching_reference = closest[0][0]
-                current_ani = fastani_results.get(gid).get(
-                    fastani_matching_reference).get('ani')
-                current_af = fastani_results.get(gid).get(
-                    fastani_matching_reference).get('af')
+                    if set_to_closest_rep:
+                        if len(other_ref) == 0:
+                            summary_row.other_related_refs = None
+                        else:
+                            summary_row.other_related_refs = other_ref
 
-                summary_row.fastani_ref = fastani_matching_reference
-                summary_row.fastani_ref_radius = str(
-                    self.species_radius.get(fastani_matching_reference))
-                summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference)))
-                summary_row.fastani_ani = round(current_ani, 2)
-                summary_row.fastani_af = round(current_af, 3)
-                taxa_str = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference)))
-                summary_row.classification = standardise_taxonomy(
-                    taxa_str)
-
-                warnings = []
-                if gid in bac_ar_diff:
-                    warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                        bac_ar_diff.get(gid).get('bac120'),
-                        bac_ar_diff.get(gid).get('ar53')))
-
-                if len(warnings) > 0:
-                    summary_row.warnings = warnings
 
                 if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
                     domain = 'bac120'
                 else:
                     domain = 'ar53'
+
                 classified_user_genomes.setdefault(domain, []).append(summary_row)
 
-        return classified_user_genomes
+        return classified_user_genomes, user_genomes_radii
 
 
 
@@ -1926,8 +1947,10 @@ class Classify(object):
 
         Parameters
         ----------
-        list_subnode : list of leaf nodes including multiple reference genome.
-        closest_rank : last rank of the reference taxonomy
+        input_tree : str
+            path to input tree
+        out_dir: str
+            path to output directory
 
         Returns
         -------
