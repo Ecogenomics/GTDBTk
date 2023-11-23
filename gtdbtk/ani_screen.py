@@ -3,6 +3,7 @@ import os
 
 from gtdbtk.ani_rep import ANIRep, ANISummaryFile
 from gtdbtk.biolib_lite.common import make_sure_path_exists, canonical_gid
+from gtdbtk.biolib_lite.seq_io import read_fasta
 
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
@@ -45,7 +46,25 @@ class ANIScreener(object):
 
         ani_rep = ANIRep(self.cpus)
         # we store all the mash information in the classify directory
-        fastani_results = ani_rep.run_mash_fastani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
+
+        #we createa copy of the genomes dictionary to avoid modifying it
+        genomes_copy = genomes.copy()
+        # we remove all empty files from genomes.
+        for k in list(genomes_copy.keys()):
+            if os.path.getsize(genomes_copy[k]) == 0:
+                self.logger.warning(f'Genome {k} file is invalid for Mash. It will be removed from the sketch step.')
+                del genomes_copy[k]
+            else:
+                # we check if at least one contig is longer than the kmer size
+                seqs = read_fasta(genomes_copy[k])
+                if all(len(seq) < mash_k for seq in seqs.values()):
+                    self.logger.warning(
+                        f'Genome {k} file has all fasta sequences shorter than the k-mer size ({mash_k}).It will be removed from the sketch step.')
+                    del genomes_copy[k]
+
+
+
+        fastani_results = ani_rep.run_mash_fastani(genomes_copy, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
                                                     prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)

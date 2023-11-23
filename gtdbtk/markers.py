@@ -221,6 +221,10 @@ class Markers(object):
                 make_sure_path_exists(symlink_protein_dir)
                 symlink_f(os.path.abspath(gpath), os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
 
+        if not genome_dictionary:
+            # no genomes passed the prodigal step
+            return None
+
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.log(CONFIG.LOG_TASK,
                         'Identifying TIGRFAM protein families.')

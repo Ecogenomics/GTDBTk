@@ -85,7 +85,9 @@ class Prodigal(object):
             if len(seqs) == 0:
                 self.logger.warning('Cannot call Prodigal on an empty genome. '
                                     'Skipped: {}'.format(genome_file))
-                return None
+                return (
+                genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4],
+                table_coding_density[11], True)
 
             with tempfile.TemporaryDirectory('gtdbtk_prodigal_tmp_') as tmp_dir:
 
@@ -180,7 +182,7 @@ class Prodigal(object):
                                              genome_id + '.gff'), gff_file)
 
         return (genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, table_coding_density[4],
-                table_coding_density[11])
+                table_coding_density[11],False)
 
     def _consumer(self, produced_data, consumer_data):
         """Consume results from producer processes.
@@ -205,18 +207,19 @@ class Prodigal(object):
 
         ConsumerData = namedtuple(
             'ConsumerData',
-            'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11')
+            'aa_gene_file nt_gene_file gff_file best_translation_table coding_density_4 coding_density_11 is_empty')
         if consumer_data is None:
             consumer_data = defaultdict(ConsumerData)
 
-        genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, coding_density_4, coding_density_11 = produced_data
+        genome_id, aa_gene_file, nt_gene_file, gff_file, best_translation_table, coding_density_4, coding_density_11, is_empty = produced_data
 
         consumer_data[genome_id] = ConsumerData(aa_gene_file,
                                                 nt_gene_file,
                                                 gff_file,
                                                 best_translation_table,
                                                 coding_density_4,
-                                                coding_density_11)
+                                                coding_density_11,
+                                                is_empty)
 
         return consumer_data
 

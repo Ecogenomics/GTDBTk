@@ -653,13 +653,6 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes, tln_tables = self._genomes_to_process(options.genome_dir,
-                                                       options.batchfile,
-                                                       options.extension)
-        self.genomes_to_process = genomes
-
-        make_sure_path_exists(options.out_dir)
-
         genomes, _ = self._genomes_to_process(options.genome_dir,
                                               options.batchfile,
                                               options.extension)
@@ -1164,20 +1157,25 @@ class OptionsParser(object):
             if all_classified_ani:
                 self.logger.info('All genomes have been classified by the ANI screening step, Identify and Align steps will be skipped.')
             else:
-                self.identify(options,classified_genomes)
-                options.taxa_filter = None
-                options.custom_msa_filters = False
-                # Added here due to the other mutex argument being included above.
-                options.skip_trimming = False
-                options.min_consensus = None
-                options.min_perc_taxa = None
-                options.skip_gtdb_refs = False
-                options.cols_per_gene = None
-                options.max_consensus = None
-                options.rnd_seed = None
-                options.skip_trimming = False
+                reports  = self.identify(options,classified_genomes)
+                if reports is None:
+                    self.logger.info(
+                        'No genomes could pass the Identify step, Align and Classify steps will be skipped.')
+                    all_classified_ani = True
+                else:
+                    options.taxa_filter = None
+                    options.custom_msa_filters = False
+                    # Added here due to the other mutex argument being included above.
+                    options.skip_trimming = False
+                    options.min_consensus = None
+                    options.min_perc_taxa = None
+                    options.skip_gtdb_refs = False
+                    options.cols_per_gene = None
+                    options.max_consensus = None
+                    options.rnd_seed = None
+                    options.skip_trimming = False
 
-                self.align(options)
+                    self.align(options)
 
             # because we run ani_screen before the identify step, we do not need to rerun the
             #ani step again, so we set the skip_aniscreen to True
