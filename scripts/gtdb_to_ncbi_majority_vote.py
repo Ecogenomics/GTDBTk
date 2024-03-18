@@ -25,7 +25,7 @@ __author__ = 'Donovan Parks'
 __copyright__ = 'Copyright 2019'
 __credits__ = ['Donovan Parks']
 __license__ = 'GPL3'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __maintainer__ = 'Donovan Parks'
 __email__ = 'donovan.parks@gmail.com'
 __status__ = 'Development'
@@ -52,7 +52,8 @@ from gtdbtk.exceptions import GTDBTkExit
 FAMILY_IDX = 4
 SPECIES_IDX = 6
 
-class Translate(object):
+
+class GtdbNcbiTranslate(object):
     """Translate GTDB to NCBI classification via majority vote."""
 
     def __init__(self):
@@ -100,10 +101,10 @@ class Translate(object):
                 gtdbtk_ar_assignments = self.parse_gtdbtk_classifications(
                     ar_summary)
             else:
-                logger.warning(
-                    f'Archaeal GTDB-Tk classification file does not exist.')
-                logger.warning(
-                    f'Assuming there are no archaeal genomes to reclassify.')
+                self.logger.warning(
+                    'Archaeal GTDB-Tk classification file does not exist.')
+                self.logger.warning(
+                    'Assuming there are no archaeal genomes to reclassify.')
 
         gtdbtk_bac_assignments = {}
         if bac120_metadata_file:
@@ -114,10 +115,10 @@ class Translate(object):
                 gtdbtk_bac_assignments = self.parse_gtdbtk_classifications(
                     bac_summary)
             else:
-                logger.warning(
-                    f'Bacterial GTDB-Tk classification file does not exist.')
-                logger.warning(
-                    f'Assuming there are no bacterial genomes to reclassify.')
+                self.logger.warning(
+                    'Bacterial GTDB-Tk classification file does not exist.')
+                self.logger.warning(
+                    'Assuming there are no bacterial genomes to reclassify.')
 
         return gtdbtk_ar_assignments, gtdbtk_bac_assignments
 
@@ -243,7 +244,8 @@ class Translate(object):
                     if gid == rep_id:
                         # genome is a GTDB representative
                         gtdb_taxonomy = tokens[gtdb_taxonomy_index]
-                        gtdb_taxa = [t.strip() for t in gtdb_taxonomy.split(';')]
+                        gtdb_taxa = [t.strip()
+                                     for t in gtdb_taxonomy.split(';')]
                         gtdb_family = gtdb_taxa[FAMILY_IDX]
                         gtdb_family_to_rids[gtdb_family].add(gid)
 
@@ -315,7 +317,7 @@ class Translate(object):
                 return None
 
         self.logger.error('Unexpected case while resolving majority vote.')
-        assert(False)
+        assert False
 
     def ncbi_sp_majority_vote(self, gtdb_sp_clusters, ncbi_taxa, ncbi_lineages):
         """Get NCBI majority vote classification for each GTDB species cluster."""
@@ -411,6 +413,11 @@ class Translate(object):
                 # placed in species-level trees
                 processed_gids = set()
                 for tree_file in sp_trees:
+                    if not os.path.exists(tree_file):
+                        # can occur since all genomes might be classified
+                        # using ANI prescreening
+                        continue
+
                     self.logger.info(f' - parsing {tree_file}')
                     tree = dendropy.Tree.get_from_path(tree_file,
                                                        schema='newick',
@@ -508,14 +515,16 @@ class Translate(object):
                 remaining_gids = set(gtdbtk_assignments) - processed_gids
                 for gid in remaining_gids:
                     gtdb_taxa = gtdbtk_assignments[gid]
-
-                    gtdb_sp_rid = gtdb_sp_to_rid[gtdb_taxa[SPECIES_IDX]]
-                    ncbi_mv = ncbi_sp_classification[gtdb_sp_rid]
+                    if gtdb_taxa[0].startswith('Unclassified'):
+                        ncbi_mv = gtdb_taxa
+                    else:
+                        gtdb_sp_rid = gtdb_sp_to_rid[gtdb_taxa[SPECIES_IDX]]
+                        ncbi_mv = ncbi_sp_classification[gtdb_sp_rid]
 
                     fout.write('{}\t{}\t{}\n'.format(
-                            gid,
-                            ';'.join(gtdb_taxa),
-                            ';'.join(ncbi_mv)))
+                        gid,
+                        ';'.join(gtdb_taxa),
+                        ';'.join(ncbi_mv)))
 
     def run(self,
             gtdbtk_output_dir,
@@ -632,8 +641,8 @@ if __name__ == "__main__":
         GTDB bacterial metadata file (if processing bacterial genomes).
 
     NOTE: GTDB metadata files are available for download at:
-          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/ar53_metadata.tar.gz
-          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/bac120_metadata.tar.gz
+          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/ar53_metadata.tsv.gz
+          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/bac120_metadata.tsv.gz
 
   {colour('Optional arguments:', ['underscore'])}
     {colour('--gtdbtk_prefix', ['bright'])}
@@ -683,7 +692,7 @@ if __name__ == "__main__":
                 sys.exit(1)
 
     try:
-        p = Translate()
+        p = GtdbNcbiTranslate()
         p.run(args.gtdbtk_output_dir,
               args.ar53_metadata_file,
               args.bac120_metadata_file,
