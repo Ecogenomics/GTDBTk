@@ -85,7 +85,7 @@ class ANIRep(object):
                        min_af,
                        taxonomy)
 
-    def run_mash_fastani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
+    def run_mash_fastani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100.0, mash_db=None):
         """Runs the mash and fastani pipeline.
         This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
@@ -108,7 +108,7 @@ class ANIRep(object):
             maximum p-value to keep [0-1]
         mash_s : int
             maximum number of non-redundant hashes
-        min_af : float
+        mash_max_dist : float
             alignment fraction to consider the closest genome
         mash_db : Optional[str]
             The path to read/write the pre-computed Mash reference sketch database.

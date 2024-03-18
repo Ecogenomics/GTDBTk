@@ -378,6 +378,11 @@ class Classify(object):
             mash_classified_user_genomes,user_genomes_radii = self._sort_fastani_results_pre_pplacer(
                 fastani_results,bac_ar_diff)
 
+            #user_genomes_radii has been filled for genomes with a fastani result, we need to fill it for the rest of the genomes
+            for gid,_path in genomes.items():
+                if gid not in user_genomes_radii:
+                    user_genomes_radii[gid] = {'radius':CONFIG.FASTANI_SPECIES_THRESHOLD}
+
             len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
                 if 'bac120' in mash_classified_user_genomes else 0
 
@@ -528,21 +533,24 @@ class Classify(object):
                     for row in list_summary_rows:
                         if row.gid in genomes_to_process:
                             genomes_to_process.remove(row.gid)
+                        else:
+                            print(f'{row.gid} is not in the list of genomes to process')
 
                     # we run a dereplication if the qc_file is provided
                     if de_novo_species_file:
                         qcfile = GenomeClustering(de_novo_species_file, genomes,
-                                                  user_genomes_radii,out_dir,
+                                                  user_genomes_radii, out_dir,
                                                   prefix, mash_d, mash_k, mash_v,
-                                                  mash_s,cpus=self.cpus)
+                                                  mash_s, cpus=self.cpus)
                         qc_genomes = qcfile.parse(genomes_to_process)
                         # make sure all genomes in genomes are in qc_genomes
+
                         for gid in genomes_to_process:
                             if gid not in qc_genomes:
                                 raise GenomeNotInQCFile(f'{gid} is not in the de_novo_species file')
 
                         self.logger.info(f'QC file provided. Dereplicating {len(genomes_to_process)} genomes.')
-                        qc_genomes_cluster = qcfile.species_cluster(all_genomes_to_process,marker_set_id)
+                        qc_genomes_cluster = qcfile.species_cluster(all_genomes_to_process, marker_set_id,list_summary_rows)
                         self.logger.info(f'{len(qc_genomes_cluster)} species clusters found.')
 
                     # before writing the list of rows, we need to make sure the genomes are still the closest to a GTDB rep
@@ -1554,7 +1562,7 @@ class Classify(object):
         # sort the dictionary by ani then af
         for gid in fastani_results.keys():
             thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if \
-                              hit['af'] >= self.gtdb_radii.get_rep_af(canonical_gid(ref_gid))]
+                              hit['af'] >= CONFIG.AF_THRESHOLD]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
             if len(closest) > 0:
                 set_to_closest_rep = False
@@ -1562,7 +1570,8 @@ class Classify(object):
                 if closet_rep_infos['ani'] >= self.gtdb_radii.get_rep_ani(canonical_gid(closest_rep)):
                     set_to_closest_rep = True
                     # remove the closest rep from the list
-                    closest = closest[1:]
+                    trimmed_closest = closest[1:]
+                    other_ref = None
                     
                     summary_row = ClassifySummaryFileRow()
                     summary_row.gid = gid
@@ -1597,32 +1606,22 @@ class Classify(object):
                             summary_row.warnings = warnings
                         summary_row.note = 'Classification based on ANI only'
 
-                else:
-                    # we set the radii of all user genomes
-                    user_genomes_radii[gid] = {'radius': max(95,self.species_radius.get(closest_rep))}
+                        if len(trimmed_closest) > 0:
+                            other_ref = '; '.join(self.formatnote(
+                                closest, self.gtdb_taxonomy, self.species_radius, [gid]))
+                        summary_row.other_related_refs = other_ref
 
-                if len(closest) > 0:
-                    other_ref = '; '.join(self.formatnote(
-                        closest, self.gtdb_taxonomy, self.species_radius, [gid]))
-
-                    if set_to_closest_rep:
-                        if len(other_ref) == 0:
-                            summary_row.other_related_refs = None
+                        if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
+                            domain = 'bac120'
                         else:
-                            summary_row.other_related_refs = other_ref
+                            domain = 'ar53'
 
+                        classified_user_genomes.setdefault(domain, []).append(summary_row)
 
-                if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
-                    domain = 'bac120'
-                else:
-                    domain = 'ar53'
-
-                classified_user_genomes.setdefault(domain, []).append(summary_row)
+                # we set the radii of all user genomes
+                user_genomes_radii[gid] = {'radius': max(CONFIG.FASTANI_SPECIES_THRESHOLD,self.species_radius.get(closest_rep))}
 
         return classified_user_genomes, user_genomes_radii
-
-
-
 
     def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict,
                               all_fastani_dict, msa_dict, percent_multihit_dict,

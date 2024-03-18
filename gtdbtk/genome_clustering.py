@@ -16,14 +16,13 @@
 ###############################################################################
 import logging
 import os
-import shutil
 from collections import defaultdict
 from typing import List, Tuple
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.common import CONFIG
-from gtdbtk.config.output import DIR_ANI_REP_INT_DEREP, DIR_ANI_REP_INT_MASH, DIR_ANISCREEN
+from gtdbtk.config.output import DIR_ANI_REP_INT_DEREP
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.mash import Mash
@@ -44,10 +43,11 @@ class QCedGenome:
         self.contig_count = None
         self.ambiguous_bases = None
         self.score = None
+        self.calculate_seq_stats()
 
-
-    def calculateSeqStats(self):
-        """ Based on CheckM code. Calculate scaffold length statistics (min length, max length, total length, N50, # contigs)."""
+    def calculate_seq_stats(self):
+        """ Based on CheckM code. Calculate scaffold length
+        statistics (min length, max length, total length, N50, #contigs)."""
 
         # read scaffolds
         seqs = read_fasta(self.path)
@@ -140,14 +140,14 @@ class GenomeClustering(object):
                         elif '(Specific Model)' in line[model_info_idx]:
                             completeness_index = both_model.get('specific_idx')
                     qg = QCedGenome(line[name_index],filepath, float(line[completeness_index]), float(line[contamination_index]))
-                    qg.calculateSeqStats()
                     genomes[qg.name] = qg.score
 
         self.qc_genomes=genomes
         return genomes
 
-    def species_cluster(self,all_genomes_to_process,marker_set_id):
+    def species_cluster(self,all_genomes_to_process,marker_set_id,list_summary_rows):
         fastani = FastANI(self.cpus, force_single=True)
+        list_classified_genomes = [row.gid for row in list_summary_rows]
         qc_genomes = self.qc_genomes
         #we sort the genomes by score
         sorted_genomes = sorted(qc_genomes.items(), key=lambda x: x[1], reverse=True)
@@ -173,7 +173,7 @@ class GenomeClustering(object):
                 # we can remove all genomes that are not in the pre filter from mash
                 other_genomes = [gid for gid in other_genomes if gid in mash_results[rep_id]]
                 if other_genomes:
-                    temp_dict = {rep_id:other_genomes}
+                    temp_dict = {rep_id: other_genomes}
                     fastani_results = fastani.run(temp_dict, self.genome_path, verbose=False)
                 else:
                     fastani_results = dict()
@@ -182,7 +182,7 @@ class GenomeClustering(object):
                 if rep_id in fastani_results.keys():
                     thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[rep_id].items() if
                                       hit['af'] >= CONFIG.AF_THRESHOLD
-                                      and hit['ani'] >= (max(self.user_genomes_radii[rep_id],self.user_genomes_radii[ref_gid]))]
+                                      and hit['ani'] >= (max(self.user_genomes_radii[rep_id]['radius'],self.user_genomes_radii[ref_gid]['radius']))]
                     closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
                     sp_cluster[rep_id]['members']=closest
                     if len(closest)>0:
@@ -215,6 +215,9 @@ class GenomeClustering(object):
         for repg,clustered_gs in qc_genomes_cluster.items():
             for clustered_g in clustered_gs['members']:
                 genomes_to_process[clustered_g[0]] = self.genome_path[clustered_g[0]]
+                if clustered_g[0] in value_ani:
+                    print('This is a rare case where a genome has move from an official rep '
+                          'to a user rep')
                 value_ani[clustered_g[0]] = {'rep': repg, 'ani': clustered_g[1].get('ani'),
                                              'af': clustered_g[1].get('af')}
 
@@ -222,12 +225,9 @@ class GenomeClustering(object):
         d_compare = defaultdict(set)
         for qry_gid, ref_hits in mash_results.items():
             d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
-        for row in list_summary_rows:
-            value_ani[row.gid] = {'rep':row.fastani_ref,'ani':row.fastani_ani,'af':row.fastani_af}
-        for repg,clustered_gs in qc_genomes_cluster.items():
-            for clustered_g in clustered_gs['members']:
-                value_ani[clustered_g[0]] = {'rep':repg,'ani':clustered_g[1].get('ani'),'af':clustered_g[1].get('af')}
+
         fastani_results = fastani.run(d_compare, self.genome_path)
+
         for gid in fastani_results.keys():
             thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if
                               hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= CONFIG.FASTANI_SPECIES_THRESHOLD]
@@ -236,7 +236,7 @@ class GenomeClustering(object):
                 closest_user_rep = closest[0]
                 if closest_user_rep[0] != value_ani[gid]['rep']:
                     if closest_user_rep[1]['ani'] > value_ani[gid]['ani'] and closest_user_rep[1]['af'] >= value_ani[gid]['af']:
-                        qc_genomes_cluster[closest_user_rep[0]]['members'].append(gid)
+                        qc_genomes_cluster[closest_user_rep[0]]['members'].append((gid,closest_user_rep[1]))
                         changing_reps_genomes.append(gid)
                     elif closest_user_rep[1]['ani'] >= value_ani[gid]['ani'] and closest_user_rep[1]['af'] > value_ani[gid]['af']:
                         qc_genomes_cluster[closest_user_rep[0]]['members'].append(gid)
@@ -291,7 +291,7 @@ class GenomeClustering(object):
             return name_index, completeness_index, contamination_index, sep, both_models
         else:
             raise Exception('Unknown format of Completeness/Contamination file. the format should be either CheckM1, CheckM2 '
-                            'or contains the headers Name, Completeness and Contamination.')
+                            'or contains the headers "Name,Completeness and Contamination".')
 
     def __detect_delimiters(self,header):
         delimiters = ['\t', ',']
