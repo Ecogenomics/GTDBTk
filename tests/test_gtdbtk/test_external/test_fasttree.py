@@ -28,7 +28,7 @@ class TestFastTree(unittest.TestCase):
     def setUp(self):
         self.dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         self.cpus = 1
-        self.genome_root = CONFIG.FASTANI_GENOMES
+        self.genome_root = CONFIG.SKANI_GENOMES
         self.test_msa = 'tests/data/example.faa'
         self.test_msa_gz = 'tests/data/example.faa.gz'
 
