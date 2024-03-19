@@ -53,8 +53,8 @@ class OptionsParser(object):
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)"""
 
-        if options.subparser_name == 'convert_fastani_genomes':
-            self.convert_fastani_genomes(options.dirin, options.dirout)
+        if options.subparser_name == 'convert_skani_genomes':
+            self.convert_skani_genomes(options.dirin, options.dirout)
         elif options.subparser_name == 'unroot_tree':
             self.unroot(options.input_tree, options.output_tree)
         else:
@@ -64,7 +64,7 @@ class OptionsParser(object):
 
         return 0
 
-    def convert_fastani_genomes(self, dirin, dirout):
+    def convert_skani_genomes(self, dirin, dirout):
 
         # get mapping from published UBA genomes to NCBI accessions
         __location__ = os.path.realpath(os.path.join(

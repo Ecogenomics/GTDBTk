@@ -9,7 +9,7 @@ from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.exceptions import GTDBTkExit
-from gtdbtk.external.fastani import FastANI
+from gtdbtk.external.skani import SkANI
 from gtdbtk.external.mash import Mash
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.tools import get_ref_genomes
@@ -38,7 +38,7 @@ class ANIRep(object):
         no_mash : bool
             True if Mash will be used, False otherwise.
         """
-        dependencies = ['fastANI']
+        dependencies = ['skani']
         if not no_mash:
             dependencies.append('mash')
         check_dependencies(dependencies)
@@ -71,22 +71,22 @@ class ANIRep(object):
             The path to read/write the pre-computed Mash reference sketch database.
         """
         max_mash_dist = mash_d
-        fastani_results = self.run_mash_fastani(genomes, no_mash, mash_d, out_dir,
+        skani_results = self.run_mash_skani(genomes, no_mash, mash_d, out_dir,
                                                 prefix, mash_k, mash_v,
                                                 mash_s, max_mash_dist, mash_db=mash_db)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
-        ani_summary_file = ANISummaryFile(out_dir, prefix, fastani_results, taxonomy)
+        ani_summary_file = ANISummaryFile(out_dir, prefix, skani_results, taxonomy)
         ani_summary_file.write()
         ANIClosestFile(out_dir,
                        prefix,
-                       fastani_results,
+                       skani_results,
                        genomes,
                        min_af,
                        taxonomy)
 
-    def run_mash_fastani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
-        """Runs the mash and fastani pipeline.
+    def run_mash_skani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
+        """Runs the mash and skani pipeline.
         This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
 
@@ -136,10 +136,10 @@ class ANIRep(object):
             for qry_gid in genomes:
                 d_compare[qry_gid] = set(ref_genomes.keys())
 
-        self.logger.info(f'Calculating ANI with FastANI v{FastANI._get_version()}.')
-        fastani = FastANI(self.cpus, force_single=True)
-        fastani_results = fastani.run(d_compare, d_paths)
-        return fastani_results
+        self.logger.info(f'Calculating ANI with skani v{SkANI._get_version()}.')
+        skani = SkANI(self.cpus, force_single=True)
+        skani_results = skani.run(d_compare, d_paths)
+        return skani_results
 
 class ANISummaryFile(object):
     name = 'ani_summary.tsv'
@@ -154,7 +154,7 @@ class ANISummaryFile(object):
         prefix : str
             The output file prefix.
         results: dict[str, dict[str, dict[str, float]]]
-            FastANI results.
+            skani results.
         taxonomy : dict[str, tuple[str, str, str, str, str, str, str]]
             d[unique_id] -> [d__<taxon>, ..., s__<taxon>]
         """
@@ -175,8 +175,8 @@ class ANISummaryFile(object):
         then format the row in that specific order."""
         cols = ['user_genome',
                    'reference_genome',
-                   'fastani_ani',
-                   'fastani_af',
+                   'skani_ani',
+                   'skani_af',
                    'reference_taxonomy']
         if ani_screen_step:
             cols += ['other_related_references(genome_id,species_name,radius,ANI,AF)']
@@ -231,7 +231,7 @@ class ANIClosestFile(object):
         prefix : str
             The output file prefix.
         results: dict[str, dict[str, dict[str, float]]]
-            FastANI results.
+            skani results.
         genomes : dict[str, str]
             Dict[genome_id] = fasta_path
         min_af : float
@@ -250,7 +250,7 @@ class ANIClosestFile(object):
 
     def _write(self):
         with open(self.path, 'w') as fh:
-            fh.write('user_genome\treference_genome\tfastani_ani\tfastani_af\t'
+            fh.write('user_genome\treference_genome\tskani_ani\tskani_af\t'
                      'reference_taxonomy\tsatisfies_gtdb_circumscription_criteria\n')
             for gid in sorted(self.genomes):
                 if gid in self.results:
