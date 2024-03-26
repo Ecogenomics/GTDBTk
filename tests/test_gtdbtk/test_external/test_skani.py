@@ -34,7 +34,7 @@ class TestSkANI(unittest.TestCase):
         shutil.rmtree(self.dir_tmp)
 
     def test_run(self):
-        """Test that FastANI produces the expected output (version dependent)"""
+        """Test that skani produces the expected output (version dependent)"""
 
         fa = SkANI(self.cpus, force_single=True)
 

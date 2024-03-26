@@ -15,7 +15,7 @@ For arguments and output files, see each of the individual steps:
 The classify workflow consists of four steps: ``ani_screen``, ``identify``, ``align``, and ``classify``.
 
 The ``ani_screen`` step compares user genomes against a `Mash <https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0997-x>`_ database composed of all GTDB representative genomes,
-then verify the best mash hits using `FastANI <https://www.nature.com/articles/s41467-018-07641-9>`_. User genomes classified with FastANI are not run through the rest of the pipeline (``identify``, ``align``, ``classify``)
+then verify the best mash hits using `skani <https://www.nature.com/articles/s41592-023-02018-3>`_. User genomes classified with FastANI are not run through the rest of the pipeline (``identify``, ``align``, ``classify``)
 and are reported in the summary file.
 
 The ``identify`` step calls genes using `Prodigal <http://compbio.ornl.gov/prodigal/>`_,

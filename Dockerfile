@@ -4,6 +4,8 @@
 
 FROM python:3.8-slim-bullseye
 
+ARG SKANI_VER="0.2.1"
+
 ARG VER
 
 # ---------------------------------------------------------------------------- #
@@ -15,6 +17,7 @@ RUN apt-get update -y -m && \
         libgomp1 \
         libgsl25 \
         libgslcblas0 \
+        cargo \
         hmmer=3.* \
         mash=2.2.* \
         prodigal=1:2.6.* \
@@ -36,9 +39,22 @@ RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplace
 # ---------------------------------------------------------------------------- #
 # ----------------------------- INSTALL FASTANI ------------------------------ #
 # ---------------------------------------------------------------------------- #
-RUN wget https://github.com/ParBLiSS/FastANI/releases/download/v1.32/fastANI-Linux64-v1.32.zip -q && \
-    unzip fastANI-Linux64-v1.32.zip -d /usr/bin && \
-    rm fastANI-Linux64-v1.32.zip
+#RUN wget https://github.com/ParBLiSS/FastANI/releases/download/v1.32/fastANI-Linux64-v1.32.zip -q && \
+#    unzip fastANI-Linux64-v1.32.zip -d /usr/bin && \
+#    rm fastANI-Linux64-v1.32.zip
+
+# ---------------------------------------------------------------------------- #
+# ------------------------------ INSTALL SKANI ------------------------------- #
+# ---------------------------------------------------------------------------- #
+
+ARG SKANI_VER
+
+RUN wget https://github.com/bluenote-1577/skani/archive/refs/tags/v${SKANI_VER}.tar.gz &&\
+    tar -xvf v${SKANI_VER}.tar.gz &&\
+    cd skani-${SKANI_VER} &&\
+    cargo install --path . --root ~/.cargo &&\
+    chmod +x /root/.cargo/bin/skani &&\
+    rm v${SKANI_VER}.tar.gz
 
 # ---------------------------------------------------------------------------- #
 # --------------------- SET GTDB-TK MOUNTED DIRECTORIES ---------------------- #

@@ -44,7 +44,6 @@ class SkANI(object):
         self.force_single = force_single
         self.logger = logging.getLogger('timestamp')
         self.version = self._get_version()
-        self.minFrac = self._isMinFrac_present()
         self._suppress_v1_warning = False
 
     @staticmethod

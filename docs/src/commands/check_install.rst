@@ -42,7 +42,7 @@ Output
     [2020-11-04 09:35:16] INFO: Checking that all third-party software are on the system path:
     [2020-11-04 09:35:16] INFO:          |-- FastTree         OK
     [2020-11-04 09:35:16] INFO:          |-- FastTreeMP       OK
-    [2020-11-04 09:35:16] INFO:          |-- fastANI          OK
+    [2020-11-04 09:35:16] INFO:          |-- skani            OK
     [2020-11-04 09:35:16] INFO:          |-- guppy            OK
     [2020-11-04 09:35:16] INFO:          |-- hmmalign         OK
     [2020-11-04 09:35:16] INFO:          |-- hmmsearch        OK
@@ -57,6 +57,6 @@ Output
     [2020-11-04 09:35:20] INFO:          |-- msa              OK
     [2020-11-04 09:35:20] INFO:          |-- metadata         OK
     [2020-11-04 09:35:20] INFO:          |-- taxonomy         OK
-    [2020-11-04 09:47:36] INFO:          |-- fastani          OK
+    [2020-11-04 09:47:36] INFO:          |-- skani            OK
     [2020-11-04 09:47:36] INFO:          |-- mrca_red         OK
     [2020-11-04 09:47:36] INFO: Done.

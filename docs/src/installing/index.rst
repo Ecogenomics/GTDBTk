@@ -98,9 +98,9 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes they are o
    * - `pplacer <http://matsen.fhcrc.org/pplacer/>`_
      - >= 1.1
      - Matsen FA, et al. 2010. `pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree <https://www.ncbi.nlm.nih.gov/pubmed/21034504>`_. *BMC Bioinformatics*, 11:538.
-   * - `FastANI <https://github.com/ParBLiSS/FastANI>`_
-     - >= 1.32
-     - Jain C, et al. 2019. `High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries <https://www.nature.com/articles/s41467-018-07641-9>`_. *Nat. Communications*, doi: 10.1038/s41467-018-07641-9.
+   * - `skani <https://github.com/bluenote-1577/skani/>`_
+     - >= 0.2.1
+     - Shaw J. and Yu Y.W. 2023. `Fast and robust metagenomic sequence comparison through sparse chaining with skani <https://www.nature.com/articles/s41592-023-02018-3>`_. *Nature Methods*, 20, pages1661–1665 (2023).
    * - `FastTree <http://www.microbesonline.org/fasttree/>`_
      - >= 2.1.9
      - Price MN, et al. 2010. `FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/>`_. *PLoS One*, 5, e9490.
