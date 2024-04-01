@@ -2,6 +2,32 @@
 Change log
 ==========
 
+
+2.4.0
+-----
+
+Bug Fixes:
+
+
+Major Changes:
+
+* FastANI has been replaced by skani as the primary tool for computing Average Nucleotide Identity (ANI).Users may notice slight variations in the results compared to those obtained using FastANI.
+
+* In the generated `summary.tsv` files, several columns have been renamed for clarity and consistency. The following columns have been affected:
+
+    - "`fastani_reference`" column has been renamed to "`closest_rep`".
+    - "`fastani_reference_radius`" column has been renamed to "`closest_rep_radius`".
+    - "`fastani_taxonomy`" column has been renamed to "`closest_rep_taxonomy`".
+    - "`fastani_ani`" column has been renamed to "`closest_rep_ani`".
+    - "`fastani_af`" column has been renamed to "`closest_rep_af`".
+
+ These changes have been implemented to improve the readability and understanding of the data within the `summary.tsv` files. Users should update their scripts or processes accordingly to reflect these renamed column headers.
+
+Minor Changes:
+
+
+
+
 2.3.2
 -----
 
