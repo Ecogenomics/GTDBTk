@@ -218,9 +218,11 @@ class SkANI(object):
             af_q = float(tokens[4])
             ani_af = (qid, rid, ani, af_r, af_q)
         else:
-            # genomes too divergent to determine ANI and AF
-            # with skani so default to zeros
-            ani_af = (qid, rid, 0.0, 0.0, 0.0)
+        #     # genomes too divergent to determine ANI and AF
+        #     # with skani so default to zeros
+            ani_af = "null"
+        #     ani_af = (qid, rid, 0.0, 0.0, 0.0)
+
 
         return ani_af
 
@@ -257,11 +259,15 @@ class SkANI(object):
         out = dict()
         while True:
             job = q_results.get(block=True)
+            if job == 'null':
+                continue
             if job is None:
                 break
 
             qid, rid, ani, af_r, af_q = job
             max_af = max(af_r, af_q)
+            # af is a percent, we need to divide it by 100
+            max_af = max_af/100
             if qid not in out:
                 out[qid] = {rid: {'ani': ani, 'af': max_af}}
             else:
