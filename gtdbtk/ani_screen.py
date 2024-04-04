@@ -95,9 +95,9 @@ class ANIScreener(object):
             if len(closest) > 0:
                 ref_gid, hit = closest[0]
                 hit_taxonomy = taxonomy[canonical_gid(ref_gid)]
-                if len(all_closest) > 1:
+                if len(all_results) > 1:
                     other_ref = '; '.join(Classify.formatnote(
-                        closest,taxonomy,Classify.parse_radius_file(), [ref_gid]))
+                        all_results,taxonomy,Classify.parse_radius_file(), [ref_gid]))
                     if len(other_ref) > 0:
                         hit['other_related_refs'] = other_ref
 

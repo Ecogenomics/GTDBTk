@@ -1464,55 +1464,59 @@ class Classify(object):
 
         # sort the dictionary by ani then af
         for gid in skani_results.keys():
-            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items() if
-                              hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
-                                  canonical_gid(ref_gid))]
+            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items() if \
+                              hit['af'] >= CONFIG.AF_THRESHOLD]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
             if len(closest) > 0:
-                summary_row = ClassifySummaryFileRow()
-                summary_row.gid = gid
-                summary_row.classification_method = 'ani_screen'
-                if len(closest) > 1:
-                    other_ref = '; '.join(self.formatnote(
-                        closest,self.gtdb_taxonomy,self.species_radius, [gid]))
-                    if len(other_ref) == 0:
-                        summary_row.other_related_refs = None
-                    else:
+                set_to_closest_rep = False
+                closest_rep,closet_rep_infos = closest[0]
+                if closet_rep_infos['ani'] >= self.gtdb_radii.get_rep_ani(canonical_gid(closest_rep)):
+                    set_to_closest_rep = True
+                    # remove the closest rep from the list
+                    trimmed_closest = closest[1:]
+                    other_ref = None
+                    summary_row = ClassifySummaryFileRow()
+                    summary_row.gid = gid
+                    summary_row.classification_method = 'ani_screen'
+
+                    if len(trimmed_closest) > 1:
+                        other_ref = '; '.join(self.formatnote(
+                            closest,self.gtdb_taxonomy,self.species_radius, [gid]))
                         summary_row.other_related_refs = other_ref
-                summary_row.note = 'classification based on ANI only'
+                    summary_row.note = 'classification based on ANI only'
 
-                skani_matching_reference = closest[0][0]
-                current_ani = skani_results.get(gid).get(
-                    skani_matching_reference).get('ani')
-                current_af = skani_results.get(gid).get(
-                    skani_matching_reference).get('af')
+                    skani_matching_reference = closest_rep
+                    current_ani = skani_results.get(gid).get(
+                        skani_matching_reference).get('ani')
+                    current_af = skani_results.get(gid).get(
+                        skani_matching_reference).get('af')
 
-                summary_row.skani_ref = skani_matching_reference
-                summary_row.skani_ref_radius = str(
-                    self.species_radius.get(skani_matching_reference))
-                summary_row.skani_tax = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(skani_matching_reference)))
-                summary_row.skani_ani = round(current_ani, 2)
-                summary_row.skani_af = round(current_af, 3)
-                taxa_str = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(skani_matching_reference)))
-                summary_row.classification = standardise_taxonomy(
-                    taxa_str)
+                    summary_row.skani_ref = skani_matching_reference
+                    summary_row.skani_ref_radius = str(
+                        self.species_radius.get(skani_matching_reference))
+                    summary_row.skani_tax = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(skani_matching_reference)))
+                    summary_row.skani_ani = round(current_ani, 2)
+                    summary_row.skani_af = round(current_af, 3)
+                    taxa_str = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(skani_matching_reference)))
+                    summary_row.classification = standardise_taxonomy(
+                        taxa_str)
 
-                warnings = []
-                if gid in bac_ar_diff:
-                    warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                        bac_ar_diff.get(gid).get('bac120'),
-                        bac_ar_diff.get(gid).get('ar53')))
+                    warnings = []
+                    if gid in bac_ar_diff:
+                        warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                            bac_ar_diff.get(gid).get('bac120'),
+                            bac_ar_diff.get(gid).get('ar53')))
 
-                if len(warnings) > 0:
-                    summary_row.warnings = warnings
+                    if len(warnings) > 0:
+                        summary_row.warnings = warnings
 
-                if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
-                    domain = 'bac120'
-                else:
-                    domain = 'ar53'
-                classified_user_genomes.setdefault(domain, []).append(summary_row)
+                    if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
+                        domain = 'bac120'
+                    else:
+                        domain = 'ar53'
+                    classified_user_genomes.setdefault(domain, []).append(summary_row)
 
         return classified_user_genomes
 
