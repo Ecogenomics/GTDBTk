@@ -49,20 +49,21 @@ Output
 
 .. code-block:: text
 
-    [2020-04-13 10:51:58] INFO: GTDB-Tk v1.1.0
-    [2020-04-13 10:51:58] INFO: gtdbtk ani_rep --genome_dir genomes/ --out_dir ani_rep/ --cpus 70
-    [2020-04-13 10:51:58] INFO: Using GTDB-Tk reference data version r89: /release89
-    [2020-04-13 10:51:59] INFO: Using Mash version 2.2.2
-    [2020-04-13 10:51:59] INFO: Creating Mash sketch file: ani_rep/intermediate_results/mash/gtdbtk.user_query_sketch.msh
-    ==> Sketching 3 of 3 (100.0%) genomes
-    [2020-04-13 10:51:59] INFO: Creating Mash sketch file: ani_rep/intermediate_results/mash/gtdbtk.gtdb_ref_sketch.msh
-    ==> Sketching 24706 of 24706 (100.0%) genomes
-    [2020-04-13 10:53:13] INFO: Calculating Mash distances.
-    [2020-04-13 10:53:14] INFO: Calculating ANI with FastANI.
-    ==> Processing 874 of 874 (100.0%) comparisons.
-    [2020-04-13 10:53:23] INFO: Summary of results saved to: ani_rep/gtdbtk.ani_summary.tsv
-    [2020-04-13 10:53:23] INFO: Closest representative hits saved to: ani_rep/gtdbtk.ani_closest.tsv
-    [2020-04-13 10:53:23] INFO: Done.
+    [2024-03-27 16:43:25] INFO: GTDB-Tk v2.3.2
+    [2024-03-27 16:43:25] INFO: gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv --out_dir user_vs_reps --cpus 90
+    [2024-03-27 16:43:25] INFO: Using GTDB-Tk reference data version r214: /srv/db/gtdbtk/official/release214_skani/release214
+    [2024-03-27 16:43:25] INFO: Loading reference genomes.
+    [2024-03-27 16:43:25] INFO: Using Mash version 2.2.2
+    [2024-03-27 16:43:25] INFO: Creating Mash sketch file: user_vs_reps/intermediate_results/mash/gtdbtk.user_query_sketch.msh
+    [2024-03-27 16:43:27] INFO: Completed 500 genomes in 1.42 seconds (351.61 genomes/second).
+    [2024-03-27 16:43:27] INFO: Creating Mash sketch file: user_vs_reps/intermediate_results/mash/gtdbtk.gtdb_ref_sketch.msh
+    [2024-03-27 16:46:55] INFO: Completed 85,205 genomes in 3.47 minutes (24,519.48 genomes/minute).
+    [2024-03-27 16:46:55] INFO: Calculating Mash distances.
+    [2024-03-27 16:47:37] INFO: Calculating ANI with skani v0.2.1.
+    [2024-03-27 16:47:45] INFO: Completed 4,383 comparisons in 7.68 seconds (570.58 comparisons/second).
+    [2024-03-27 16:47:46] INFO: Summary of results saved to: user_vs_reps/gtdbtk.ani_summary.tsv
+    [2024-03-27 16:47:46] INFO: Closest representative hits saved to: user_vs_reps/gtdbtk.ani_closest.tsv
+    [2024-03-27 16:47:46] INFO: Done.
 
 
 

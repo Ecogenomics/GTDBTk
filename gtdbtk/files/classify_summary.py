@@ -27,8 +27,8 @@ from gtdbtk.exceptions import GTDBTkExit
 class ClassifySummaryFileRow:
     """A row contained within the ClassifySummaryFile object."""
 
-    __slots__ = ('gid', 'classification', 'fastani_ref', 'fastani_ref_radius',
-                 'fastani_tax', 'fastani_ani', 'fastani_af', 'closest_placement_ref',
+    __slots__ = ('gid', 'classification', 'skani_ref', 'skani_ref_radius',
+                 'skani_tax', 'skani_ani', 'skani_af', 'closest_placement_ref',
                  'closest_placement_radius', 'closest_placement_tax', 'closest_placement_ani',
                  'closest_placement_af', 'pplacer_tax', 'classification_method',
                  'note', 'other_related_refs', 'msa_percent', 'tln_table',
@@ -38,11 +38,11 @@ class ClassifySummaryFileRow:
         """Initialise the row, default all the values to None."""
         self.gid: Optional[str] = None
         self.classification: Optional[str] = None
-        self.fastani_ref: Optional[str] = None
-        self.fastani_ref_radius: Optional[float] = None
-        self.fastani_tax: Optional[str] = None
-        self.fastani_ani: Optional[float] = None
-        self.fastani_af: Optional[float] = None
+        self.skani_ref: Optional[str] = None
+        self.skani_ref_radius: Optional[float] = None
+        self.skani_tax: Optional[str] = None
+        self.skani_ani: Optional[float] = None
+        self.skani_af: Optional[float] = None
         self.closest_placement_ref: Optional[str] = None
         self.closest_placement_radius: Optional[float] = None
         self.closest_placement_tax: Optional[str] = None
@@ -78,11 +78,11 @@ class ClassifySummaryFile:
             row = ClassifySummaryFileRow()
         mapping = [('user_genome', row.gid),
                    ('classification', row.classification),
-                   ('fastani_reference', row.fastani_ref),
-                   ('fastani_reference_radius', row.fastani_ref_radius),
-                   ('fastani_taxonomy', row.fastani_tax),
-                   ('fastani_ani', row.fastani_ani),
-                   ('fastani_af', row.fastani_af),
+                   ('skani_reference', row.skani_ref),
+                   ('skani_reference_radius', row.skani_ref_radius),
+                   ('skani_taxonomy', row.skani_tax),
+                   ('skani_ani', row.skani_ani),
+                   ('skani_af', row.skani_af),
                    ('closest_placement_reference', row.closest_placement_ref),
                    ('closest_placement_radius', row.closest_placement_radius),
                    ('closest_placement_taxonomy', row.closest_placement_tax),
@@ -153,11 +153,11 @@ class ClassifySummaryFile:
                 row = ClassifySummaryFileRow()
                 row.gid = data[0]
                 row.classification = data[1]
-                row.fastani_ref = data[2]
-                row.fastani_ref_radius = data[3]
-                row.fastani_tax = data[4]
-                row.fastani_ani = data[5]
-                row.fastani_af = data[6]
+                row.skani_ref = data[2]
+                row.skani_ref_radius = data[3]
+                row.skani_tax = data[4]
+                row.skani_ani = data[5]
+                row.skani_af = data[6]
                 row.closest_placement_ref = data[7]
                 row.closest_placement_radius = data[8]
                 row.closest_placement_tax = data[9]

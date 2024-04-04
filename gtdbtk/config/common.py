@@ -88,15 +88,15 @@ class __GTDBTkCommonConfig:
     AR_MARKER_COUNT = 53
     BAC_MARKER_COUNT = 120
 
-    # Information about alignment Fraction to resolve fastANI results
+    # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
 
     PPLACER_MIN_RAM_BAC_FULL = 320
     PPLACER_MIN_RAM_BAC_SPLIT = 55
     PPLACER_MIN_RAM_ARC = 40
 
-    FASTANI_SPECIES_THRESHOLD = 95.0
-    FASTANI_GENOMES_EXT = "_genomic.fna.gz"
+    SKANI_SPECIES_THRESHOLD = 95.0
+    SKANI_GENOMES_EXT = "_genomic.fna.gz"
 
     # Mash configuration
     MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'
@@ -150,8 +150,8 @@ class __GTDBTkCommonConfig:
         return os.path.join(self.GENERIC_PATH, 'pplacer/')
 
     @property
-    def FASTANI_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'fastani/')
+    def SKANI_DIR(self):
+        return os.path.join(self.GENERIC_PATH, 'skani/')
 
     @property
     def MASH_DIR(self):
@@ -313,12 +313,12 @@ class __GTDBTkCommonConfig:
         return f"gtdb_{self.VERSION_DATA}_rps23.refpkg"
 
     @property
-    def FASTANI_GENOMES(self):
-        return os.path.join(self.FASTANI_DIR, "database/")
+    def SKANI_GENOMES(self):
+        return os.path.join(self.SKANI_DIR, "database/")
 
     @property
-    def FASTANI_GENOME_LIST(self):
-        return os.path.join(self.FASTANI_DIR, "genome_paths.tsv")
+    def SKANI_GENOME_LIST(self):
+        return os.path.join(self.SKANI_DIR, "genome_paths.tsv")
 
     @property
     def MRCA_RED_BAC120(self):
@@ -342,7 +342,7 @@ class __GTDBTkCommonConfig:
                 self.MSA_FOLDER: '75df495678a121497e14346b453caf42f4b03922',
                 self.METADATA_DIR: 'a089cc36bf79a40c7506019accc5f93e940d9fed',
                 self.TAX_FOLDER: '89b12cf8106f326887599dcb30ef94ebba142035',
-                self.FASTANI_DIR: 'e12824beccc15fe67a373e2aa8eee72feecf89c6',
+                self.SKANI_DIR: 'e12824beccc15fe67a373e2aa8eee72feecf89c6',
                 self.RED_DIR: 'c24a2f48bb0c1df38f92a8f526aa846f596c94c6'
             }
         elif version==207:
@@ -354,7 +354,7 @@ class __GTDBTkCommonConfig:
                 self.MSA_FOLDER: '24f250d7cf0eb0bc65dccd2f3c9247e553ea322f',
                 self.METADATA_DIR: '9772fbeac1311b31e10293fa610eb33aa1ec8e15',
                 self.TAX_FOLDER: '6fb0233b05633242369b40c026fd1ee53e266afa',
-                self.FASTANI_DIR: '973c456c02f55bb82908a6811c7076e207e9b206',
+                self.SKANI_DIR: '973c456c02f55bb82908a6811c7076e207e9b206',
                 self.RED_DIR: '7b8b67b3157204b470c9eb809d3c39c4effffabc'
             }
 

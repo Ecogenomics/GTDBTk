@@ -53,8 +53,8 @@ class OptionsParser(object):
     def parse_options(self, options):
         """Parse user options and call the correct pipeline(s)"""
 
-        if options.subparser_name == 'convert_fastani_genomes':
-            self.convert_fastani_genomes(options.dirin, options.dirout)
+        if options.subparser_name == 'convert_skani_genomes':
+            self.convert_skani_genomes(options.dirin, options.dirout)
         elif options.subparser_name == 'unroot_tree':
             self.unroot(options.input_tree, options.output_tree)
         else:
@@ -64,7 +64,7 @@ class OptionsParser(object):
 
         return 0
 
-    def convert_fastani_genomes(self, dirin, dirout):
+    def convert_skani_genomes(self, dirin, dirout):
 
         # get mapping from published UBA genomes to NCBI accessions
         __location__ = os.path.realpath(os.path.join(
@@ -80,11 +80,11 @@ class OptionsParser(object):
                 else:
                     uba_acc[line_split[0]] = {"uba": line_split[1]}
 
-        fastanis = glob.glob(os.path.join(dirin, "*"))
-        fastani_dir = os.path.join(dirout, 'fastani')
-        if not os.path.exists(fastani_dir):
-            os.makedirs(fastani_dir)
-        for genome in fastanis:
+        skanis = glob.glob(os.path.join(dirin, "*"))
+        skani_dir = os.path.join(dirout, 'skani')
+        if not os.path.exists(skani_dir):
+            os.makedirs(skani_dir)
+        for genome in skanis:
             filenamef = os.path.basename(genome)
             filenamef = filenamef.replace("_genomic.fna", "")
             if filenamef.startswith("U_"):
@@ -92,13 +92,13 @@ class OptionsParser(object):
                 subdict = uba_acc.get(filenamef)
                 if "gca" in subdict.keys():
                     copyfile(genome, os.path.join(
-                        fastani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
+                        skani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
                 else:
                     copyfile(genome, os.path.join(
-                        fastani_dir, subdict.get("uba") + "_genomic.fna"))
+                        skani_dir, subdict.get("uba") + "_genomic.fna"))
             else:
                 copyfile(genome, os.path.join(
-                    fastani_dir, filenamef + "_genomic.fna"))
+                    skani_dir, filenamef + "_genomic.fna"))
 
     def unroot(self, rooted_tree, unrooted_tree):
         # get taxonomic classification of each user genome
@@ -114,7 +114,7 @@ class OptionsParser(object):
         return True
 
     def run(self, dirin, dirout, gtr, release):
-        """ renaming genome files for fastani"""
+        """ renaming genome files for skani"""
 
         # get list of genomes to retain (based on genome list 1014)
         genomes_to_retain = set()
@@ -158,12 +158,12 @@ class OptionsParser(object):
                         taxout.write(line)
         taxout.close()
 
-        # renaming genome files for fastani
-        fastanis = glob.glob(os.path.join(dirin, 'fastani', "*"))
-        fastani_dir = os.path.join(dirout, 'fastani')
-        if not os.path.exists(fastani_dir):
-            os.makedirs(fastani_dir)
-        for genome in fastanis:
+        # renaming genome files for skani
+        skanis = glob.glob(os.path.join(dirin, 'skani', "*"))
+        skani_dir = os.path.join(dirout, 'skani')
+        if not os.path.exists(skani_dir):
+            os.makedirs(skani_dir)
+        for genome in skanis:
             filenamef = os.path.basename(genome)
             filenamef = filenamef.replace("_genomic.fna", "")
             if filenamef.startswith("U_"):
@@ -171,16 +171,16 @@ class OptionsParser(object):
                 if filenamef == "U_74684":
                     print(subdict)
                     print(genome)
-                    print(os.path.join(fastani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
+                    print(os.path.join(skani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
                 if "gca" in subdict.keys():
                     copyfile(genome, os.path.join(
-                        fastani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
+                        skani_dir, subdict.get("gca")[3:] + "_genomic.fna"))
                 else:
                     copyfile(genome, os.path.join(
-                        fastani_dir, subdict.get("uba") + "_genomic.fna"))
+                        skani_dir, subdict.get("uba") + "_genomic.fna"))
             else:
                 copyfile(genome, os.path.join(
-                    fastani_dir, filenamef + "_genomic.fna"))
+                    skani_dir, filenamef + "_genomic.fna"))
 
         for dom in ['bac120', 'ar53']:
             # MSA renaming
@@ -291,7 +291,7 @@ def print_help():
       blah
 
     External files for GTDB-Tk package:
-      convert_fastani_genomes  -> Rename genomic.fna files to UBAs or GCAs.
+      convert_skani_genomes  -> Rename genomic.fna files to UBAs or GCAs.
       unroot_tree              -> Unroot tree.
 
     ''')
@@ -306,14 +306,14 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(help="--", dest='subparser_name')
 
     # generate convert genomic file for GTDB website
-    fastani_convert_parser = subparsers.add_parser('convert_fastani_genomes',
+    skani_convert_parser = subparsers.add_parser('convert_skani_genomes',
                                                    formatter_class=CustomHelpFormatter,
                                                    description='rename Genomic.fna files to UBAs or GCAs.')
-    fastani_convert_parser.add_argument('--input', dest="dirin",
+    skani_convert_parser.add_argument('--input', dest="dirin",
                                         required=True, help='path to taxonomy file.')
-    fastani_convert_parser.add_argument('--output', dest="dirout",
+    skani_convert_parser.add_argument('--output', dest="dirout",
                                         required=True, help='path to processed output file')
-    fastani_convert_parser.add_argument(
+    skani_convert_parser.add_argument(
         '--silent', help="suppress output", action='store_true')
 
     # generate convert genomic file for GTDB website
