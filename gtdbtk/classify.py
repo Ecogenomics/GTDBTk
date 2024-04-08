@@ -477,7 +477,22 @@ class Classify(object):
                     if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
                         list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
                         for row in list_summary_rows:
-                            summary_file.add_row(row)
+                            # in some instance, when running the 3 classify steps independently, the genome might have been filtered out in the alignment step
+                            # but its still present in the ani screening and have a % > 95 ( this can happen with partial genomes) so Tk would try to report it twice in
+                            # the summary file, instead we report it as classify with ani, but with a warning from the alignment step
+                            # skani should reduce the number of such cases
+                            if row.gid in summary_file.rows:
+                                row_to_update = summary_file.get_row(row.gid)
+                                existing_warnings = row_to_update.warnings
+                                if existing_warnings is not None and row.warnings:
+                                    row.warnings.append(existing_warnings)
+                                elif existing_warnings is not None:
+                                    row.warnings = [existing_warnings]
+                                if row.warnings:
+                                    row.warnings = ';'.join(row.warnings)
+                                summary_file.update_row(row)
+                            else:
+                                summary_file.add_row(row)
 
                     if summary_file.has_row():
                         summary_file.write()
@@ -1394,12 +1409,28 @@ class Classify(object):
             with open(filtered_file) as fin:
                 for line in fin:
                     infos = line.strip().split('\t')
-                    summary_row = ClassifySummaryFileRow()
-                    summary_row.gid = infos[0]
-                    summary_row.classification = f'Unclassified {domain}'
-                    summary_row.warnings = infos[1]
-                    summary_file.add_row(summary_row)
-                    warning_counter += 1
+                    # in some instance, when running the 3 classify steps independently, the genome might have been filtered out in the alignment step
+                    # but its still present in the ani screening and have a % > 95 ( this can happen with partial genomes) so Tk would try to report it twice in
+                    # the summary file, instead we report it as classified with ani, but with a warning from the alignment step
+                    # skani should reduce the number of such cases
+                    if infos[0] in summary_file.rows:
+                        row_to_update = summary_file.rows[infos[0]]
+                        # extra check
+                        if row_to_update.classification_method == 'ani_screen':
+                            existing_warnings = row_to_update.warnings
+                            if existing_warnings is not None:
+                                row_to_update.warnings = existing_warnings + ';' + infos[1]
+                            else:
+                                row_to_update.warnings = infos[1]
+                                warning_counter += 1
+                    else:
+                        summary_row = ClassifySummaryFileRow()
+                        summary_row.gid = infos[0]
+                        summary_row.classification = f'Unclassified {domain}'
+                        summary_row.warnings = infos[1]
+                        summary_file.add_row(summary_row)
+                        warning_counter += 1
+
         return warning_counter
 
     def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
@@ -1465,7 +1496,7 @@ class Classify(object):
         # sort the dictionary by ani then af
         for gid in skani_results.keys():
             thresh_results = [(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items() if \
-                              hit['af'] >= CONFIG.AF_THRESHOLD]
+                              hit['af'] >= self.af_threshold]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
             if len(closest) > 0:
                 set_to_closest_rep = False
