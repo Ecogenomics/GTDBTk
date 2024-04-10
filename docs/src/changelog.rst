@@ -15,11 +15,11 @@ Major Changes:
 
 * In the generated `summary.tsv` files, several columns have been renamed for clarity and consistency. The following columns have been affected:
 
-    - "`fastani_reference`" column has been renamed to "`closest_rep`".
-    - "`fastani_reference_radius`" column has been renamed to "`closest_rep_radius`".
-    - "`fastani_taxonomy`" column has been renamed to "`closest_rep_taxonomy`".
-    - "`fastani_ani`" column has been renamed to "`closest_rep_ani`".
-    - "`fastani_af`" column has been renamed to "`closest_rep_af`".
+    - "`fastani_reference`" column has been renamed to "`closest_genome_reference`".
+    - "`fastani_reference_radius`" column has been renamed to "`closest_genome_reference_radius`".
+    - "`fastani_taxonomy`" column has been renamed to "`closest_genome_taxonomy`".
+    - "`fastani_ani`" column has been renamed to "`closest_genome_ani`".
+    - "`fastani_af`" column has been renamed to "`closest_genome_af`".
 
  These changes have been implemented to improve the readability and understanding of the data within the `summary.tsv` files. Users should update their scripts or processes accordingly to reflect these renamed column headers.
 
