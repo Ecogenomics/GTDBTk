@@ -14,7 +14,7 @@ from gtdbtk.config.common import CONFIG
 class ANIScreener(object):
     """Computes a list of genomes to a list of representatives."""
 
-    def __init__(self, cpus):
+    def __init__(self, cpus,af_threshold=None):
         """Instantiate the ANI rep class.
 
         Parameters
@@ -24,6 +24,7 @@ class ANIScreener(object):
         """
         self.logger = logging.getLogger('timestamp')
         self.cpus = cpus
+        self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
         self.gtdb_radii = GTDBRadiiFile()
 
     def run_aniscreen(self,genomes, no_mash,out_dir,prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db):
@@ -87,7 +88,7 @@ class ANIScreener(object):
         # sort the dictionary by ani then af
         for gid in skani_results.keys():
             thresh_results = [(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items() if
-                              hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
+                              hit['af'] >= self.af_threshold and hit['ani'] >= self.gtdb_radii.get_rep_ani(
                                   canonical_gid(ref_gid))]
             all_results = [(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items()]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))

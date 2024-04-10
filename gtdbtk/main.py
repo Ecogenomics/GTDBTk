@@ -641,6 +641,7 @@ class OptionsParser(object):
         ani_step.mash_k = options.mash_k
         ani_step.mash_v = options.mash_v
         ani_step.mash_s = options.mash_s
+        ani_step.min_af = options.min_af
         ani_step.mash_max_dist = options.mash_max_distance
 
         if options.genome_dir:
@@ -664,7 +665,7 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        aniscreener = ANIScreener(options.cpus)
+        aniscreener = ANIScreener(options.cpus,options.min_af)
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
             no_mash=options.no_mash,

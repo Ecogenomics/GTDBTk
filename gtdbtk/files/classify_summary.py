@@ -107,6 +107,16 @@ class ClassifySummaryFile:
             raise GTDBTkExit(f'Attempting to add duplicate row: {row.gid}')
         self.rows[row.gid] = row
 
+    def get_row(self, gid: str) -> ClassifySummaryFileRow:
+        if gid not in self.rows:
+            raise GTDBTkExit(f'Attempting to get non-existent row: {gid}')
+        return self.rows[gid]
+
+    def update_row(self, row: ClassifySummaryFileRow):
+        if row.gid not in self.rows:
+            raise GTDBTkExit(f'Attempting to update non-existent row: {row.gid}')
+        self.rows[row.gid] = row
+
     def has_row(self) -> bool:
         if self.rows.items():
             return True
