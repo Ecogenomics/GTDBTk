@@ -1522,13 +1522,13 @@ class Classify(object):
                     current_af = skani_results.get(gid).get(
                         skani_matching_reference).get('af')
 
-                    summary_row.skani_ref = skani_matching_reference
-                    summary_row.skani_ref_radius = str(
+                    summary_row.closest_genome_ref = skani_matching_reference
+                    summary_row.closest_genome_ref_radius = str(
                         self.species_radius.get(skani_matching_reference))
-                    summary_row.skani_tax = ";".join(self.gtdb_taxonomy.get(
+                    summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(skani_matching_reference)))
-                    summary_row.skani_ani = round(current_ani, 2)
-                    summary_row.skani_af = round(current_af, 3)
+                    summary_row.closest_genome_ani = round(current_ani, 2)
+                    summary_row.closest_genome_af = round(current_af, 3)
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(skani_matching_reference)))
                     summary_row.classification = standardise_taxonomy(
@@ -1634,23 +1634,23 @@ class Classify(object):
                         summary_row.warnings = ';'.join(warnings)
 
                     if skani_matching_reference is not None:
-                        summary_row.skani_ref = skani_matching_reference
-                        summary_row.skani_ref_radius = str(
+                        summary_row.closest_genome_ref = skani_matching_reference
+                        summary_row.closest_genome_ref_radius = str(
                             self.species_radius.get(skani_matching_reference))
-                        summary_row.skani_tax = ";".join(self.gtdb_taxonomy.get(
+                        summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
                             add_ncbi_prefix(skani_matching_reference)))
-                        summary_row.skani_ani = round(current_ani, 2)
-                        summary_row.skani_af = round(current_af,3)
+                        summary_row.closest_genome_ani = round(current_ani, 2)
+                        summary_row.closest_genome_af = round(current_af,3)
                         if pplacer_leafnode == skani_matching_reference:
                             if taxa_str.endswith("s__"):
                                 taxa_str = taxa_str + pplacer_leafnode
                             summary_row.classification = standardise_taxonomy(
                                 taxa_str)
-                            summary_row.closest_placement_ref = summary_row.skani_ref
-                            summary_row.closest_placement_radius = summary_row.skani_ref_radius
-                            summary_row.closest_placement_tax = summary_row.skani_tax
-                            summary_row.closest_placement_ani = summary_row.skani_ani
-                            summary_row.closest_placement_af = summary_row.skani_af
+                            summary_row.closest_placement_ref = summary_row.closest_genome_ref
+                            summary_row.closest_placement_radius = summary_row.closest_genome_ref_radius
+                            summary_row.closest_placement_tax = summary_row.closest_genome_tax
+                            summary_row.closest_placement_ani = summary_row.closest_genome_ani
+                            summary_row.closest_placement_af = summary_row.closest_genome_af
                             summary_row.note = 'topological placement and ANI have congruent species assignments'
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self.formatnote(
@@ -1675,7 +1675,7 @@ class Classify(object):
                                     userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
                                 summary_row.closest_placement_af = round(all_skani_dict.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
-                            summary_row.classification_method = 'ANI'
+                            summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
 
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self.formatnote(
@@ -1719,7 +1719,7 @@ class Classify(object):
                 summary_row.gid = userleaf.taxon.label
                 summary_row.pplacer_tax = pplacer_taxonomy_dict.get(
                     userleaf.taxon.label)
-                summary_row.classification_method = 'ANI'
+                summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                 summary_row.msa_percent = aa_percent_msa(
                     msa_dict.get(summary_row.gid))
                 summary_row.tln_table = trans_table_dict.get(summary_row.gid)
@@ -1748,17 +1748,17 @@ class Classify(object):
                         summary_row.classification = standardise_taxonomy(
                             taxa_str)
 
-                        summary_row.skani_ref = skani_matching_reference
-                        summary_row.skani_ref_radius = str(
+                        summary_row.closest_genome_ref = skani_matching_reference
+                        summary_row.closest_genome_ref_radius = str(
                             self.species_radius.get(skani_matching_reference))
-                        summary_row.skani_tax = ";".join(self.gtdb_taxonomy.get(
+                        summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
                             add_ncbi_prefix(skani_matching_reference)))
                         current_ani = all_skani_dict.get(userleaf.taxon.label).get(
                             skani_matching_reference).get('ani')
-                        summary_row.skani_ani = round(current_ani, 2)
+                        summary_row.closest_genome_ani = round(current_ani, 2)
                         current_af = all_skani_dict.get(userleaf.taxon.label).get(
                             skani_matching_reference).get('af')
-                        summary_row.skani_af = round(current_af,3)
+                        summary_row.closest_genome_af = round(current_af,3)
                         summary_row.note = 'topological placement and ANI have incongruent species assignments'
                         if len(warnings) > 0:
                             summary_row.warnings = ';'.join(warnings)
@@ -2265,13 +2265,13 @@ class Classify(object):
                 current_af = skani_results.get(gid).get(
                         skani_matching_reference).get('af')
 
-                summary_row.skani_ref = skani_matching_reference
-                summary_row.skani_ref_radius = str(
+                summary_row.closest_genome_ref = skani_matching_reference
+                summary_row.closest_genome_ref_radius = str(
                         self.species_radius.get(skani_matching_reference))
-                summary_row.skani_tax = skani_results.get(gid).get(
+                summary_row.closest_genome_tax = skani_results.get(gid).get(
                         skani_matching_reference).get('taxonomy')
-                summary_row.skani_ani = round(current_ani, 2)
-                summary_row.skani_af = round(current_af,3)
+                summary_row.closest_genome_ani = round(current_ani, 2)
+                summary_row.closest_genome_af = round(current_af,3)
                 taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(skani_matching_reference)))
                 summary_row.classification = standardise_taxonomy(
@@ -2286,11 +2286,11 @@ class Classify(object):
         for domain,rows in list_of_summary_rows.items():
             for row in rows:
                 if row.other_related_refs:
-                    infos ={row.gid:{row.skani_ref: {'ani': row.skani_ani,
-                                                 'af': row.skani_af,
+                    infos ={row.gid:{row.closest_genome_ref: {'ani': row.closest_genome_ani,
+                                                 'af': row.closest_genome_af,
                                                  'other_refs': row.other_related_refs}}}
                 else:
-                    infos ={row.gid:{row.skani_ref: {'ani': row.skani_ani, 'af': row.skani_af}}}
+                    infos ={row.gid:{row.closest_genome_ref: {'ani': row.closest_genome_ani, 'af': row.closest_genome_af}}}
                 dict_of_rows.setdefault(domain, {}).update(infos)
 
         return dict_of_rows
