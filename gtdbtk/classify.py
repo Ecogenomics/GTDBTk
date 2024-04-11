@@ -339,9 +339,10 @@ class Classify(object):
             mash_max_dist=CONFIG.MASH_MAX_DISTANCE,
             mash_db=None,
             ani_summary_files=None,
-            all_classified_ani=False):
+            all_classified_ani=False,
+            all_failed_prodigal=False):
         """Classify genomes based on position in reference tree."""
-        if not all_classified_ani:
+        if not all_classified_ani and not all_failed_prodigal:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
 
@@ -416,7 +417,7 @@ class Classify(object):
                                   os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
                     output_files.setdefault(marker_set_id, []).append(summary_file.path)
             return output_files
-        else:
+        elif not all_failed_prodigal:
             for marker_set_id in ('ar53', 'bac120'):
                 warning_counter, prodigal_failed_counter = 0, 0
                 if marker_set_id == 'ar53':
@@ -752,6 +753,27 @@ class Classify(object):
                     output_files.setdefault(marker_set_id, []).append(disappearing_genomes_file.path)
                 summary_file.write()
                 output_files.setdefault(marker_set_id, []).append(summary_file.path)
+        elif all_failed_prodigal:
+            marker_set_id ='bac120'
+            summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+
+            # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+            # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
+            # but they need to be included in one of the summary file
+            prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+
+            if summary_file.has_row():
+                summary_file.write()
+                output_files.setdefault(marker_set_id, []).append(summary_file.path)
+                # Symlink to the summary file from the root
+                symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                if prodigal_failed_counter > 0:
+                    self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
+                                        f"genome{'' if prodigal_failed_counter == 1 else 's'} "
+                                        f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+
+
         return output_files
 
     def _add_warning_to_row(self,row,msa_dict,
