@@ -364,7 +364,7 @@ class OptionsParser(object):
         make_sure_path_exists(options.out_dir)
 
         markers = Markers(options.cpus, options.debug)
-        reports = markers.align(options.identify_dir,
+        reports,all_failed_prodigal = markers.align(options.identify_dir,
                       options.skip_gtdb_refs,
                       options.taxa_filter,
                       options.min_perc_aa,
@@ -390,7 +390,7 @@ class OptionsParser(object):
         self.stage_logger.steps.append(align_step)
 
         self.logger.info('Done.')
-
+        return all_failed_prodigal
 
     def infer(self, options):
         """Infer a tree from a user specified MSA.
@@ -536,7 +536,7 @@ class OptionsParser(object):
         self.logger.info('Test has successfully finished.')
         return True
 
-    def classify(self, options,all_classified_ani=False):
+    def classify(self, options,all_classified_ani=False,all_failed_prodigal=False):
         """Determine taxonomic classification of genomes.
 
         Parameters
@@ -600,7 +600,8 @@ class OptionsParser(object):
                      mash_db=options.mash_db,
                      mash_max_dist=options.mash_max_distance,
                      ani_summary_files=ani_summary_files,
-                     all_classified_ani=all_classified_ani
+                     all_classified_ani=all_classified_ani,
+                     all_failed_prodigal=all_failed_prodigal
                      )
 
         classify_step.ends_at = datetime.now()
@@ -1162,6 +1163,7 @@ class OptionsParser(object):
             # if all genomes have been classified by the ani_screen step, we do not need to run the identify step
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
+            all_failed_prodigal = False
             if all_classified_ani:
                 self.logger.info('All genomes have been classified by the ANI screening step, Identify and Align steps will be skipped.')
             else:
@@ -1178,13 +1180,13 @@ class OptionsParser(object):
                 options.rnd_seed = None
                 options.skip_trimming = False
 
-                self.align(options)
+                all_failed_prodigal = self.align(options)
 
             # because we run ani_screen before the identify step, we do not need to rerun the
             #ani step again, so we set the skip_aniscreen to True
             options.skip_ani_screen = True
 
-            self.classify(options,all_classified_ani= all_classified_ani)
+            self.classify(options,all_classified_ani= all_classified_ani,all_failed_prodigal=all_failed_prodigal)
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
 
