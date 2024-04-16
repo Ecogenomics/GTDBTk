@@ -33,13 +33,13 @@ Hardware requirements
      - Storage
      - Time
    * - Archaea
-     - ~45 GB
-     - ~85 GB
-     - ~1 hour / 1,000 genomes @ 64 CPUs
+     - ~60 GB
+     - ~106 GB
+     - ~90 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~65GB (410 GB when using --full_tree)
-     - ~85 GB
-     - ~1 hour / 1,000 genomes @ 64 CPUs
+     - ~90GB (545 GB when using --full_tree)
+     - ~106 GB
+     - ~90 minutes / 1,000 genomes @ 64 CPUs
 
 .. note::
    The amount reported of memory reported can vary depending on the number of pplacer threads.
