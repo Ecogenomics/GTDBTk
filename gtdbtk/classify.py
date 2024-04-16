@@ -2188,7 +2188,7 @@ class Classify(object):
 
         leaves_in_tree = sum([1 for _ in new_tree.leaf_node_iter()])
         while True:
-            rnd_ingroup_leaf = random.sample(ingroup_in_tree, 1)[0]
+            rnd_ingroup_leaf = random.sample(tuple(ingroup_in_tree), 1)[0]
             new_tree.reroot_at_edge(rnd_ingroup_leaf.edge,
                                     length1=0.5 * rnd_ingroup_leaf.edge_length,
                                     length2=0.5 * rnd_ingroup_leaf.edge_length)
