@@ -4,7 +4,7 @@ Announcements
 GTDB-Tk 2.4.0 available
 -----------------------
 
-*TBA*
+*April 24, 2024*
 
 * GTDB-Tk version ``2.4.0`` is now available.
 * This version of GTDB-Tk requires a new version of the GTDB-Tk reference package (Release 220).

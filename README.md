@@ -37,8 +37,8 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.3.0+ includes the following new features:
-- New functionality ``convert_to_species`` function to convert GTDB genome IDs to GTDB species names
+GTDB-Tk v2.4.0+ includes the following new features:
+- `FastANI` has been replaced by `skani` as the primary tool for computing Average Nucleotide Identity (ANI).Users may notice slight variations in the results compared to those obtained using `FastANI`.
 
 
 ## 📈 Performance

@@ -117,12 +117,12 @@ Please cite these tools if you use GTDB-Tk in your work.
 GTDB-Tk reference data
 ----------------------
 
-GTDB-Tk requires ~84G of external data that needs to be downloaded and unarchived:
+GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:
 
 .. code-block:: bash
 
-    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
-    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz  (or, mirror)
+    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
+    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz  (or, mirror)
     tar xvzf gtdbtk_data.tar.gz
 
 
@@ -137,13 +137,17 @@ GTDB-Tk requires ~84G of external data that needs to be downloaded and unarchive
      - Minimum version
      - Maximum version
      - MD5
+   * - `R220 <https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz>`_
+     - 2.4.0
+     - Current
+     - 5aafa1b9c27ceda003d75adf238ed9e0
    * - `R214 <https://data.gtdb.ecogenomic.org/releases/release214/214.0/auxillary_files/gtdbtk_r214_data.tar.gz>`_
      - 2.1.0
-     - Current
+     - 2.3.2
      - 630745840850c532546996b22da14c27
    * - `R207_v2 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz>`_
      - 2.1.0
-     - Current
+     - 2.3.2
      - df468d63265e8096d8ca01244cb95f30
    * - `R207 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz>`_
      - 2.0.0
