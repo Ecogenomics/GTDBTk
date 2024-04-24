@@ -241,7 +241,7 @@ class TrimMSA(object):
                 lack_cols_marker_ids.append(marker_id)
 
             offset_valid_cols = [i + start for i in valid_cols]
-            sel_cols = random.sample(offset_valid_cols, min(
+            sel_cols = random.sample(tuple(offset_valid_cols), min(
                 self.subset, len(offset_valid_cols)))
             sampled_cols.extend(sel_cols)
 

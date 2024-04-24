@@ -21,6 +21,7 @@ import os
 import queue
 import re
 import subprocess
+import sys
 
 from tqdm import tqdm
 
@@ -76,6 +77,8 @@ class Pplacer(object):
 
         out_q = mp.Queue()
         pid = mp.Value('i', 0)
+        # print(f'Running pplacer with the following command: {" ".join(args)}')
+        # sys.exit(0)
         p_worker = mp.Process(target=self._worker, args=(
             args, out_q, pplacer_out, pid))
         p_writer = mp.Process(target=self._writer, args=(out_q, pid))

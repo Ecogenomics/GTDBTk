@@ -29,6 +29,7 @@ class ANIScreenStep(Steps):
     mash_s: Optional[str]
     mash_v: Optional[str]
     mash_max_dist: Optional[str]
+    min_af: Optional[str]
     mash_db: Optional[str]
     output_files: Optional[Dict]
 

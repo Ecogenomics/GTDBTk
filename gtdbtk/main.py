@@ -364,7 +364,7 @@ class OptionsParser(object):
         make_sure_path_exists(options.out_dir)
 
         markers = Markers(options.cpus, options.debug)
-        reports = markers.align(options.identify_dir,
+        reports,all_failed_prodigal = markers.align(options.identify_dir,
                       options.skip_gtdb_refs,
                       options.taxa_filter,
                       options.min_perc_aa,
@@ -390,7 +390,7 @@ class OptionsParser(object):
         self.stage_logger.steps.append(align_step)
 
         self.logger.info('Done.')
-
+        return all_failed_prodigal
 
     def infer(self, options):
         """Infer a tree from a user specified MSA.
@@ -536,7 +536,7 @@ class OptionsParser(object):
         self.logger.info('Test has successfully finished.')
         return True
 
-    def classify(self, options,all_classified_ani=False):
+    def classify(self, options,all_classified_ani=False,all_failed_prodigal=False):
         """Determine taxonomic classification of genomes.
 
         Parameters
@@ -600,7 +600,8 @@ class OptionsParser(object):
                      mash_db=options.mash_db,
                      mash_max_dist=options.mash_max_distance,
                      ani_summary_files=ani_summary_files,
-                     all_classified_ani=all_classified_ani
+                     all_classified_ani=all_classified_ani,
+                     all_failed_prodigal=all_failed_prodigal
                      )
 
         classify_step.ends_at = datetime.now()
@@ -625,7 +626,7 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def ani_screen(self, options ):
-        """Run a mash/FastANI screen of all user genomes
+        """Run a mash/skani screen of all user genomes
         against the reference genomes.
 
         Parameters
@@ -641,6 +642,7 @@ class OptionsParser(object):
         ani_step.mash_k = options.mash_k
         ani_step.mash_v = options.mash_v
         ani_step.mash_s = options.mash_s
+        ani_step.min_af = options.min_af
         ani_step.mash_max_dist = options.mash_max_distance
 
         if options.genome_dir:
@@ -653,18 +655,11 @@ class OptionsParser(object):
 
         make_sure_path_exists(options.out_dir)
 
-        genomes, tln_tables = self._genomes_to_process(options.genome_dir,
-                                                       options.batchfile,
-                                                       options.extension)
-        self.genomes_to_process = genomes
-
-        make_sure_path_exists(options.out_dir)
-
         genomes, _ = self._genomes_to_process(options.genome_dir,
                                               options.batchfile,
                                               options.extension)
 
-        aniscreener = ANIScreener(options.cpus)
+        aniscreener = ANIScreener(options.cpus,options.min_af)
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
             no_mash=options.no_mash,
@@ -1083,7 +1078,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'classify_wf':
 
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
-                                'fastANI'])
+                                'skani'])
 
             if options.write_single_copy_genes and not options.keep_intermediates:
                 self.logger.warning('--write_single_copy_genes flag is set to True,'
@@ -1120,7 +1115,7 @@ class OptionsParser(object):
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
                         classify_method = Classify()
-                        classified_genomes=classify_method.load_fastani_results_pre_pplacer(ani_summary_files)
+                        classified_genomes=classify_method.load_skani_results_pre_pplacer(ani_summary_files)
                         classified_genomes = classify_method.convert_rows_to_dict(classified_genomes)
                         len_mash_classified_bac120 = len(classified_genomes['bac120']) \
                             if 'bac120' in classified_genomes else 0
@@ -1161,10 +1156,11 @@ class OptionsParser(object):
             # if all genomes have been classified by the ani_screen step, we do not need to run the identify step
             options.identify_dir = options.out_dir
             options.align_dir = options.out_dir
+            all_failed_prodigal = False
             if all_classified_ani:
                 self.logger.info('All genomes have been classified by the ANI screening step, Identify and Align steps will be skipped.')
             else:
-                self.identify(options,classified_genomes)
+                self.identify(options, classified_genomes)
                 options.taxa_filter = None
                 options.custom_msa_filters = False
                 # Added here due to the other mutex argument being included above.
@@ -1177,13 +1173,13 @@ class OptionsParser(object):
                 options.rnd_seed = None
                 options.skip_trimming = False
 
-                self.align(options)
+                all_failed_prodigal = self.align(options)
 
             # because we run ani_screen before the identify step, we do not need to rerun the
             #ani step again, so we set the skip_aniscreen to True
             options.skip_ani_screen = True
 
-            self.classify(options,all_classified_ani= all_classified_ani)
+            self.classify(options,all_classified_ani= all_classified_ani,all_failed_prodigal=all_failed_prodigal)
             if not options.keep_intermediates:
                 self.remove_intermediate_files(options.out_dir,'classify_wf')
 
@@ -1223,7 +1219,7 @@ class OptionsParser(object):
             self.export_msa(options)
         elif options.subparser_name == 'test':
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
-                                'fastANI'])
+                                'skani'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':
             self.check_install(options)

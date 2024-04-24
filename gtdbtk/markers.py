@@ -221,11 +221,17 @@ class Markers(object):
                 make_sure_path_exists(symlink_protein_dir)
                 symlink_f(os.path.abspath(gpath), os.path.join(symlink_protein_dir,gid+self.protein_file_suffix))
 
+        gene_files = [(db_genome_id, genome_dictionary[db_genome_id]['aa_gene_path'])
+                      for db_genome_id in genome_dictionary.keys()]
+        # if gene_files is empty, we have no genomes to process
+        # we still need to write all the genomes failing the identify step to the bac120_summary file
+        if len(gene_files) == 0:
+            self.logger.warning('All genomes failed the identify step.')
+            return reports
+
         # annotated genes against TIGRFAM and Pfam databases
         self.logger.log(CONFIG.LOG_TASK,
                         'Identifying TIGRFAM protein families.')
-        gene_files = [(db_genome_id, genome_dictionary[db_genome_id]['aa_gene_path'])
-                      for db_genome_id in genome_dictionary.keys()]
         tigr_search = TigrfamSearch(self.cpus,
                                     self.tigrfam_hmms,
                                     self.protein_file_suffix,
@@ -481,6 +487,15 @@ class Markers(object):
         else:
             failed_genomes = list()
 
+        if failed_genomes and not os.path.isfile(TlnTableSummaryFile(identify_dir, prefix).path):
+            self.logger.warning(
+                f'Skipping align step.')
+            if identify_dir != out_dir and os.path.isfile(failed_genomes_file):
+                identify_path = os.path.join(out_dir, DIR_IDENTIFY)
+                make_sure_path_exists(identify_path)
+                copy(failed_genomes_file, identify_path)
+            return reports,True
+
         # If the user is re-running this step, check if the identify step is consistent.
         genomic_files = self._path_to_identify_data(
             identify_dir, identify_dir != out_dir)
@@ -700,7 +715,7 @@ class Markers(object):
                     fout.write(f'{no_marker_gid}\tNo bacterial or archaeal marker\n')
             reports.setdefault('all', []).append(no_marker_filtered_genomes)
 
-        return reports
+        return reports,False
 
     def _write_individual_markers(self, user_msa, marker_set_id, marker_list, out_dir, prefix):
         marker_dir = join(out_dir, DIR_ALIGN_MARKERS)

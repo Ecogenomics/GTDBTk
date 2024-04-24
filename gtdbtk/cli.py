@@ -33,8 +33,8 @@ def __temp_dir(group):
 
 def __genes(group):
     group.add_argument('--genes', action='store_true', default=False,
-                       help='indicates input files contain called genes (skip gene calling).Warning: This flag will also skip '
-                            'the ANI comparison steps (ani_screen and classification).')
+                       help='indicates input files contain predicted proteins as amino acids (skip gene calling).'
+                            'Warning: This flag will skip the ANI comparison steps (ani_screen and classification).')
 
 
 def __genome_dir(group):
@@ -76,11 +76,11 @@ def __extension(group):
 
 def __skip_ani_screen(group):
     group.add_argument('--skip_ani_screen', action="store_true", default=False,
-                       help="Skip the ani_screening step to classify genomes using mash and FastANI ")
+                       help="Skip the ani_screening step to classify genomes using mash and skani.")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,
-                       help='do not include GTDB reference genomes in multiple sequence alignment')
+                       help='do not include GTDB reference genomes in multiple sequence alignment.')
 
 
 def __taxa_filter(group):
@@ -544,7 +544,7 @@ def get_main_parser():
             __mash_d(grp)
             __mash_v(grp)
             __mash_db(grp)
-        with arg_group(parser, 'optional FastANI arguments') as grp:
+        with arg_group(parser, 'optional skani arguments') as grp:
             __min_af(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)

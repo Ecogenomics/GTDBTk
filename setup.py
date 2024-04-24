@@ -45,7 +45,7 @@ setup(
             'gtdbtk = gtdbtk.__main__:main'
         ]
     },
-    install_requires=["dendropy>=4.1.0", 'numpy>=1.9.0', 'tqdm>=4.35.0', 'pydantic>=1.9.2,<2.0a1'],
+    install_requires=["dendropy ~= 4.1", 'numpy ~= 1.9', 'tqdm ~= 4.35', 'pydantic ~= 1.9'],
     license=meta['license'],
     long_description=readme(),
     long_description_content_type='text/markdown',

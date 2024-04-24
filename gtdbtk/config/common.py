@@ -11,8 +11,8 @@ class __GTDBTkCommonConfig:
     that requires the setting of the GTDB-Tk reference data path.
     """
 
-    MIN_REF_DATA_VERSION = 'r207'
-    COMPATIBLE_REF_DATA_VERSIONS = ['r207','r214']
+    MIN_REF_DATA_VERSION = 'r220'
+    COMPATIBLE_REF_DATA_VERSIONS = ['r220']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
     CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
@@ -88,15 +88,15 @@ class __GTDBTkCommonConfig:
     AR_MARKER_COUNT = 53
     BAC_MARKER_COUNT = 120
 
-    # Information about alignment Fraction to resolve fastANI results
+    # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
 
     PPLACER_MIN_RAM_BAC_FULL = 320
     PPLACER_MIN_RAM_BAC_SPLIT = 55
     PPLACER_MIN_RAM_ARC = 40
 
-    FASTANI_SPECIES_THRESHOLD = 95.0
-    FASTANI_GENOMES_EXT = "_genomic.fna.gz"
+    SKANI_SPECIES_THRESHOLD = 95.0
+    SKANI_GENOMES_EXT = "_genomic.fna.gz"
 
     # Mash configuration
     MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'
@@ -150,8 +150,8 @@ class __GTDBTkCommonConfig:
         return os.path.join(self.GENERIC_PATH, 'pplacer/')
 
     @property
-    def FASTANI_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'fastani/')
+    def SKANI_DIR(self):
+        return os.path.join(self.GENERIC_PATH, 'skani/')
 
     @property
     def MASH_DIR(self):
@@ -313,12 +313,12 @@ class __GTDBTkCommonConfig:
         return f"gtdb_{self.VERSION_DATA}_rps23.refpkg"
 
     @property
-    def FASTANI_GENOMES(self):
-        return os.path.join(self.FASTANI_DIR, "database/")
+    def SKANI_GENOMES(self):
+        return os.path.join(self.SKANI_DIR, "database/")
 
     @property
-    def FASTANI_GENOME_LIST(self):
-        return os.path.join(self.FASTANI_DIR, "genome_paths.tsv")
+    def SKANI_GENOME_LIST(self):
+        return os.path.join(self.SKANI_DIR, "genome_paths.tsv")
 
     @property
     def MRCA_RED_BAC120(self):
@@ -333,30 +333,19 @@ class __GTDBTkCommonConfig:
         if version is not None and version not in compatible_versions:
             raise ValueError(f"Version {version} is not compatible with this version of GTDB-Tk. Compatible versions are {compatible_versions}")
 
-        if version is None or version==214:
+        if version is None or version==220:
             return {
-                self.PPLACER_DIR: '6786e9fc16b31db7d6eaaa9f8cfa87a8a4974434',
-                self.MASK_DIR: '8d5a2139feabbb70789c62155f3761d2aeed1601',
+                self.PPLACER_DIR: '75fdd0e093c9af6a73cb510c3d0cd2041265e093',
+                self.MASK_DIR: 'f4b8ebfa59526a7a86f09752b47e8de1efc384c7',
                 self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
-                self.RADII_DIR: '4753acc920001a1400788ee89cb4632900449055',
-                self.MSA_FOLDER: '75df495678a121497e14346b453caf42f4b03922',
-                self.METADATA_DIR: 'a089cc36bf79a40c7506019accc5f93e940d9fed',
-                self.TAX_FOLDER: '89b12cf8106f326887599dcb30ef94ebba142035',
-                self.FASTANI_DIR: 'e12824beccc15fe67a373e2aa8eee72feecf89c6',
-                self.RED_DIR: 'c24a2f48bb0c1df38f92a8f526aa846f596c94c6'
+                self.RADII_DIR: '63d06ecc8b4547addd22c5b06ada4a28c5332bcc',
+                self.MSA_FOLDER: '3d5c1cf5346b244fcb0a9d48d2f1a9358a71cc7a',
+                self.METADATA_DIR: '01b8c23253cef097b1bc233d609dae9eb84c98e2',
+                self.TAX_FOLDER: '6758173fa61ae4a77f5588ec2874ea52ed345feb',
+                self.SKANI_DIR: 'ff58a1d7e0584da324d140701ee12cead4f0df9d',
+                self.RED_DIR: '206bd781997fffbac951b4437dd75e6543139fd6'
             }
-        elif version==207:
-            return {
-                self.PPLACER_DIR: '20903925a856a58b102a7b0ce160c5cbd2cf675b',
-                self.MASK_DIR: '50e414a9de18170e8cb97f990f89ff60a0fe29d5',
-                self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
-                self.RADII_DIR: '8fd13b1c5d7a7b073ba96fb628581613b293a374',
-                self.MSA_FOLDER: '24f250d7cf0eb0bc65dccd2f3c9247e553ea322f',
-                self.METADATA_DIR: '9772fbeac1311b31e10293fa610eb33aa1ec8e15',
-                self.TAX_FOLDER: '6fb0233b05633242369b40c026fd1ee53e266afa',
-                self.FASTANI_DIR: '973c456c02f55bb82908a6811c7076e207e9b206',
-                self.RED_DIR: '7b8b67b3157204b470c9eb809d3c39c4effffabc'
-            }
+
 
     REF_HASHES = property(get_REF_HASHES)
 

@@ -121,8 +121,8 @@ class TogException(GTDBTkException):
         GTDBTkException.__init__(self, message)
 
 
-class FastANIException(GTDBTkException):
-    """ Thrown when an exception is encountered while running FastANI. """
+class SkANIException(GTDBTkException):
+    """ Thrown when an exception is encountered while running skani. """
 
     def __init__(self, message=''):
         GTDBTkException.__init__(self, message)

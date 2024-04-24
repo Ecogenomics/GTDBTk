@@ -27,8 +27,8 @@ from gtdbtk.exceptions import GTDBTkExit
 class ClassifySummaryFileRow:
     """A row contained within the ClassifySummaryFile object."""
 
-    __slots__ = ('gid', 'classification', 'fastani_ref', 'fastani_ref_radius',
-                 'fastani_tax', 'fastani_ani', 'fastani_af', 'closest_placement_ref',
+    __slots__ = ('gid', 'classification', 'closest_genome_ref', 'closest_genome_ref_radius',
+                 'closest_genome_tax', 'closest_genome_ani', 'closest_genome_af', 'closest_placement_ref',
                  'closest_placement_radius', 'closest_placement_tax', 'closest_placement_ani',
                  'closest_placement_af', 'pplacer_tax', 'classification_method',
                  'note', 'other_related_refs', 'msa_percent', 'tln_table',
@@ -38,11 +38,11 @@ class ClassifySummaryFileRow:
         """Initialise the row, default all the values to None."""
         self.gid: Optional[str] = None
         self.classification: Optional[str] = None
-        self.fastani_ref: Optional[str] = None
-        self.fastani_ref_radius: Optional[float] = None
-        self.fastani_tax: Optional[str] = None
-        self.fastani_ani: Optional[float] = None
-        self.fastani_af: Optional[float] = None
+        self.closest_genome_ref: Optional[str] = None
+        self.closest_genome_ref_radius: Optional[float] = None
+        self.closest_genome_tax: Optional[str] = None
+        self.closest_genome_ani: Optional[float] = None
+        self.closest_genome_af: Optional[float] = None
         self.closest_placement_ref: Optional[str] = None
         self.closest_placement_radius: Optional[float] = None
         self.closest_placement_tax: Optional[str] = None
@@ -78,11 +78,11 @@ class ClassifySummaryFile:
             row = ClassifySummaryFileRow()
         mapping = [('user_genome', row.gid),
                    ('classification', row.classification),
-                   ('fastani_reference', row.fastani_ref),
-                   ('fastani_reference_radius', row.fastani_ref_radius),
-                   ('fastani_taxonomy', row.fastani_tax),
-                   ('fastani_ani', row.fastani_ani),
-                   ('fastani_af', row.fastani_af),
+                   ('closest_genome_reference', row.closest_genome_ref),
+                   ('closest_genome_reference_radius', row.closest_genome_ref_radius),
+                   ('closest_genome_taxonomy', row.closest_genome_tax),
+                   ('closest_genome_ani', row.closest_genome_ani),
+                   ('closest_genome_af', row.closest_genome_af),
                    ('closest_placement_reference', row.closest_placement_ref),
                    ('closest_placement_radius', row.closest_placement_radius),
                    ('closest_placement_taxonomy', row.closest_placement_tax),
@@ -105,6 +105,16 @@ class ClassifySummaryFile:
     def add_row(self, row: ClassifySummaryFileRow):
         if row.gid in self.rows:
             raise GTDBTkExit(f'Attempting to add duplicate row: {row.gid}')
+        self.rows[row.gid] = row
+
+    def get_row(self, gid: str) -> ClassifySummaryFileRow:
+        if gid not in self.rows:
+            raise GTDBTkExit(f'Attempting to get non-existent row: {gid}')
+        return self.rows[gid]
+
+    def update_row(self, row: ClassifySummaryFileRow):
+        if row.gid not in self.rows:
+            raise GTDBTkExit(f'Attempting to update non-existent row: {row.gid}')
         self.rows[row.gid] = row
 
     def has_row(self) -> bool:
@@ -153,11 +163,11 @@ class ClassifySummaryFile:
                 row = ClassifySummaryFileRow()
                 row.gid = data[0]
                 row.classification = data[1]
-                row.fastani_ref = data[2]
-                row.fastani_ref_radius = data[3]
-                row.fastani_tax = data[4]
-                row.fastani_ani = data[5]
-                row.fastani_af = data[6]
+                row.closest_genome_ref = data[2]
+                row.closest_genome_ref_radius = data[3]
+                row.closest_genome_tax = data[4]
+                row.closest_genome_ani = data[5]
+                row.closest_genome_af = data[6]
                 row.closest_placement_ref = data[7]
                 row.closest_placement_radius = data[8]
                 row.closest_placement_tax = data[9]

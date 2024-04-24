@@ -2,6 +2,36 @@
 Change log
 ==========
 
+
+2.4.0
+-----
+
+Bug Fixes:
+
+* (`#576 <https://github.com/Ecogenomics/GTDBTk/issues/576>`_) When all genomes fail the prodigal step in the classify_wf, The
+bac120 summary file is still produced with the all failed genomes listed as 'Unclassified'
+* (`#573 <https://github.com/Ecogenomics/GTDBTk/issues/573>`_) When running the 3 classify steps independently, a genome can be filtered out in the align
+step but still be classified in the identify step. To avoid duplication of row, the genome is classified with a warning.
+* (`#540 <https://github.com/Ecogenomics/GTDBTk/issues/540>`_) Empty files are skipped during the sketch step of Mash,
+they are then catch in the prodigal step and are returned as 'Unclassified'
+* (`#549 <https://github.com/Ecogenomics/GTDBTk/issues/549>`_) : `--force` has been modified to deal with #540. Prodigal
+wasn't returning the empty files as failed genomes, it was only skipping them. These genomes are now returned in the summary file and flagged as Unclassified.
+
+Major Changes:
+
+* FastANI has been replaced by skani as the primary tool for computing Average Nucleotide Identity (ANI).Users may notice slight variations in the results compared to those obtained using FastANI.
+* In the generated `summary.tsv` files, several columns have been renamed for clarity and consistency. The following columns have been affected:
+
+    - "`fastani_reference`" column has been renamed to "`closest_genome_reference`".
+    - "`fastani_reference_radius`" column has been renamed to "`closest_genome_reference_radius`".
+    - "`fastani_taxonomy`" column has been renamed to "`closest_genome_taxonomy`".
+    - "`fastani_ani`" column has been renamed to "`closest_genome_ani`".
+    - "`fastani_af`" column has been renamed to "`closest_genome_af`".
+
+ These changes have been implemented to improve the readability and understanding of the data within the `summary.tsv` files. Users should update their scripts or processes accordingly to reflect these renamed column headers.
+
+
+
 2.3.2
 -----
 
