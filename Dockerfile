@@ -61,7 +61,7 @@ ENV GTDBTK_DATA_PATH="/refdata/"
 # --------------------------- INSTALL PIP PACKAGES --------------------------- #
 # ---------------------------------------------------------------------------- #
 RUN python -m pip install --upgrade pip && \
-    python -m pip install gtdbtk==${VER} \
+    python -m pip install gtdbtk==${VER}
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------- SET THE ENTRYPOINT ---------------------------- #
