@@ -1,6 +1,17 @@
 Announcements
 =============
 
+GTDB-Tk 2.4.0 available
+-----------------------
+
+*April 24, 2024*
+
+* GTDB-Tk version ``2.4.0`` is now available.
+* This version of GTDB-Tk requires a new version of the GTDB-Tk reference package (Release 220).
+  `gtdbtk_r220_data.tar.gz <https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/>`_.
+
+
+
 GTDB-Tk 2.3.0 available
 -----------------------
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>FAQ &mdash; GTDB-Tk 2.3.2 documentation</title>
+  <title>FAQ &mdash; GTDB-Tk 2.4.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.3.2
+                2.4.0
               </div>
             
           
@@ -127,8 +127,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-faq">GTDB-Tk FAQ</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes">GTDB-Tk reaches the memory limit / pplacer crashes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">How is GTDB-Tk validating species assignments using average nucleotide identity?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#why-is-fastani-using-more-threads-than-allocated">Why is FastANI using more threads than allocated?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#deprecated-faq">Deprecated FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#why-is-fastani-using-more-threads-than-allocated">Why is FastANI using more threads than allocated?</a></li>
 </ul>
 </li>
 </ul>
@@ -302,14 +305,26 @@ memory, but the host will report 300 GB of memory in use.</p>
 </div>
 <div class="section" id="how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">
 <h3>How is GTDB-Tk validating species assignments using average nucleotide identity?<a class="headerlink" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity" title="Permalink to this headline">¶</a></h3>
-<p>GTDB-Tk uses <a class="reference external" href="https://github.com/ParBLiSS/FastANI">FastANI</a> to estimate the ANI between genomes.
-We recommend you have FastANI &gt;= 1.32 as this version introduces a fix that makes the results deterministic.
+<p>GTDB-Tk uses <a class="reference external" href="https://github.com/bluenote-1577/skani">skani</a> ( it was using fastANI until v2.3.2) to estimate the ANI between genomes.
 A query genome is only classified as belonging to the same species as a reference genome if the ANI between the
 genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is &gt;=0.5.
 In some circumstances, the phylogenetic placement of a query genome may not support the species assignment.
-GTDB r207 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
+GTDB r207+ strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the <a class="reference external" href="https://gtdb.ecogenomic.org/">GTDB</a> website.</p>
 </div>
+<div class="section" id="what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">
+<h3>What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?<a class="headerlink" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">Starting with GTDB-Tk v2.2+, the <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code> function require an extra parameter to run: <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> or <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>.</div>
+<div class="line">With this new version of Tk, The first stage of <code class="docutils literal notranslate"><span class="pre">classify</span></code> pipelines (<code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code>) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.</div>
+<div class="line">Using the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.</div>
+<div class="line">If no database are available ( i.e. this is the first time running classify ), the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will sketch a new Mash database that can be used for subsequent calls.</div>
+<div class="line">The <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code> option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.</div>
+</div>
+</div>
+</div>
+<div class="section" id="deprecated-faq">
+<h2>Deprecated FAQ<a class="headerlink" href="#deprecated-faq" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="why-is-fastani-using-more-threads-than-allocated">
 <h3>Why is FastANI using more threads than allocated?<a class="headerlink" href="#why-is-fastani-using-more-threads-than-allocated" title="Permalink to this headline">¶</a></h3>
 <p>If you are using FastANI version 1.33 then you may run into an issue where FastANI will use more threads than you allocate.
@@ -325,16 +340,6 @@ This can be problematic if running GTDB-Tk on a HPC where you have a limited num
 <p>From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the <a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile">Dockerfile</a>, making
 sure to specify FastANI v1.32.</p>
-</div>
-<div class="section" id="what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">
-<h3>What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?<a class="headerlink" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen" title="Permalink to this headline">¶</a></h3>
-<div class="line-block">
-<div class="line">Starting with GTDB-Tk v2.2+, the <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code> function require an extra parameter to run: <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> or <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>.</div>
-<div class="line">With this new version of Tk, The first stage of <code class="docutils literal notranslate"><span class="pre">classify</span></code> pipelines (<code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code>) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.</div>
-<div class="line">Using the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.</div>
-<div class="line">If no database are available ( i.e. this is the first time running classify ), the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will sketch a new Mash database that can be used for subsequent calls.</div>
-<div class="line">The <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code> option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.</div>
-</div>
 </div>
 </div>
 </div>
@@ -353,7 +358,7 @@ sure to specify FastANI v1.32.</p>
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2023, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2024, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>

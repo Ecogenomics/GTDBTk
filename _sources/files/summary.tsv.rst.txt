@@ -8,11 +8,11 @@ Classifications provided by the GTDB-Tk are in the files \<prefix>.bac120.summar
 
 * user_genome: Unique identifier of query genome taken from the FASTA file of the genome.
 * classification: GTDB taxonomy string inferred by the GTDB-Tk. An unassigned species (i.e., ``s__``) indicates that the query genome is either i) placed outside a named genus or ii) the ANI to the closest intra-genus reference genome with an AF >=0.65 is not within the species-specific ANI circumscription radius.
-* fastani_reference: indicates the accession number of the reference genome (species) to which a user genome was assigned based on ANI and AF. ANI values are only calculated when a query genome is placed within a defined genus and are evaluated for all reference genomes in that genus.
-* fastani_reference_radius: indicates the species-specific ANI circumscription radius of the reference genomes used to determine if a query genome should be classified to the same species as the reference.
-* fastani_taxonomy: indicates the GTDB taxonomy of the above reference genome.
-* fastani_ani: indicates the ANI between the query and above reference genome.
-* fastani_af: indicates the alignment fraction (AF) between the query and above reference genome.
+* closest_genome_reference: indicates the accession number of the reference genome (species) to which a user genome was assigned based on ANI and AF. ANI values are only calculated when a query genome is placed within a defined genus and are evaluated for all reference genomes in that genus.
+* closest_genome_reference_radius: indicates the species-specific ANI circumscription radius of the reference genomes used to determine if a query genome should be classified to the same species as the reference.
+* closest_genome_taxonomy: indicates the GTDB taxonomy of the above reference genome.
+* closest_genome_ani: indicates the ANI between the query and above reference genome.
+* closest_genome_af: indicates the alignment fraction (AF) between the query and above reference genome.
 * closest_placement_reference: indicates the accession number of the reference genome when a genome is placed on a terminal branch. 
 * closest_placement_taxonomy: indicates the GTDB taxonomy of the above reference genome.
 * closest_placement_ani: indicates the ANI between the query and above reference genome.

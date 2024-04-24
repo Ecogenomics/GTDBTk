@@ -75,14 +75,25 @@ Using the ``--scratch_dir`` parameter and ``--pplacer_cpus 1`` may help.
 How is GTDB-Tk validating species assignments using average nucleotide identity?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GTDB-Tk uses `FastANI <https://github.com/ParBLiSS/FastANI>`_ to estimate the ANI between genomes.
-We recommend you have FastANI >= 1.32 as this version introduces a fix that makes the results deterministic.
+GTDB-Tk uses `skani <https://github.com/bluenote-1577/skani>`_ ( it was using fastANI until v2.3.2) to estimate the ANI between genomes.
 A query genome is only classified as belonging to the same species as a reference genome if the ANI between the
 genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.5.
 In some circumstances, the phylogenetic placement of a query genome may not support the species assignment.
-GTDB r207 strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
+GTDB r207+ strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the `GTDB <https://gtdb.ecogenomic.org/>`_ website.
 
+
+What is the difference between the mutually exclusive options ``--mash_db`` and ``--skip_ani_screen``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+| Starting with GTDB-Tk v2.2+, the ``classify_wf`` and ``classify`` function require an extra parameter to run: ``--mash_db`` or ``--skip_ani_screen``.
+| With this new version of Tk, The first stage of ``classify`` pipelines (``classify_wf`` and ``classify``) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.
+| Using the ``--mash_db`` option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.
+| If no database are available ( i.e. this is the first time running classify ), the ``--mash_db`` option will sketch a new Mash database that can be used for subsequent calls.
+| The ``--skip_ani_screen`` option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.
+
+Deprecated FAQ
+---------------
 
 Why is FastANI using more threads than allocated?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,12 +120,3 @@ From GTDB-Tk v2.0.0 the conda environment will automatically have FastANI v1.3 i
 From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the `Dockerfile <https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile>`_, making
 sure to specify FastANI v1.32.
-
-What is the difference between the mutually exclusive options ``--mash_db`` and ``--skip_ani_screen``?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-| Starting with GTDB-Tk v2.2+, the ``classify_wf`` and ``classify`` function require an extra parameter to run: ``--mash_db`` or ``--skip_ani_screen``.
-| With this new version of Tk, The first stage of ``classify`` pipelines (``classify_wf`` and ``classify``) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.
-| Using the ``--mash_db`` option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.
-| If no database are available ( i.e. this is the first time running classify ), the ``--mash_db`` option will sketch a new Mash database that can be used for subsequent calls.
-| The ``--skip_ani_screen`` option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.
