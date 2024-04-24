@@ -33,13 +33,13 @@ Hardware requirements
      - Storage
      - Time
    * - Archaea
-     - ~45 GB
-     - ~85 GB
-     - ~1 hour / 1,000 genomes @ 64 CPUs
+     - ~60 GB
+     - ~106 GB
+     - ~90 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~65GB (410 GB when using --full_tree)
-     - ~85 GB
-     - ~1 hour / 1,000 genomes @ 64 CPUs
+     - ~90GB (545 GB when using --full_tree)
+     - ~106 GB
+     - ~90 minutes / 1,000 genomes @ 64 CPUs
 
 .. note::
    The amount reported of memory reported can vary depending on the number of pplacer threads.
@@ -98,9 +98,9 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes they are o
    * - `pplacer <http://matsen.fhcrc.org/pplacer/>`_
      - >= 1.1
      - Matsen FA, et al. 2010. `pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree <https://www.ncbi.nlm.nih.gov/pubmed/21034504>`_. *BMC Bioinformatics*, 11:538.
-   * - `FastANI <https://github.com/ParBLiSS/FastANI>`_
-     - >= 1.32
-     - Jain C, et al. 2019. `High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries <https://www.nature.com/articles/s41467-018-07641-9>`_. *Nat. Communications*, doi: 10.1038/s41467-018-07641-9.
+   * - `skani <https://github.com/bluenote-1577/skani/>`_
+     - >= 0.2.1
+     - Shaw J. and Yu Y.W. 2023. `Fast and robust metagenomic sequence comparison through sparse chaining with skani <https://www.nature.com/articles/s41592-023-02018-3>`_. *Nature Methods*, 20, pages1661–1665 (2023).
    * - `FastTree <http://www.microbesonline.org/fasttree/>`_
      - >= 2.1.9
      - Price MN, et al. 2010. `FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/>`_. *PLoS One*, 5, e9490.
@@ -117,12 +117,12 @@ Please cite these tools if you use GTDB-Tk in your work.
 GTDB-Tk reference data
 ----------------------
 
-GTDB-Tk requires ~84G of external data that needs to be downloaded and unarchived:
+GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:
 
 .. code-block:: bash
 
-    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
-    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz  (or, mirror)
+    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
+    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz  (or, mirror)
     tar xvzf gtdbtk_data.tar.gz
 
 
@@ -137,13 +137,17 @@ GTDB-Tk requires ~84G of external data that needs to be downloaded and unarchive
      - Minimum version
      - Maximum version
      - MD5
+   * - `R220 <https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz>`_
+     - 2.4.0
+     - Current
+     - 5aafa1b9c27ceda003d75adf238ed9e0
    * - `R214 <https://data.gtdb.ecogenomic.org/releases/release214/214.0/auxillary_files/gtdbtk_r214_data.tar.gz>`_
      - 2.1.0
-     - Current
+     - 2.3.2
      - 630745840850c532546996b22da14c27
    * - `R207_v2 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz>`_
      - 2.1.0
-     - Current
+     - 2.3.2
      - df468d63265e8096d8ca01244cb95f30
    * - `R207 <https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz>`_
      - 2.0.0

@@ -37,8 +37,8 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.3.0+ includes the following new features:
-- New functionality ``convert_to_species`` function to convert GTDB genome IDs to GTDB species names
+GTDB-Tk v2.4.0+ includes the following new features:
+- `FastANI` has been replaced by `skani` as the primary tool for computing Average Nucleotide Identity (ANI).Users may notice slight variations in the results compared to those obtained using `FastANI`.
 
 
 ## 📈 Performance
@@ -63,6 +63,7 @@ We strongly encourage you to cite the following 3rd party dependencies:
 
 * Matsen FA, et al. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
 * Jain C, et al. 2019. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.nature.com/articles/s41467-018-07641-9). <i>Nat. Communications</i>, doi: 10.1038/s41467-018-07641-9.
+* Shaw J. and Yu Y.W. 2023. [Fast and robust metagenomic sequence comparison through sparse chaining with skani](https://www.nature.com/articles/s41592-023-02018-3). <i>Nature Methods</i>, 20, pages1661–1665 (2023).
 * Hyatt D, et al. 2010. [Prodigal: prokaryotic gene recognition and translation initiation site identification](https://www.ncbi.nlm.nih.gov/pubmed/20211023). <i>BMC Bioinformatics</i>, 11:119. doi: 10.1186/1471-2105-11-119.
 * Price MN, et al. 2010. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
 * Eddy SR. 2011. [Accelerated profile HMM searches](https://www.ncbi.nlm.nih.gov/pubmed/22039361). <i>PLOS Comp. Biol.</i>, 7:e1002195.

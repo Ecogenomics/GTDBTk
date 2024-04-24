@@ -515,9 +515,11 @@ class GtdbNcbiTranslate(object):
                 remaining_gids = set(gtdbtk_assignments) - processed_gids
                 for gid in remaining_gids:
                     gtdb_taxa = gtdbtk_assignments[gid]
-
-                    gtdb_sp_rid = gtdb_sp_to_rid[gtdb_taxa[SPECIES_IDX]]
-                    ncbi_mv = ncbi_sp_classification[gtdb_sp_rid]
+                    if gtdb_taxa[0].startswith('Unclassified'):
+                        ncbi_mv = gtdb_taxa
+                    else:
+                        gtdb_sp_rid = gtdb_sp_to_rid[gtdb_taxa[SPECIES_IDX]]
+                        ncbi_mv = ncbi_sp_classification[gtdb_sp_rid]
 
                     fout.write('{}\t{}\t{}\n'.format(
                         gid,

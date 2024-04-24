@@ -80,7 +80,7 @@ class RerootTree(object):
         mrca = tree.mrca(taxa=outgroup_in_tree)
         mrca_leaves = len(mrca.leaf_nodes())
         while True:
-            rnd_ingroup = random.sample(ingroup_leaves, 1)[0]
+            rnd_ingroup = random.sample(tuple(ingroup_leaves), 1)[0]
             tree.reroot_at_edge(rnd_ingroup.edge,
                                 length1=0.5 * rnd_ingroup.edge_length,
                                 length2=0.5 * rnd_ingroup.edge_length)

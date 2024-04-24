@@ -46,7 +46,7 @@ class PackageChecker(object):
         """Initialization."""
         self.pack_dir = pack_dir
         self.list_dirsinpackage = [
-            'fastani', 'markers', 'masks', 'metadata', 'msa', 'pplacer', 'radii', 'taxonomy']
+            'skani', 'markers', 'masks', 'metadata', 'msa', 'pplacer', 'radii', 'taxonomy']
 
     def run(self, outf):
 
@@ -62,9 +62,9 @@ class PackageChecker(object):
                 if line.startswith('VERSION_DATA'):
                     version = line.strip().split('=')[1]
 
-        # List genomes in fastani folder
+        # List genomes in skani folder
         list_genomes = [os.path.basename(x) for x in glob.glob(os.path.join(
-            self.pack_dir, 'fastani', 'database/*.gz'))]
+            self.pack_dir, 'skani', 'database/*.gz'))]
         list_genomes = [x.replace('_genomic.fna.gz', '').replace('GCA_', 'GB_GCA_').replace('GCF_', 'RS_GCF_') for x in
                         list_genomes]
 
@@ -206,7 +206,7 @@ class PackageChecker(object):
         print('Length trimmed bac120 MSA: {}'.format(len(bac_pplacer_msa.get(list(bac_pplacer_msa.keys())[0]))))
         print('Length trimmed ar53 MSA: {}'.format(len(ar_pplacer_msa.get(list(ar_pplacer_msa.keys())[0]))))
         print('')
-        print('Number of genomes in fastani/database: {}'.format(len(list_genomes)))
+        print('Number of genomes in skani/database: {}'.format(len(list_genomes)))
         print('Number of genomes in radii file: {}'.format(len(radii_dict)))
         print('Number of genomes in taxonomy file: {}'.format(len(tax_dict)))
 

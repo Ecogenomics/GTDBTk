@@ -53,12 +53,12 @@ def get_ref_genomes():
         Dict[genome_id] = fasta_path
     """
     ref_genomes = dict()
-    with open(CONFIG.FASTANI_GENOME_LIST) as g_path_file:
+    with open(CONFIG.SKANI_GENOME_LIST) as g_path_file:
         for line in g_path_file:
             (full_name, path) = line.strip().split()
-            if full_name.endswith(CONFIG.FASTANI_GENOMES_EXT):
-                accession = full_name.split(CONFIG.FASTANI_GENOMES_EXT)[0]
-            ref_genomes[accession] = os.path.join(CONFIG.FASTANI_DIR, path, full_name)
+            if full_name.endswith(CONFIG.SKANI_GENOMES_EXT):
+                accession = full_name.split(CONFIG.SKANI_GENOMES_EXT)[0]
+            ref_genomes[accession] = os.path.join(CONFIG.SKANI_DIR, path, full_name)
     return ref_genomes
 
 def aa_percent_msa(aa_string):

@@ -37,8 +37,8 @@ from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
-from gtdbtk.external.fastani import FastANI
 from gtdbtk.external.pplacer import Pplacer
+from gtdbtk.external.skani import SkANI
 
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
@@ -65,7 +65,7 @@ class Classify(object):
     def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None,skip_pplacer=False):
         """Initialize."""
 
-        check_dependencies(['pplacer', 'guppy', 'fastANI'])
+        check_dependencies(['pplacer', 'guppy', 'skani'])
 
         self.skip_pplacer = skip_pplacer
 
@@ -339,16 +339,17 @@ class Classify(object):
             mash_max_dist=CONFIG.MASH_MAX_DISTANCE,
             mash_db=None,
             ani_summary_files=None,
-            all_classified_ani=False):
+            all_classified_ani=False,
+            all_failed_prodigal=False):
         """Classify genomes based on position in reference tree."""
-        if not all_classified_ani:
+        if not all_classified_ani and not all_failed_prodigal:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
 
         # If prescreen is set to True, then we will first run all genomes against a mash database
         # of all genomes in the reference package. The next step will be to classify those genomes with
-        # FastANI.
-        # All genomes classified with FastANI will be removed from the input genomes list for the
+        # skani.
+        # All genomes classified with skani will be removed from the input genomes list for the
         # rest of the pipeline.
         mash_classified_user_genomes = {}
         if not skip_ani_screen:
@@ -367,10 +368,10 @@ class Classify(object):
 
             ani_rep = ANIRep(self.cpus)
             # we store all the mash information in the classify directory
-            fastani_results = ani_rep.run_mash_fastani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
+            skani_results = ani_rep.run_mash_skani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
 
-            mash_classified_user_genomes = self._sort_fastani_results_pre_pplacer(
-                fastani_results,bac_ar_diff)
+            mash_classified_user_genomes = self._sort_skani_results_pre_pplacer(
+                skani_results,bac_ar_diff)
 
             len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
                 if 'bac120' in mash_classified_user_genomes else 0
@@ -385,11 +386,11 @@ class Classify(object):
         if skip_ani_screen and ani_summary_files is not None:
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
             # and use them to generate the final taxonomy file
-            mash_classified_user_genomes = self.load_fastani_results_pre_pplacer(ani_summary_files)
+            mash_classified_user_genomes = self.load_skani_results_pre_pplacer(ani_summary_files)
 
         output_files = {}
 
-        # if all genomes were classified with FastANI, we can stop here
+        # if all genomes were classified with skani, we can stop here
         # we write the summary files
         if all_classified_ani:
             # if mash_classified_user_genomes is has key marker_set_id, we
@@ -416,7 +417,7 @@ class Classify(object):
                                   os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
                     output_files.setdefault(marker_set_id, []).append(summary_file.path)
             return output_files
-        else:
+        elif not all_failed_prodigal:
             for marker_set_id in ('ar53', 'bac120'):
                 warning_counter, prodigal_failed_counter = 0, 0
                 if marker_set_id == 'ar53':
@@ -477,7 +478,22 @@ class Classify(object):
                     if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
                         list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
                         for row in list_summary_rows:
-                            summary_file.add_row(row)
+                            # in some instance, when running the 3 classify steps independently, the genome might have been filtered out in the alignment step
+                            # but its still present in the ani screening and have a % > 95 ( this can happen with partial genomes) so Tk would try to report it twice in
+                            # the summary file, instead we report it as classify with ani, but with a warning from the alignment step
+                            # skani should reduce the number of such cases
+                            if row.gid in summary_file.rows:
+                                row_to_update = summary_file.get_row(row.gid)
+                                existing_warnings = row_to_update.warnings
+                                if existing_warnings is not None and row.warnings:
+                                    row.warnings.append(existing_warnings)
+                                elif existing_warnings is not None:
+                                    row.warnings = [existing_warnings]
+                                if row.warnings:
+                                    row.warnings = ';'.join(row.warnings)
+                                summary_file.update_row(row)
+                            else:
+                                summary_file.add_row(row)
 
                     if summary_file.has_row():
                         summary_file.write()
@@ -737,6 +753,27 @@ class Classify(object):
                     output_files.setdefault(marker_set_id, []).append(disappearing_genomes_file.path)
                 summary_file.write()
                 output_files.setdefault(marker_set_id, []).append(summary_file.path)
+        elif all_failed_prodigal:
+            marker_set_id ='bac120'
+            summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+
+            # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+            # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
+            # but they need to be included in one of the summary file
+            prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+
+            if summary_file.has_row():
+                summary_file.write()
+                output_files.setdefault(marker_set_id, []).append(summary_file.path)
+                # Symlink to the summary file from the root
+                symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                if prodigal_failed_counter > 0:
+                    self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
+                                        f"genome{'' if prodigal_failed_counter == 1 else 's'} "
+                                        f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+
+
         return output_files
 
     def _add_warning_to_row(self,row,msa_dict,
@@ -794,7 +831,7 @@ class Classify(object):
         return low_classify_tree, submsa_file_path
 
     @staticmethod
-    def _get_fastani_verification(tree, reference_ids, tt):
+    def _get_skani_verification(tree, reference_ids, tt):
         """
 
         Parameters
@@ -1177,7 +1214,7 @@ class Classify(object):
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict,genes, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,warning_counter, high_classification,
                     debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
-        # Genomes can be classified by using FastANI or RED values
+        # Genomes can be classified by using skani or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
         # for this node.
@@ -1187,34 +1224,34 @@ class Classify(object):
 
         self.logger.log(CONFIG.LOG_TASK, 'Traversing tree to determine classification method.')
         if genes:
-            fastani_verification = {}
+            skani_verification = {}
         else:
-            fastani_verification, qury_nodes = self._get_fastani_verification(tree, self.reference_ids, tt)
+            skani_verification, qury_nodes = self._get_skani_verification(tree, self.reference_ids, tt)
 
-        #DEBUG: Skip FastANI step
-        #fastani_verification = {}
+        #DEBUG: Skip skani step
+        #skani_verification = {}
 
-        # we run a fastani comparison for each user genomes against the
+        # we run a skani comparison for each user genomes against the
         # selected genomes in the same genus
-        ##if not prescreening and len(fastani_verification) > 0:
-        if len(fastani_verification) > 0:
-            fastani = FastANI(cpus=self.cpus, force_single=True)
-            d_ani_compare, d_paths = self._get_fastani_genome_path(
-                fastani_verification, genomes)
+        ##if not prescreening and len(skani_verification) > 0:
+        if len(skani_verification) > 0:
+            skani = SkANI(cpus=self.cpus, force_single=True)
+            d_ani_compare, d_paths = self._get_skani_genome_path(
+                skani_verification, genomes)
             self.logger.log(CONFIG.LOG_TASK,
                             f'Calculating average nucleotide identity using '
-                            f'FastANI (v{fastani.version}).')
-            all_fastani_dict = fastani.run(d_ani_compare, d_paths)
+                            f'skani (v{skani.version}).')
+            all_skani_dict = skani.run(d_ani_compare, d_paths)
         else:
-            all_fastani_dict = {}
+            all_skani_dict = {}
 
-        classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_fastani_results(
-            fastani_verification, pplacer_taxonomy_dict, all_fastani_dict, msa_dict, percent_multihit_dict,
+        classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_skani_results(
+            skani_verification, pplacer_taxonomy_dict, all_skani_dict, msa_dict, percent_multihit_dict,
             trans_table_dict, bac_ar_diff,warning_counter, summary_file)
         #if not prescreening:
         if not genes:
             self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
-                             f'been classified using FastANI and pplacer.')
+                             f'been classified using skani and pplacer.')
         else:
             self.logger.info('ANI classification has been skipped (--genes option used).')
 
@@ -1227,7 +1264,7 @@ class Classify(object):
                 mapping_row.rule = 'Rule 7'
                 tree_mapping_file.add_row(mapping_row)
 
-        # Iterate over each leaf node that was not classified with FastANI.
+        # Iterate over each leaf node that was not classified with skani.
         class_in_spe_tree = None
         phyla_in_spe_tree = None
         if tree_mapping_dict_reverse:
@@ -1394,12 +1431,28 @@ class Classify(object):
             with open(filtered_file) as fin:
                 for line in fin:
                     infos = line.strip().split('\t')
-                    summary_row = ClassifySummaryFileRow()
-                    summary_row.gid = infos[0]
-                    summary_row.classification = f'Unclassified {domain}'
-                    summary_row.warnings = infos[1]
-                    summary_file.add_row(summary_row)
-                    warning_counter += 1
+                    # in some instance, when running the 3 classify steps independently, the genome might have been filtered out in the alignment step
+                    # but its still present in the ani screening and have a % > 95 ( this can happen with partial genomes) so Tk would try to report it twice in
+                    # the summary file, instead we report it as classified with ani, but with a warning from the alignment step
+                    # skani should reduce the number of such cases
+                    if infos[0] in summary_file.rows:
+                        row_to_update = summary_file.rows[infos[0]]
+                        # extra check
+                        if row_to_update.classification_method == 'ani_screen':
+                            existing_warnings = row_to_update.warnings
+                            if existing_warnings is not None:
+                                row_to_update.warnings = existing_warnings + ';' + infos[1]
+                            else:
+                                row_to_update.warnings = infos[1]
+                                warning_counter += 1
+                    else:
+                        summary_row = ClassifySummaryFileRow()
+                        summary_row.gid = infos[0]
+                        summary_row.classification = f'Unclassified {domain}'
+                        summary_row.warnings = infos[1]
+                        summary_file.add_row(summary_row)
+                        warning_counter += 1
+
         return warning_counter
 
     def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
@@ -1451,100 +1504,104 @@ class Classify(object):
         return note_list
 
 
-    def _sort_fastani_results_pre_pplacer(self,fastani_results,bac_ar_diff):
-        """ When run mash/FastANI on all genomes before using pplacer, we need to sort those results and store them for
+    def _sort_skani_results_pre_pplacer(self,skani_results,bac_ar_diff):
+        """ When run mash/skani on all genomes before using pplacer, we need to sort those results and store them for
         a later use
 
         Parameters
         ----------
-        fastani_results : dictionary listing the fastani ANI for each user genomes against the potential genomes
+        skani_results : dictionary listing the skani ANI for each user genomes against the potential genomes
 
         """
         classified_user_genomes = {}
 
         # sort the dictionary by ani then af
-        for gid in fastani_results.keys():
-            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in fastani_results[gid].items() if
-                              hit['af'] >= CONFIG.AF_THRESHOLD and hit['ani'] >= self.gtdb_radii.get_rep_ani(
-                                  canonical_gid(ref_gid))]
+        for gid in skani_results.keys():
+            thresh_results = [(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items() if \
+                              hit['af'] >= self.af_threshold]
             closest = sorted(thresh_results, key=lambda x: (-x[1]['ani'], -x[1]['af']))
             if len(closest) > 0:
-                summary_row = ClassifySummaryFileRow()
-                summary_row.gid = gid
-                summary_row.classification_method = 'ani_screen'
-                if len(closest) > 1:
-                    other_ref = '; '.join(self.formatnote(
-                        closest,self.gtdb_taxonomy,self.species_radius, [gid]))
-                    if len(other_ref) == 0:
-                        summary_row.other_related_refs = None
-                    else:
+                set_to_closest_rep = False
+                closest_rep,closet_rep_infos = closest[0]
+                if closet_rep_infos['ani'] >= self.gtdb_radii.get_rep_ani(canonical_gid(closest_rep)):
+                    set_to_closest_rep = True
+                    # remove the closest rep from the list
+                    trimmed_closest = closest[1:]
+                    other_ref = None
+                    summary_row = ClassifySummaryFileRow()
+                    summary_row.gid = gid
+                    summary_row.classification_method = 'ani_screen'
+
+                    if len(trimmed_closest) > 1:
+                        other_ref = '; '.join(self.formatnote(
+                            closest,self.gtdb_taxonomy,self.species_radius, [gid]))
                         summary_row.other_related_refs = other_ref
-                summary_row.note = 'classification based on ANI only'
+                    summary_row.note = 'classification based on ANI only'
 
-                fastani_matching_reference = closest[0][0]
-                current_ani = fastani_results.get(gid).get(
-                    fastani_matching_reference).get('ani')
-                current_af = fastani_results.get(gid).get(
-                    fastani_matching_reference).get('af')
+                    skani_matching_reference = closest_rep
+                    current_ani = skani_results.get(gid).get(
+                        skani_matching_reference).get('ani')
+                    current_af = skani_results.get(gid).get(
+                        skani_matching_reference).get('af')
 
-                summary_row.fastani_ref = fastani_matching_reference
-                summary_row.fastani_ref_radius = str(
-                    self.species_radius.get(fastani_matching_reference))
-                summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference)))
-                summary_row.fastani_ani = round(current_ani, 2)
-                summary_row.fastani_af = round(current_af, 3)
-                taxa_str = ";".join(self.gtdb_taxonomy.get(
-                    add_ncbi_prefix(fastani_matching_reference)))
-                summary_row.classification = standardise_taxonomy(
-                    taxa_str)
+                    summary_row.closest_genome_ref = skani_matching_reference
+                    summary_row.closest_genome_ref_radius = str(
+                        self.species_radius.get(skani_matching_reference))
+                    summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(skani_matching_reference)))
+                    summary_row.closest_genome_ani = round(current_ani, 2)
+                    summary_row.closest_genome_af = round(current_af, 3)
+                    taxa_str = ";".join(self.gtdb_taxonomy.get(
+                        add_ncbi_prefix(skani_matching_reference)))
+                    summary_row.classification = standardise_taxonomy(
+                        taxa_str)
 
-                warnings = []
-                if gid in bac_ar_diff:
-                    warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                        bac_ar_diff.get(gid).get('bac120'),
-                        bac_ar_diff.get(gid).get('ar53')))
+                    warnings = []
+                    if gid in bac_ar_diff:
+                        warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                            bac_ar_diff.get(gid).get('bac120'),
+                            bac_ar_diff.get(gid).get('ar53')))
 
-                if len(warnings) > 0:
-                    summary_row.warnings = warnings
+                    if len(warnings) > 0:
+                        summary_row.warnings = warnings
 
-                if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
-                    domain = 'bac120'
-                else:
-                    domain = 'ar53'
-                classified_user_genomes.setdefault(domain, []).append(summary_row)
+                    if (taxa_str.split(';')[0]).split('__')[1] == 'Bacteria':
+                        domain = 'bac120'
+                    else:
+                        domain = 'ar53'
+                    classified_user_genomes.setdefault(domain, []).append(summary_row)
 
         return classified_user_genomes
 
 
 
 
-    def _sort_fastani_results(self, fastani_verification, pplacer_taxonomy_dict,
-                              all_fastani_dict, msa_dict, percent_multihit_dict,
+    def _sort_skani_results(self, skani_verification, pplacer_taxonomy_dict,
+                              all_skani_dict, msa_dict, percent_multihit_dict,
                               trans_table_dict, bac_ar_diff,warning_counter, summary_file):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
         ----------
-        fastani_verification : dictionary listing the potential genomes associated with a user genome
+        skani_verification : dictionary listing the potential genomes associated with a user genome
         d[user_genome] = {"potential_g": [(potential_genome_in_same_genus,patristic distance)],
         "pplacer_g": genome_of_reference_selected_by_pplacer(if any)}
-        all_fastani_dict : dictionary listing the fastani ANI for each user genomes against the potential genomes
+        all_skani_dict : dictionary listing the skani ANI for each user genomes against the potential genomes
         d[user_genome]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         summaryfout: output file
 
         Returns
         -------
-        classified_user_genomes: list of genomes where FastANI and Placement in the reference tree have
+        classified_user_genomes: list of genomes where skani and Placement in the reference tree have
         predicted a taxonomy
-        unclassified_user_genomes: dictionary of genomes where FastANI and Placement in the reference tree have not
+        unclassified_user_genomes: dictionary of genomes where skani and Placement in the reference tree have not
         predicted a taxonomy
 
         """
         classified_user_genomes = {}
         unclassified_user_genomes = {}
 
-        for userleaf, potential_nodes in fastani_verification.items():
+        for userleaf, potential_nodes in skani_verification.items():
 
             summary_row = ClassifySummaryFileRow()
 
@@ -1561,26 +1618,26 @@ class Classify(object):
                 pplacer_leafnode = potential_nodes.get("pplacer_g").taxon.label
                 if pplacer_leafnode[0:3] in ['RS_', 'GB_']:
                     pplacer_leafnode = pplacer_leafnode[3:]
-                if userleaf.taxon.label in all_fastani_dict:
+                if userleaf.taxon.label in all_skani_dict:
                     # import IPython; IPython.embed()
                     prefilter_af_reference_dictionary = {k: v for k, v in
-                                                         all_fastani_dict.get(userleaf.taxon.label).items() if v.get(
+                                                         all_skani_dict.get(userleaf.taxon.label).items() if v.get(
                             'af') >= self.af_threshold}
                     sorted_prefilter_af_dict = sorted(iter(prefilter_af_reference_dictionary.items()),
                                                       key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
 
-                    sorted_dict = sorted(iter(all_fastani_dict.get(
+                    sorted_dict = sorted(iter(all_skani_dict.get(
                         userleaf.taxon.label).items()), key=lambda _x_y: (_x_y[1]['ani'], _x_y[1]['af']), reverse=True)
 
-                    fastani_matching_reference = None
+                    skani_matching_reference = None
                     if len(sorted_prefilter_af_dict) > 0:
                         if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
                                 sorted_prefilter_af_dict[0][0]):
-                            fastani_matching_reference = sorted_prefilter_af_dict[0][0]
-                            current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                                fastani_matching_reference).get('ani')
-                            current_af = all_fastani_dict.get(userleaf.taxon.label).get(
-                                fastani_matching_reference).get('af')
+                            skani_matching_reference = sorted_prefilter_af_dict[0][0]
+                            current_ani = all_skani_dict.get(userleaf.taxon.label).get(
+                                skani_matching_reference).get('ani')
+                            current_af = all_skani_dict.get(userleaf.taxon.label).get(
+                                skani_matching_reference).get('af')
                         else:
                             warnings.append(
                                 "Genome not assigned to closest species as it falls outside its pre-defined ANI radius")
@@ -1598,28 +1655,28 @@ class Classify(object):
                     if len(warnings) > 0:
                         summary_row.warnings = ';'.join(warnings)
 
-                    if fastani_matching_reference is not None:
-                        summary_row.fastani_ref = fastani_matching_reference
-                        summary_row.fastani_ref_radius = str(
-                            self.species_radius.get(fastani_matching_reference))
-                        summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
-                            add_ncbi_prefix(fastani_matching_reference)))
-                        summary_row.fastani_ani = round(current_ani, 2)
-                        summary_row.fastani_af = round(current_af,3)
-                        if pplacer_leafnode == fastani_matching_reference:
+                    if skani_matching_reference is not None:
+                        summary_row.closest_genome_ref = skani_matching_reference
+                        summary_row.closest_genome_ref_radius = str(
+                            self.species_radius.get(skani_matching_reference))
+                        summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(skani_matching_reference)))
+                        summary_row.closest_genome_ani = round(current_ani, 2)
+                        summary_row.closest_genome_af = round(current_af,3)
+                        if pplacer_leafnode == skani_matching_reference:
                             if taxa_str.endswith("s__"):
                                 taxa_str = taxa_str + pplacer_leafnode
                             summary_row.classification = standardise_taxonomy(
                                 taxa_str)
-                            summary_row.closest_placement_ref = summary_row.fastani_ref
-                            summary_row.closest_placement_radius = summary_row.fastani_ref_radius
-                            summary_row.closest_placement_tax = summary_row.fastani_tax
-                            summary_row.closest_placement_ani = summary_row.fastani_ani
-                            summary_row.closest_placement_af = summary_row.fastani_af
+                            summary_row.closest_placement_ref = summary_row.closest_genome_ref
+                            summary_row.closest_placement_radius = summary_row.closest_genome_ref_radius
+                            summary_row.closest_placement_tax = summary_row.closest_genome_tax
+                            summary_row.closest_placement_ani = summary_row.closest_genome_ani
+                            summary_row.closest_placement_af = summary_row.closest_genome_af
                             summary_row.note = 'topological placement and ANI have congruent species assignments'
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self.formatnote(
-                                    sorted_dict,self.gtdb_taxonomy,self.species_radius, [fastani_matching_reference]))
+                                    sorted_dict,self.gtdb_taxonomy,self.species_radius, [skani_matching_reference]))
                                 if len(other_ref) == 0:
                                     summary_row.other_related_refs = None
                                 else:
@@ -1627,7 +1684,7 @@ class Classify(object):
 
                         else:
                             taxa_str = ";".join(self.gtdb_taxonomy.get(
-                                add_ncbi_prefix(fastani_matching_reference)))
+                                add_ncbi_prefix(skani_matching_reference)))
                             summary_row.classification = standardise_taxonomy(
                                 taxa_str)
                             summary_row.closest_placement_ref = pplacer_leafnode
@@ -1635,16 +1692,16 @@ class Classify(object):
                                 self.species_radius.get(pplacer_leafnode))
                             summary_row.closest_placement_tax = ";".join(self.gtdb_taxonomy.get(
                                 add_ncbi_prefix(pplacer_leafnode)))
-                            if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
-                                summary_row.closest_placement_ani = round(all_fastani_dict.get(
+                            if pplacer_leafnode in all_skani_dict.get(userleaf.taxon.label):
+                                summary_row.closest_placement_ani = round(all_skani_dict.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
-                                summary_row.closest_placement_af = round(all_fastani_dict.get(
+                                summary_row.closest_placement_af = round(all_skani_dict.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
-                            summary_row.classification_method = 'ANI'
+                            summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
 
                             if len(sorted_dict) > 0:
                                 other_ref = '; '.join(self.formatnote(
-                                    sorted_dict,self.gtdb_taxonomy,self.species_radius, [fastani_matching_reference, pplacer_leafnode]))
+                                    sorted_dict,self.gtdb_taxonomy,self.species_radius, [skani_matching_reference, pplacer_leafnode]))
                                 if len(other_ref) == 0:
                                     summary_row.other_related_refs = None
                                 else:
@@ -1657,10 +1714,10 @@ class Classify(object):
                             self.species_radius.get(pplacer_leafnode))
                         summary_row.closest_placement_tax = ";".join(self.gtdb_taxonomy.get(
                             add_ncbi_prefix(pplacer_leafnode)))
-                        if pplacer_leafnode in all_fastani_dict.get(userleaf.taxon.label):
-                            summary_row.closest_placement_ani = round(all_fastani_dict.get(
+                        if pplacer_leafnode in all_skani_dict.get(userleaf.taxon.label):
+                            summary_row.closest_placement_ani = round(all_skani_dict.get(
                                 userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
-                            summary_row.closest_placement_af = round(all_fastani_dict.get(
+                            summary_row.closest_placement_af = round(all_skani_dict.get(
                                 userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
 
                         if len(sorted_dict) > 0:
@@ -1672,19 +1729,19 @@ class Classify(object):
                                 summary_row.other_related_refs = other_ref
                         unclassified_user_genomes[userleaf.taxon.label] = summary_row
 
-            elif userleaf.taxon.label in all_fastani_dict:
+            elif userleaf.taxon.label in all_skani_dict:
                 prefilter_af_reference_dictionary = {k: v for k, v in
-                                                     all_fastani_dict.get(userleaf.taxon.label).items() if v.get(
+                                                     all_skani_dict.get(userleaf.taxon.label).items() if v.get(
                         'af') >= self.af_threshold}
                 sorted_prefilter_af_dict = sorted(iter(prefilter_af_reference_dictionary.items()),
                                                   key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
-                sorted_dict = sorted(iter(all_fastani_dict.get(
+                sorted_dict = sorted(iter(all_skani_dict.get(
                     userleaf.taxon.label).items()), key=lambda _x_y2: (_x_y2[1]['ani'], _x_y2[1]['af']), reverse=True)
 
                 summary_row.gid = userleaf.taxon.label
                 summary_row.pplacer_tax = pplacer_taxonomy_dict.get(
                     userleaf.taxon.label)
-                summary_row.classification_method = 'ANI'
+                summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                 summary_row.msa_percent = aa_percent_msa(
                     msa_dict.get(summary_row.gid))
                 summary_row.tln_table = trans_table_dict.get(summary_row.gid)
@@ -1705,25 +1762,25 @@ class Classify(object):
                         warning_counter += 1
                     if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
                             sorted_prefilter_af_dict[0][0]):
-                        fastani_matching_reference = sorted_prefilter_af_dict[0][0]
-                        exception_genomes.append(fastani_matching_reference)
+                        skani_matching_reference = sorted_prefilter_af_dict[0][0]
+                        exception_genomes.append(skani_matching_reference)
 
                         taxa_str = ";".join(self.gtdb_taxonomy.get(
-                            add_ncbi_prefix(fastani_matching_reference)))
+                            add_ncbi_prefix(skani_matching_reference)))
                         summary_row.classification = standardise_taxonomy(
                             taxa_str)
 
-                        summary_row.fastani_ref = fastani_matching_reference
-                        summary_row.fastani_ref_radius = str(
-                            self.species_radius.get(fastani_matching_reference))
-                        summary_row.fastani_tax = ";".join(self.gtdb_taxonomy.get(
-                            add_ncbi_prefix(fastani_matching_reference)))
-                        current_ani = all_fastani_dict.get(userleaf.taxon.label).get(
-                            fastani_matching_reference).get('ani')
-                        summary_row.fastani_ani = round(current_ani, 2)
-                        current_af = all_fastani_dict.get(userleaf.taxon.label).get(
-                            fastani_matching_reference).get('af')
-                        summary_row.fastani_af = round(current_af,3)
+                        summary_row.closest_genome_ref = skani_matching_reference
+                        summary_row.closest_genome_ref_radius = str(
+                            self.species_radius.get(skani_matching_reference))
+                        summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
+                            add_ncbi_prefix(skani_matching_reference)))
+                        current_ani = all_skani_dict.get(userleaf.taxon.label).get(
+                            skani_matching_reference).get('ani')
+                        summary_row.closest_genome_ani = round(current_ani, 2)
+                        current_af = all_skani_dict.get(userleaf.taxon.label).get(
+                            skani_matching_reference).get('af')
+                        summary_row.closest_genome_af = round(current_af,3)
                         summary_row.note = 'topological placement and ANI have incongruent species assignments'
                         if len(warnings) > 0:
                             summary_row.warnings = ';'.join(warnings)
@@ -2131,7 +2188,7 @@ class Classify(object):
 
         leaves_in_tree = sum([1 for _ in new_tree.leaf_node_iter()])
         while True:
-            rnd_ingroup_leaf = random.sample(ingroup_in_tree, 1)[0]
+            rnd_ingroup_leaf = random.sample(tuple(ingroup_in_tree), 1)[0]
             new_tree.reroot_at_edge(rnd_ingroup_leaf.edge,
                                     length1=0.5 * rnd_ingroup_leaf.edge_length,
                                     length2=0.5 * rnd_ingroup_leaf.edge_length)
@@ -2159,12 +2216,12 @@ class Classify(object):
 
         return new_tree
 
-    def _get_fastani_genome_path(self, fastani_verification, genomes):
+    def _get_skani_genome_path(self, skani_verification, genomes):
         """Generates a queue of comparisons to be made and the paths to
         the corresponding genome id."""
         dict_compare, dict_paths = dict(), dict()
 
-        for qry_node, qry_dict in fastani_verification.items():
+        for qry_node, qry_dict in skani_verification.items():
             user_label = qry_node.taxon.label
             dict_paths[user_label] = genomes[user_label]
             dict_compare[user_label] = set()
@@ -2176,17 +2233,17 @@ class Classify(object):
                 # TODEL UBA genomes
                 if shortleaf.startswith("UBA"):
                     ref_path = os.path.join(
-                        CONFIG.FASTANI_GENOMES,
+                        CONFIG.SKANI_GENOMES,
                         'UBA',
-                        shortleaf + CONFIG.FASTANI_GENOMES_EXT)
+                        shortleaf + CONFIG.SKANI_GENOMES_EXT)
                 else:
                     ref_path = os.path.join(
-                        CONFIG.FASTANI_GENOMES,
+                        CONFIG.SKANI_GENOMES,
                         self.parse_leaf_to_dir_path(shortleaf),
-                        shortleaf + CONFIG.FASTANI_GENOMES_EXT)
+                        shortleaf + CONFIG.SKANI_GENOMES_EXT)
 
                 if not os.path.isfile(ref_path):
-                    raise GTDBTkExit(f'Reference genome missing from FastANI database: {ref_path}')
+                    raise GTDBTkExit(f'Reference genome missing from skani database: {ref_path}')
 
                 dict_compare[user_label].add(shortleaf)
                 dict_paths[shortleaf] = ref_path
@@ -2200,45 +2257,45 @@ class Classify(object):
                 results.append(v[rank_index])
         return list(set(results))
 
-    def load_fastani_results_pre_pplacer(self,ani_summary_files):
-        """Load the FastANI results for the genomes classified with ANI Screen."""
-        fastani_results={}
+    def load_skani_results_pre_pplacer(self,ani_summary_files):
+        """Load the skani results for the genomes classified with ANI Screen."""
+        skani_results={}
         for domain,ani_summary_file_path in ani_summary_files.items():
             ani_summary_file = ANISummaryFile(ani_summary_file_path)
-            fastani_results[domain]=ani_summary_file.read()
+            skani_results[domain]=ani_summary_file.read()
 
         classified_user_genomes = {}
 
         # sort the dictionary by ani then af
-        for domain,fastani_results in fastani_results.items():
-            for gid,ani_results in fastani_results.items():
+        for domain,skani_results in skani_results.items():
+            for gid,ani_results in skani_results.items():
                 summary_row = ClassifySummaryFileRow()
                 summary_row.gid = gid
                 summary_row.classification_method = 'ani_screen'
                 summary_row.note = 'classification based on ANI only'
 
-                fastani_matching_reference = list(ani_results)[0]
+                skani_matching_reference = list(ani_results)[0]
 
-                if 'other_refs' in fastani_results.get(gid).get(
-                    fastani_matching_reference):
-                    other_refs = fastani_results.get(gid).get(
-                        fastani_matching_reference).get('other_refs')
+                if 'other_refs' in skani_results.get(gid).get(
+                    skani_matching_reference):
+                    other_refs = skani_results.get(gid).get(
+                        skani_matching_reference).get('other_refs')
                     if other_refs:
                         summary_row.other_related_refs = other_refs
-                current_ani = fastani_results.get(gid).get(
-                        fastani_matching_reference).get('ani')
-                current_af = fastani_results.get(gid).get(
-                        fastani_matching_reference).get('af')
+                current_ani = skani_results.get(gid).get(
+                        skani_matching_reference).get('ani')
+                current_af = skani_results.get(gid).get(
+                        skani_matching_reference).get('af')
 
-                summary_row.fastani_ref = fastani_matching_reference
-                summary_row.fastani_ref_radius = str(
-                        self.species_radius.get(fastani_matching_reference))
-                summary_row.fastani_tax = fastani_results.get(gid).get(
-                        fastani_matching_reference).get('taxonomy')
-                summary_row.fastani_ani = round(current_ani, 2)
-                summary_row.fastani_af = round(current_af,3)
+                summary_row.closest_genome_ref = skani_matching_reference
+                summary_row.closest_genome_ref_radius = str(
+                        self.species_radius.get(skani_matching_reference))
+                summary_row.closest_genome_tax = skani_results.get(gid).get(
+                        skani_matching_reference).get('taxonomy')
+                summary_row.closest_genome_ani = round(current_ani, 2)
+                summary_row.closest_genome_af = round(current_af,3)
                 taxa_str = ";".join(self.gtdb_taxonomy.get(
-                        add_ncbi_prefix(fastani_matching_reference)))
+                        add_ncbi_prefix(skani_matching_reference)))
                 summary_row.classification = standardise_taxonomy(
                         taxa_str)
 
@@ -2251,11 +2308,11 @@ class Classify(object):
         for domain,rows in list_of_summary_rows.items():
             for row in rows:
                 if row.other_related_refs:
-                    infos ={row.gid:{row.fastani_ref: {'ani': row.fastani_ani,
-                                                 'af': row.fastani_af,
+                    infos ={row.gid:{row.closest_genome_ref: {'ani': row.closest_genome_ani,
+                                                 'af': row.closest_genome_af,
                                                  'other_refs': row.other_related_refs}}}
                 else:
-                    infos ={row.gid:{row.fastani_ref: {'ani': row.fastani_ani, 'af': row.fastani_af}}}
+                    infos ={row.gid:{row.closest_genome_ref: {'ani': row.closest_genome_ani, 'af': row.closest_genome_af}}}
                 dict_of_rows.setdefault(domain, {}).update(infos)
 
         return dict_of_rows
