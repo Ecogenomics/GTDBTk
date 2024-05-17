@@ -120,7 +120,7 @@ GTDB-Tk reference data
 GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:
 
 For full package:
-^^^^^^^^^^^^^^^^^
+'''''''''''''''''
 
 .. code-block:: bash
 
@@ -129,7 +129,7 @@ For full package:
     tar xvzf gtdbtk_data.tar.gz
 
 For split package:
-^^^^^^^^^^^^^^^^^^
+''''''''''''''''''
 
 To create an archive from the GTDB-Tk release data parts:
 
