@@ -369,11 +369,24 @@ See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="st
 <div class="section" id="gtdb-tk-reference-data">
 <span id="installing-gtdbtk-reference-data"></span><h2>GTDB-Tk reference data<a class="headerlink" href="#gtdb-tk-reference-data" title="Permalink to this headline">¶</a></h2>
 <p>GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
-wget<span class="w"> </span>https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz<span class="w">  </span><span class="o">(</span>or,<span class="w"> </span>mirror<span class="o">)</span>
+<p>For full package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
+wget<span class="w"> </span>https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz<span class="w"> </span><span class="o">(</span><span class="w"> </span>mirror<span class="w"> </span><span class="k">for</span><span class="w"> </span>Australia<span class="o">)</span>
 tar<span class="w"> </span>xvzf<span class="w"> </span>gtdbtk_data.tar.gz
 </pre></div>
 </div>
+<p>For split package:</p>
+<p>To create an archive from the GTDB-Tk release data parts:</p>
+<ol class="arabic simple">
+<li><p>Ensure all parts of the GTDB-Tk release data are in the same directory.</p></li>
+<li><p>Open a terminal or command prompt.</p></li>
+<li><p>Navigate to the directory containing the parts of the GTDB-Tk release data.</p></li>
+<li><p>Use the following command to concatenate all parts into a single archive:
+cat gtdbtk_r220_data.tar.gz.part_* &gt; gtdbtk_r220_data.tar.gz</p></li>
+<li><p>Once the command finishes executing, you will have a single archive file named ‘gtdbtk_r220_data.tar.gz’ in the same directory.</p></li>
+</ol>
+<p>You can find the gtdbtk_r220_data.tar.gz.part_* files under:
+<a class="reference external" href="https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_files/gtdbtk_package/split_package/gtdbtk_r220_data.tar.gz.part_aa">https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_files/gtdbtk_package/split_package/gtdbtk_r220_data.tar.gz.part_aa</a></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, check the supported versions!</p>
@@ -393,7 +406,7 @@ tar<span class="w"> </span>xvzf<span class="w"> </span>gtdbtk_data.tar.gz
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz">R220</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz">R220</a></p></td>
 <td><p>2.4.0</p></td>
 <td><p>Current</p></td>
 <td><p>5aafa1b9c27ceda003d75adf238ed9e0</p></td>
