@@ -119,8 +119,7 @@ GTDB-Tk reference data
 
 GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:
 
-For full package:
-'''''''''''''''''
+**For full package:**
 
 .. code-block:: bash
 
@@ -128,8 +127,7 @@ For full package:
     wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz ( mirror for Australia)
     tar xvzf gtdbtk_data.tar.gz
 
-For split package:
-''''''''''''''''''
+**For split package:**
 
 To create an archive from the GTDB-Tk release data parts:
 
