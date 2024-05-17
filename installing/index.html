@@ -127,11 +127,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#hardware-requirements">Hardware requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python-libraries">Python libraries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#third-party-software">Third-party software</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-reference-data">GTDB-Tk reference data</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#for-full-package">For full package:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#for-split-package">For split package:</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-reference-data">GTDB-Tk reference data</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -373,16 +369,13 @@ See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="st
 <div class="section" id="gtdb-tk-reference-data">
 <span id="installing-gtdbtk-reference-data"></span><h2>GTDB-Tk reference data<a class="headerlink" href="#gtdb-tk-reference-data" title="Permalink to this headline">¶</a></h2>
 <p>GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:</p>
-<div class="section" id="for-full-package">
-<h3>For full package:<a class="headerlink" href="#for-full-package" title="Permalink to this headline">¶</a></h3>
+<p><strong>For full package:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
 wget<span class="w"> </span>https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz<span class="w"> </span><span class="o">(</span><span class="w"> </span>mirror<span class="w"> </span><span class="k">for</span><span class="w"> </span>Australia<span class="o">)</span>
 tar<span class="w"> </span>xvzf<span class="w"> </span>gtdbtk_data.tar.gz
 </pre></div>
 </div>
-</div>
-<div class="section" id="for-split-package">
-<h3>For split package:<a class="headerlink" href="#for-split-package" title="Permalink to this headline">¶</a></h3>
+<p><strong>For split package:</strong></p>
 <p>To create an archive from the GTDB-Tk release data parts:</p>
 <ol class="arabic simple">
 <li><p>Ensure all parts of the GTDB-Tk release data are in the same directory.</p></li>
@@ -465,7 +458,6 @@ cat gtdbtk_r220_data.tar.gz.part_* &gt; gtdbtk_r220_data.tar.gz</p></li>
 </tr>
 </tbody>
 </table>
-</div>
 </div>
 </div>
 
