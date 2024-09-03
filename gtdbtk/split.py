@@ -339,7 +339,7 @@ class Split(object):
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
     def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,
-                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,warning_counter):
+                          tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,genomes_with_warnings):
         mapped_rank = {}
         counter = 0
         high_taxonomy_used = {}
@@ -382,7 +382,7 @@ class Split(object):
                         if summary_row.warnings is not None:
                             warnings.extend(summary_row.warnings.split(';'))
                         summary_row.warnings = ';'.join(set(warnings))
-                        warning_counter += 1
+                        genomes_with_warnings.append(summary_row.gid)
 
 
                     mapping_row = GenomeMappingFileRow()
@@ -394,4 +394,4 @@ class Split(object):
                     tree_mapping_file.add_row(mapping_row)
                     summary_file.add_row(summary_row)
 
-        return mapped_rank,warning_counter, counter , high_taxonomy_used
+        return mapped_rank,genomes_with_warnings, counter , high_taxonomy_used

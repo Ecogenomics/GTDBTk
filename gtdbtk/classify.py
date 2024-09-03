@@ -419,7 +419,9 @@ class Classify(object):
             return output_files
         elif not all_failed_prodigal:
             for marker_set_id in ('ar53', 'bac120'):
-                warning_counter, prodigal_failed_counter = 0, 0
+                genomes_with_warnings = []
+                genomes_with_failed_prodigal = []
+                #warning_counter, prodigal_failed_counter = 0, 0
                 if marker_set_id == 'ar53':
                     marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                     marker_summary_fh.read()
@@ -459,7 +461,7 @@ class Classify(object):
                     if marker_set_id == 'ar53':
                         # we still add the filtered genomes to the summary file
                         # add filtered genomes to the summary file
-                        warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
+                        genomes_with_warnings = self.add_filtered_genomes_to_summary(align_dir, genomes_with_warnings, summary_file,
                                                                                marker_set_id, prefix)
 
                     # But if there is Unclassified genomes without domain,
@@ -468,10 +470,10 @@ class Classify(object):
                         # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
                         # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
                         # but they need to be included in one of the summary file
-                        prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                        genomes_with_failed_prodigal = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
                         # we also add the filtered genomes to the summary file
                         # add filtered genomes to the summary file
-                        warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
+                        genomes_with_warnings = self.add_filtered_genomes_to_summary(align_dir, genomes_with_warnings, summary_file,
                                                                                marker_set_id, prefix)
 
                     # we add all genomes classified with ANI
@@ -505,6 +507,7 @@ class Classify(object):
                         elif marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                       os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                        prodigal_failed_counter = len(set(genomes_with_failed_prodigal))
                         if prodigal_failed_counter > 0:
                             self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
                                                 f"genome{'' if prodigal_failed_counter == 1 else 's'} "
@@ -530,11 +533,11 @@ class Classify(object):
                 if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
                     list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
                     for row in list_summary_rows:
-                        row,warning_counter = self._add_warning_to_row(row,
+                        row,genomes_with_warnings = self._add_warning_to_row(row,
                                                        msa_dict,
                                                        tln_table_summary_file.genomes,
                                                        percent_multihit_dict,
-                                                       warning_counter)
+                                                       genomes_with_warnings)
                         summary_file.add_row(row)
                         if row.gid in genomes_to_process:
                             genomes_to_process.remove(row.gid)
@@ -605,9 +608,9 @@ class Classify(object):
                             tree_mapping_dict_reverse.setdefault(v, []).append(k)
 
                     splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
-                    sorted_high_taxonomy,warning_counter, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
+                    sorted_high_taxonomy,genomes_with_warnings, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
                         high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
-                        tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter)
+                        tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,genomes_with_warnings)
 
                     if debugopt:
                         with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
@@ -643,12 +646,12 @@ class Classify(object):
                             for disappearing_genome in disappearing_genomes:
                                 disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
-                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes,
+                        class_level_classification, classified_user_genomes,genomes_with_warnings = self._parse_tree(mrca_lowtree, genomes,
                                                                                                                msa_dict,percent_multihit_dict,
                                                                                                                genes, tln_table_summary_file.genomes,
                                                                                                                bac_ar_diff, submsa_file_path,
                                                                                                                red_dict_file.data,summary_file,
-                                                                                                               pplacer_taxonomy_dict,warning_counter,
+                                                                                                               pplacer_taxonomy_dict,genomes_with_warnings,
                                                                                                                high_classification, debug_file,
                                                                                                                debugopt,tree_mapping_file,
                                                                                                                tree_iter,tree_mapping_dict_reverse)
@@ -662,14 +665,14 @@ class Classify(object):
 
 
                     # add filtered genomes to the summary file
-                    warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
+                    genomes_with_warnings = self.add_filtered_genomes_to_summary(align_dir,genomes_with_warnings, summary_file, marker_set_id, prefix)
 
                     # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
                     # This is a executive direction: failed prodigal and genomes with
                     # no markers are not bacterial or archaeal
                     # but they need to be included in one of the summary file
-                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                    warning_counter = warning_counter + prodigal_failed_counter
+                    genomes_with_failed_prodigal = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    genomes_with_warnings = genomes_with_warnings + genomes_with_failed_prodigal
 
                     # Symlink to the summary file from the root
                     symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
@@ -698,24 +701,24 @@ class Classify(object):
                                                                        tree_to_process)
 
                     disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
-                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes,
+                    class_level_classification, classified_user_genomes,genomes_with_warnings = self._parse_tree(tree_to_process, genomes,
                                                                                                            msa_dict, percent_multihit_dict,
                                                                                                            genes,tln_table_summary_file.genomes,
                                                                                                            bac_ar_diff, user_msa_file,
                                                                                                            red_dict_file.data, summary_file,
-                                                                                                           pplacer_taxonomy_dict,warning_counter,
+                                                                                                           pplacer_taxonomy_dict,genomes_with_warnings,
                                                                                                            None,debug_file,
                                                                                                            debugopt,None,
                                                                                                            None, None)
                     # add filtered genomes to the summary file
-                    warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
+                    genomes_with_warnings = self.add_filtered_genomes_to_summary(align_dir,genomes_with_warnings, summary_file, marker_set_id, prefix)
 
                     # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
                     # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
                     # but they need to be included in one of the summary file
                     if marker_set_id == 'bac120':
-                        prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                        warning_counter = warning_counter + prodigal_failed_counter
+                        genomes_with_failed_prodigal = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                        genomes_with_warnings = genomes_with_warnings + genomes_with_failed_prodigal
 
                     # Symlink to the summary file from the root
                     if marker_set_id == 'bac120':
@@ -739,12 +742,16 @@ class Classify(object):
                     output_files.setdefault(marker_set_id, []).append(tree_mapping_file.path)
 
 
+                # calcuate the length of the unique genomes with warnings
+                warning_counter = len(set(genomes_with_warnings))
+                all_genomes = genomes_with_warnings+genomes_to_process+genomes_with_failed_prodigal
+                sum_of_genomes = len(set(all_genomes))
                 if warning_counter > 0:
-                    sum_of_genomes =  len(genomes_to_process)+prodigal_failed_counter
-                    if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                        sum_of_genomes +=len(mash_classified_user_genomes.get(marker_set_id))
+                    # sum_of_genomes =  len(genomes_to_process)+len(set(genomes_with_failed_prodigal))
+                    # if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
+                    #     sum_of_genomes +=len(mash_classified_user_genomes.get(marker_set_id))
                     self.logger.warning(f"{warning_counter} of {sum_of_genomes} "
-                                        f"genome{'' if warning_counter==1 else 's'}"
+                                        f"genome{'' if sum_of_genomes==1 else 's'}"
                                         f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
 
                 # Write the summary file to disk.
@@ -760,7 +767,7 @@ class Classify(object):
             # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
             # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
             # but they need to be included in one of the summary file
-            prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+            genomes_with_failed_prodigal = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
 
             if summary_file.has_row():
                 summary_file.write()
@@ -768,6 +775,7 @@ class Classify(object):
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
+                prodigal_failed_counter = len(set(genomes_with_failed_prodigal))
                 if prodigal_failed_counter > 0:
                     self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
                                         f"genome{'' if prodigal_failed_counter == 1 else 's'} "
@@ -779,7 +787,7 @@ class Classify(object):
     def _add_warning_to_row(self,row,msa_dict,
                             trans_table_dict,
                             percent_multihit_dict,
-                            warning_counter):
+                            genomes_with_warnings):
 
         if row.gid in msa_dict:
             row.msa_percent = aa_percent_msa(msa_dict.get(row.gid))
@@ -795,9 +803,9 @@ class Classify(object):
                     percent_multihit_dict.get(row.gid))]
         if warnings:
             row.warnings = ';'.join(set(warnings))
-            warning_counter += 1
+            genomes_with_warnings.append(row.gid)
 
-        return row,warning_counter
+        return row,genomes_with_warnings
 
     def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):
         debug_file = None
@@ -909,7 +917,7 @@ class Classify(object):
         return out, qry_nodes
 
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                               user_msa_file, red_dict,warning_counter, summary_file, pplacer_taxonomy_dict,
+                               user_msa_file, red_dict,genomes_with_warnings, summary_file, pplacer_taxonomy_dict,
                                high_classification, debug_file, debugopt, classified_user_genomes,
                                unclassified_user_genomes, tt,tree_iter,tree_mapping_file, valid_classes,valid_phyla):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
@@ -1197,7 +1205,7 @@ class Classify(object):
                 if summary_row.warnings is not None:
                     warnings.extend(summary_row.warnings.split(';'))
                 summary_row.warnings = ';'.join(set(warnings))
-                warning_counter += 1
+                genomes_with_warnings.append(summary_row.gid)
             if len(notes) > 0:
                 if summary_row.note is not None:
                     notes.extend(summary_row.note.split(';'))
@@ -1209,10 +1217,10 @@ class Classify(object):
                     leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
 
 
-        return class_level_classification,warning_counter
+        return class_level_classification,genomes_with_warnings
 
     def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict,genes, trans_table_dict, bac_ar_diff,
-                    user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,warning_counter, high_classification,
+                    user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,genomes_with_warnings, high_classification,
                     debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
         # Genomes can be classified by using skani or RED values
         # We go through all leaves of the tree. if the leaf is a user
@@ -1245,9 +1253,9 @@ class Classify(object):
         else:
             all_skani_dict = {}
 
-        classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_skani_results(
+        classified_user_genomes, unclassified_user_genomes,genomes_with_warnings = self._sort_skani_results(
             skani_verification, pplacer_taxonomy_dict, all_skani_dict, msa_dict, percent_multihit_dict,
-            trans_table_dict, bac_ar_diff,warning_counter, summary_file)
+            trans_table_dict, bac_ar_diff,genomes_with_warnings, summary_file)
         #if not prescreening:
         if not genes:
             self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
@@ -1272,15 +1280,15 @@ class Classify(object):
             phyla_in_spe_tree = self.get_authorised_rank(class_in_spe_tree,self.PHYLUM_IDX)
 
 
-        class_level_classification,warning_counter = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
+        class_level_classification,genomes_with_warnings = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
                                                                  trans_table_dict, bac_ar_diff, user_msa_file,
-                                                                 red_dict,warning_counter, summary_file,
+                                                                 red_dict,genomes_with_warnings, summary_file,
                                                                  pplacer_taxonomy_dict, high_classification,
                                                                  debug_file, debugopt, classified_user_genomes,
                                                                  unclassified_user_genomes, tt,tree_iter,tree_mapping_file,
                                                                  class_in_spe_tree, phyla_in_spe_tree)
 
-        return class_level_classification,classified_user_genomes,warning_counter
+        return class_level_classification,classified_user_genomes,genomes_with_warnings
 
     def _assign_mrca_red(self, input_tree, marker_set_id, levelopt=None, tree_iter=None):
         """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
@@ -1419,7 +1427,7 @@ class Classify(object):
 
         return pplacer_classify_file.data
 
-    def add_filtered_genomes_to_summary(self, align_dir,warning_counter, summary_file, marker_set_id,prefix):
+    def add_filtered_genomes_to_summary(self, align_dir,genomes_with_warnings, summary_file, marker_set_id,prefix):
         if marker_set_id == 'bac120':
             filtered_file = os.path.join(align_dir,PATH_BAC120_FILTERED_GENOMES.format(prefix=prefix))
             domain = 'Bacteria'
@@ -1444,19 +1452,19 @@ class Classify(object):
                                 row_to_update.warnings = existing_warnings + ';' + infos[1]
                             else:
                                 row_to_update.warnings = infos[1]
-                                warning_counter += 1
+                                genomes_with_warnings.append(infos[0])
                     else:
                         summary_row = ClassifySummaryFileRow()
                         summary_row.gid = infos[0]
                         summary_row.classification = f'Unclassified {domain}'
                         summary_row.warnings = infos[1]
                         summary_file.add_row(summary_row)
-                        warning_counter += 1
+                        genomes_with_warnings.append(infos[0])
 
-        return warning_counter
+        return genomes_with_warnings
 
     def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
-        warning_counter = 0
+        genomes_with_warnings = []
         prodigal_failed_file = os.path.join(align_dir, PATH_FAILS.format(prefix=prefix))
         align_failed_file = os.path.join(align_dir, PATH_FAILED_ALIGN_GENOMES.format(prefix=prefix))
         for failfile in (prodigal_failed_file, align_failed_file):
@@ -1469,8 +1477,8 @@ class Classify(object):
                         summary_row.classification = f'Unclassified'
                         summary_row.warnings = infos[1]
                         summary_file.add_row(summary_row)
-                        warning_counter += 1
-        return warning_counter
+                        genomes_with_warnings.append(infos[0])
+        return genomes_with_warnings
 
     @staticmethod
     def formatnote(sorted_dict,gtdb_taxonomy,species_radius, labels):
@@ -1578,7 +1586,7 @@ class Classify(object):
 
     def _sort_skani_results(self, skani_verification, pplacer_taxonomy_dict,
                               all_skani_dict, msa_dict, percent_multihit_dict,
-                              trans_table_dict, bac_ar_diff,warning_counter, summary_file):
+                              trans_table_dict, bac_ar_diff,genomes_with_warnings, summary_file):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -1759,7 +1767,7 @@ class Classify(object):
 
                     if len(warnings) > 0:
                         summary_row.warnings = ';'.join(warnings)
-                        warning_counter += 1
+                        genomes_with_warnings.append(summary_row.gid)
                     if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
                             sorted_prefilter_af_dict[0][0]):
                         skani_matching_reference = sorted_prefilter_af_dict[0][0]
@@ -1803,7 +1811,7 @@ class Classify(object):
                         else:
                             summary_row.other_related_refs = other_ref
                     unclassified_user_genomes[userleaf.taxon.label] = summary_row
-        return classified_user_genomes, unclassified_user_genomes,warning_counter
+        return classified_user_genomes, unclassified_user_genomes,genomes_with_warnings
 
     def _get_redtax(self, list_subnode, closest_rank):
         """
