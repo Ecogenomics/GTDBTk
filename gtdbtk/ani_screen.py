@@ -65,7 +65,7 @@ class ANIScreener(object):
 
 
 
-        skani_results = ani_rep.run_mash_skani(genomes_copy, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
+        skani_results,genome_size = ani_rep.run_mash_skani(genomes_copy, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
                                                     prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
@@ -77,7 +77,7 @@ class ANIScreener(object):
         reports = {}
         if mash_classified_user_genomes:
             for domain,results in mash_classified_user_genomes.items():
-                ani_summary_file = ANISummaryFile(os.path.join(out_dir,DIR_ANISCREEN),prefix,results,taxonomy,domain)
+                ani_summary_file = ANISummaryFile(os.path.join(out_dir,DIR_ANISCREEN),prefix,results,genome_size,taxonomy,domain)
                 ani_summary_file.write(ani_screen_step=True)
                 reports[domain] = os.path.join(out_dir,DIR_ANISCREEN,prefix + '.' + domain + '.ani_summary.tsv')
         len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \

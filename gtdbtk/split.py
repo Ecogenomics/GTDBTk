@@ -27,7 +27,8 @@ from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.files.classify_summary import ClassifySummaryFileRow
 from gtdbtk.files.pplacer_classification import PplacerHighClassifyRow, PplacerHighClassifyFile
 from gtdbtk.files.tree_mapping import GenomeMappingFileRow
-from gtdbtk.tools import TreeTraversal, standardise_taxonomy, aa_percent_msa
+from gtdbtk.tools import TreeTraversal, standardise_taxonomy, aa_percent_msa, get_genomes_size
+
 
 class Split(object):
     """Determine taxonomic classification of genomes by ML placement using the Split Methods."""
@@ -338,7 +339,7 @@ class Split(object):
 
         return ';'.join(term_branch_taxonomy[1:self.order_rank.index(closest_rank) + 1])
 
-    def map_high_taxonomy(self,high_classification, mapping_dict, summary_file,
+    def map_high_taxonomy(self,high_classification,genomes, mapping_dict, summary_file,
                           tree_mapping_file,msa_dict,trans_table_dict,percent_multihit_dict,bac_ar_diff,genomes_with_warnings):
         mapped_rank = {}
         counter = 0
@@ -363,6 +364,7 @@ class Split(object):
                 else:
                     summary_row = ClassifySummaryFileRow()
                     summary_row.gid = k
+                    summary_row.size = get_genomes_size(genomes.get(k))
                     summary_row.classification = v.get('tk_tax_red')
                     summary_row.pplacer_tax = v.get('pplacer_tax')
                     summary_row.red_value = v.get('rel_dist')

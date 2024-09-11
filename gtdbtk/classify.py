@@ -53,7 +53,7 @@ from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.split import Split
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
-    calculate_patristic_distance, tqdm_log, standardise_taxonomy, limit_rank, aa_percent_msa
+    calculate_patristic_distance, tqdm_log, standardise_taxonomy, limit_rank, aa_percent_msa,get_genomes_size
 
 
 sys.setrecursionlimit(15000)
@@ -368,10 +368,10 @@ class Classify(object):
 
             ani_rep = ANIRep(self.cpus)
             # we store all the mash information in the classify directory
-            skani_results = ani_rep.run_mash_skani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
+            skani_results,genome_size = ani_rep.run_mash_skani(genomes, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
 
             mash_classified_user_genomes = self._sort_skani_results_pre_pplacer(
-                skani_results,bac_ar_diff)
+                skani_results,genome_size,bac_ar_diff)
 
             len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
                 if 'bac120' in mash_classified_user_genomes else 0
@@ -609,7 +609,7 @@ class Classify(object):
 
                     splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
                     sorted_high_taxonomy,genomes_with_warnings, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
-                        high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
+                        high_classification,genomes, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
                         tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,genomes_with_warnings)
 
                     if debugopt:
@@ -916,7 +916,7 @@ class Classify(object):
 
         return out, qry_nodes
 
-    def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
+    def _classify_red_topology(self, tree,genomes, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                                user_msa_file, red_dict,genomes_with_warnings, summary_file, pplacer_taxonomy_dict,
                                high_classification, debug_file, debugopt, classified_user_genomes,
                                unclassified_user_genomes, tt,tree_iter,tree_mapping_file, valid_classes,valid_phyla):
@@ -1167,6 +1167,7 @@ class Classify(object):
                     if summary_row.note == '':
                         summary_row.note = None
                 summary_row.gid = leaf.taxon.label
+                summary_row.size = get_genomes_size(genomes.get(leaf.taxon.label))
                 summary_row.classification = ';'.join(final_split)
                 summary_row.pplacer_tax = pplacer_taxonomy_to_report
                 summary_row.red_value = red_value_to_report
@@ -1185,6 +1186,7 @@ class Classify(object):
                     if summary_row.note == '':
                         summary_row.note = None
                 summary_row.gid = leaf.taxon.label
+                summary_row.size = get_genomes_size(genomes.get(leaf.taxon.label))
                 summary_row.classification = standardise_taxonomy(';'.join(red_taxonomy))
                 summary_row.pplacer_tax = pplacer_taxonomy_dict.get(leaf.taxon.label)
                 if summary_row.classification_method is None:
@@ -1249,12 +1251,12 @@ class Classify(object):
             self.logger.log(CONFIG.LOG_TASK,
                             f'Calculating average nucleotide identity using '
                             f'skani (v{skani.version}).')
-            all_skani_dict = skani.run(d_ani_compare, d_paths)
+            all_skani_dict,genome_size = skani.run(d_ani_compare, d_paths)
         else:
-            all_skani_dict = {}
+            all_skani_dict,genome_size = {},{}
 
         classified_user_genomes, unclassified_user_genomes,genomes_with_warnings = self._sort_skani_results(
-            skani_verification, pplacer_taxonomy_dict, all_skani_dict, msa_dict, percent_multihit_dict,
+            skani_verification, pplacer_taxonomy_dict, all_skani_dict,genome_size, msa_dict, percent_multihit_dict,
             trans_table_dict, bac_ar_diff,genomes_with_warnings, summary_file)
         #if not prescreening:
         if not genes:
@@ -1280,7 +1282,7 @@ class Classify(object):
             phyla_in_spe_tree = self.get_authorised_rank(class_in_spe_tree,self.PHYLUM_IDX)
 
 
-        class_level_classification,genomes_with_warnings = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
+        class_level_classification,genomes_with_warnings = self._classify_red_topology(tree,genomes, msa_dict, percent_multihit_dict,
                                                                  trans_table_dict, bac_ar_diff, user_msa_file,
                                                                  red_dict,genomes_with_warnings, summary_file,
                                                                  pplacer_taxonomy_dict, high_classification,
@@ -1511,8 +1513,20 @@ class Classify(object):
                 note_list.append(note_str)
         return note_list
 
+    def significant_size_difference(self,genomea, genomeb, threshold=CONFIG.SIGNIFICANT_SIZE_DIFFERENCE):
+        # Calculate the percentage difference
+        # convert to float
+        genomea = float(genomea)
+        genomeb = float(genomeb)
+        percentage_difference = min(genomea, genomeb)/max(genomea, genomeb)
 
-    def _sort_skani_results_pre_pplacer(self,skani_results,bac_ar_diff):
+        # Check if the percentage difference is greater than the threshold
+        if percentage_difference <= threshold:
+            return True, percentage_difference
+        return False, percentage_difference
+
+
+    def _sort_skani_results_pre_pplacer(self,skani_results,genome_size,bac_ar_diff):
         """ When run mash/skani on all genomes before using pplacer, we need to sort those results and store them for
         a later use
 
@@ -1563,6 +1577,8 @@ class Classify(object):
                         add_ncbi_prefix(skani_matching_reference)))
                     summary_row.classification = standardise_taxonomy(
                         taxa_str)
+                    summary_row.size = genome_size.get(gid)
+                    summary_row.closest_genome_size = genome_size.get(skani_matching_reference)
 
                     warnings = []
                     if gid in bac_ar_diff:
@@ -1570,6 +1586,9 @@ class Classify(object):
                             bac_ar_diff.get(gid).get('bac120'),
                             bac_ar_diff.get(gid).get('ar53')))
 
+                    is_significant, percentage_difference = self.significant_size_difference(summary_row.size,summary_row.closest_genome_size)
+                    if is_significant:
+                        warnings.append('Query genome deviates in size substantially from reference genome.')
                     if len(warnings) > 0:
                         summary_row.warnings = warnings
 
@@ -1585,7 +1604,7 @@ class Classify(object):
 
 
     def _sort_skani_results(self, skani_verification, pplacer_taxonomy_dict,
-                              all_skani_dict, msa_dict, percent_multihit_dict,
+                              all_skani_dict,genome_size, msa_dict, percent_multihit_dict,
                               trans_table_dict, bac_ar_diff,genomes_with_warnings, summary_file):
         """Format the note field by concatenating all information in a sorted dictionary
 
@@ -1595,6 +1614,7 @@ class Classify(object):
         d[user_genome] = {"potential_g": [(potential_genome_in_same_genus,patristic distance)],
         "pplacer_g": genome_of_reference_selected_by_pplacer(if any)}
         all_skani_dict : dictionary listing the skani ANI for each user genomes against the potential genomes
+        genome_size : dictionary listing the size of each genome
         d[user_genome]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         summaryfout: output file
 
@@ -1654,6 +1674,7 @@ class Classify(object):
                         add_ncbi_prefix(pplacer_leafnode)))
 
                     summary_row.gid = userleaf.taxon.label
+                    summary_row.size = genome_size.get(userleaf.taxon.label,None)
 
                     summary_row.pplacer_tax = pplacer_taxonomy_dict.get(userleaf.taxon.label)
                     summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
@@ -1665,6 +1686,7 @@ class Classify(object):
 
                     if skani_matching_reference is not None:
                         summary_row.closest_genome_ref = skani_matching_reference
+                        summary_row.closest_genome_size = genome_size.get(skani_matching_reference)
                         summary_row.closest_genome_ref_radius = str(
                             self.species_radius.get(skani_matching_reference))
                         summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
@@ -2294,6 +2316,10 @@ class Classify(object):
                         skani_matching_reference).get('ani')
                 current_af = skani_results.get(gid).get(
                         skani_matching_reference).get('af')
+                current_reference_size = skani_results.get(gid).get(
+                        skani_matching_reference).get('reference_size')
+                current_query_size = skani_results.get(gid).get(
+                        skani_matching_reference).get('query_size')
 
                 summary_row.closest_genome_ref = skani_matching_reference
                 summary_row.closest_genome_ref_radius = str(
@@ -2302,10 +2328,16 @@ class Classify(object):
                         skani_matching_reference).get('taxonomy')
                 summary_row.closest_genome_ani = round(current_ani, 2)
                 summary_row.closest_genome_af = round(current_af,3)
+                summary_row.closest_genome_size = current_reference_size
                 taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(skani_matching_reference)))
                 summary_row.classification = standardise_taxonomy(
                         taxa_str)
+                summary_row.size = current_query_size
+
+                is_significant, percentage_difference = self.significant_size_difference(summary_row.size,summary_row.closest_genome_size)
+                if is_significant:
+                    summary_row.warnings = 'Query genome deviates in size substantially from reference genome.'
 
                 classified_user_genomes.setdefault(domain, []).append(summary_row)
         return classified_user_genomes

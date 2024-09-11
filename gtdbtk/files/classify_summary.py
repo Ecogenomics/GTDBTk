@@ -27,8 +27,8 @@ from gtdbtk.exceptions import GTDBTkExit
 class ClassifySummaryFileRow:
     """A row contained within the ClassifySummaryFile object."""
 
-    __slots__ = ('gid', 'classification', 'closest_genome_ref', 'closest_genome_ref_radius',
-                 'closest_genome_tax', 'closest_genome_ani', 'closest_genome_af', 'closest_placement_ref',
+    __slots__ = ('gid', 'classification','size', 'closest_genome_ref', 'closest_genome_ref_radius',
+                 'closest_genome_tax', 'closest_genome_ani', 'closest_genome_af','closest_genome_size', 'closest_placement_ref',
                  'closest_placement_radius', 'closest_placement_tax', 'closest_placement_ani',
                  'closest_placement_af', 'pplacer_tax', 'classification_method',
                  'note', 'other_related_refs', 'msa_percent', 'tln_table',
@@ -38,11 +38,13 @@ class ClassifySummaryFileRow:
         """Initialise the row, default all the values to None."""
         self.gid: Optional[str] = None
         self.classification: Optional[str] = None
+        self.size: Optional[int] = None
         self.closest_genome_ref: Optional[str] = None
         self.closest_genome_ref_radius: Optional[float] = None
         self.closest_genome_tax: Optional[str] = None
         self.closest_genome_ani: Optional[float] = None
         self.closest_genome_af: Optional[float] = None
+        self.closest_genome_size: Optional[int] = None
         self.closest_placement_ref: Optional[str] = None
         self.closest_placement_radius: Optional[float] = None
         self.closest_placement_tax: Optional[str] = None
@@ -78,11 +80,13 @@ class ClassifySummaryFile:
             row = ClassifySummaryFileRow()
         mapping = [('user_genome', row.gid),
                    ('classification', row.classification),
+                   ('size', row.size),
                    ('closest_genome_reference', row.closest_genome_ref),
                    ('closest_genome_reference_radius', row.closest_genome_ref_radius),
                    ('closest_genome_taxonomy', row.closest_genome_tax),
                    ('closest_genome_ani', row.closest_genome_ani),
                    ('closest_genome_af', row.closest_genome_af),
+                   ('closest_genome_size', row.closest_genome_size),
                    ('closest_placement_reference', row.closest_placement_ref),
                    ('closest_placement_radius', row.closest_placement_radius),
                    ('closest_placement_taxonomy', row.closest_placement_tax),
@@ -163,24 +167,26 @@ class ClassifySummaryFile:
                 row = ClassifySummaryFileRow()
                 row.gid = data[0]
                 row.classification = data[1]
-                row.closest_genome_ref = data[2]
-                row.closest_genome_ref_radius = data[3]
-                row.closest_genome_tax = data[4]
-                row.closest_genome_ani = data[5]
-                row.closest_genome_af = data[6]
-                row.closest_placement_ref = data[7]
-                row.closest_placement_radius = data[8]
-                row.closest_placement_tax = data[9]
-                row.closest_placement_ani = data[10]
-                row.closest_placement_af = data[11]
-                row.pplacer_tax = data[12]
-                row.classification_method = data[13]
-                row.note = data[14]
-                row.other_related_refs = data[15]
-                row.msa_percent = data[16]
-                row.tln_table = data[17]
-                row.red_value = data[18]
-                row.warnings = data[19]
+                row.size = data[2]
+                row.closest_genome_ref = data[3]
+                row.closest_genome_ref_radius = data[4]
+                row.closest_genome_tax = data[5]
+                row.closest_genome_ani = data[6]
+                row.closest_genome_af = data[7]
+                row.closest_genome_size = data[8]
+                row.closest_placement_ref = data[9]
+                row.closest_placement_radius = data[10]
+                row.closest_placement_tax = data[11]
+                row.closest_placement_ani = data[12]
+                row.closest_placement_af = data[13]
+                row.pplacer_tax = data[14]
+                row.classification_method = data[15]
+                row.note = data[16]
+                row.other_related_refs = data[17]
+                row.msa_percent = data[18]
+                row.tln_table = data[19]
+                row.red_value = data[20]
+                row.warnings = data[21]
                 self.add_row(row)
 
 

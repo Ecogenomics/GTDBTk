@@ -80,6 +80,9 @@ class __GTDBTkCommonConfig:
                                 "TIGR03671.HMM", "TIGR03672.HMM", "TIGR03673.HMM", "TIGR03674.HMM",
                                 "TIGR03676.HMM", "TIGR03680.HMM"]}
 
+    # Information about significant size difference between genomes
+    SIGNIFICANT_SIZE_DIFFERENCE = 0.5
+
     # Information for Multiple hits markers:
     DEFAULT_MULTIHIT_THRESHOLD = 10.0
 

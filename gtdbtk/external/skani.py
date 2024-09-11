@@ -22,7 +22,9 @@ import re
 import shutil
 import subprocess
 import tempfile
+from collections import defaultdict
 
+from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import tqdm_log
 
@@ -80,13 +82,14 @@ class SkANI(object):
         dict[str, dict[str, dict[str, float]]]
             A dictionary containing the ANI and AF for each comparison."""
 
+        genome_size = self._calculate_size(dict_compare, dict_paths)
+
         # Create the multiprocessing items.
         manager = mp.Manager()
         q_worker = manager.Queue()
         q_writer = manager.Queue()
         q_results = manager.Queue()
-
-        # Populate the queue of comparisons in forwards and reverse direction.
+        # Populate the queue of comparisons to be made.
         n_total = 0
         list_comparisons = [(user_id, ref_id) for user_id, values in dict_compare.items() for ref_id in values]
         for qry, ref in list_comparisons:
@@ -130,7 +133,7 @@ class SkANI(object):
 
         # Process and return each of the results obtained
         q_results.put(None)
-        return self._parse_result_queue(q_results)
+        return self._parse_result_queue(q_results),genome_size
 
     def _worker(self, q_worker, q_writer, q_results):
         """Operates skani in list mode.
@@ -160,7 +163,7 @@ class SkANI(object):
 
         return True
 
-    def _writer(self, q_writer, n_total):
+    def _writer(self, q_writer, n_total,unit='comparison'):
         """The writer function, which reports the progress of the workers.
 
         Parameters
@@ -170,7 +173,7 @@ class SkANI(object):
         n_total : int
             The total number of items to be processed.
         """
-        with tqdm_log(unit='comparison', total=n_total) as p_bar:
+        with tqdm_log(unit=unit, total=n_total) as p_bar:
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 
@@ -274,3 +277,101 @@ class SkANI(object):
                 out[qid][rid] = {'ani': ani, 'af': max_af}
 
         return out
+
+    def _calculate_size(self, dict_compare, dict_paths):
+
+        # Create the multiprocessing items.
+        manager = mp.Manager()
+        q_worker_size = manager.Queue()
+        q_writer_size = manager.Queue()
+        q_results_size = manager.Queue()
+        # Populate the queue of size to be calculated.
+        n_total_size = 0
+        list_comparisons_size = []
+        for key, values in dict_compare.items():
+            list_comparisons_size.append(key)
+            list_comparisons_size.extend(values)
+
+        # remove duplicates
+        list_comparisons_size = list(set(list_comparisons_size))
+        for genome in list_comparisons_size:
+            n_total_size += 1
+            q_worker_size.put((genome, dict_paths.get(genome)))
+
+        # Set the terminate condition for each worker thread.
+        [q_worker_size.put(None) for _ in range(self.cpus)]
+        # Create each of the processes
+        p_workers = [mp.Process(target=self._worker_size,
+                                args=(q_worker_size, q_writer_size, q_results_size))
+                     for _ in range(self.cpus)]
+
+        p_writer = mp.Process(target=self._writer, args=(q_writer_size, n_total_size,'genome size'))
+
+        # Start each of the threads.
+        try:
+            # Start the writer and each processing thread.
+            p_writer.start()
+            for p_worker in p_workers:
+                p_worker.start()
+
+            # Wait until each worker has finished.
+            for p_worker in p_workers:
+                p_worker.join()
+
+                # Gracefully terminate the program.
+                if p_worker.exitcode != 0:
+                    raise GTDBTkExit('skani returned a non-zero exit code.')
+
+            # Stop the writer thread.
+            q_writer_size.put(None)
+            p_writer.join()
+
+        except Exception:
+            for p in p_workers:
+                p.terminate()
+            p_writer.terminate()
+            raise
+
+        # Process and return each of the results obtained
+        q_results_size.put(None)
+        # convert to dict
+        out = defaultdict(int)
+        while True:
+            job = q_results_size.get(block=True)
+            if job == 'null':
+                continue
+            if job is None:
+                break
+
+            q,size = job
+            out[q] = size
+        return out
+
+    def _worker_size(self, q_worker, q_writer, q_results):
+        """Calculate genome size.
+
+        Parameters
+        ----------
+        q_worker : mp.Queue
+            A multiprocessing queue containing the available jobs.
+        q_writer : mp.Queue
+            A multiprocessing queue to track progress.
+        q_results : mp.Queue
+            A multiprocessing queue containing raw results.
+        """
+        while True:
+            # Retrieve the next item, stop if the sentinel is found.
+            job = q_worker.get(block=True)
+            if job is None:
+                break
+
+            # Extract the values
+            q, q_path = job
+            # calculate genome size
+            seqs = read_fasta(q_path)
+            size_genome = sum([len(seq) for seq in seqs.values()])
+            q_results.put((q, size_genome))
+            q_writer.put(True)
+
+
+        return True

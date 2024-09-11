@@ -17,6 +17,7 @@ from tqdm import tqdm
 from gtdbtk.config.common import CONFIG
 from gtdbtk.config.output import CHECKSUM_SUFFIX
 from gtdbtk.exceptions import GTDBTkExit
+from gtdbtk.biolib_lite.seq_io import read_fasta
 
 order_rank = ["d__", "p__", "c__", "o__", 'f__', 'g__', 's__']
 ##################################################
@@ -60,6 +61,12 @@ def get_ref_genomes():
                 accession = full_name.split(CONFIG.SKANI_GENOMES_EXT)[0]
             ref_genomes[accession] = os.path.join(CONFIG.SKANI_DIR, path, full_name)
     return ref_genomes
+
+def get_genomes_size(genome_path):
+    """Returns the size of a specific genome file."""
+    seqs = read_fasta(genome_path)
+    return sum([len(seq) for seq in seqs.values()])
+
 
 def aa_percent_msa(aa_string):
         aa_len = sum([1 for c in aa_string if c.isalpha()])
