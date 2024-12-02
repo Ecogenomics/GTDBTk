@@ -14,7 +14,7 @@ For arguments and output files, see each of the individual steps:
 
 The *de novo* workflow infers new bacterial and archaeal trees containing all user supplied and GTDB-Tk reference genomes.
 The classify workflow is recommended for obtaining taxonomic classifications, and this workflow only recommended if
-a *de novo* domain-specific trees are desired.
+a *de novo* domain-specific trees are desired. **One should take the taxonomic assignments as a guide, but not as final classifications**. In particular, no effort is made to resolve the taxonomic assignment of lineages composed exclusively of user submitted genomes.
 
 This workflow consists of five steps: ``identify``, ``align``, ``infer``, ``root``,
 and ``decorate``.
