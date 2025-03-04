@@ -285,7 +285,7 @@ its relative evolutionary divergence, and/or average nucleotide identity (ANI) t
 estimated to be ≥50% complete with ≤10% contamination consistent with community standards for medium or
 higher quality single-amplified and metagenome-assembled genomes (<a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/28787424">Bowers et al., 2017</a>).</p>
 <p>The classify workflow can be run as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify_wf<span class="w"> </span>--genome_dir<span class="w"> </span>&lt;my_genomes&gt;<span class="w"> </span>--out_dir<span class="w"> </span>&lt;output_dir&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify_wf<span class="w"> </span>--genome_dir<span class="w"> </span>&lt;my_genomes&gt;<span class="w"> </span>--out_dir<span class="w"> </span>&lt;output_dir&gt;<span class="w"> </span><span class="o">(</span>--skip_ani_screen<span class="w"> </span>OR<span class="w"> </span>--mash_db<span class="o">)</span>
 </pre></div>
 </div>
 <p>This will process all genomes in the directory &lt;my_genomes&gt; using both bacterial and archaeal marker sets and place the results in &lt;output_dir&gt;. Genomes must be in FASTA format (gzip with the extension .gz is acceptable).
@@ -428,7 +428,7 @@ The location of genomes can also be specified using a batch file with the <code 
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="input">
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify_wf<span class="w"> </span>--genome_dir<span class="w"> </span>genomes/<span class="w"> </span>--out_dir<span class="w"> </span>classify_wf_out<span class="w"> </span>--cpus<span class="w"> </span><span class="m">3</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify_wf<span class="w"> </span>--genome_dir<span class="w"> </span>genomes/<span class="w"> </span>--out_dir<span class="w"> </span>classify_wf_out<span class="w"> </span>--cpus<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="o">(</span>--skip_ani_screen<span class="w"> </span>OR<span class="w"> </span>--mash_db<span class="o">)</span>
 </pre></div>
 </div>
 </div>
@@ -559,7 +559,7 @@ The location of genomes can also be specified using a batch file with the <code 
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2024, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
+        &#169; Copyright 2025, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
 
     </p>
   </div>
