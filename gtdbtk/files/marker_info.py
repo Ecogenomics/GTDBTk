@@ -19,7 +19,7 @@ import os
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.config.common import CONFIG
-from gtdbtk.config.output import PATH_AR53_MARKER_INFO, PATH_BAC120_MARKER_INFO
+from gtdbtk.config.output import PATH_AR53_MARKER_INFO, PATH_BAC120_MARKER_INFO, PATH_FUN100_MARKER_INFO
 
 
 class MarkerInfoFile(object):
@@ -33,7 +33,8 @@ class MarkerInfoFile(object):
     def marker_paths(self):
         return {
             "PFAM": os.path.join(CONFIG.PFAM_HMM_DIR, 'individual_hmms'),
-            "TIGRFAM": os.path.join(os.path.dirname(CONFIG.TIGRFAM_HMMS), 'individual_hmms')
+            "TIGRFAM": os.path.join(os.path.dirname(CONFIG.TIGRFAM_HMMS), 'individual_hmms'),
+            "BUSCO": os.path.join(os.path.dirname(CONFIG.BUSCO_HMMS),'individual_hmms')
         }
 
     def _parse_markers(self, markers):
@@ -84,3 +85,10 @@ class MarkerInfoFileBAC120(MarkerInfoFile):
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_MARKER_INFO.format(prefix=prefix))
         super().__init__(path, CONFIG.BAC120_MARKERS)
+
+class MarkerInfoFileFUN100(MarkerInfoFile):
+    """Marker information for the BAC120 marker set."""
+
+    def __init__(self, out_dir: str, prefix: str):
+        path = os.path.join(out_dir, PATH_FUN100_MARKER_INFO.format(prefix=prefix))
+        super().__init__(path, CONFIG.FUN100_MARKERS)

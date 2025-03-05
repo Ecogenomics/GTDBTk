@@ -7,6 +7,7 @@ DIR_MARKER_GENE = join(DIR_IDENTIFY_INTERMEDIATE, 'marker_genes')
 DIR_IDENTIFY_FASTA = join(DIR_IDENTIFY_INTERMEDIATE, 'single_copy_fasta')
 PATH_BAC120_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.bac120.markers_summary.tsv')
 PATH_AR53_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.ar53.markers_summary.tsv')
+PATH_FUN100_MARKER_SUMMARY = join(DIR_IDENTIFY, '{prefix}.fun100.markers_summary.tsv')
 PATH_TLN_TABLE_SUMMARY = join(DIR_IDENTIFY, '{prefix}.translation_table_summary.tsv')
 PATH_FAILS = join(DIR_IDENTIFY,'{prefix}.failed_genomes.tsv')
 
@@ -18,9 +19,14 @@ GFF_FILE_SUFFIX = "_protein.gff"
 TRANSLATION_TABLE_SUFFIX = "_translation_table.tsv"
 CHECKSUM_SUFFIX = ".sha256"
 TIGRFAM_SUFFIX = "_tigrfam.tsv"
+TIGRFAM_OUT_SUFFIX = "_tigrfam.out"
 TIGRFAM_TOP_HIT_SUFFIX = "_tigrfam_tophit.tsv"
 PFAM_SUFFIX = "_pfam.tsv"
 PFAM_TOP_HIT_SUFFIX = "_pfam_tophit.tsv"
+BUSCO_SUFFIX = "_busco.tsv"
+BUSCO_OUT_SUFFIX = "_busco.out"
+BUSCO_TOP_HIT_SUFFIX = "_busco_tophit.tsv"
+
 
 # Command: align
 DIR_ALIGN = 'align'
@@ -35,6 +41,7 @@ PATH_FAILED_ALIGN_GENOMES = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.align.failed.
 PATH_FAILED_IDENTIFY_GENOMES = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.identify.failed.tsv')
 PATH_BAC120_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.bac120.marker_info.tsv')
 PATH_AR53_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.ar53.marker_info.tsv')
+PATH_FUN100_MARKER_INFO = join(DIR_ALIGN_INTERMEDIATE, '{prefix}.fun100.marker_info.tsv')
 DIR_ALIGN_MARKERS = join(DIR_ALIGN_INTERMEDIATE, 'markers')
 
 # Command: classify

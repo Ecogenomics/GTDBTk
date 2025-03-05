@@ -22,9 +22,9 @@ from typing import Set, Dict, List, Union
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.common import CONFIG
-from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY
+from gtdbtk.config.output import PATH_BAC120_MARKER_SUMMARY, PATH_AR53_MARKER_SUMMARY, PATH_FUN100_MARKER_SUMMARY
 from gtdbtk.exceptions import GTDBTkExit
-from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile, Hit, TopHitBuscoFile
 
 
 class CopyNumberFile(object):
@@ -89,6 +89,56 @@ class CopyNumberFile(object):
         if len(self.marker_names) != len(cur_unq) + len(cur_mul) + len(cur_muq) + len(cur_mis):
             raise GTDBTkExit('The marker set is inconsistent, please report this issue.')
 
+    def add_fungal_info_genome(self, genome_id: str, path_faa: str, busco_th: TopHitBuscoFile):
+        """Process the top hit files for a genome and store the copy info."""
+        if genome_id in self.genomes:
+            self.logger.warning(f'Genome already exists in copy number file: {genome_id}')
+        self.genomes[genome_id] = {'unq': dict(), 'mul': dict(), 'muq': dict(), 'mis': dict()}
+
+        # Pointers to unique, multiple hit, multiple-unique, missing markers.
+        cur_unq = self.genomes[genome_id]['unq']
+        cur_mul = self.genomes[genome_id]['mul']
+        cur_muq = self.genomes[genome_id]['muq']
+        cur_mis = self.genomes[genome_id]['mis']
+
+        # Load genes from the prodigal faa file.
+        d_genes = read_fasta(path_faa, False)
+        for seq_id, seq in d_genes.items():
+            if seq.endswith('*'):
+                d_genes[seq_id] = seq[:-1]
+
+        # Create a dictionary of marker names -> Hits
+        d_hmm_hits = self.parse_tophit(busco_th)
+
+        # Foreach expected marker determine which category it falls into.
+        for marker_id in self.marker_names:
+
+            # Marker is missing.
+            if marker_id not in d_hmm_hits:
+                cur_mis[marker_id] = None
+
+            # Multiple hits to to the same marker.
+            elif len(d_hmm_hits[marker_id]) > 1:
+
+                # If sequences are the same, take the most significant hit
+                unq_seqs = {d_genes[x.gene_id] for x in d_hmm_hits[marker_id]}
+                if len(unq_seqs) == 1:
+                    cur_top_hit = sorted(d_hmm_hits[marker_id], reverse=True)[0]
+                    cur_muq[marker_id] = {'hit': cur_top_hit, 'seq': d_genes[cur_top_hit.gene_id]}
+
+                # Marker maps to multiple genes.
+                else:
+                    cur_mul[marker_id] = None
+
+            # This was a unique hit.
+            else:
+                cur_hit = d_hmm_hits[marker_id][0]
+                cur_unq[marker_id] = {'hit': cur_hit, 'seq': d_genes[cur_hit.gene_id]}
+
+        # Sanity check - confirm that the total number of markers matches.
+        if len(self.marker_names) != len(cur_unq) + len(cur_mul) + len(cur_muq) + len(cur_mis):
+            raise GTDBTkExit('The marker set is inconsistent, please report this issue.')
+
     @staticmethod
     def _extract_marker_names(marker_dict: Dict[str, List[str]]) -> Set[str]:
         """Parse the GTDB-Tk configuration file to get the HMM names."""
@@ -102,20 +152,32 @@ class CopyNumberFile(object):
                 out.add(__remove_suffix(m_name))
         return out
 
-    @staticmethod
-    def _merge_hit_files(pfam_th: TopHitPfamFile, tigr_th: TopHitTigrFile) -> Dict[str, List[Hit]]:
+    def _merge_hit_files(self,pfam_th: TopHitPfamFile, tigr_th: TopHitTigrFile) -> Dict[str, List[Hit]]:
         """Returns a list of Hits grouped by HMM id as a dictionary."""
         out = dict()
         for cur_tophit in (pfam_th, tigr_th):
-            for gene_id, cur_hit in cur_tophit.iter_hits():
-                if cur_hit.hmm_id not in out:
-                    out[cur_hit.hmm_id] = list()
-                out[cur_hit.hmm_id].append(cur_hit)
+            out_temp=self.parse_tophit(cur_tophit)
+            for key in out_temp:
+                if key not in out:
+                    out[key] = list()
+                out[key].extend(out_temp[key])
+        return out
+
+    def parse_tophit(self,cur_tophit):
+        out = dict()
+        for gene_id, cur_hit in cur_tophit.iter_hits():
+            if cur_hit.hmm_id not in out:
+                out[cur_hit.hmm_id] = list()
+            out[cur_hit.hmm_id].append(cur_hit)
         return out
 
     def get_single_copy_hits(self, genome_id: str) -> Dict[str, Dict[str, Union[str, Hit]]]:
         """Return hit and seq info for single copy markers."""
         return {**self.genomes[genome_id]['unq'], **self.genomes[genome_id]['muq']}
+
+    def get_present_markers(self, genome_id: str) -> Dict[str, Dict[str, Union[str, Hit]]]:
+        """Return hit and seq info for all present markers."""
+        return {**self.genomes[genome_id]['unq'], **self.genomes[genome_id]['muq'], **self.genomes[genome_id]['mul']}
 
     def write(self):
         """Write the summary file to disk."""
@@ -168,3 +230,10 @@ class CopyNumberFileBAC120(CopyNumberFile):
     def __init__(self, out_dir: str, prefix: str):
         path = os.path.join(out_dir, PATH_BAC120_MARKER_SUMMARY.format(prefix=prefix))
         super().__init__(path, 'bac120', CONFIG.BAC120_MARKERS)
+
+class CopyNumberFileFUN100(CopyNumberFile):
+    """Store hmm copy number information for FUN100 markers."""
+
+    def __init__(self, out_dir: str, prefix: str):
+        path = os.path.join(out_dir, PATH_FUN100_MARKER_SUMMARY.format(prefix=prefix))
+        super().__init__(path, 'fun100', CONFIG.FUN100_MARKERS)

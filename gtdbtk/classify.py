@@ -343,7 +343,7 @@ class Classify(object):
             all_failed_prodigal=False):
         """Classify genomes based on position in reference tree."""
         if not all_classified_ani and not all_failed_prodigal:
-            _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
+            _bac_gids, _ar_gids,_fun_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
 
         # If prescreen is set to True, then we will first run all genomes against a mash database
@@ -475,6 +475,10 @@ class Classify(object):
                         # add filtered genomes to the summary file
                         genomes_with_warnings = self.add_filtered_genomes_to_summary(align_dir, genomes_with_warnings, summary_file,
                                                                                marker_set_id, prefix)
+                        # we also add the genomes with from Fungi classified with the fun100 marker set
+                        # add fun100 genomes to the summary file
+                        if _fun_gids:
+                            genomes_with_warnings = self.add_fungal_genomes_to_summary(_fun_gids, genomes_with_warnings, summary_file)
 
                     # we add all genomes classified with ANI
                     if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
@@ -667,11 +671,13 @@ class Classify(object):
                     # add filtered genomes to the summary file
                     genomes_with_warnings = self.add_filtered_genomes_to_summary(align_dir,genomes_with_warnings, summary_file, marker_set_id, prefix)
 
-                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                    # Add failed genomes from prodigal, genomes with no markers and fungal genomes in the bac120 summary file
                     # This is a executive direction: failed prodigal and genomes with
                     # no markers are not bacterial or archaeal
                     # but they need to be included in one of the summary file
                     genomes_with_failed_prodigal = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                    if _fun_gids:
+                        genomes_with_warnings = self.add_fungal_genomes_to_summary(_fun_gids, genomes_with_warnings, summary_file)
                     genomes_with_warnings = genomes_with_warnings + genomes_with_failed_prodigal
 
                     # Symlink to the summary file from the root
@@ -760,6 +766,7 @@ class Classify(object):
                     output_files.setdefault(marker_set_id, []).append(disappearing_genomes_file.path)
                 summary_file.write()
                 output_files.setdefault(marker_set_id, []).append(summary_file.path)
+
         elif all_failed_prodigal:
             marker_set_id ='bac120'
             summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
@@ -2356,6 +2363,16 @@ class Classify(object):
                 dict_of_rows.setdefault(domain, {}).update(infos)
 
         return dict_of_rows
+
+    def add_fungal_genomes_to_summary(self, fun_gids, genomes_with_warnings, summary_file):
+        for fungid in fun_gids:
+            summary_row = ClassifySummaryFileRow()
+            summary_row.gid = fungid
+            summary_row.classification = f'Unclassified Fungus'
+            summary_row.warnings = 'classified as fungus'
+            summary_file.add_row(summary_row)
+            genomes_with_warnings.append(fungid)
+        return genomes_with_warnings
 
 
 

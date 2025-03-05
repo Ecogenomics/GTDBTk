@@ -19,7 +19,7 @@ import os
 from typing import Tuple, Optional, Iterator
 
 from gtdbtk.biolib_lite.common import make_sure_path_exists
-from gtdbtk.config.output import TIGRFAM_TOP_HIT_SUFFIX, PFAM_TOP_HIT_SUFFIX, CHECKSUM_SUFFIX
+from gtdbtk.config.output import TIGRFAM_TOP_HIT_SUFFIX, PFAM_TOP_HIT_SUFFIX,BUSCO_TOP_HIT_SUFFIX, CHECKSUM_SUFFIX
 from gtdbtk.tools import sha256
 
 
@@ -84,7 +84,7 @@ class Hit(object):
 
 
 class TopHitFile(object):
-    """Stores information about the top marker hits for Pfam/TIGRFAM markers."""
+    """Stores information about the top marker hits for Pfam/TIGRFAM/Busco markers."""
 
     def __init__(self, path: str):
         """Setup the path to the file and initialise storage dictionary."""
@@ -171,16 +171,17 @@ class TopHitPfamFile(TopHitFile):
         return os.path.join(out_dir, gid, f'{gid}{PFAM_TOP_HIT_SUFFIX}')
 
 
-class TopHitTigrFile(TopHitFile):
-    """The top hit file given the Tigrfam output."""
+class TopHitTigrBuscoFile(TopHitFile):
+    """The top hit file given the Tigrfam/Busco output."""
 
-    def __init__(self, out_dir: str, gid: str):
-        path = self.get_path(out_dir, gid)
+    def __init__(self, out_dir: str, gid: str, suffix: str):
+        self.suffix = suffix
+        path = self.get_path(out_dir, gid,self.suffix)
         super().__init__(path)
 
     @staticmethod
-    def get_path(out_dir: str, gid: str):
-        return os.path.join(out_dir, gid, f'{gid}{TIGRFAM_TOP_HIT_SUFFIX}')
+    def get_path(out_dir: str, gid: str, suffix: str):
+        return os.path.join(out_dir, gid, f'{gid}{suffix}')
 
     def add_hit(self, gene_id: str, hmm_id: str, e_val: float, bit_score: float):
         """Only store the most significant HMM hit per gene as per GTDBNCBI."""
@@ -191,3 +192,20 @@ class TopHitTigrFile(TopHitFile):
                 super().add_hit(gene_id, hmm_id, e_val, bit_score)
         else:
             super().add_hit(gene_id, hmm_id, e_val, bit_score)
+
+class TopHitTigrFile(TopHitTigrBuscoFile):
+    """The top hit file given the Tigrfam output."""
+
+    def __init__(self, out_dir: str, gid: str):
+        self.suffix = TIGRFAM_TOP_HIT_SUFFIX
+        super().__init__(out_dir, gid,self.suffix)
+
+class TopHitBuscoFile(TopHitTigrBuscoFile):
+    """The top hit file given the Busco output."""
+
+    def __init__(self, out_dir: str, gid: str):
+        self.suffix = BUSCO_TOP_HIT_SUFFIX
+        super().__init__(out_dir, gid,self.suffix)
+
+
+

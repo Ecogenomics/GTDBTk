@@ -34,10 +34,11 @@ from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, MSAMaskLengthMismatch, InconsistentGenomeBatch, GTDBTkExit
 from gtdbtk.external.pfam_search import PfamSearch
 from gtdbtk.external.prodigal import Prodigal
-from gtdbtk.external.tigrfam_search import TigrfamSearch
-from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile
-from gtdbtk.files.marker_info import MarkerInfoFileAR53, MarkerInfoFileBAC120
+from gtdbtk.external.tigr_busco_search import BuscoSearch,TigrfamSearch
+#from gtdbtk.external.tigrfam_search import TigrfamSearch
+from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120, CopyNumberFileFUN100
+from gtdbtk.files.marker.tophit import TopHitPfamFile, TopHitTigrFile, TopHitBuscoFile
+from gtdbtk.files.marker_info import MarkerInfoFileAR53, MarkerInfoFileBAC120, MarkerInfoFileFUN100
 from gtdbtk.files.prodigal.tln_table import TlnTableFile
 from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.pipeline import align
@@ -75,6 +76,10 @@ class Markers(object):
         self.tigrfam_suffix = TIGRFAM_SUFFIX
         self.tigrfam_top_hit_suffix = TIGRFAM_TOP_HIT_SUFFIX
 
+        self.busco_hmms = CONFIG.BUSCO_HMMS
+        self.busco_suffix = BUSCO_SUFFIX
+        self.busco_top_hit_suffix = BUSCO_TOP_HIT_SUFFIX
+
     def _report_identified_marker_genes(self, gene_dict, outdir, prefix,
                                         write_single_copy_genes,reports):
         """Report statistics for identified marker genes."""
@@ -83,20 +88,25 @@ class Markers(object):
         tln_summary_file = TlnTableSummaryFile(outdir, prefix)
         ar53_copy_number_file = CopyNumberFileAR53(outdir, prefix)
         bac120_copy_number_file = CopyNumberFileBAC120(outdir, prefix)
+        fun100_copy_number_file = CopyNumberFileFUN100(outdir, prefix)
 
         # Process each genome.
         for db_genome_id, info in tqdm_log(sorted(gene_dict.items()), unit='genome'):
             cur_marker_dir = os.path.join(outdir, DIR_MARKER_GENE)
             pfam_tophit_file = TopHitPfamFile(cur_marker_dir, db_genome_id)
             tigr_tophit_file = TopHitTigrFile(cur_marker_dir, db_genome_id)
+            busco_tophit_file = TopHitBuscoFile(cur_marker_dir, db_genome_id)
             pfam_tophit_file.read()
             tigr_tophit_file.read()
+            busco_tophit_file.read()
 
             # Summarise each of the markers for this genome.
             ar53_copy_number_file.add_genome(db_genome_id, info.get("aa_gene_path"),
                                              pfam_tophit_file, tigr_tophit_file)
             bac120_copy_number_file.add_genome(db_genome_id, info.get("aa_gene_path"),
                                                pfam_tophit_file, tigr_tophit_file)
+            fun100_copy_number_file.add_fungal_info_genome(db_genome_id, info.get("aa_gene_path"),
+                                                  busco_tophit_file)
 
             # Write the best translation table to disk for this genome.
             tln_summary_file.add_genome(
@@ -107,6 +117,8 @@ class Markers(object):
         reports.setdefault('ar53',[]).append(ar53_copy_number_file.path)
         bac120_copy_number_file.write()
         reports.setdefault('bac120',[]).append(bac120_copy_number_file.path)
+        fun100_copy_number_file.write()
+        reports.setdefault('fun100',[]).append(fun100_copy_number_file.path)
         tln_summary_file.write()
         reports.setdefault('all',[]).append(tln_summary_file.path)
 
@@ -250,6 +262,18 @@ class Markers(object):
                                  self.checksum_suffix,
                                  self.marker_gene_dir)
         pfam_search.run(gene_files)
+
+        self.logger.log(CONFIG.LOG_TASK, 'Identifying BUSCO protein families.')
+
+        busco_search = BuscoSearch(self.cpus,
+                                   self.busco_hmms,
+                                   self.protein_file_suffix,
+                                   self.busco_suffix,
+                                   self.busco_top_hit_suffix,
+                                   self.checksum_suffix,
+                                   self.marker_gene_dir)
+        busco_search.run(gene_files)
+
         self.logger.info(
             f'Annotations done using HMMER {tigr_search.version}.')
 
@@ -402,27 +426,40 @@ class Markers(object):
         """Determine domain of User genomes based on identified marker genes."""
         bac_count = defaultdict(int)
         ar_count = defaultdict(int)
+        fun_count = defaultdict(int)
 
         # Load the marker files for each domain
         ar53_marker_file = CopyNumberFileAR53(identity_dir, prefix)
         ar53_marker_file.read()
         bac120_marker_file = CopyNumberFileBAC120(identity_dir, prefix)
         bac120_marker_file.read()
+        fun100_marker_file = CopyNumberFileFUN100(identity_dir, prefix)
+        fun100_marker_file.read()
 
         # Get the number of single copy markers for each domain
         for out_d, marker_summary in ((ar_count, ar53_marker_file),
-                                      (bac_count, bac120_marker_file)):
+                                      (bac_count, bac120_marker_file),
+                                      (fun_count, fun100_marker_file)):
             for genome_id in marker_summary.genomes:
                 out_d[genome_id] = len(
                     marker_summary.get_single_copy_hits(genome_id))
 
+        # for fungal genomes, we do not look only at the number of single copy markers because prodigal is not perfect
+        # for euks, we look at the number of markers present
+        for genome_id in fun100_marker_file.genomes:
+            fun_count[genome_id] = len(fun100_marker_file.get_present_markers(genome_id))
+
         bac_gids = set()
         ar_gids = set()
+        fun_gids = set()
         bac_ar_diff = {}
         for gid in bac_count:
             arc_aa_per = (ar_count[gid] * 100.0 / CONFIG.AR_MARKER_COUNT)
             bac_aa_per = (bac_count[gid] * 100.0 / CONFIG.BAC_MARKER_COUNT)
-            if bac_aa_per >= arc_aa_per:
+            fun_aa_per = (fun_count[gid] * 100.0 / CONFIG.FUN_MARKER_COUNT)
+            if fun_aa_per >= arc_aa_per and fun_aa_per >= bac_aa_per:
+                fun_gids.add(gid)
+            elif bac_aa_per >= arc_aa_per:
                 bac_gids.add(gid)
             else:
                 ar_gids.add(gid)
@@ -430,7 +467,7 @@ class Markers(object):
                 bac_ar_diff[gid] = {'bac120': round(
                     bac_aa_per, 1), 'ar53': round(arc_aa_per, 1)}
 
-        return bac_gids, ar_gids, bac_ar_diff
+        return bac_gids, ar_gids,fun_gids, bac_ar_diff
 
     def _write_marker_info(self, marker_db, marker_file):
         """Write out information about markers comprising MSA."""
@@ -514,6 +551,7 @@ class Markers(object):
             make_sure_path_exists(identify_path)
             copy(CopyNumberFileBAC120(identify_dir, prefix).path, identify_path)
             copy(CopyNumberFileAR53(identify_dir, prefix).path, identify_path)
+            copy(CopyNumberFileFUN100(identify_dir, prefix).path, identify_path)
             copy(TlnTableSummaryFile(identify_dir, prefix).path, identify_path)
             if os.path.isfile(failed_genomes_file):
                 copy(failed_genomes_file, identify_path)
@@ -526,9 +564,11 @@ class Markers(object):
         ar53_marker_info_file.write()
         bac120_marker_info_file = MarkerInfoFileBAC120(out_dir, prefix)
         bac120_marker_info_file.write()
+        fun100_marker_info_file = MarkerInfoFileFUN100(out_dir, prefix)
+        fun100_marker_info_file.write()
 
         # Determine what domain each genome belongs to.
-        bac_gids, ar_gids, _bac_ar_diff = self.genome_domain(
+        bac_gids, ar_gids,fun_gids, _bac_ar_diff = self.genome_domain(
             identify_dir, prefix)
         if len(bac_gids) + len(ar_gids) == 0:
             raise GTDBTkExit(f'Unable to assign a domain to any genomes, '

@@ -80,6 +80,33 @@ class __GTDBTkCommonConfig:
                                 "TIGR03671.HMM", "TIGR03672.HMM", "TIGR03673.HMM", "TIGR03674.HMM",
                                 "TIGR03676.HMM", "TIGR03680.HMM"]}
 
+    #FUN100_MARKERS
+    FUN100_MARKERS = {"BUSCO": ['103183at4751.hmm','115993at4751.hmm','126519at4751.hmm','129326at4751.hmm',
+                                '138484at4751.hmm','150469at4751.hmm','153083at4751.hmm','165243at4751.hmm',
+                                '17174at4751.hmm','172966at4751.hmm','176178at4751.hmm','179437at4751.hmm',
+                                '179897at4751.hmm','183849at4751.hmm','185399at4751.hmm','191114at4751.hmm',
+                                '192135at4751.hmm','196015at4751.hmm','197111at4751.hmm','203710at4751.hmm',
+                                '209053at4751.hmm','210986at4751.hmm','212735at4751.hmm','216683at4751.hmm',
+                                '225321at4751.hmm','225535at4751.hmm','226810at4751.hmm','237281at4751.hmm',
+                                '23856at4751.hmm','240036at4751.hmm','241586at4751.hmm','246207at4751.hmm',
+                                '25020at4751.hmm','254717at4751.hmm','256914at4751.hmm','259883at4751.hmm',
+                                '26329at4751.hmm','269389at4751.hmm','271511at4751.hmm','285477at4751.hmm',
+                                '289666at4751.hmm','300016at4751.hmm','304453at4751.hmm','304547at4751.hmm',
+                                '308236at4751.hmm','311048at4751.hmm','316254at4751.hmm','321585at4751.hmm',
+                                '32164at4751.hmm','326649at4751.hmm','327672at4751.hmm','332876at4751.hmm',
+                                '334424at4751.hmm','335237at4751.hmm','342642at4751.hmm','345661at4751.hmm',
+                                '348111at4751.hmm','34830at4751.hmm','350840at4751.hmm','351651at4751.hmm',
+                                '355525at4751.hmm','357182at4751.hmm','368706at4751.hmm','370505at4751.hmm',
+                                '371481at4751.hmm','376586at4751.hmm','378281at4751.hmm','378430at4751.hmm',
+                                '385139at4751.hmm','385971at4751.hmm','393440at4751.hmm','396842at4751.hmm',
+                                '398519at4751.hmm','398592at4751.hmm','403079at4751.hmm','411130at4751.hmm',
+                                '411518at4751.hmm','417746at4751.hmm','423206at4751.hmm','434428at4751.hmm',
+                                '444892at4751.hmm','446124at4751.hmm','4523at4751.hmm','457544at4751.hmm',
+                                '457951at4751.hmm','46098at4751.hmm','461238at4751.hmm','464897at4751.hmm',
+                                '483390at4751.hmm','490719at4751.hmm','494at4751.hmm','52909at4751.hmm',
+                                '6272at4751.hmm','71039at4751.hmm','73383at4751.hmm','76196at4751.hmm',
+                                '78289at4751.hmm','81295at4751.hmm','87313at4751.hmm','92267at4751.hmm']}
+
     # Information about significant size difference between genomes
     SIGNIFICANT_SIZE_DIFFERENCE = 0.5
 
@@ -90,6 +117,7 @@ class __GTDBTkCommonConfig:
     DEFAULT_DOMAIN_THRESHOLD = 10.0
     AR_MARKER_COUNT = 53
     BAC_MARKER_COUNT = 120
+    FUN_MARKER_COUNT = 100
 
     # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
@@ -187,6 +215,10 @@ class __GTDBTkCommonConfig:
     @property
     def PFAM_HMM_DIR(self):
         return os.path.join(self.MARKER_DIR, 'pfam/')
+
+    @property
+    def BUSCO_HMMS(self):
+        return os.path.join(self.MARKER_DIR, 'busco/busco.hmm')
 
     @property
     def SPLIT_DIR(self):

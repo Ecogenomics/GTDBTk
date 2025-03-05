@@ -305,7 +305,7 @@ class SkANI(object):
                                 args=(q_worker_size, q_writer_size, q_results_size))
                      for _ in range(self.cpus)]
 
-        p_writer = mp.Process(target=self._writer, args=(q_writer_size, n_total_size,'genome size'))
+        p_writer = mp.Process(target=self._writer, args=(q_writer_size, n_total_size,'metadata calculation'))
 
         # Start each of the threads.
         try:

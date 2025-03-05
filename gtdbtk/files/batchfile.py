@@ -30,9 +30,9 @@ class Batchfile(object):
                     genome_file, genome_id = line_split
                 elif len(line_split) == 3:
                     genome_file, genome_id, tln_table = line_split
-                    if tln_table not in {'4', '11'}:
+                    if tln_table not in {'4','25', '11'}:
                         raise GTDBTkExit('Specified translation table must '
-                                         'be either 4, or 11.')
+                                         'be either 4,25 or 11.')
                     tln_tables[genome_id] = int(tln_table)
 
                 if genome_file is None or genome_file == '':
