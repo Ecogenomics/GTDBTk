@@ -1,6 +1,25 @@
 Announcements
 =============
 
+GTDB-Tk 2.4.1 available
+-----------------------
+
+*April 16, 2024*
+
+* GTDB-Tk version ``2.4.1`` is now available.
+* This version of GTDB-Tk compatible with the new version of the GTDB-Tk reference package (Release 226).
+  `gtdbtk_r226_data.tar.gz <https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/>`_.
+
+
+GTDB R226 available
+-----------------------
+
+*April 16, 2025*
+
+* GTDB Release 226 is now available and will be used from version ``2.4.1`` and up.
+* This version of GTDB-Tk is compatible with both release220 and release226 of the GTDB-Tk reference package.
+  `gtdbtk_r226_data.tar.gz <https://data.gtdb.ecogenomic.org/releases/release226/226.0/auxillary_files/>`_.
+
 GTDB-Tk 2.4.0 available
 -----------------------
 

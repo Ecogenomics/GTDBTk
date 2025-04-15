@@ -331,7 +331,7 @@ class HMMResultsIO(object):
             if hmmName and hmmRes.program == 'hmmsearch':
 
                 pattern1 = re.compile(r'^\s+%s\s+\d+\s+(\S+)\s+\d+' % hmmName)
-                seqId = re.sub('(\W)', r'\\\1', seqId)
+                seqId = re.sub(r'(\W)', r'\\\1', seqId)
                 # $id =~ s/\|/\\|/g;  #Escape '|', '[' and ']' characters
                 # $id =~ s/\[/\\[/g;
                 # $id =~ s/\]/\\]/g;
@@ -339,7 +339,7 @@ class HMMResultsIO(object):
 
             elif seqName and hmmRes.program == 'hmmscan':
                 tmpSeqName = seqName
-                tmpSeqName = re.sub('(\W)', r'\\\1', tmpSeqName)
+                tmpSeqName = re.sub(r'(\W)', r'\\\1', tmpSeqName)
 
                 pattern1 = re.compile(r'^\s+%s\s+\d+\s+(\S+)\s+\d+' % seqId)
                 pattern2 = re.compile(r'^\s+%s\s+\d+\s+(\S+)\s+\d+' % tmpSeqName)
