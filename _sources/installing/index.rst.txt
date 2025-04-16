@@ -139,8 +139,8 @@ To create an archive from the GTDB-Tk release data parts:
 
 5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r220_data.tar.gz' in the same directory.
 
-You can find the gtdbtk_r220_data.tar.gz.part_* files under:
-https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_files/gtdbtk_package/split_package/gtdbtk_r220_data.tar.gz.part_aa
+You can find the gtdbtk_r226_data.tar.gz.part_* files under:
+https://data.ace.uq.edu.au/public/gtdb/data/releases/release226/226.0/auxillary_files/gtdbtk_package/split_package/
 
 
 .. note:: Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, check the supported versions!
