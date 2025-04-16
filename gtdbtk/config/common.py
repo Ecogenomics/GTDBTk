@@ -12,7 +12,7 @@ class __GTDBTkCommonConfig:
     """
 
     MIN_REF_DATA_VERSION = 'r220'
-    COMPATIBLE_REF_DATA_VERSIONS = ['r220']
+    COMPATIBLE_REF_DATA_VERSIONS = ['r220','r226']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
     CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
