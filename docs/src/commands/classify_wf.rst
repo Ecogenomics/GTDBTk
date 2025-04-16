@@ -41,7 +41,7 @@ The classify workflow can be run as follows:
 
 .. code-block:: bash
 
-    gtdbtk classify_wf --genome_dir <my_genomes> --out_dir <output_dir>
+    gtdbtk classify_wf --genome_dir <my_genomes> --out_dir <output_dir> (--skip_ani_screen OR --mash_db)
 
 This will process all genomes in the directory <my_genomes> using both bacterial and archaeal marker sets and place the results in <output_dir>. Genomes must be in FASTA format (gzip with the extension .gz is acceptable).
 The location of genomes can also be specified using a batch file with the ``--batchfile`` flag. The batch file is a two column file indicating the location of each genome and the desired genome identifier
@@ -76,7 +76,7 @@ Input
 
 .. code-block:: bash
 
-    gtdbtk classify_wf --genome_dir genomes/ --out_dir classify_wf_out --cpus 3
+    gtdbtk classify_wf --genome_dir genomes/ --out_dir classify_wf_out --cpus 3 (--skip_ani_screen OR --mash_db)
 
 
 
