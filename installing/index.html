@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Installing GTDB-Tk &mdash; GTDB-Tk 2.4.0 documentation</title>
+  <title>Installing GTDB-Tk &mdash; GTDB-Tk 2.4.1 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.4.0
+                2.4.1
               </div>
             
           
@@ -270,12 +270,12 @@ If you are unsure which one to choose, Bioconda is generally the easiest.</p>
 <tbody>
 <tr class="row-even"><td><p>Archaea</p></td>
 <td><p>~60 GB</p></td>
-<td><p>~106 GB</p></td>
+<td><p>~140 GB</p></td>
 <td><p>~90 minutes / 1,000 genomes &#64; 64 CPUs</p></td>
 </tr>
 <tr class="row-odd"><td><p>Bacteria</p></td>
-<td><p>~90GB (545 GB when using –full_tree)</p></td>
-<td><p>~106 GB</p></td>
+<td><p>~110GB (690 GB when using –full_tree)</p></td>
+<td><p>~140 GB</p></td>
 <td><p>~90 minutes / 1,000 genomes &#64; 64 CPUs</p></td>
 </tr>
 </tbody>
@@ -368,7 +368,7 @@ See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="st
 </div>
 <div class="section" id="gtdb-tk-reference-data">
 <span id="installing-gtdbtk-reference-data"></span><h2>GTDB-Tk reference data<a class="headerlink" href="#gtdb-tk-reference-data" title="Permalink to this headline">¶</a></h2>
-<p>GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:</p>
+<p>GTDB-Tk requires ~140G of external data that needs to be downloaded and unarchived:</p>
 <p><strong>For full package:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
 wget<span class="w"> </span>https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz<span class="w"> </span><span class="o">(</span><span class="w"> </span>mirror<span class="w"> </span><span class="k">for</span><span class="w"> </span>Australia<span class="o">)</span>
@@ -406,52 +406,57 @@ cat gtdbtk_r220_data.tar.gz.part_* &gt; gtdbtk_r220_data.tar.gz</p></li>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference external" href="https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz">R220</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release220/226.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r226_data.tar.gz">R226</a></p></td>
+<td><p>2.4.0</p></td>
+<td><p>Current</p></td>
+<td><p>24b476ea5a4ef30519d461e56cc4a27f</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz">R220</a></p></td>
 <td><p>2.4.0</p></td>
 <td><p>Current</p></td>
 <td><p>5aafa1b9c27ceda003d75adf238ed9e0</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release214/214.0/auxillary_files/gtdbtk_r214_data.tar.gz">R214</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release214/214.0/auxillary_files/gtdbtk_r214_data.tar.gz">R214</a></p></td>
 <td><p>2.1.0</p></td>
 <td><p>2.3.2</p></td>
 <td><p>630745840850c532546996b22da14c27</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz">R207_v2</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz">R207_v2</a></p></td>
 <td><p>2.1.0</p></td>
 <td><p>2.3.2</p></td>
 <td><p>df468d63265e8096d8ca01244cb95f30</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz">R207</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_data.tar.gz">R207</a></p></td>
 <td><p>2.0.0</p></td>
 <td><p>2.0.0</p></td>
 <td><p>b04c55104b491f84e053a9011b36164a</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz">R202</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz">R202</a></p></td>
 <td><p>1.5.0</p></td>
 <td><p>1.7.0</p></td>
 <td><p>4986526c2b935fd4dcc2e604c0322517</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz">R95</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release95/95.0/auxillary_files/gtdbtk_r95_data.tar.gz">R95</a></p></td>
 <td><p>1.3.0</p></td>
 <td><p>1.4.2</p></td>
 <td><p>06924c63f4b555ac6fd1525b09901186</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release89/89.0/gtdbtk_r89_data.tar.gz">R89</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release89/89.0/gtdbtk_r89_data.tar.gz">R89</a></p></td>
 <td><p>0.3.0</p></td>
 <td><p>0.1.2</p></td>
 <td><p>82966ef36086237d7230955e2bfff759</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release86/86.2/gtdbtk.r86_v2_data.tar.gz">R86.2</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release86/86.2/gtdbtk.r86_v2_data.tar.gz">R86.2</a></p></td>
 <td><p>0.2.1</p></td>
 <td><p>0.2.2</p></td>
 <td><p>f71408d69fa2a289f2cdc734b7a58a02</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release86/86.0/gtdbtk_r86_data.tar.gz">R86</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release86/86.0/gtdbtk_r86_data.tar.gz">R86</a></p></td>
 <td><p>0.1.0</p></td>
 <td><p>0.1.6</p></td>
 <td><p>d019b3541746c3673181f24e666594ba</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release83/83.0/gtdbtk_r83_data.tar.gz">R83</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://data.gtdb.ecogenomic.org/releases/release83/83.0/gtdbtk_r83_data.tar.gz">R83</a></p></td>
 <td><p>0.0.6</p></td>
 <td><p>0.0.7</p></td>
 <td><p>9cf523761da843b5787f591f6c5a80de</p></td>

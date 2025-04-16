@@ -34,11 +34,11 @@ Hardware requirements
      - Time
    * - Archaea
      - ~60 GB
-     - ~106 GB
+     - ~140 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~90GB (545 GB when using --full_tree)
-     - ~106 GB
+     - ~110GB (690 GB when using --full_tree)
+     - ~140 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
 
 .. note::
@@ -117,7 +117,7 @@ Please cite these tools if you use GTDB-Tk in your work.
 GTDB-Tk reference data
 ----------------------
 
-GTDB-Tk requires ~110G of external data that needs to be downloaded and unarchived:
+GTDB-Tk requires ~140G of external data that needs to be downloaded and unarchived:
 
 **For full package:**
 
@@ -154,7 +154,11 @@ https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_
      - Minimum version
      - Maximum version
      - MD5
-   * - `R220 <https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz>`_
+   * - `R226 <https://data.gtdb.ecogenomic.org/releases/release220/226.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r226_data.tar.gz>`_
+     - 2.4.0
+     - Current
+     - 24b476ea5a4ef30519d461e56cc4a27f
+   * - `R220 <https://data.gtdb.ecogenomic.org/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz>`_
      - 2.4.0
      - Current
      - 5aafa1b9c27ceda003d75adf238ed9e0

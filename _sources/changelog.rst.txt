@@ -2,6 +2,12 @@
 Change log
 ==========
 
+2.4.1
+-----
+
+Bug Fixes:
+* (`#630 <https://github.com/Ecogenomics/GTDBTk/issues/630>`_) Fixed SyntaxWarning in Python 3.12 by using raw strings for regex in HMMResultsIO.py
+
 
 2.4.0
 -----
