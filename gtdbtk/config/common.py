@@ -12,7 +12,7 @@ class __GTDBTkCommonConfig:
     """
 
     MIN_REF_DATA_VERSION = 'r220'
-    COMPATIBLE_REF_DATA_VERSIONS = ['r220']
+    COMPATIBLE_REF_DATA_VERSIONS = ['r220','r226']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
     CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
@@ -332,8 +332,20 @@ class __GTDBTkCommonConfig:
         compatible_versions = [int(x.replace('r','')) for x in CONFIG.COMPATIBLE_REF_DATA_VERSIONS]
         if version is not None and version not in compatible_versions:
             raise ValueError(f"Version {version} is not compatible with this version of GTDB-Tk. Compatible versions are {compatible_versions}")
+        if version is None or version==226:
+            return {
+                self.PPLACER_DIR: '40d242bd5b84d4b2218586390220e6f741191804',
+                self.MASK_DIR: 'beb296ca29ffadf2d5b86f4160f2a525c5954185',
+                self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
+                self.RADII_DIR: '577663ffcd7892551a0f8cb2864fb80544c3bfcd',
+                self.MSA_FOLDER: '1d47808337897c2965cfc8a101df5e4813ce1581',
+                self.METADATA_DIR: '56b3a753b0cec1f0ac983fea4c7db32a160d00cb',
+                self.TAX_FOLDER: 'ea99878828e0baffe8977c7371ce7b7d5109c1e1',
+                self.SKANI_DIR: '8100f226743d74572fa726ac3ea358c34d5b8222',
+                self.RED_DIR: 'bd8cfe5c4f5b8fc180cebf974713194395efbc00'
+            }
 
-        if version is None or version==220:
+        elif version==220:
             return {
                 self.PPLACER_DIR: '75fdd0e093c9af6a73cb510c3d0cd2041265e093',
                 self.MASK_DIR: 'f4b8ebfa59526a7a86f09752b47e8de1efc384c7',
