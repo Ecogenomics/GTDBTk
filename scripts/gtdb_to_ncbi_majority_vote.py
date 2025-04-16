@@ -619,35 +619,34 @@ class GtdbNcbiTranslate(object):
 
         self.logger.info(f'Results written to: {output_file}')
 
-
-if __name__ == "__main__":
+def main():
     print(__prog_name__ + ' v' + __version__ + ': ' + __prog_desc__)
     print('  by ' + __author__ + ' (' + __email__ + ')' + '\n')
 
     def print_help():
         print(f'''
-            {colour(f'...::: GTDB to NCBI Majority Vote v{__version__} :::...', ['bright'])}
+                {colour(f'...::: GTDB to NCBI Majority Vote v{__version__} :::...', ['bright'])}
 
-  {colour('Required argument:', ['underscore'])}
-    {colour('--gtdbtk_output_dir', ['bright'])}
-        Output directory produced by the GTDB-Tk classify workflow.
-    {colour('--output_file', ['bright'])}
-        Output file to write the translated taxonomy.
+      {colour('Required argument:', ['underscore'])}
+        {colour('--gtdbtk_output_dir', ['bright'])}
+            Output directory produced by the GTDB-Tk classify workflow.
+        {colour('--output_file', ['bright'])}
+            Output file to write the translated taxonomy.
 
-  {colour('At least one argument is required from:', ['underscore'])}
-    {colour('--ar53_metadata_file', ['bright'])}
-        GTDB archaeal metadata file (if processing archaeal genomes).
-    {colour('--bac120_metadata_file', ['bright'])}
-        GTDB bacterial metadata file (if processing bacterial genomes).
+      {colour('At least one argument is required from:', ['underscore'])}
+        {colour('--ar53_metadata_file', ['bright'])}
+            GTDB archaeal metadata file (if processing archaeal genomes).
+        {colour('--bac120_metadata_file', ['bright'])}
+            GTDB bacterial metadata file (if processing bacterial genomes).
 
-    NOTE: GTDB metadata files are available for download at:
-          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/ar53_metadata.tsv.gz
-          https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/bac120_metadata.tsv.gz
+        NOTE: GTDB metadata files are available for download at:
+              https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/ar53_metadata.tsv.gz
+              https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/bac120_metadata.tsv.gz
 
-  {colour('Optional arguments:', ['underscore'])}
-    {colour('--gtdbtk_prefix', ['bright'])}
-        Prefix of the GTDB-Tk output files specified in --gtdbtk_output_dir.
-''')
+      {colour('Optional arguments:', ['underscore'])}
+        {colour('--gtdbtk_prefix', ['bright'])}
+            Prefix of the GTDB-Tk output files specified in --gtdbtk_output_dir.
+    ''')
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -721,3 +720,7 @@ if __name__ == "__main__":
         msg += '=' * 80
         logger.error(msg)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -42,7 +42,8 @@ setup(
     description=meta['description'],
     entry_points={
         'console_scripts': [
-            'gtdbtk = gtdbtk.__main__:main'
+            'gtdbtk = gtdbtk.__main__:main',
+            "gtdb_to_ncbi_majority_vote = scripts.gtdb_to_ncbi_majority_vote:main",
         ]
     },
     install_requires=["dendropy ~= 4.1", 'numpy ~= 1.9', 'tqdm ~= 4.35', 'pydantic ~= 1.9'],
@@ -54,6 +55,7 @@ setup(
     name=meta['name'],
     packages=find_packages(),
     package_data={'gtdbtk': ['VERSION', 'tests/data/genomes/*']},
+    scripts=["scripts/gtdb_to_ncbi_majority_vote.py"],
     python_requires=meta['python_requires'],
     url=meta['url'],
     version=meta['version']
