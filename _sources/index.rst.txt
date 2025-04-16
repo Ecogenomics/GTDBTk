@@ -10,8 +10,8 @@ genomes (MAGs) to be obtained directly from environmental samples. It can also b
 and single-cell genomes. The GTDB-Tk is open source and released under the
 `GNU General Public License (Version 3) <https://www.gnu.org/licenses/gpl-3.0.en.html>`_.
 
-Notifications about GTDB-Tk releases will be available through the GTDB Twitter account
-`<https://twitter.com/ace_gtdb>`_.
+Notifications about GTDB-Tk releases will be available through the GTDB Bluesky account
+`<https://bsky.app/profile/ace-gtdb.bsky.social>`_.
 
 Please post questions and issues related to GTDB-Tk on the Issues section of the GitHub repository.
 Questions related to the `GTDB <https://gtdb.ecogenomic.org/>`_ should be sent to the
