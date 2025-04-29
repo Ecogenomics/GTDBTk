@@ -154,7 +154,7 @@ https://data.ace.uq.edu.au/public/gtdb/data/releases/release226/226.0/auxillary_
      - Minimum version
      - Maximum version
      - MD5
-   * - `R226 <https://data.gtdb.ecogenomic.org/releases/release220/226.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r226_data.tar.gz>`_
+   * - `R226 <https://data.gtdb.ecogenomic.org/releases/release226/226.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r226_data.tar.gz>`_
      - 2.4.0
      - Current
      - 24b476ea5a4ef30519d461e56cc4a27f
