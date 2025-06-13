@@ -363,7 +363,7 @@ class Markers(object):
             for aa_char, aa_count in zip(masked_seq_unique[0], masked_seq_unique[1]):
                 masked_seq_counts[aa_char.decode('utf-8')] = aa_count
 
-            masked_seq = list_masked_seq.tostring().decode('utf-8')
+            masked_seq = list_masked_seq.tobytes().decode('utf-8')
 
             valid_bases = list_masked_seq.shape[0] - \
                 masked_seq_counts['.'] - masked_seq_counts['-']
