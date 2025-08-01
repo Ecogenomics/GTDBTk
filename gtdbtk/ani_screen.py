@@ -77,6 +77,10 @@ class ANIScreener(object):
         reports = {}
         if mash_classified_user_genomes:
             for domain,results in mash_classified_user_genomes.items():
+                # we create the directory if it does not exist, it should be created when using mash but
+                # not create when using skani as the comparison is done in the temp dir and the sketch
+                # is in memory
+                make_sure_path_exists(os.path.join(out_dir,DIR_ANISCREEN))
                 ani_summary_file = ANISummaryFile(os.path.join(out_dir,DIR_ANISCREEN),prefix,results,taxonomy,domain)
                 ani_summary_file.write(ani_screen_step=True)
                 reports[domain] = os.path.join(out_dir,DIR_ANISCREEN,prefix + '.' + domain + '.ani_summary.tsv')

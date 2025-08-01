@@ -131,15 +131,22 @@ class ANIRep(object):
             for qry_gid, ref_hits in mash_results.items():
                 d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
 
+            self.logger.info(f'Calculating ANI with skani v{SkANI._get_version()}.')
+            skani = SkANI(self.cpus, force_single=True)
+            skani_results = skani.run(d_compare, d_paths )
+            return skani_results
+
         # Compare against all reference genomes.
         else:
             for qry_gid in genomes:
                 d_compare[qry_gid] = set(ref_genomes.keys())
 
-        self.logger.info(f'Calculating ANI with skani v{SkANI._get_version()}.')
-        skani = SkANI(self.cpus, force_single=True)
-        skani_results = skani.run(d_compare, d_paths)
-        return skani_results
+            self.logger.info(f'Calculating All vs All ANI with skani v{SkANI._get_version()}.')
+            skani = SkANI(self.cpus, force_single=False)
+            skani_results = skani.run_vs_all_reps(genomes,ref_genomes,prefix)
+            return skani_results
+
+
 
 class ANISummaryFile(object):
     name = 'ani_summary.tsv'

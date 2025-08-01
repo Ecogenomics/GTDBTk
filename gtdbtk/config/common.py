@@ -96,6 +96,7 @@ class __GTDBTkCommonConfig:
     PPLACER_MIN_RAM_ARC = 40
 
     SKANI_SPECIES_THRESHOLD = 95.0
+    SKANI_IDENTITY_SKETCH_THRESHOLD = 85.0
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
 
     # Mash configuration
