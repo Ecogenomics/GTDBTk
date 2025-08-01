@@ -380,7 +380,7 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
-        with mutex_group(parser, required=True) as grp:
+        with mutex_group(parser, required=False) as grp:
             __skip_ani_screen(grp)
             __mash_db(grp)
         with arg_group(parser, 'optional Mash arguments') as grp:

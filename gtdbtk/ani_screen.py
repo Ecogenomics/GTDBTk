@@ -28,7 +28,7 @@ class ANIScreener(object):
         self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
         self.gtdb_radii = GTDBRadiiFile()
 
-    def run_aniscreen(self,genomes, no_mash,out_dir,prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db):
+    def run_aniscreen(self,genomes, skani_only,out_dir,prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db):
 
         # If prescreen is set to True, then we will first run all genomes against a mash database
         # of all genomes in the reference package. The next step will be to classify those genomes with
@@ -37,10 +37,12 @@ class ANIScreener(object):
         # rest of the pipeline.
         mash_classified_user_genomes = {}
         #if mash_db finishes with a backslash, it should be considered a directory
-        if mash_db.endswith('/'):
-            make_sure_path_exists(mash_db)
-        if os.path.isdir(mash_db):
-            mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
+
+        if not skani_only:
+            if mash_db.endswith('/'):
+                make_sure_path_exists(mash_db)
+            if os.path.isdir(mash_db):
+                mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
         #we set mash_d == mash_max_dist to avoid user to run mash with impossible values
         mash_d = mash_max_dist
@@ -65,7 +67,7 @@ class ANIScreener(object):
 
 
 
-        skani_results = ani_rep.run_mash_skani(genomes_copy, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
+        skani_results = ani_rep.run_mash_skani(genomes_copy, skani_only, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
                                                     prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)

@@ -277,6 +277,7 @@ class OptionsParser(object):
 
         return taxonomy
 
+
     def identify(self, options , classified_genomes = None):
         """Identify marker genes in genomes.
 
@@ -593,7 +594,7 @@ class OptionsParser(object):
                      fulltreeopt=options.full_tree,
                      skip_ani_screen=options.skip_ani_screen,
                      genes=options.genes,
-                     no_mash=options.no_mash,
+                     skani_only=options.skani_only,
                      mash_k=options.mash_k,
                      mash_v=options.mash_v,
                      mash_s=options.mash_s,
@@ -662,7 +663,7 @@ class OptionsParser(object):
         aniscreener = ANIScreener(options.cpus,options.min_af)
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
-            no_mash=options.no_mash,
+            skani_only=options.skani_only,
             out_dir=options.out_dir,
             prefix=options.prefix,
             mash_k=options.mash_k,
@@ -1091,9 +1092,10 @@ class OptionsParser(object):
             # if options.skip_aniscreen is false,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
-                self.logger.error('You must specify a path to the mash database with --mash_db')
-                sys.exit(1)
+            if options.mash_db:
+                options.skani_only = False
+            else:
+                options.skani_only = True
 
             #options.write_single_copy_genes = False
 
@@ -1194,9 +1196,11 @@ class OptionsParser(object):
             # if options.skip_ani_screen is not selected,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
-                print(options.skip_ani_screen, options.no_mash, options.mash_db)
-                self.logger.error('You must specify a path to the mash database with --mash_db')
+            if options.mash_db:
+                options.skani_only = False
+            else:
+                options.skani_only = True
+
             self.classify(options)
 
         elif options.subparser_name == 'root':

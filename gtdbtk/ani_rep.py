@@ -30,7 +30,7 @@ class ANIRep(object):
         self.cpus = cpus
 
     @staticmethod
-    def check_dependencies(no_mash):
+    def check_dependencies(skani_only):
         """Exits the system if the required programs are not on the path.
 
         Parameters
@@ -39,7 +39,7 @@ class ANIRep(object):
             True if Mash will be used, False otherwise.
         """
         dependencies = ['skani']
-        if not no_mash:
+        if not skani_only:
             dependencies.append('mash')
         check_dependencies(dependencies)
 
@@ -85,7 +85,7 @@ class ANIRep(object):
                        min_af,
                        taxonomy)
 
-    def run_mash_skani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
+    def run_mash_skani(self,genomes, skani_only, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
         """Runs the mash and skani pipeline.
         This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
@@ -113,7 +113,7 @@ class ANIRep(object):
         mash_db : Optional[str]
             The path to read/write the pre-computed Mash reference sketch database.
         """
-        self.check_dependencies(no_mash)
+        self.check_dependencies(skani_only)
 
         self.logger.info('Loading reference genomes.')
         ref_genomes = get_ref_genomes()
@@ -121,7 +121,7 @@ class ANIRep(object):
         d_paths = {**genomes, **ref_genomes}
 
         # Pre-filter using Mash if specified.
-        if not no_mash:
+        if not skani_only:
 
             dir_mash = os.path.join(out_dir, DIR_ANI_REP_INT_MASH)
 
