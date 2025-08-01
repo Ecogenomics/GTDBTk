@@ -164,7 +164,7 @@ class SkANI(object):
         if preset:
             args.append(preset)
 
-        args += ['-t',f'{self.cpus}','-s',CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD,'--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
+        args += ['-t',f'{self.cpus}','-s',f'{CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD}','--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
         # print the type of args for debugging
         self.logger.debug('Running skani with the following arguments:')
         self.logger.debug(f'args: {type(args)}')
@@ -431,7 +431,7 @@ class SkANI(object):
         args = ['skani', 'dist']
         if preset:
             args.append(preset)
-        args += ['-s',CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD,'-q', ql, '-r', rl, '-o', '/dev/stdout']
+        args += ['-s',f'{CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD}','-q', ql, '-r', rl, '-o', '/dev/stdout']
 
 
         # self.logger.debug(' '.join(args))
