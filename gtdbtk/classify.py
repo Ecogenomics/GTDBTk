@@ -335,7 +335,6 @@ class Classify(object):
             # skani_min_af=CONFIG.MIN_SKANI_AF,
             # skani_s=CONFIG.MIN_SKANI_S,
             # skani_presets=None,
-            mash_max_dist=CONFIG.MASH_MAX_DISTANCE,
             ani_summary_files=None,
             all_classified_ani=False,
             all_failed_prodigal=False):
@@ -344,48 +343,46 @@ class Classify(object):
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
 
-        # If prescreen is set to True, then we will first run all genomes against a mash database
+        # If prescreen is set to True, then we will first run all genomes against a skani database
         # of all genomes in the reference package. The next step will be to classify those genomes with
         # skani.
         # All genomes classified with skani will be removed from the input genomes list for the
         # rest of the pipeline.
-        mash_classified_user_genomes = {}
+        skani_classified_user_genomes = {}
         if not skip_ani_screen:
             if genes:
                 self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
                 skip_ani_screen = True
 
-            # we set mash_d == mash_max_dist to avoid user to run mash with impossible values
-            mash_d = mash_max_dist
 
             ani_rep = ANIRep(self.cpus)
-            # we store all the mash information in the classify directory
+            # we store all the skani information in the classify directory
             skani_results = ani_rep.run_skani(genomes, prefix)
 
-            mash_classified_user_genomes = self._sort_skani_results_pre_pplacer(
+            skani_classified_user_genomes = self._sort_skani_results_pre_pplacer(
                 skani_results,bac_ar_diff)
 
-            len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
-                if 'bac120' in mash_classified_user_genomes else 0
+            len_skani_classified_bac120 = len(skani_classified_user_genomes['bac120']) \
+                if 'bac120' in skani_classified_user_genomes else 0
 
-            len_mash_classified_ar53 = len(mash_classified_user_genomes['ar53']) \
-                if 'ar53' in mash_classified_user_genomes else 0
+            len_skani_classified_ar53 = len(skani_classified_user_genomes['ar53']) \
+                if 'ar53' in skani_classified_user_genomes else 0
 
 
-            self.logger.info(f'{len_mash_classified_ar53+len_mash_classified_bac120} genome(s) have '
+            self.logger.info(f'{len_skani_classified_ar53+len_skani_classified_bac120} genome(s) have '
                              f'been classified using the ANI pre-screening step.')
 
         if skip_ani_screen and ani_summary_files is not None:
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
             # and use them to generate the final taxonomy file
-            mash_classified_user_genomes = self.load_skani_results_pre_pplacer(ani_summary_files)
+            skani_classified_user_genomes = self.load_skani_results_pre_pplacer(ani_summary_files)
 
         output_files = {}
 
         # if all genomes were classified with skani, we can stop here
         # we write the summary files
         if all_classified_ani:
-            # if mash_classified_user_genomes is has key marker_set_id, we
+            # if skani_classified_user_genomes is has key marker_set_id, we
             # need to add those genomes to the summary file and remove those genomes to the list of genomes
             # to process with pplacer
             for marker_set_id in ('ar53', 'bac120'):
@@ -393,8 +390,8 @@ class Classify(object):
                     summary_file = ClassifySummaryFileAR53(out_dir, prefix)
                 elif marker_set_id == 'bac120':
                     summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
-                if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                    list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes:
+                    list_summary_rows = skani_classified_user_genomes.get(marker_set_id)
                     for row in list_summary_rows:
                         summary_file.add_row(row)
                     summary_file.write()
@@ -467,8 +464,8 @@ class Classify(object):
                                                                                marker_set_id, prefix)
 
                     # we add all genomes classified with ANI
-                    if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                        list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                    if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes:
+                        list_summary_rows = skani_classified_user_genomes.get(marker_set_id)
                         for row in list_summary_rows:
                             # in some instance, when running the 3 classify steps independently, the genome might have been filtered out in the alignment step
                             # but its still present in the ani screening and have a % > 95 ( this can happen with partial genomes) so Tk would try to report it twice in
@@ -516,11 +513,11 @@ class Classify(object):
                 # run pplacer to place bins in reference genome tree
                 genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
-                # if mash_classified_user_genomes is has key marker_set_id, we
+                # if skani_classified_user_genomes is has key marker_set_id, we
                 # need to add those genomes to the summary file and remove those genomes to the list of genomes
                 # to process with pplacer
-                if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                    list_summary_rows = mash_classified_user_genomes.get(marker_set_id)
+                if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes:
+                    list_summary_rows = skani_classified_user_genomes.get(marker_set_id)
                     for row in list_summary_rows:
                         row,warning_counter = self._add_warning_to_row(row,
                                                        msa_dict,
@@ -733,8 +730,8 @@ class Classify(object):
 
                 if warning_counter > 0:
                     sum_of_genomes =  len(genomes_to_process)+prodigal_failed_counter
-                    if mash_classified_user_genomes and marker_set_id in mash_classified_user_genomes:
-                        sum_of_genomes +=len(mash_classified_user_genomes.get(marker_set_id))
+                    if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes:
+                        sum_of_genomes +=len(skani_classified_user_genomes.get(marker_set_id))
                     self.logger.warning(f"{warning_counter} of {sum_of_genomes} "
                                         f"genome{'' if warning_counter==1 else 's'}"
                                         f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
@@ -1497,7 +1494,7 @@ class Classify(object):
 
 
     def _sort_skani_results_pre_pplacer(self,skani_results,bac_ar_diff):
-        """ When run mash/skani on all genomes before using pplacer, we need to sort those results and store them for
+        """ When run skani on all genomes before using pplacer, we need to sort those results and store them for
         a later use
 
         Parameters

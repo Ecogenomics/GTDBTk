@@ -76,7 +76,7 @@ def __extension(group):
 
 def __skip_ani_screen(group):
     group.add_argument('--skip_ani_screen', action="store_true", default=False,
-                       help="Skip the ani_screening step to classify genomes using mash and skani.")
+                       help="Skip the skani ani_screening step to classify genomes.")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,

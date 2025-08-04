@@ -7,10 +7,8 @@ from gtdbtk.biolib_lite.common import canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.common import CONFIG
-from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.skani import SkANI
-from gtdbtk.external.mash import Mash
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.tools import get_ref_genomes
 
@@ -39,24 +37,12 @@ class ANIRep(object):
         ----------
         genomes : dict[str, str]
             Dict[genome_id] = fasta_path
-        no_mash : bool
-            True if Mash should be used for pre-filtering, False otherwise.
-        mash_d : float
-             maximum distance to keep [0-1]
         out_dir : str
             The directory to write the output files to.
         prefix : str
             The prefix to use when writing output files.
-        mash_k : int
-            k-mer size [1-32]
-        mash_v : float
-            maximum p-value to keep [0-1]
-        mash_s : int
-            maximum number of non-redundant hashes
         min_af : float
             alignment fraction to consider the closest genomes
-        mash_db : Optional[str]
-            The path to read/write the pre-computed Mash reference sketch database.
         """
         skani_results = self.run_skani(genomes,prefix)
 
@@ -71,7 +57,7 @@ class ANIRep(object):
                        taxonomy)
 
     def run_skani(self,genomes, prefix,skani_preset=None):
-        """Runs the mash and skani pipeline.
+        """Runs the skani pipeline.
         This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
 

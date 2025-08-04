@@ -621,7 +621,7 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def ani_screen(self, options ):
-        """Run a mash/skani screen of all user genomes
+        """Run a skani screen of all user genomes
         against the reference genomes.
 
         Parameters
@@ -1101,13 +1101,13 @@ class OptionsParser(object):
                         classify_method = Classify()
                         classified_genomes=classify_method.load_skani_results_pre_pplacer(ani_summary_files)
                         classified_genomes = classify_method.convert_rows_to_dict(classified_genomes)
-                        len_mash_classified_bac120 = len(classified_genomes['bac120']) \
+                        len_skani_classified_bac120 = len(classified_genomes['bac120']) \
                             if 'bac120' in classified_genomes else 0
 
-                        len_mash_classified_ar53 = len(classified_genomes['ar53']) \
+                        len_skani_classified_ar53 = len(classified_genomes['ar53']) \
                             if 'ar53' in classified_genomes else 0
 
-                        self.logger.info(f'{len_mash_classified_ar53 + len_mash_classified_bac120} genome(s) have '
+                        self.logger.info(f'{len_skani_classified_ar53 + len_skani_classified_bac120} genome(s) have '
                                          f'been classified using the ANI pre-screening step.')
 
                         options.skip_ani_screen = True
@@ -1178,10 +1178,7 @@ class OptionsParser(object):
             # if options.skip_ani_screen is not selected,
             # we need to make sure the options.mash_db is selected too to point to the folder
             # where the sketch file is.
-            if options.mash_db:
-                options.skani_only = False
-            else:
-                options.skani_only = True
+
 
             self.classify(options)
 

@@ -30,19 +30,16 @@ class ANIScreener(object):
 
     def run_aniscreen(self,genomes,out_dir,prefix):
 
-        # If prescreen is set to True, then we will first run all genomes against a mash database
-        # of all genomes in the reference package. The next step will be to classify those genomes with
-        # skani.
+        # If prescreen is set to True, then we will first run all genomes against a skani database
+        # of all genomes in the reference package.
         # All genomes classified with skani will be removed from the input genomes list for the
         # rest of the pipeline.
-        mash_classified_user_genomes = {}
-        #if mash_db finishes with a backslash, it should be considered a directory
+
 
 
         ani_rep = ANIRep(self.cpus)
-        # we store all the mash information in the classify directory
 
-        #we createa copy of the genomes dictionary to avoid modifying it
+        #we create a copy of the genomes dictionary to avoid modifying it
         genomes_copy = genomes.copy()
         # we remove all empty files from genomes.
         for k in list(genomes_copy.keys()):
@@ -64,26 +61,26 @@ class ANIScreener(object):
         reports = {}
         if skani_classified_user_genomes:
             for domain,results in skani_classified_user_genomes.items():
-                # we create the directory if it does not exist, it should be created when using mash but
-                # not create when using skani as the comparison is done in the temp dir and the sketch
+                # we create the directory if it does not exist;
+                # It is not created when using skani as the comparison is done in the temp dir and the sketch
                 # is in memory
                 make_sure_path_exists(os.path.join(out_dir,DIR_ANISCREEN))
                 ani_summary_file = ANISummaryFile(os.path.join(out_dir,DIR_ANISCREEN),prefix,results,taxonomy,domain)
                 ani_summary_file.write(ani_screen_step=True)
                 reports[domain] = os.path.join(out_dir,DIR_ANISCREEN,prefix + '.' + domain + '.ani_summary.tsv')
-        len_mash_classified_bac120 = len(skani_classified_user_genomes['bac120']) \
+        len_skani_classified_bac120 = len(skani_classified_user_genomes['bac120']) \
             if 'bac120' in skani_classified_user_genomes else 0
 
-        len_mash_classified_ar53 = len(skani_classified_user_genomes['ar53']) \
+        len_skani_classified_ar53 = len(skani_classified_user_genomes['ar53']) \
             if 'ar53' in skani_classified_user_genomes else 0
 
-        self.logger.info(f'{len_mash_classified_ar53 + len_mash_classified_bac120} genome(s) have '
+        self.logger.info(f'{len_skani_classified_ar53 + len_skani_classified_bac120} genome(s) have '
                          f'been classified using the ANI pre-screening step.')
 
         return skani_classified_user_genomes,reports
 
     def sort_skani_ani_screen(self,skani_results,taxonomy,bac_ar_diff=None):
-        """ When run mash/skani on all genomes before using pplacer, we need to sort those results and store them for
+        """ When run skani on all genomes before using pplacer, we need to sort those results and store them for
         a later use
 
         Parameters
