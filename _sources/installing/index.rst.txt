@@ -142,6 +142,17 @@ To create an archive from the GTDB-Tk release data parts:
 You can find the gtdbtk_r226_data.tar.gz.part_* files under:
 https://data.ace.uq.edu.au/public/gtdb/data/releases/release226/226.0/auxillary_files/gtdbtk_package/split_package/
 
+**Alias the GTDB-Tk reference data:**
+
+GTDB-Tk requires an environment variable named ``GTDBTK_DATA_PATH`` to be set to the directory
+containing the unarchived reference data. This is documented under:
+
+- :ref:`pip installation <installing/pip#step-3-download-and-alias-the-gtdb-tk-reference-data>`
+- :ref:`Bioconda installation <installing/bioconda#step-3-download-and-alias-the-gtdb-tk-reference-data>`
+- :ref:`Docker installation <installing/docker>`
+
+
+
 
 .. note:: Note that different versions of the GTDB release data may not run on all versions of GTDB-Tk, check the supported versions!
 
