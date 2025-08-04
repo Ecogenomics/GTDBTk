@@ -247,40 +247,21 @@ def __ingroup_taxon(group, required):
                        help="labelled ingroup taxon to use as root for "
                             "establishing RED values (e.g., c__Bacilli or f__Lactobacillaceae")
 
-
-def __no_mash(group):
-    group.add_argument('--no_mash', default=False, action='store_true',
-                       help='skip pre-filtering of genomes using Mash')
-
-
-def __mash_k(group):
-    group.add_argument('--mash_k', default=CONFIG.MASH_K_VALUE, type=int,
-                       help='k-mer size [1-32]')
-
-
-def __mash_s(group):
-    group.add_argument('--mash_s', default=CONFIG.MASH_S_VALUE, type=int,
-                       help='maximum number of non-redundant hashes')
-
-
-def __mash_d(group):
-    group.add_argument('--mash_d', default=CONFIG.MASH_D_VALUE, type=float,
-                       help='maximum distance to keep [0-1]')
-
-
-def __mash_v(group):
-    group.add_argument('--mash_v', default=CONFIG.MASH_V_VALUE, type=float,
-                       help='maximum p-value to keep [0-1]')
-
-def __mash_max_distance(group):
-    group.add_argument('--mash_max_distance', default=CONFIG.MASH_MAX_DISTANCE, type=float,
-                       help='Maximum Mash distance to select a potential GTDB genome as representative '
-                            'of a user genome.')
-
-def __mash_db(group):
-    group.add_argument('--mash_db', default=None, type=str,
-                       help='path to save/read (if exists) the Mash reference sketch database (.msh)')
-
+# def __skani_min_af(group):
+#     group.add_argument('--skani_min_af', type=float, default=CONFIG.SKANI_MIN_AF,
+#                        help='Filter ANI values by aligned fraction > threshold.')
+#
+# def __skani_s(group):
+#     group.add_argument('--skani_s', type=int, default=CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD,
+#                        help='Min k-mer identity to keep.')
+#
+# def __skani_preset(group):
+#     group.add_argument('--skani_preset', type=str,
+#                        choices=['fast,', 'medium', 'slow'],
+#                        help=('Skani mode preset:\n'
+#                              '  fast   - Faster, less memory (good for >95% ANI, high N50).\n'
+#                              '  medium - Balanced (for N50 <10kb).\n'
+#                              '  slow   - Most accurate (for N50 <3kb or distant genomes).'))
 
 def __min_af(group):
     group.add_argument('--min_af', type=float, default=CONFIG.AF_THRESHOLD,
@@ -380,16 +361,12 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
-        with mutex_group(parser, required=False) as grp:
-            __skip_ani_screen(grp)
-            __mash_db(grp)
-        with arg_group(parser, 'optional Mash arguments') as grp:
-            __no_mash(grp)
-            __mash_k(grp)
-            __mash_s(grp)
-            __mash_v(grp)
-            __mash_max_distance(grp)
+        # with arg_group(parser, 'optional skani arguments') as grp:
+        #     __skani_min_af(grp)
+        #     __skani_s(grp)
+        #     __skani_preset(grp)
         with arg_group(parser, 'optional arguments') as grp:
+            __skip_ani_screen(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
@@ -471,16 +448,12 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
-        with mutex_group(parser, required=True) as grp:
-            __skip_ani_screen(grp)
-            __mash_db(grp)
-        with arg_group(parser, 'optional Mash arguments') as grp:
-            __no_mash(grp)
-            __mash_k(grp)
-            __mash_s(grp)
-            __mash_v(grp)
-            __mash_max_distance(grp)
+        # with arg_group(parser, 'optional skani arguments') as grp:
+        #     __skani_min_af(grp)
+        #     __skani_s(grp)
+        #     __skani_preset(grp)
         with arg_group(parser, 'optional arguments') as grp:
+            __skip_ani_screen(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
@@ -537,14 +510,11 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
-        with arg_group(parser, 'optional Mash arguments') as grp:
-            __no_mash(grp)
-            __mash_k(grp)
-            __mash_s(grp)
-            __mash_d(grp)
-            __mash_v(grp)
-            __mash_db(grp)
-        with arg_group(parser, 'optional skani arguments') as grp:
+        # with arg_group(parser, 'optional skani arguments') as grp:
+        #     __skani_min_af(grp)
+        #     __skani_s(grp)
+        #     __skani_preset(grp)
+        with arg_group(parser, 'optional clustering arguments') as grp:
             __min_af(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)

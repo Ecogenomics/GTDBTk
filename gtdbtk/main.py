@@ -552,12 +552,9 @@ class OptionsParser(object):
         classify_step.debug_option = options.debug
         classify_step.full_tree = options.full_tree
         classify_step.skip_ani_screen = options.skip_ani_screen
-        classify_step.no_mash = options.no_mash
-        classify_step.mash_k = options.mash_k
-        classify_step.mash_v = options.mash_v
-        classify_step.mash_s = options.mash_s
-        classify_step.mash_db = options.mash_db
-        classify_step.mash_max_dist = options.mash_max_distance
+        # classify_step.skani_min_af = options.skani_min_af
+        # classify_step.skani_s = options.skani_s
+        # classify_step.preset = options.preset
 
         ani_summary_files = {}
         if self.stage_logger.has_stage(ANIScreenStep):
@@ -594,12 +591,9 @@ class OptionsParser(object):
                      fulltreeopt=options.full_tree,
                      skip_ani_screen=options.skip_ani_screen,
                      genes=options.genes,
-                     skani_only=options.skani_only,
-                     mash_k=options.mash_k,
-                     mash_v=options.mash_v,
-                     mash_s=options.mash_s,
-                     mash_db=options.mash_db,
-                     mash_max_dist=options.mash_max_distance,
+                     # min_skani_af=options.min_skani_af,
+                     # skani_s=options.skani_s,
+                     # skani_presets= options.preset,
                      ani_summary_files=ani_summary_files,
                      all_classified_ani=all_classified_ani,
                      all_failed_prodigal=all_failed_prodigal
@@ -639,12 +633,8 @@ class OptionsParser(object):
         ani_step = ANIScreenStep()
         ani_step.starts_at = datetime.now()
         ani_step.output_dir = options.out_dir
-        ani_step.mash_db = options.mash_db
-        ani_step.mash_k = options.mash_k
-        ani_step.mash_v = options.mash_v
-        ani_step.mash_s = options.mash_s
         ani_step.min_af = options.min_af
-        ani_step.mash_max_dist = options.mash_max_distance
+        # ani_step.mash_max_dist = options.mash_max_distance
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -663,14 +653,14 @@ class OptionsParser(object):
         aniscreener = ANIScreener(options.cpus,options.min_af)
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
-            skani_only=options.skani_only,
+            #skani_only=options.skani_only,
             out_dir=options.out_dir,
-            prefix=options.prefix,
-            mash_k=options.mash_k,
-            mash_v=options.mash_v,
-            mash_s=options.mash_s,
-            mash_max_dist=options.mash_max_distance,
-            mash_db=options.mash_db)
+            prefix=options.prefix)
+            # mash_k=options.mash_k,
+            # mash_v=options.mash_v,
+            # mash_s=options.mash_s,
+            # mash_max_dist=options.mash_max_distance,
+            #mash_db=options.mash_db)
 
 
         self.logger.info('Done.')
@@ -888,8 +878,7 @@ class OptionsParser(object):
                                               options.extension)
 
         ani_rep = ANIRep(options.cpus)
-        ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
-                    options.mash_k, options.mash_v, options.mash_s, options.min_af, options.mash_db)
+        ani_rep.run(genomes, options.out_dir, options.prefix, options.min_af)
 
         self.logger.info('Done.')
 
@@ -1089,13 +1078,6 @@ class OptionsParser(object):
                     self.logger.info('Exiting workflow.')
                     sys.exit(0)
 
-            # if options.skip_aniscreen is false,
-            # we need to make sure the options.mash_db is selected too to point to the folder
-            # where the sketch file is.
-            if options.mash_db:
-                options.skani_only = False
-            else:
-                options.skani_only = True
 
             #options.write_single_copy_genes = False
 

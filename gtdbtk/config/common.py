@@ -11,7 +11,7 @@ class __GTDBTkCommonConfig:
     that requires the setting of the GTDB-Tk reference data path.
     """
 
-    MIN_REF_DATA_VERSION = 'r220'
+    MIN_REF_DATA_VERSION = 'r226'
     COMPATIBLE_REF_DATA_VERSIONS = ['r220','r226']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
@@ -98,6 +98,7 @@ class __GTDBTkCommonConfig:
     SKANI_SPECIES_THRESHOLD = 95.0
     SKANI_IDENTITY_SKETCH_THRESHOLD = 85.0
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
+    SKANI_MIN_AF = 15.0
 
     # Mash configuration
     MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'

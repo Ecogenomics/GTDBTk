@@ -87,7 +87,7 @@ class SkANI(object):
         )
 
 
-    def run_vs_all_reps(self, genomes, ref_genomes, prefix, preset=None, report_progress=True):
+    def run_vs_all_reps(self, genomes, ref_genomes, prefix,skani_preset=None, report_progress=True):
         """Runs skani against all representatives in the GTDB.
 
         Parameters
@@ -126,7 +126,7 @@ class SkANI(object):
             reverse_dict_rl=self.write_list_to_file(ref_genomes, rl)
 
             # Run skani
-            results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl, preset=preset,
+            results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl,skani_preset,
                             report_progress=report_progress)
 
             return self._parse_results(iter(results_all_vs_all))
@@ -136,7 +136,7 @@ class SkANI(object):
 
 
 
-    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl, preset=None, report_progress=True):
+    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,skani_preset=None, report_progress=True):
         """Runs skani in batch mode against all genomes in the GTDB.
 
         Parameters
@@ -161,10 +161,16 @@ class SkANI(object):
 
         #
         args = ['skani', 'dist']
-        if preset:
-            args.append(preset)
+        if skani_preset:
+            # is skani_preset doesnt start with "--" then add "--" to it
+            if not skani_preset.startswith('--'):
+                preset = f'--{skani_preset}'
+                args.append(preset)
 
-        args += ['-t',f'{self.cpus}','-s',f'{CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD}','--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
+
+        #args += ['-t',f'{self.cpus}','-s',f'{skani_s}','--min-af',f'{skani_min_af}','--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
+        args += ['-t',f'{self.cpus}','--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
+
         # print the type of args for debugging
         self.logger.debug('Running skani with the following arguments:')
         self.logger.debug(f'args: {type(args)}')
@@ -297,7 +303,7 @@ class SkANI(object):
         return ani_af
 
 
-    def run(self, dict_compare, dict_paths,preset=None, report_progress=True):
+    def run(self, dict_compare, dict_paths,skani_preset=None, report_progress=True):
         """Runs skani in batch mode.
 
         Parameters
@@ -323,7 +329,7 @@ class SkANI(object):
         list_comparisons = [(user_id, ref_id) for user_id, values in dict_compare.items() for ref_id in values]
         for qry, ref in list_comparisons:
             n_total += 1
-            q_worker.put((qry, ref, dict_paths.get(qry), dict_paths.get(ref), preset))
+            q_worker.put((qry, ref, dict_paths.get(qry), dict_paths.get(ref), skani_preset))
 
         # Set the terminate condition for each worker thread.
         [q_worker.put(None) for _ in range(self.cpus)]
@@ -386,7 +392,7 @@ class SkANI(object):
             q, r, q_path,r_path,preset = job
 
             # Run skani
-            result = self.run_proc(q, r, q_path, r_path, preset)
+            result = self.run_proc(q, r, q_path, r_path,preset)
             q_results.put(result)
             q_writer.put(True)
 
@@ -406,7 +412,7 @@ class SkANI(object):
             for _ in iter(q_writer.get, None):
                 p_bar.update()
 
-    def run_proc(self, qid, rid, ql, rl, preset, report_progress=True):
+    def run_proc(self, qid, rid, ql, rl,skani_preset, report_progress=True):
         """Runs the skani process.
 
         Parameters
@@ -429,9 +435,13 @@ class SkANI(object):
         """
         #
         args = ['skani', 'dist']
-        if preset:
-            args.append(preset)
-        args += ['-s',f'{CONFIG.SKANI_IDENTITY_SKETCH_THRESHOLD}','-q', ql, '-r', rl, '-o', '/dev/stdout']
+        if skani_preset:
+            # is skani_preset doesnt start with "--" then add "--" to it
+            if not skani_preset.startswith('--'):
+                preset = f'--{skani_preset}'
+                args.append(preset)
+        #args += ['-s',f'{skani_s}','--min-af',f'{skani_min_af}','-q', ql, '-r', rl, '-o', '/dev/stdout']
+        args += ['-q', ql, '-r', rl, '-o', '/dev/stdout']
 
 
         # self.logger.debug(' '.join(args))

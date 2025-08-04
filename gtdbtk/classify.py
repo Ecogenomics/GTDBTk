@@ -332,12 +332,10 @@ class Classify(object):
             fulltreeopt=False,
             skip_ani_screen=False,
             genes=False,
-            skani_only=False,
-            mash_k=CONFIG.MASH_K_VALUE,
-            mash_v=CONFIG.MASH_V_VALUE,
-            mash_s=CONFIG.MASH_S_VALUE,
+            # skani_min_af=CONFIG.MIN_SKANI_AF,
+            # skani_s=CONFIG.MIN_SKANI_S,
+            # skani_presets=None,
             mash_max_dist=CONFIG.MASH_MAX_DISTANCE,
-            mash_db=None,
             ani_summary_files=None,
             all_classified_ani=False,
             all_failed_prodigal=False):
@@ -356,19 +354,13 @@ class Classify(object):
             if genes:
                 self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
                 skip_ani_screen = True
-            elif not skani_only:
-                # if mash_db finishes with a backslash, it should be considered a directory
-                if mash_db.endswith('/'):
-                    make_sure_path_exists(mash_db)
-                if os.path.isdir(mash_db):
-                    mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
             # we set mash_d == mash_max_dist to avoid user to run mash with impossible values
             mash_d = mash_max_dist
 
             ani_rep = ANIRep(self.cpus)
             # we store all the mash information in the classify directory
-            skani_results = ani_rep.run_mash_skani(genomes, skani_only, mash_d, os.path.join(out_dir, DIR_ANISCREEN), prefix, mash_k, mash_v, mash_s,mash_max_dist, mash_db )
+            skani_results = ani_rep.run_skani(genomes, prefix)
 
             mash_classified_user_genomes = self._sort_skani_results_pre_pplacer(
                 skani_results,bac_ar_diff)
