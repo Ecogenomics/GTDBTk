@@ -147,8 +147,8 @@ https://data.ace.uq.edu.au/public/gtdb/data/releases/release226/226.0/auxillary_
 GTDB-Tk requires an environment variable named ``GTDBTK_DATA_PATH`` to be set to the directory
 containing the unarchived reference data. This is documented under:
 
-- :ref:`pip installation <installing/pip#step-3-download-and-alias-the-gtdb-tk-reference-data>`
-- :ref:`Bioconda installation <installing/bioconda#step-3-download-and-alias-the-gtdb-tk-reference-data>`
+- :ref:`pip installation <installing/pip>`
+- :ref:`Bioconda installation <installing/bioconda>`
 - :ref:`Docker installation <installing/docker>`
 
 
