@@ -46,10 +46,5 @@ Manually
 You can automatically alias ``GTDBTK_DATA_PATH`` whenever the environment is activated by
 `setting environment-specific variables <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables>`_, e.g.:
 
-.. code-block:: bash
+.. include:: ../includes/manually_alias_reference.rst
 
-    # Activate the GTDB-Tk conda environment
-    conda activate gtdbtk-|release|
-
-    # Set the environment variable to the directory containing the GTDB-Tk reference data
-    conda env config vars set GTDBTK_DATA_PATH="/path/to/unarchived/gtdbtk/data";
