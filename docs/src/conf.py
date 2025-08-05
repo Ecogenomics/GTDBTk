@@ -30,11 +30,7 @@ def get_version():
 release = get_version()
 version = '.'.join(release.split('.')[:2])
 
-# Make version info available for substitution in RST files
-rst_epilog = f"""
-.. |release| replace:: {release}
-.. |version| replace:: {version}
-"""
+
 
 # -- General configuration ---------------------------------------------------
 
@@ -107,19 +103,30 @@ html_logo = '_static/GTDBTk.svg'
 html_baseurl = 'https://ecogenomics.github.io/GTDBTk/'
 sitemap_url_scheme = "{link}"
 
-
-def get_version():
-    with open(os.path.abspath('../../gtdbtk/__init__.py')) as f:
-        for line in f:
-            if line.startswith('__version__'):
-                return re.search(r'["\'](.+?)["\']', line).group(1)
-    return 'unknown'
-
-release_parsed = get_version()
-version_parsed = '.'.join(release.split('.')[:2])
-
 # Make version info available for substitution in RST files
 rst_epilog = f"""
-.. |release| replace:: {release_parsed}
-.. |version| replace:: {version_parsed}
+.. |release| replace:: {release}
+.. |version| replace:: {version}
 """
+
+
+print(f"rst_epilog is:\n{rst_epilog}")
+print(f"release: {release}")
+print(f"version: {version}")
+
+# Write dynamic install instructions with correct version
+install_block_path = os.path.join(os.path.dirname(__file__), 'includes', 'install_block.rst')
+os.makedirs(os.path.dirname(install_block_path), exist_ok=True)
+
+with open(install_block_path, 'w') as f:
+    f.write(f"""\
+.. code-block:: bash
+
+    # NOTE: replace {release} with the version you wish to install
+
+    # using conda
+    conda create -n gtdbtk-{release} -c conda-forge -c bioconda gtdbtk={release}
+
+    # using mamba (alternative)
+    mamba create -n gtdbtk-{release} -c conda-forge -c bioconda gtdbtk={release}
+""")
