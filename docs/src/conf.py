@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import datetime
+import re
 
 sys.path.insert(0, os.path.abspath('../..'))
 from gtdbtk import __author__, __version__, __title__, __maintainer__, __url__
@@ -94,8 +95,19 @@ html_logo = '_static/GTDBTk.svg'
 html_baseurl = 'https://ecogenomics.github.io/GTDBTk/'
 sitemap_url_scheme = "{link}"
 
+
+def get_version():
+    with open(os.path.abspath('../../gtdbtk/__init__.py')) as f:
+        for line in f:
+            if line.startswith('__version__'):
+                return re.search(r'["\'](.+?)["\']', line).group(1)
+    return 'unknown'
+
+release_parsed = get_version()
+version_parsed = '.'.join(release.split('.')[:2])
+
 # Make version info available for substitution in RST files
 rst_epilog = f"""
-.. |release| replace:: {release}
-.. |version| replace:: {version}
+.. |release| replace:: {release_parsed}
+.. |version| replace:: {version_parsed}
 """
