@@ -116,6 +116,7 @@ print(f"version: {version}")
 
 # Write dynamic install instructions with correct version
 install_block_path = os.path.join(os.path.dirname(__file__), 'includes', 'install_block.rst')
+manually_alias_reference = os.path.join(os.path.dirname(__file__), 'includes', 'manually_alias_reference.rst')
 os.makedirs(os.path.dirname(install_block_path), exist_ok=True)
 
 with open(install_block_path, 'w') as f:
@@ -129,4 +130,15 @@ with open(install_block_path, 'w') as f:
 
     # using mamba (alternative)
     mamba create -n gtdbtk-{release} -c conda-forge -c bioconda gtdbtk={release}
+""")
+
+with open(manually_alias_reference, 'a') as f:
+    f.write(f"""\
+.. code-block:: bash
+
+    # Activate the GTDB-Tk conda environment
+    conda activate gtdbtk-{release}
+
+    # Set the environment variable to the directory containing the GTDB-Tk reference data
+    conda env config vars set GTDBTK_DATA_PATH="/path/to/unarchived/gtdbtk/data";
 """)
