@@ -22,13 +22,13 @@ specify those channels in that order!
 
 .. code-block:: bash
 
-    # NOTE: replace 2.1.1 with the version you wish to install
+    # NOTE: replace |release| with the version you wish to install
 
     # using conda
-    conda create -n gtdbtk-2.1.1 -c conda-forge -c bioconda gtdbtk=2.1.1
+    conda create -n gtdbtk-|release| -c conda-forge -c bioconda gtdbtk=|release|
 
     # using mamba (alternative)
-    mamba create -n gtdbtk-2.1.1 -c conda-forge -c bioconda gtdbtk=2.1.1
+    mamba create -n gtdbtk-|release| -c conda-forge -c bioconda gtdbtk=|release|
 
 Step 3: Download and alias the GTDB-Tk reference data
 -----------------------------------------------------
@@ -57,7 +57,7 @@ You can automatically alias ``GTDBTK_DATA_PATH`` whenever the environment is act
 .. code-block:: bash
 
     # Activate the GTDB-Tk conda environment
-    conda activate gtdbtk-2.1.1
+    conda activate gtdbtk-|release|
 
     # Set the environment variable to the directory containing the GTDB-Tk reference data
     conda env config vars set GTDBTK_DATA_PATH="/path/to/unarchived/gtdbtk/data";

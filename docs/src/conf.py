@@ -93,3 +93,9 @@ html_logo = '_static/GTDBTk.svg'
 # Sitemap settings
 html_baseurl = 'https://ecogenomics.github.io/GTDBTk/'
 sitemap_url_scheme = "{link}"
+
+# Make version info available for substitution in RST files
+rst_epilog = f"""
+.. |release| replace:: {release}
+.. |version| replace:: {version}
+"""
