@@ -34,7 +34,7 @@ def __temp_dir(group):
 def __genes(group):
     group.add_argument('--genes', action='store_true', default=False,
                        help='indicates input files contain predicted proteins as amino acids (skip gene calling).'
-                            'Warning: This flag will skip the ANI comparison steps (ani_screen and classification).')
+                            'Warning: This flag will skip the ANI comparison steps (ANI screen and classification).')
 
 
 def __genome_dir(group):
@@ -76,7 +76,7 @@ def __extension(group):
 
 def __skip_ani_screen(group):
     group.add_argument('--skip_ani_screen', action="store_true", default=False,
-                       help="Skip the skani ani_screening step to classify genomes.")
+                       help="Skip the skani ANI screening step to classify genomes.")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,
