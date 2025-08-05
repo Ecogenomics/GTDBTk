@@ -156,10 +156,6 @@ class __GTDBTkCommonConfig:
         return os.path.join(self.GENERIC_PATH, 'skani/')
 
     @property
-    def MASH_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'mash/')
-
-    @property
     def TAX_FOLDER(self):
         return os.path.join(self.GENERIC_PATH, 'taxonomy/')
 

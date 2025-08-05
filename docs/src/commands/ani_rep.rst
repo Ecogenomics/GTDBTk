@@ -26,11 +26,6 @@ Files output
 * :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
 * :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
 
-* intermediate_results/mash/
-
-    * :ref:`[prefix].gtdb_ref_sketch.msh <files/gtdbtk_ref_sketch.msh>`
-    * :ref:`[prefix].mash_distances.msh <files/mash_distances.msh>`
-    * :ref:`[prefix].user_query_sketch.msh <files/user_query_sketch.msh>`
 
 
 Example
@@ -41,7 +36,7 @@ Input
 
 .. code-block:: bash
 
-    gtdbtk ani_rep --genome_dir genomes/ --out_dir ani_rep/ --cpus 70
+    gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv -x fa --out_dir test_ani_reps --cpus 90
 
 
 Output
@@ -49,21 +44,18 @@ Output
 
 .. code-block:: text
 
-    [2024-03-27 16:43:25] INFO: GTDB-Tk v2.3.2
-    [2024-03-27 16:43:25] INFO: gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv --out_dir user_vs_reps --cpus 90
-    [2024-03-27 16:43:25] INFO: Using GTDB-Tk reference data version r214: /srv/db/gtdbtk/official/release214_skani/release214
-    [2024-03-27 16:43:25] INFO: Loading reference genomes.
-    [2024-03-27 16:43:25] INFO: Using Mash version 2.2.2
-    [2024-03-27 16:43:25] INFO: Creating Mash sketch file: user_vs_reps/intermediate_results/mash/gtdbtk.user_query_sketch.msh
-    [2024-03-27 16:43:27] INFO: Completed 500 genomes in 1.42 seconds (351.61 genomes/second).
-    [2024-03-27 16:43:27] INFO: Creating Mash sketch file: user_vs_reps/intermediate_results/mash/gtdbtk.gtdb_ref_sketch.msh
-    [2024-03-27 16:46:55] INFO: Completed 85,205 genomes in 3.47 minutes (24,519.48 genomes/minute).
-    [2024-03-27 16:46:55] INFO: Calculating Mash distances.
-    [2024-03-27 16:47:37] INFO: Calculating ANI with skani v0.2.1.
-    [2024-03-27 16:47:45] INFO: Completed 4,383 comparisons in 7.68 seconds (570.58 comparisons/second).
-    [2024-03-27 16:47:46] INFO: Summary of results saved to: user_vs_reps/gtdbtk.ani_summary.tsv
-    [2024-03-27 16:47:46] INFO: Closest representative hits saved to: user_vs_reps/gtdbtk.ani_closest.tsv
-    [2024-03-27 16:47:46] INFO: Done.
+    [2025-08-05 17:13:33] INFO: GTDB-Tk v2.5.0
+    [2025-08-05 17:13:33] INFO: gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv -x fa --out_dir test_ani_reps --cpus 90
+    [2025-08-05 17:13:33] INFO: Using GTDB-Tk reference data version r226: /srv/db/gtdbtk/official/release226
+    [2025-08-05 17:13:34] INFO: Loading reference genomes.
+    [2025-08-05 17:13:39] INFO: Calculating all vs all ANI with skani v0.2.1.
+    [2025-08-05 17:13:40] INFO: Sketching genomes
+    [2025-08-05 17:15:52] INFO: Sketches done: 2min 11secs
+    [2025-08-05 17:15:52] INFO: Running comparisons
+    [2025-08-05 17:21:15] INFO: Comparisons finished, capturing results.
+    [2025-08-05 17:23:26] INFO: Summary of results saved to: test_ani_reps/gtdbtk.ani_summary.tsv
+    [2025-08-05 17:23:27] INFO: Closest representative hits saved to: test_ani_reps/gtdbtk.ani_closest.tsv
+    [2025-08-05 17:23:27] INFO: Done.
 
 
 

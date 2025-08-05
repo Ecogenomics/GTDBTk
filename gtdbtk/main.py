@@ -634,7 +634,6 @@ class OptionsParser(object):
         ani_step.starts_at = datetime.now()
         ani_step.output_dir = options.out_dir
         ani_step.min_af = options.min_af
-        # ani_step.mash_max_dist = options.mash_max_distance
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -653,14 +652,8 @@ class OptionsParser(object):
         aniscreener = ANIScreener(options.cpus,options.min_af)
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
-            #skani_only=options.skani_only,
             out_dir=options.out_dir,
             prefix=options.prefix)
-            # mash_k=options.mash_k,
-            # mash_v=options.mash_v,
-            # mash_s=options.mash_s,
-            # mash_max_dist=options.mash_max_distance,
-            #mash_db=options.mash_db)
 
 
         self.logger.info('Done.')
@@ -1175,13 +1168,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
-            # if options.skip_ani_screen is not selected,
-            # we need to make sure the options.mash_db is selected too to point to the folder
-            # where the sketch file is.
-
-
             self.classify(options)
-
         elif options.subparser_name == 'root':
             self.root(options)
         elif options.subparser_name == 'decorate':
