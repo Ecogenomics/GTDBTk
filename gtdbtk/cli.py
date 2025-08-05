@@ -62,7 +62,7 @@ def __bacteria(group):
 def __outgroup_taxon(group, required):
     group.add_argument('--outgroup_taxon', type=str, default=None, required=required,
                        help="taxon to use as outgroup (e.g., "
-                            "``p__Patescibacteria`` or ``p__Altiarchaeota``)")
+                            "``p__Patescibacteriota`` or ``p__Altiarchaeota``)")
 
 
 def __out_dir(group, required):
