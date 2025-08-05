@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 
 sys.path.insert(0, os.path.abspath('../..'))
-from gtdbtk import __author__, __title__, __maintainer__, __url__
+from gtdbtk import __author__, __version__, __title__, __maintainer__, __url__
 
 # Configuration file for the Sphinx documentation builder.
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
@@ -20,17 +20,10 @@ pygments_style = 'sphinx'
 
 github_url = __url__
 
-def get_version():
-    with open(os.path.abspath('../../gtdbtk/__init__.py')) as f:
-        for line in f:
-            if line.startswith('__version__'):
-                return re.search(r'["\'](.+?)["\']', line).group(1)
-    return 'unknown'
 
-release = get_version()
-version = '.'.join(release.split('.')[:2])
-
-
+# The full version, including alpha/beta/rc tags
+release = __version__
+version = __version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -103,16 +96,6 @@ html_logo = '_static/GTDBTk.svg'
 html_baseurl = 'https://ecogenomics.github.io/GTDBTk/'
 sitemap_url_scheme = "{link}"
 
-# Make version info available for substitution in RST files
-rst_epilog = f"""
-.. |release| replace:: {release}
-.. |version| replace:: {version}
-"""
-
-
-print(f"rst_epilog is:\n{rst_epilog}")
-print(f"release: {release}")
-print(f"version: {version}")
 
 # Write dynamic install instructions with correct version
 install_block_path = os.path.join(os.path.dirname(__file__), 'includes', 'install_block.rst')
