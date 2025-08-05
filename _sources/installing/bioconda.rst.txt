@@ -20,15 +20,7 @@ It is strongly recommended to create a new conda environment for each version of
 GTDB-Tk requires third-party packages from the ``conda-forge`` and ``bioconda`` channels, make sure to
 specify those channels in that order!
 
-.. code-block:: bash
-
-    # NOTE: replace |release| with the version you wish to install
-
-    # using conda
-    conda create -n gtdbtk-|release| -c conda-forge -c bioconda gtdbtk=|release|
-
-    # using mamba (alternative)
-    mamba create -n gtdbtk-|release| -c conda-forge -c bioconda gtdbtk=|release|
+.. include:: ../includes/install_block.rst
 
 Step 3: Download and alias the GTDB-Tk reference data
 -----------------------------------------------------
