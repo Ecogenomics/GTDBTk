@@ -29,6 +29,8 @@ class TestSkANI(unittest.TestCase):
         self.dir_tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
         self.cpus = 1
         self.genome_root = CONFIG.SKANI_GENOMES
+        self.skani_min_af = CONFIG.SKANI_MIN_AF
+        self.skani_s = CONFIG.SKANI_S
 
     def tearDown(self):
         shutil.rmtree(self.dir_tmp)

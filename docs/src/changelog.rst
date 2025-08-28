@@ -2,6 +2,17 @@
 Change log
 ==========
 
+2.5.0
+-----
+
+Major Changes:
+* GTDB-Tk now uses **Skani exclusively** for genome clustering, replacing the previous Mash/Skani hybrid approach. This change simplifies the CLI and removes the dependency on Mash, streamlining installation and execution.
+
+Bug Fixes:
+* (`#644 <https://github.com/Ecogenomics/GTDBTk/issues/644>`_), (`#641 <https://github.com/Ecogenomics/GTDBTk/issues/641>`_) Fixed compatibility with recent versions of NumPy (≥1.24), which removed the ``tostring()`` method from ``numpy.ndarray``.
+* (`#650 <https://github.com/Ecogenomics/GTDBTk/issues/650>`_) Update CLI with an up-to-date taxon.
+
+
 2.4.1
 -----
 

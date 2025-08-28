@@ -37,8 +37,11 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.4.0+ includes the following new features:
-- `FastANI` has been replaced by `skani` as the primary tool for computing Average Nucleotide Identity (ANI).Users may notice slight variations in the results compared to those obtained using `FastANI`.
+GTDB-Tk v2.5.0+ includes the following new features:
+- GTDB-Tk now uses **``skani`` exclusively** for genome clustering, replacing the previous mash/skani hybrid approach.  
+  As a result, the mutually exclusive required options ``--mash_db`` and ``--skip_ani_screen`` have been removed. The ``--skip_ani_screen`` 
+flag has now been changed to an optional parameter.  
+  **⚠️This change is not backward-compatible and may break existing pipelines or scripts that rely on these options.**
 
 
 ## 📈 Performance

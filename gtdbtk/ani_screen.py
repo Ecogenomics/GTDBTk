@@ -28,71 +28,59 @@ class ANIScreener(object):
         self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
         self.gtdb_radii = GTDBRadiiFile()
 
-    def run_aniscreen(self,genomes, no_mash,out_dir,prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db):
+    def run_aniscreen(self,genomes,out_dir,prefix):
 
-        # If prescreen is set to True, then we will first run all genomes against a mash database
-        # of all genomes in the reference package. The next step will be to classify those genomes with
-        # skani.
+        # If prescreen is set to True, then we will first run all genomes against a skani database
+        # of all genomes in the reference package.
         # All genomes classified with skani will be removed from the input genomes list for the
         # rest of the pipeline.
-        mash_classified_user_genomes = {}
-        #if mash_db finishes with a backslash, it should be considered a directory
-        if mash_db.endswith('/'):
-            make_sure_path_exists(mash_db)
-        if os.path.isdir(mash_db):
-            mash_db = os.path.join(mash_db, CONFIG.MASH_SKETCH_FILE)
 
-        #we set mash_d == mash_max_dist to avoid user to run mash with impossible values
-        mash_d = mash_max_dist
+
 
         ani_rep = ANIRep(self.cpus)
-        # we store all the mash information in the classify directory
 
-        #we createa copy of the genomes dictionary to avoid modifying it
+        #we create a copy of the genomes dictionary to avoid modifying it
         genomes_copy = genomes.copy()
         # we remove all empty files from genomes.
         for k in list(genomes_copy.keys()):
             if os.path.getsize(genomes_copy[k]) == 0:
-                self.logger.warning(f'Genome {k} file is invalid for Mash. It will be removed from the sketch step.')
+                self.logger.warning(f'Genome {k} file is invalid for skani. It will be removed from the sketch step.')
                 del genomes_copy[k]
-            else:
-                # we check if at least one contig is longer than the kmer size
-                seqs = read_fasta(genomes_copy[k])
-                if all(len(seq) < mash_k for seq in seqs.values()):
-                    self.logger.warning(
-                        f'Genome {k} file has all fasta sequences shorter than the k-mer size ({mash_k}).It will be removed from the sketch step.')
-                    del genomes_copy[k]
 
 
 
-        skani_results = ani_rep.run_mash_skani(genomes_copy, no_mash, mash_d, os.path.join(out_dir, DIR_ANISCREEN),
-                                                    prefix, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
+
+        skani_results = ani_rep.run_skani(genomes, prefix)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
 
-        mash_classified_user_genomes = self.sort_skani_ani_screen(
+        skani_classified_user_genomes = self.sort_skani_ani_screen(
              skani_results,taxonomy)
 
         #We write the results in 2 different files for each domain
         reports = {}
-        if mash_classified_user_genomes:
-            for domain,results in mash_classified_user_genomes.items():
+        if skani_classified_user_genomes:
+            for domain,results in skani_classified_user_genomes.items():
+                # we create the directory if it does not exist;
+                # It is not created when using skani as the comparison is done in the temp dir and the sketch
+                # is in memory
+                make_sure_path_exists(os.path.join(out_dir,DIR_ANISCREEN))
                 ani_summary_file = ANISummaryFile(os.path.join(out_dir,DIR_ANISCREEN),prefix,results,taxonomy,domain)
                 ani_summary_file.write(ani_screen_step=True)
                 reports[domain] = os.path.join(out_dir,DIR_ANISCREEN,prefix + '.' + domain + '.ani_summary.tsv')
-        len_mash_classified_bac120 = len(mash_classified_user_genomes['bac120']) \
-            if 'bac120' in mash_classified_user_genomes else 0
+        len_skani_classified_bac120 = len(skani_classified_user_genomes['bac120']) \
+            if 'bac120' in skani_classified_user_genomes else 0
 
-        len_mash_classified_ar53 = len(mash_classified_user_genomes['ar53']) \
-            if 'ar53' in mash_classified_user_genomes else 0
+        len_skani_classified_ar53 = len(skani_classified_user_genomes['ar53']) \
+            if 'ar53' in skani_classified_user_genomes else 0
 
-        self.logger.info(f'{len_mash_classified_ar53 + len_mash_classified_bac120} genome(s) have '
+        self.logger.info(f'{len_skani_classified_ar53 + len_skani_classified_bac120} genome(s) have '
                          f'been classified using the ANI pre-screening step.')
 
-        return mash_classified_user_genomes,reports
+        return skani_classified_user_genomes,reports
 
     def sort_skani_ani_screen(self,skani_results,taxonomy,bac_ar_diff=None):
-        """ When run mash/skani on all genomes before using pplacer, we need to sort those results and store them for
+        """ When run skani on all genomes before using pplacer, we need to sort those results and store them for
         a later use
 
         Parameters

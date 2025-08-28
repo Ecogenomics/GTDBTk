@@ -277,6 +277,7 @@ class OptionsParser(object):
 
         return taxonomy
 
+
     def identify(self, options , classified_genomes = None):
         """Identify marker genes in genomes.
 
@@ -551,12 +552,9 @@ class OptionsParser(object):
         classify_step.debug_option = options.debug
         classify_step.full_tree = options.full_tree
         classify_step.skip_ani_screen = options.skip_ani_screen
-        classify_step.no_mash = options.no_mash
-        classify_step.mash_k = options.mash_k
-        classify_step.mash_v = options.mash_v
-        classify_step.mash_s = options.mash_s
-        classify_step.mash_db = options.mash_db
-        classify_step.mash_max_dist = options.mash_max_distance
+        # classify_step.skani_min_af = options.skani_min_af
+        # classify_step.skani_s = options.skani_s
+        # classify_step.preset = options.preset
 
         ani_summary_files = {}
         if self.stage_logger.has_stage(ANIScreenStep):
@@ -593,12 +591,9 @@ class OptionsParser(object):
                      fulltreeopt=options.full_tree,
                      skip_ani_screen=options.skip_ani_screen,
                      genes=options.genes,
-                     no_mash=options.no_mash,
-                     mash_k=options.mash_k,
-                     mash_v=options.mash_v,
-                     mash_s=options.mash_s,
-                     mash_db=options.mash_db,
-                     mash_max_dist=options.mash_max_distance,
+                     # min_skani_af=options.min_skani_af,
+                     # skani_s=options.skani_s,
+                     # skani_presets= options.preset,
                      ani_summary_files=ani_summary_files,
                      all_classified_ani=all_classified_ani,
                      all_failed_prodigal=all_failed_prodigal
@@ -626,7 +621,7 @@ class OptionsParser(object):
         self.logger.info('Done.')
 
     def ani_screen(self, options ):
-        """Run a mash/skani screen of all user genomes
+        """Run a skani screen of all user genomes
         against the reference genomes.
 
         Parameters
@@ -638,12 +633,7 @@ class OptionsParser(object):
         ani_step = ANIScreenStep()
         ani_step.starts_at = datetime.now()
         ani_step.output_dir = options.out_dir
-        ani_step.mash_db = options.mash_db
-        ani_step.mash_k = options.mash_k
-        ani_step.mash_v = options.mash_v
-        ani_step.mash_s = options.mash_s
         ani_step.min_af = options.min_af
-        ani_step.mash_max_dist = options.mash_max_distance
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -662,14 +652,8 @@ class OptionsParser(object):
         aniscreener = ANIScreener(options.cpus,options.min_af)
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
-            no_mash=options.no_mash,
             out_dir=options.out_dir,
-            prefix=options.prefix,
-            mash_k=options.mash_k,
-            mash_v=options.mash_v,
-            mash_s=options.mash_s,
-            mash_max_dist=options.mash_max_distance,
-            mash_db=options.mash_db)
+            prefix=options.prefix)
 
 
         self.logger.info('Done.')
@@ -887,8 +871,7 @@ class OptionsParser(object):
                                               options.extension)
 
         ani_rep = ANIRep(options.cpus)
-        ani_rep.run(genomes, options.no_mash, options.mash_d, options.out_dir, options.prefix,
-                    options.mash_k, options.mash_v, options.mash_s, options.min_af, options.mash_db)
+        ani_rep.run(genomes, options.out_dir, options.prefix, options.min_af)
 
         self.logger.info('Done.')
 
@@ -1088,12 +1071,6 @@ class OptionsParser(object):
                     self.logger.info('Exiting workflow.')
                     sys.exit(0)
 
-            # if options.skip_aniscreen is false,
-            # we need to make sure the options.mash_db is selected too to point to the folder
-            # where the sketch file is.
-            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
-                self.logger.error('You must specify a path to the mash database with --mash_db')
-                sys.exit(1)
 
             #options.write_single_copy_genes = False
 
@@ -1117,13 +1094,13 @@ class OptionsParser(object):
                         classify_method = Classify()
                         classified_genomes=classify_method.load_skani_results_pre_pplacer(ani_summary_files)
                         classified_genomes = classify_method.convert_rows_to_dict(classified_genomes)
-                        len_mash_classified_bac120 = len(classified_genomes['bac120']) \
+                        len_skani_classified_bac120 = len(classified_genomes['bac120']) \
                             if 'bac120' in classified_genomes else 0
 
-                        len_mash_classified_ar53 = len(classified_genomes['ar53']) \
+                        len_skani_classified_ar53 = len(classified_genomes['ar53']) \
                             if 'ar53' in classified_genomes else 0
 
-                        self.logger.info(f'{len_mash_classified_ar53 + len_mash_classified_bac120} genome(s) have '
+                        self.logger.info(f'{len_skani_classified_ar53 + len_skani_classified_bac120} genome(s) have '
                                          f'been classified using the ANI pre-screening step.')
 
                         options.skip_ani_screen = True
@@ -1191,14 +1168,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'infer':
             self.infer(options)
         elif options.subparser_name == 'classify':
-            # if options.skip_ani_screen is not selected,
-            # we need to make sure the options.mash_db is selected too to point to the folder
-            # where the sketch file is.
-            if not options.skip_ani_screen and not options.no_mash and not options.mash_db:
-                print(options.skip_ani_screen, options.no_mash, options.mash_db)
-                self.logger.error('You must specify a path to the mash database with --mash_db')
             self.classify(options)
-
         elif options.subparser_name == 'root':
             self.root(options)
         elif options.subparser_name == 'decorate':

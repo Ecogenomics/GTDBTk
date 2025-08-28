@@ -25,12 +25,7 @@ class ANIScreenStep(Steps):
     name: str = "ANI screen"
     genome_dir: Optional[str]
     batchfile: Optional[str]
-    mash_k: Optional[str]
-    mash_s: Optional[str]
-    mash_v: Optional[str]
-    mash_max_dist: Optional[str]
     min_af: Optional[str]
-    mash_db: Optional[str]
     output_files: Optional[Dict]
 
 class IdentifyStep(Steps):
@@ -70,12 +65,6 @@ class ClassifyStep(Steps):
     debug_option: Optional[bool]
     full_tree: Optional[bool]
     skip_ani_screen: Optional[bool]
-    no_mash: Optional[bool]
-    mash_k: Optional[str]
-    mash_v: Optional[str]
-    mash_s: Optional[str]
-    mash_db: Optional[str]
-    mash_max_dist: Optional[str]
     output_files: Optional[Dict]
 
 class InferStep(Steps):
