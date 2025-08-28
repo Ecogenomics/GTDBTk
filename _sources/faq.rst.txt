@@ -16,7 +16,6 @@ In many cases the GTDB taxonomy more strictly follows the nomenclatural rules fo
 Why do I see discrepancies in classification for closely related genomes?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Discrepancies in taxonomic assignments can occur when working with closely related genomes. GTDB-Tk uses both the **Relative Evolutionary Divergence (RED)** value and the **placement of the genome in the reference tree** to determine the best taxonomic classification.
-
 In most cases taxonomic assignments are robust, but it is possible for highly similar genomes  to have sufficiently different protein sequences that their placements in the reference tree will vary slightly. This can lead to:
 
 1. placement on different but closely related branches, or
@@ -29,7 +28,7 @@ This uncertainty in the placement of even closely related genomes can result in 
 If you run into this situation, here are a few strategies you can use:
 
 1. Dereplicate your genomes.
-    If you have a cluster of closely related genomes representing a single species, consider dereplicating them to pick a single representative based on genome quality metrics (for example, using a tool like dRep -link to drep- or Galah). The taxonomic assignment for this species representative genomes can then be propagated to the other genomes in the cluster.
+    If you have a cluster of closely related genomes representing a single species, consider dereplicating them to pick a single representative based on genome quality metrics (for example, using a tool like `dRep <https://drep.readthedocs.io/en/latest/index.html>`_ or `Galah <https://github.com/wwood/galah>`_). The taxonomic assignment for this species representative genomes can then be propagated to the other genomes in the cluster.
 2. Build a de novo tree
     Another option is to construct a de novo tree including your closely related genomes plus a suitable outgroup. For instance, if you have three genomes classified as:
 

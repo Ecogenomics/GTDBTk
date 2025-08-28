@@ -254,8 +254,8 @@ In many cases the GTDB taxonomy more strictly follows the nomenclatural rules fo
 </div>
 <div class="section" id="why-do-i-see-discrepancies-in-classification-for-closely-related-genomes">
 <h3>Why do I see discrepancies in classification for closely related genomes?<a class="headerlink" href="#why-do-i-see-discrepancies-in-classification-for-closely-related-genomes" title="Permalink to this headline">¶</a></h3>
-<p>Discrepancies in taxonomic assignments can occur when working with closely related genomes. GTDB-Tk uses both the <strong>Relative Evolutionary Divergence (RED)</strong> value and the <strong>placement of the genome in the reference tree</strong> to determine the best taxonomic classification.</p>
-<p>In most cases taxonomic assignments are robust, but it is possible for highly similar genomes  to have sufficiently different protein sequences that their placements in the reference tree will vary slightly. This can lead to:</p>
+<p>Discrepancies in taxonomic assignments can occur when working with closely related genomes. GTDB-Tk uses both the <strong>Relative Evolutionary Divergence (RED)</strong> value and the <strong>placement of the genome in the reference tree</strong> to determine the best taxonomic classification.
+In most cases taxonomic assignments are robust, but it is possible for highly similar genomes  to have sufficiently different protein sequences that their placements in the reference tree will vary slightly. This can lead to:</p>
 <ol class="arabic simple">
 <li><p>placement on different but closely related branches, or</p></li>
 <li><p>placement on the same branch but at different depths.</p></li>
@@ -265,7 +265,7 @@ In many cases the GTDB taxonomy more strictly follows the nomenclatural rules fo
 <p>If you run into this situation, here are a few strategies you can use:</p>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt>Dereplicate your genomes.</dt><dd><p>If you have a cluster of closely related genomes representing a single species, consider dereplicating them to pick a single representative based on genome quality metrics (for example, using a tool like dRep -link to drep- or Galah). The taxonomic assignment for this species representative genomes can then be propagated to the other genomes in the cluster.</p>
+<dt>Dereplicate your genomes.</dt><dd><p>If you have a cluster of closely related genomes representing a single species, consider dereplicating them to pick a single representative based on genome quality metrics (for example, using a tool like <a class="reference external" href="https://drep.readthedocs.io/en/latest/index.html">dRep</a> or <a class="reference external" href="https://github.com/wwood/galah">Galah</a>). The taxonomic assignment for this species representative genomes can then be propagated to the other genomes in the cluster.</p>
 </dd>
 </dl>
 </li>
