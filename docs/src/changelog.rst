@@ -10,6 +10,7 @@ Major Changes:
 
 Bug Fixes:
 * (`#644 <https://github.com/Ecogenomics/GTDBTk/issues/644>`_), (`#641 <https://github.com/Ecogenomics/GTDBTk/issues/641>`_) Fixed compatibility with recent versions of NumPy (≥1.24), which removed the ``tostring()`` method from ``numpy.ndarray``.
+* (`#650 <https://github.com/Ecogenomics/GTDBTk/issues/650>`_) Update CLI with an up-to-date taxon.
 
 
 2.4.1
