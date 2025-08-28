@@ -13,6 +13,31 @@ GTDB-Tk uses the GTDB taxonomy (`https://gtdb.ecogenomic.org/ <https://gtdb.ecog
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.
 
+Why do I see discrepancies in classification for closely related genomes?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Discrepancies in taxonomic assignments can occur when working with closely related genomes. GTDB-Tk uses both the **Relative Evolutionary Divergence (RED)** value and the **placement of the genome in the reference tree** to determine the best taxonomic classification.
+
+In most cases taxonomic assignments are robust, but it is possible for highly similar genomes  to have sufficiently different protein sequences that their placements in the reference tree will vary slightly. This can lead to:
+
+1. placement on different but closely related branches, or
+2. placement on the same branch but at different depths.
+
+This uncertainty in the placement of even closely related genomes can result in genomes being erroneously assigned to different taxa (e.g. closely related sister families).
+
+**What should I do?**
+
+If you run into this situation, here are a few strategies you can use:
+
+1. Dereplicate your genomes.
+    If you have a cluster of closely related genomes representing a single species, consider dereplicating them to pick a single representative based on genome quality metrics (for example, using a tool like dRep -link to drep- or Galah). The taxonomic assignment for this species representative genomes can then be propagated to the other genomes in the cluster.
+2. Build a de novo tree
+    Another option is to construct a de novo tree including your closely related genomes plus a suitable outgroup. For instance, if you have three genomes classified as:
+
+    * *c__Atribacteria;o__Atribacterales;f__Atribacteraceae*
+    * *c__Atribacteria;o__Atribacterales;f__Thermatribacteraceae*
+    * *c__Atribacteria;o__Atribacterales;f__*
+
+you could generate a tree for the class Atribacteria (with one outgroup class) and examine whether your genomes cluster together despite their different family-level assignments.
 
 Can you combine the bacterial and archaeal trees into a single tree?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
