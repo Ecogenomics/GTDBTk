@@ -121,6 +121,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#taxonomy-faq">Taxonomy FAQ</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#why-do-i-see-discrepancies-in-classification-for-closely-related-genomes">Why do I see discrepancies in classification for closely related genomes?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">Can you combine the bacterial and archaeal trees into a single tree?</a></li>
 </ul>
 </li>
@@ -250,6 +251,36 @@
 <p>GTDB-Tk uses the GTDB taxonomy (<a class="reference external" href="https://gtdb.ecogenomic.org/">https://gtdb.ecogenomic.org/</a>).
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.</p>
+</div>
+<div class="section" id="why-do-i-see-discrepancies-in-classification-for-closely-related-genomes">
+<h3>Why do I see discrepancies in classification for closely related genomes?<a class="headerlink" href="#why-do-i-see-discrepancies-in-classification-for-closely-related-genomes" title="Permalink to this headline">¶</a></h3>
+<p>Discrepancies in taxonomic assignments can occur when working with closely related genomes. GTDB-Tk uses both the <strong>Relative Evolutionary Divergence (RED)</strong> value and the <strong>placement of the genome in the reference tree</strong> to determine the best taxonomic classification.</p>
+<p>In most cases taxonomic assignments are robust, but it is possible for highly similar genomes  to have sufficiently different protein sequences that their placements in the reference tree will vary slightly. This can lead to:</p>
+<ol class="arabic simple">
+<li><p>placement on different but closely related branches, or</p></li>
+<li><p>placement on the same branch but at different depths.</p></li>
+</ol>
+<p>This uncertainty in the placement of even closely related genomes can result in genomes being erroneously assigned to different taxa (e.g. closely related sister families).</p>
+<p><strong>What should I do?</strong></p>
+<p>If you run into this situation, here are a few strategies you can use:</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Dereplicate your genomes.</dt><dd><p>If you have a cluster of closely related genomes representing a single species, consider dereplicating them to pick a single representative based on genome quality metrics (for example, using a tool like dRep -link to drep- or Galah). The taxonomic assignment for this species representative genomes can then be propagated to the other genomes in the cluster.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Build a de novo tree</dt><dd><p>Another option is to construct a de novo tree including your closely related genomes plus a suitable outgroup. For instance, if you have three genomes classified as:</p>
+<ul class="simple">
+<li><p><em>c__Atribacteria;o__Atribacterales;f__Atribacteraceae</em></p></li>
+<li><p><em>c__Atribacteria;o__Atribacterales;f__Thermatribacteraceae</em></p></li>
+<li><p><em>c__Atribacteria;o__Atribacterales;f__</em></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+<p>you could generate a tree for the class Atribacteria (with one outgroup class) and examine whether your genomes cluster together despite their different family-level assignments.</p>
 </div>
 <div class="section" id="can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">
 <h3>Can you combine the bacterial and archaeal trees into a single tree?<a class="headerlink" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree" title="Permalink to this headline">¶</a></h3>
