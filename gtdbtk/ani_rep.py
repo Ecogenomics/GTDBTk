@@ -141,7 +141,11 @@ class ANISummaryFile(object):
                     canonical_rid = canonical_gid(ref_gid)
                     taxonomy_str = ';'.join(self.taxonomy[canonical_rid])
                     fh.write(f'{qry_gid}\t{ref_gid}')
-                    fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
+                    fh.write(f'\t{ref_hit["ani"]}')
+                    # we round the af to 4 decimals for consistency
+                    ref_hit['af'] = round(ref_hit['af'], 5)
+                    fh.write(f'\t{ref_hit["af"]}')
+                    #fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
                     fh.write(f'\t{taxonomy_str}')
                     if ani_screen_step:
                         fh.write(f'\t{ref_hit.get("other_related_refs","") or ""}')
@@ -214,6 +218,9 @@ class ANIClosestFile(object):
                         gtdb_ani_radius = self.gtdb_radii.get_rep_ani(canonical_rid)
                         closest_ani = closest[0][1]["ani"]
                         closest_af = closest[0][1]["af"]
+
+                        # round closest_af to 4 decimals for consistency
+                        closest_af = round(closest_af, 5)
 
                         fh.write(f'{gid}\t{ref_gid}')
                         fh.write(f'\t{closest_ani}\t{closest_af}')
