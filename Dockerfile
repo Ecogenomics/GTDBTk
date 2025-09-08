@@ -19,7 +19,6 @@ RUN apt-get update -y -m && \
         build-essential \
         curl \
         hmmer=3.* \
-        mash=2.2.* \
         prodigal=1:2.6.* \
         fasttree=2.1.* \
         unzip && \

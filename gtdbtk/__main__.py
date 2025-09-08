@@ -57,7 +57,6 @@ def print_help():
     convert_to_itol    -> Convert a GTDB-Tk Newick tree to an iTOL tree
     convert_to_species -> Convert GTDB genome IDs to GTDB species names
  
-
   Testing:
     test          -> Validate the classify_wf pipeline with 3 archaeal genomes 
     check_install -> Verify third party programs and GTDB reference package
