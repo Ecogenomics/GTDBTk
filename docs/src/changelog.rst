@@ -2,6 +2,13 @@
 Change log
 ==========
 
+2.5.1
+-----
+
+Bug Fixes:
+* (`#658 <https://github.com/Ecogenomics/GTDBTk/issues/658>`_) Implement progress bar for comparison process.
+
+
 2.5.0
 -----
 

@@ -213,11 +213,10 @@ class SkANI(object):
         capture_line=False
         sketch_done = False
         capture_output= []
-        number_of_comparison = query_total * ref_total
-        step = max(number_of_comparison // 100, 1)
-        spinner = ['-', '\\', '|', '/']
 
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+
+        comparison_bar = None
 
         for line in proc.stdout:
             line = line.strip()
@@ -257,26 +256,30 @@ class SkANI(object):
                 self.logger.info(f"Running comparisons")
                 sketch_done = True
 
+                # after sketching is done
+                comparison_bar = tqdm(
+                    desc="Running comparisons",
+                    unit="comparisons",
+                    ncols=100,
+                    leave=False,  # keep final summary line
+                    total=None  # unknown total, just count
+                )
+
 
             elif sketch_done and ((" TRACE " in line and " Ratio " in line) or
                                   (" DEBUG " in line and " Ref_file " in line and " Query_file " in line)):
-                count_ratio += 1
-                spin_char = spinner[count_ratio % len(spinner)]
-                print(f'\r{spin_char} Completed comparisons: {count_ratio}', end='', flush=True)
+                comparison_bar.update(1)
 
 
             # all Ref_file,Query_file,ANI,Align_fraction_ref,Align_fraction_query,Ref_name,Query_name in line
             elif all(token in line for token in ['Ref_file', 'Query_file', 'ANI', 'Align_fraction_ref', 'Align_fraction_query']):
                 # This is the header line, skip it but from now on, we capture the output
                 capture_line = True
-                # Clear the line
-                print('\r' + ' ' * 80 + '\r', end='')
+                comparison_bar.close()
                 self.logger.info(f'Comparisons finished, capturing results.')
                 continue
             elif capture_line and line and "ANI calculation time:" not in line:
                 result_lines.add((line.strip()))
-            # if sketch_done:
-            #     print(line)
 
         proc.wait()
         #remove the last printed line
