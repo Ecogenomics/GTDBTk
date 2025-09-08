@@ -20,7 +20,6 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
    gtdbtk_ref_sketch.msh
    marker_info.tsv
    markers_summary.tsv
-   mash_distances.msh
    msa.fasta
    pfam.tsv
    pfam_tophit.tsv

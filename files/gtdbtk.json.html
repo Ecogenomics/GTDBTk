@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>gtdbtk.json &mdash; GTDB-Tk 2.4.1 documentation</title>
+  <title>gtdbtk.json &mdash; GTDB-Tk 2.5.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.4.1
+                2.5.0
               </div>
             
           
@@ -136,7 +136,6 @@
 <li class="toctree-l2"><a class="reference internal" href="gtdbtk_ref_sketch.msh.html">gtdbtk_ref_sketch.msh</a></li>
 <li class="toctree-l2"><a class="reference internal" href="marker_info.tsv.html">marker_info.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="markers_summary.tsv.html">markers_summary.tsv</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mash_distances.msh.html">mash_distances.msh</a></li>
 <li class="toctree-l2"><a class="reference internal" href="msa.fasta.html">msa.fasta</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pfam.tsv.html">pfam.tsv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pfam_tophit.tsv.html">pfam_tophit.tsv</a></li>
@@ -285,28 +284,102 @@
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
-    &quot;version&quot;: &quot;2.1.1&quot;,
-    &quot;command_line&quot;: &quot;gtdbtk classify_wf --batchfile /srv/projects/gtdbtk/test_new_features/gems_benchmark/3lines_batchfile.tsv --out_dir /srv/projects/gtdbtk/test_new_features/gems_benchmark/classify_wf_outdir_prescreen_3lines/ --keep_intermediates --cpus 20 --mash_db /srv/projects/gtdbtk/test_new_features/gems_benchmark/mash_sketch/cli/&quot;,
-    &quot;database_version&quot;: &quot;r207&quot;,
-    &quot;database_path&quot;: &quot;/srv/projects/gtdbtk/test_new_features/release207_v2/&quot;,
-    &quot;steps&quot;: [
-        {
-            &quot;name&quot;: &quot;ANI screen&quot;,
-            &quot;input&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/3lines_batchfile.tsv&quot;,
-            &quot;output_dir&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/classify_wf_outdir_prescreen_3lines/&quot;,
-            &quot;output_files&quot;: {
-                &quot;bac120&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/classify_wf_outdir_prescreen_3lines/classify/ani_screen/gtdbtk.bac120.ani_summary.tsv&quot;
-            },
-            &quot;starts_at&quot;: &quot;2023-02-01T08:02:17.814231&quot;,
-            &quot;ends_at&quot;: &quot;2023-02-01T08:02:27.782442&quot;,
-            &quot;duration&quot;: &quot;0:00:09&quot;,
-            &quot;status&quot;: &quot;completed&quot;,
-            &quot;mash_k&quot;: 16,
-            &quot;mash_s&quot;: 5000,
-            &quot;mash_v&quot;: 1.0,
-            &quot;mash_max_dist&quot;: 0.1,
-            &quot;mash_db&quot;: &quot;/srv/projects/gtdbtk/test_new_features/gems_benchmark/mash_sketch/cli/&quot;
-        },
+&quot;version&quot;: &quot;2.5.0&quot;,
+&quot;command_line&quot;: &quot;gtdbtk classify_wf --batchfile genomes/3_batchfile.tsv --out_dir classify_wf_3_genomes --cpus 20&quot;,
+&quot;database_version&quot;: &quot;r226&quot;,
+&quot;database_path&quot;: &quot;/srv/db/gtdbtk/official/release226&quot;,
+&quot;steps&quot;: [
+    {
+        &quot;name&quot;: &quot;ANI screen&quot;,
+        &quot;output_dir&quot;: &quot;classify_wf_3_genomes&quot;,
+        &quot;starts_at&quot;: &quot;2025-08-05T20:31:02.156781&quot;,
+        &quot;ends_at&quot;: &quot;2025-08-05T20:35:27.198873&quot;,
+        &quot;duration&quot;: &quot;0:04:25&quot;,
+        &quot;status&quot;: &quot;completed&quot;,
+        &quot;genome_dir&quot;: null,
+        &quot;batchfile&quot;: &quot;genomes/3_batchfile.tsv&quot;,
+        &quot;min_af&quot;: 0.5,
+        &quot;output_files&quot;: {}
+    },
+    {
+        &quot;name&quot;: &quot;identify&quot;,
+        &quot;output_dir&quot;: &quot;classify_wf_3_genomes&quot;,
+        &quot;starts_at&quot;: &quot;2025-08-05T20:35:27.270095&quot;,
+        &quot;ends_at&quot;: &quot;2025-08-05T20:36:15.865020&quot;,
+        &quot;duration&quot;: &quot;0:00:48&quot;,
+        &quot;status&quot;: &quot;completed&quot;,
+        &quot;genes&quot;: false,
+        &quot;extension&quot;: &quot;fna&quot;,
+        &quot;write_single_copy_genes&quot;: false,
+        &quot;genome_dir&quot;: null,
+        &quot;batchfile&quot;: &quot;genomes/3_batchfile.tsv&quot;,
+        &quot;output_files&quot;: {
+            &quot;all&quot;: [
+                &quot;classify_wf_3_genomes/identify/gtdbtk.failed_genomes.tsv&quot;,
+                &quot;classify_wf_3_genomes/identify/gtdbtk.translation_table_summary.tsv&quot;
+            ],
+            &quot;ar53&quot;: [
+                &quot;classify_wf_3_genomes/identify/gtdbtk.ar53.markers_summary.tsv&quot;
+            ],
+            &quot;bac120&quot;: [
+                &quot;classify_wf_3_genomes/identify/gtdbtk.bac120.markers_summary.tsv&quot;
+            ]
+        }
+    },
+    {
+        &quot;name&quot;: &quot;align&quot;,
+        &quot;output_dir&quot;: &quot;classfiy_wf_3_genomes&quot;,
+        &quot;starts_at&quot;: &quot;2025-08-05T20:36:15.865242&quot;,
+        &quot;ends_at&quot;: &quot;2025-08-05T20:41:38.376388&quot;,
+        &quot;duration&quot;: &quot;0:05:22&quot;,
+        &quot;status&quot;: &quot;completed&quot;,
+        &quot;identify_dir&quot;: &quot;classfiy_wf_3_genomes&quot;,
+        &quot;skip_gtdb_refs&quot;: false,
+        &quot;taxa_filter&quot;: null,
+        &quot;min_perc_aa&quot;: 10,
+        &quot;custom_msa_filters&quot;: false,
+        &quot;skip_trimming&quot;: false,
+        &quot;rnd_seed&quot;: null,
+        &quot;cols_per_gene&quot;: null,
+        &quot;min_consensus&quot;: null,
+        &quot;max_consensus&quot;: null,
+        &quot;min_perc_taxa&quot;: null,
+        &quot;outgroup_taxon&quot;: null,
+        &quot;output_files&quot;: {
+            &quot;bac120&quot;: [
+                &quot;classfiy_wf_3_genomes/align/gtdbtk.bac120.filtered.tsv&quot;,
+                &quot;classfiy_wf_3_genomes/align/gtdbtk.bac120.msa.fasta&quot;,
+                &quot;classfiy_wf_3_genomes/align/gtdbtk.bac120.user_msa.fasta&quot;
+            ]
+        }
+    },
+    {
+        &quot;name&quot;: &quot;classify&quot;,
+        &quot;output_dir&quot;: &quot;classfiy_wf_3_genomes&quot;,
+        &quot;starts_at&quot;: &quot;2025-08-05T20:41:38.377084&quot;,
+        &quot;ends_at&quot;: &quot;2025-08-05T21:08:25.704484&quot;,
+        &quot;duration&quot;: &quot;0:26:47&quot;,
+        &quot;status&quot;: &quot;completed&quot;,
+        &quot;align_dir&quot;: &quot;classfiy_wf_3_genomes&quot;,
+        &quot;genome_dir&quot;: null,
+        &quot;batchfile&quot;: &quot;genomes/3_batchfile.tsv&quot;,
+        &quot;scratch_dir&quot;: null,
+        &quot;debug_option&quot;: false,
+        &quot;full_tree&quot;: false,
+        &quot;skip_ani_screen&quot;: true,
+        &quot;output_files&quot;: {
+            &quot;bac120&quot;: [
+                &quot;classify_wf_3_genomes/classify/gtdbtk.backbone.bac120.classify.tree&quot;,
+                &quot;classify_wf_3_genomes/classify/gtdbtk.bac120.classify.tree.7.tree&quot;,
+                &quot;classify_wf_3_genomes/classify/gtdbtk.bac120.classify.tree.2.tree&quot;,
+                &quot;classify_wf_3_genomes/classify/gtdbtk.bac120.tree.mapping.tsv&quot;,
+                &quot;classify_wf_3_genomes/classify/gtdbtk.bac120.summary.tsv&quot;
+            ]
+        }
+    }
+],
+&quot;output_dir&quot;: &quot;classify_wf_3_genomes&quot;,
+&quot;path&quot;: &quot;classify_wf_3_genomes/gtdbtk.json&quot;
 </pre></div>
 </div>
 </div>

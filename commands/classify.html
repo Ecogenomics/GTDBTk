@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify &mdash; GTDB-Tk 2.4.1 documentation</title>
+  <title>classify &mdash; GTDB-Tk 2.5.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.4.1
+                2.5.0
               </div>
             
           
@@ -131,8 +131,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments_repeat1">mutually exclusive required arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#optional Mash arguments">optional Mash arguments</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
 </ul>
 </li>
@@ -265,11 +263,8 @@
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">classify</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
                        <span class="o">--</span><span class="n">align_dir</span> <span class="n">ALIGN_DIR</span> <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span>
-                       <span class="p">(</span><span class="o">--</span><span class="n">skip_ani_screen</span> <span class="o">|</span> <span class="o">--</span><span class="n">mash_db</span> <span class="n">MASH_DB</span><span class="p">)</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mash</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">mash_k</span> <span class="n">MASH_K</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_s</span> <span class="n">MASH_S</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mash_v</span> <span class="n">MASH_V</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">mash_max_distance</span> <span class="n">MASH_MAX_DISTANCE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">skip_ani_screen</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">genes</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
@@ -296,44 +291,12 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="mutually exclusive required arguments_repeat1">
-<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments_repeat1" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--skip_ani_screen</kbd></dt>
-<dd><p>Skip the ani_screening step to classify genomes using mash and skani.</p>
-</dd>
-<dt><kbd>--mash_db</kbd></dt>
-<dd><p>path to save/read (if exists) the Mash reference sketch database (.msh)</p>
-</dd>
-</dl>
-</div>
-<div class="section" id="optional Mash arguments">
-<h3>optional Mash arguments<a class="headerlink" href="#optional Mash arguments" title="Permalink to this headline">¶</a></h3>
-<dl class="option-list">
-<dt><kbd>--no_mash</kbd></dt>
-<dd><p>skip pre-filtering of genomes using Mash</p>
-</dd>
-<dt><kbd>--mash_k</kbd></dt>
-<dd><p>k-mer size [1-32]</p>
-<p>Default: 16</p>
-</dd>
-<dt><kbd>--mash_s</kbd></dt>
-<dd><p>maximum number of non-redundant hashes</p>
-<p>Default: 5000</p>
-</dd>
-<dt><kbd>--mash_v</kbd></dt>
-<dd><p>maximum p-value to keep [0-1]</p>
-<p>Default: 1.0</p>
-</dd>
-<dt><kbd>--mash_max_distance</kbd></dt>
-<dd><p>Maximum Mash distance to select a potential GTDB genome as representative of a user genome.</p>
-<p>Default: 0.15</p>
-</dd>
-</dl>
-</div>
 <div class="section" id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
+<dt><kbd>--skip_ani_screen</kbd></dt>
+<dd><p>Skip the skani ANI screening step to classify genomes.</p>
+</dd>
 <dt><kbd>-x, --extension</kbd></dt>
 <dd><p>extension of files to process, <code class="docutils literal notranslate"><span class="pre">gz</span></code> = gzipped</p>
 <p>Default: “fna”</p>
@@ -353,7 +316,7 @@
 <dd><p>reduce pplacer memory usage by writing to disk (slower).</p>
 </dd>
 <dt><kbd>--genes</kbd></dt>
-<dd><p>indicates input files contain predicted proteins as amino acids (skip gene calling).Warning: This flag will skip the ANI comparison steps (ani_screen and classification).</p>
+<dd><p>indicates input files contain predicted proteins as amino acids (skip gene calling).Warning: This flag will skip the ANI comparison steps (ANI screen and classification).</p>
 </dd>
 <dt><kbd>-f, --full_tree</kbd></dt>
 <dd><p>use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk approach (version &lt; 2) and requires more than 320 GB of RAM to load the reference tree</p>
@@ -412,26 +375,7 @@
 </dd>
 </dl>
 </li>
-<li><dl class="simple">
-<dt>ani_screen</dt><dd><ul>
-<li><dl class="simple">
-<dt>intermediate_results</dt><dd><ul>
-<li><dl class="simple">
-<dt>mash</dt><dd><ul>
-<li><p><a class="reference internal" href="../files/mash_distances.msh.html#files-mash-distances-msh"><span class="std std-ref">[prefix].mash_distances.tsv</span></a></p></li>
-<li><p><a class="reference internal" href="../files/user_query_sketch.msh.html#files-user-query-sketch-msh"><span class="std std-ref">[prefix].user_query_sketch.msh</span></a></p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
+<li><p>ani_screen</p></li>
 <li><p><a class="reference internal" href="../files/summary.tsv.html#files-summary-tsv"><span class="std std-ref">[prefix].[domain].summary.tsv</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.log.html#files-gtdbtk-log"><span class="std std-ref">[prefix].log</span></a></p></li>
 <li><p><a class="reference internal" href="../files/gtdbtk.json.html#files-gtdbtk-json"><span class="std std-ref">[prefix].json</span></a></p></li>
@@ -442,88 +386,40 @@
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="input">
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify<span class="w"> </span>--align_dir<span class="w"> </span>align_3lines/<span class="w"> </span>--batchfile<span class="w"> </span>3lines_batchfile.tsv<span class="w"> </span>--out_dir<span class="w"> </span>3classify_ani<span class="w"> </span>--mash_db<span class="w"> </span>mash_db_dir/<span class="w"> </span>--cpus<span class="w"> </span><span class="m">20</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>classify<span class="w"> </span>--batchfile<span class="w"> </span>genomes/3_batchfile.tsv<span class="w"> </span>--align_dir<span class="w"> </span>3_align/<span class="w"> </span>--out_dir<span class="w"> </span>3_classify<span class="w"> </span>--cpus<span class="w"> </span><span class="m">50</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2024-03-27 15:46:26] INFO: GTDB-Tk v2.3.2
-[2024-03-27 15:46:26] INFO: gtdbtk classify --align_dir 500_align --out_dir 500_classify --mash_db mash_db.msh --cpus 90 --batchfile genomes/500_batchfile.tsv
-[2024-03-27 15:46:26] INFO: Using GTDB-Tk reference data version r214: /srv/db/gtdbtk/official/release214_skani/release214
-[2024-03-27 15:46:27] WARNING: Setting pplacer CPUs to 64, as pplacer is known to hang if &gt;64 are used. You can override this using: --pplacer_cpus
-[2024-03-27 15:46:27] INFO: Loading reference genomes.
-[2024-03-27 15:46:27] INFO: Using Mash version 2.2.2
-[2024-03-27 15:46:27] INFO: Creating Mash sketch file: 500_classify/classify/ani_screen/intermediate_results/mash/gtdbtk.user_query_sketch.msh
-[2024-03-27 15:46:29] INFO: Completed 500 genomes in 1.74 seconds (286.68 genomes/second).
-[2024-03-27 15:46:29] INFO: Loading data from existing Mash sketch file: mash_db.msh
-[2024-03-27 15:46:32] INFO: Calculating Mash distances.
-[2024-03-27 15:47:17] INFO: Calculating ANI with skani v0.2.1.
-[2024-03-27 15:47:28] INFO: Completed 4,383 comparisons in 10.51 seconds (417.14 comparisons/second).
-[2024-03-27 15:47:30] INFO: 357 genome(s) have been classified using the ANI pre-screening step.
-[2024-03-27 15:47:30] TASK: Placing 143 bacterial genomes into backbone reference tree with pplacer using 64 CPUs (be patient).
-[2024-03-27 15:47:30] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
-[2024-03-27 15:50:19] INFO: Calculating RED values based on reference tree.
-[2024-03-27 15:50:20] INFO: 143 out of 143 have an class assignments. Those genomes will be reclassified.
-[2024-03-27 15:50:20] TASK: Placing 30 bacterial genomes into class-level reference tree 3 (1/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 15:58:09] INFO: Calculating RED values based on reference tree.
-[2024-03-27 15:58:12] TASK: Traversing tree to determine classification method.
-[2024-03-27 15:58:12] INFO: Completed 30 genomes in 0.02 seconds (1,364.18 genomes/second).
-[2024-03-27 15:58:15] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 15:58:16] INFO: Completed 505 comparisons in 1.32 seconds (381.38 comparisons/second).
-[2024-03-27 15:58:19] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 15:58:19] TASK: Placing 27 bacterial genomes into class-level reference tree 2 (2/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:05:53] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:05:56] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:05:56] INFO: Completed 27 genomes in 0.04 seconds (606.99 genomes/second).
-[2024-03-27 16:05:59] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:06:00] INFO: Completed 317 comparisons in 1.07 seconds (297.29 comparisons/second).
-[2024-03-27 16:06:03] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:06:03] TASK: Placing 26 bacterial genomes into class-level reference tree 6 (3/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:12:28] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:12:30] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:12:30] INFO: Completed 26 genomes in 0.05 seconds (497.16 genomes/second).
-[2024-03-27 16:12:31] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:12:32] INFO: Completed 41 comparisons in 0.83 seconds (49.26 comparisons/second).
-[2024-03-27 16:12:33] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:12:34] TASK: Placing 22 bacterial genomes into class-level reference tree 7 (4/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:18:24] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:18:27] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:18:27] INFO: Completed 22 genomes in 0.03 seconds (715.55 genomes/second).
-[2024-03-27 16:18:28] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:18:28] INFO: Completed 117 comparisons in 0.84 seconds (138.63 comparisons/second).
-[2024-03-27 16:18:30] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:18:30] TASK: Placing 22 bacterial genomes into class-level reference tree 1 (5/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:26:01] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:26:04] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:26:04] INFO: Completed 22 genomes in 0.05 seconds (486.20 genomes/second).
-[2024-03-27 16:26:05] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:26:06] INFO: Completed 373 comparisons in 1.05 seconds (354.70 comparisons/second).
-[2024-03-27 16:26:08] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:26:08] TASK: Placing 8 bacterial genomes into class-level reference tree 4 (6/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:32:45] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:32:48] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:32:48] INFO: Completed 8 genomes in 0.15 seconds (52.49 genomes/second).
-[2024-03-27 16:32:48] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:32:49] INFO: Completed 176 comparisons in 0.90 seconds (195.38 comparisons/second).
-[2024-03-27 16:32:50] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:32:50] TASK: Placing 4 bacterial genomes into class-level reference tree 8 (7/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:35:30] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:35:31] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:35:31] INFO: Completed 4 genomes in 0.00 seconds (5,959.93 genomes/second).
-[2024-03-27 16:35:32] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:35:33] INFO: Completed 31 comparisons in 0.93 seconds (33.24 comparisons/second).
-[2024-03-27 16:35:33] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:35:33] TASK: Placing 4 bacterial genomes into class-level reference tree 5 (8/8) with pplacer using 64 CPUs (be patient).
-[2024-03-27 16:40:57] INFO: Calculating RED values based on reference tree.
-[2024-03-27 16:40:59] TASK: Traversing tree to determine classification method.
-[2024-03-27 16:40:59] INFO: Completed 4 genomes in 0.00 seconds (4,607.86 genomes/second).
-[2024-03-27 16:40:59] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-[2024-03-27 16:41:00] INFO: Completed 46 comparisons in 0.86 seconds (53.34 comparisons/second).
-[2024-03-27 16:41:00] INFO: 0 genome(s) have been classified using skani and pplacer.
-[2024-03-27 16:41:00] WARNING: 5 of 500 genomes have a warning (see summary file).
-[2024-03-27 16:41:00] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
-[2024-03-27 16:41:00] INFO: Done.
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2025-08-05 17:41:11] INFO: GTDB-Tk v2.5.0
+[2025-08-05 17:41:11] INFO: gtdbtk classify --batchfile genomes/3_batchfile.tsv --align_dir 3_align/ --out_dir 3_classify --cpus 50
+[2025-08-05 17:41:11] INFO: Using GTDB-Tk reference data version r226: /srv/db/gtdbtk/official/release226
+[2025-08-05 17:41:13] INFO: Loading reference genomes.
+[2025-08-05 17:41:13] INFO: Calculating all vs all ANI with skani v0.2.1.
+[2025-08-05 17:41:14] INFO: Sketching genomes
+[2025-08-05 17:42:21] INFO: Sketches done: 1min 6secs
+[2025-08-05 17:42:22] INFO: Running comparisons
+[2025-08-05 17:42:51] INFO: Comparisons finished, capturing results.
+[2025-08-05 17:44:45] INFO: 0 genome(s) have been classified using the ANI pre-screening step.
+[2025-08-05 17:44:45] TASK: Placing 3 bacterial genomes into backbone reference tree with pplacer using 50 CPUs (be patient).
+[2025-08-05 17:44:45] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
+[2025-08-05 17:48:20] INFO: Calculating RED values based on reference tree.
+[2025-08-05 17:48:21] INFO: 3 out of 3 have an class assignments. Those genomes will be reclassified.
+[2025-08-05 17:48:21] TASK: Placing 2 bacterial genomes into class-level reference tree 7 (1/2) with pplacer using 50 CPUs (be patient).
+[2025-08-05 18:00:49] INFO: Calculating RED values based on reference tree.
+[2025-08-05 18:00:54] TASK: Traversing tree to determine classification method.
+[2025-08-05 18:00:54] INFO: Completed 2 genomes in 0.00 seconds (6,043.67 genomes/second).
+[2025-08-05 18:00:54] TASK: Calculating average nucleotide identity using skani (v0.2.1).
+[2025-08-05 18:00:55] INFO: Completed 13 comparisons in 1.18 seconds (11.02 comparisons/second).
+[2025-08-05 18:00:55] INFO: 0 genome(s) have been classified using skani and pplacer.
+[2025-08-05 18:00:56] TASK: Placing 1 bacterial genomes into class-level reference tree 2 (2/2) with pplacer using 50 CPUs (be patient).
+[2025-08-05 18:12:59] INFO: Calculating RED values based on reference tree.
+[2025-08-05 18:13:05] TASK: Traversing tree to determine classification method.
+[2025-08-05 18:13:05] INFO: Completed 1 genome in 0.00 seconds (1,681.08 genomes/second).
+[2025-08-05 18:13:05] INFO: 0 genome(s) have been classified using skani and pplacer.
+[2025-08-05 18:13:05] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+[2025-08-05 18:13:05] INFO: Done.
 </pre></div>
 </div>
 </div>

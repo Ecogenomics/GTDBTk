@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Example &mdash; GTDB-Tk 2.4.1 documentation</title>
+  <title>Example &mdash; GTDB-Tk 2.5.0 documentation</title>
   
 
   
@@ -91,7 +91,7 @@
             
             
               <div class="version">
-                2.4.1
+                2.5.0
               </div>
             
           
@@ -668,10 +668,10 @@ gtdbtk.ar53.msa.fasta.gz  intermediate_results
 <h2>Step 4: Classifying genomes (classify)<a class="headerlink" href="#Step-4:-Classifying-genomes-(classify)" title="Permalink to this headline">¶</a></h2>
 <p>The classify step will place the genomes into a reference tree, then determine their most likely classification.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk<span class="w"> </span>classify<span class="w"> </span>--genome_dir<span class="w"> </span>/tmp/gtdbtk/genomes<span class="w"> </span>--align_dir<span class="w"> </span>/tmp/gtdbtk/align<span class="w"> </span>--out_dir<span class="w"> </span>/tmp/gtdbtk/classify<span class="w"> </span>-x<span class="w"> </span>gz<span class="w"> </span>--cpus<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">(</span>--skip_ani_screen<span class="w"> </span>OR<span class="w"> </span>--mash_db<span class="o">)</span>
+<div class="input_area highlight-bash notranslate"><div class="highlight"><pre><span></span>!gtdbtk<span class="w"> </span>classify<span class="w"> </span>--genome_dir<span class="w"> </span>/tmp/gtdbtk/genomes<span class="w"> </span>--align_dir<span class="w"> </span>/tmp/gtdbtk/align<span class="w"> </span>--out_dir<span class="w"> </span>/tmp/gtdbtk/classify<span class="w"> </span>-x<span class="w"> </span>gz<span class="w"> </span>--cpus<span class="w"> </span><span class="m">2</span>
 </pre></div>
 </div>
 </div>
@@ -680,19 +680,7 @@ gtdbtk.ar53.msa.fasta.gz  intermediate_results
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[2022-04-11 12:02:06] <span class="ansi-bold">INFO:</span> GTDB-Tk v2.0.0
-[2022-04-11 12:02:06] <span class="ansi-bold">INFO:</span> gtdbtk classify --genome_dir /tmp/gtdbtk/genomes --align_dir /tmp/gtdbtk/align --out_dir /tmp/gtdbtk/classify -x gz --cpus 2
-[2022-04-11 12:02:06] <span class="ansi-bold">INFO:</span> Using GTDB-Tk reference data version r207: /srv/db/gtdbtk/official/release207
-[2022-04-11 12:02:07] <span class="ansi-bold">TASK:</span> Placing 2 archaeal genomes into reference tree with pplacer using 2 CPUs (be patient).
-[2022-04-11 12:02:07] <span class="ansi-bold">INFO:</span> pplacer version: v1.1.alpha19-0-g807f6f3
-                                                               [2022-04-11 12:07:06] <span class="ansi-bold">INFO:</span> Calculating RED values based on reference tree.
-[2022-04-11 12:07:06] <span class="ansi-bold">TASK:</span> Traversing tree to determine classification method.
-[2022-04-11 12:07:06] <span class="ansi-bold">INFO:</span> Completed 2 genomes in 0.00 seconds (18,558.87 genomes/second).
-[2022-04-11 12:07:06] <span class="ansi-bold">TASK:</span> Calculating average nucleotide identity using FastANI (v1.32).
-[2022-04-11 12:07:08] <span class="ansi-bold">INFO:</span> Completed 4 comparisons in 1.61 seconds (2.49 comparisons/second).
-[2022-04-11 12:07:08] <span class="ansi-bold">INFO:</span> 2 genome(s) have been classified using FastANI and pplacer.
-[2022-04-11 12:07:08] <span class="ansi-bold">INFO:</span> Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
-[2022-04-11 12:07:08] <span class="ansi-bold">INFO:</span> Done.
+/bin/bash: gtdbtk: command not found
 </pre></div></div>
 </div>
 <div class="section" id="id2">

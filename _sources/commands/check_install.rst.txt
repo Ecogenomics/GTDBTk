@@ -35,28 +35,27 @@ Output
 
 .. code-block:: text
     
-    [2020-11-04 09:35:16] INFO: GTDB-Tk v1.4.0
-    [2020-11-04 09:35:16] INFO: gtdbtk check_install
-    [2020-11-04 09:35:16] INFO: Using GTDB-Tk reference data version r95: /release95
-    [2020-11-04 09:35:16] INFO: Running install verification
-    [2020-11-04 09:35:16] INFO: Checking that all third-party software are on the system path:
-    [2020-11-04 09:35:16] INFO:          |-- FastTree         OK
-    [2020-11-04 09:35:16] INFO:          |-- FastTreeMP       OK
-    [2020-11-04 09:35:16] INFO:          |-- skani            OK
-    [2020-11-04 09:35:16] INFO:          |-- guppy            OK
-    [2020-11-04 09:35:16] INFO:          |-- hmmalign         OK
-    [2020-11-04 09:35:16] INFO:          |-- hmmsearch        OK
-    [2020-11-04 09:35:16] INFO:          |-- mash             OK
-    [2020-11-04 09:35:16] INFO:          |-- pplacer          OK
-    [2020-11-04 09:35:16] INFO:          |-- prodigal         OK
-    [2020-11-04 09:35:16] INFO: Checking /release95
-    [2020-11-04 09:35:16] INFO:          |-- pplacer          OK
-    [2020-11-04 09:35:16] INFO:          |-- masks            OK
-    [2020-11-04 09:35:17] INFO:          |-- markers          OK
-    [2020-11-04 09:35:17] INFO:          |-- radii            OK
-    [2020-11-04 09:35:20] INFO:          |-- msa              OK
-    [2020-11-04 09:35:20] INFO:          |-- metadata         OK
-    [2020-11-04 09:35:20] INFO:          |-- taxonomy         OK
-    [2020-11-04 09:47:36] INFO:          |-- skani            OK
-    [2020-11-04 09:47:36] INFO:          |-- mrca_red         OK
-    [2020-11-04 09:47:36] INFO: Done.
+    [2025-08-05 17:02:59] INFO: GTDB-Tk v2.5.0
+    [2025-08-05 17:02:59] INFO: gtdbtk check_install
+    [2025-08-05 17:02:59] INFO: Using GTDB-Tk reference data version r226: /release226
+    [2025-08-05 17:02:59] INFO: Running install verification
+    [2025-08-05 17:02:59] INFO: Checking that all third-party software are on the system path:
+    [2025-08-05 17:02:59] INFO:          |-- FastTree         OK
+    [2025-08-05 17:02:59] INFO:          |-- FastTreeMP       OK
+    [2025-08-05 17:02:59] INFO:          |-- guppy            OK
+    [2025-08-05 17:02:59] INFO:          |-- hmmalign         OK
+    [2025-08-05 17:02:59] INFO:          |-- hmmsearch        OK
+    [2025-08-05 17:02:59] INFO:          |-- pplacer          OK
+    [2025-08-05 17:02:59] INFO:          |-- prodigal         OK
+    [2025-08-05 17:02:59] INFO:          |-- skani            OK
+    [2025-08-05 17:02:59] INFO: Checking integrity of reference package: /release226
+    [2025-08-05 17:02:59] INFO:          |-- pplacer          OK
+    [2025-08-05 17:02:59] INFO:          |-- masks            OK
+    [2025-08-05 17:03:00] INFO:          |-- markers          OK
+    [2025-08-05 17:03:00] INFO:          |-- radii            OK
+    [2025-08-05 17:03:05] INFO:          |-- msa              OK
+    [2025-08-05 17:03:05] INFO:          |-- metadata         OK
+    [2025-08-05 17:03:05] INFO:          |-- taxonomy         OK
+    [2025-08-05 17:06:35] INFO:          |-- skani            OK
+    [2025-08-05 17:06:35] INFO:          |-- mrca_red         OK
+    [2025-08-05 17:06:35] INFO: Done.
