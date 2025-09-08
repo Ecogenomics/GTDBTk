@@ -11,7 +11,7 @@ class __GTDBTkCommonConfig:
     that requires the setting of the GTDB-Tk reference data path.
     """
 
-    MIN_REF_DATA_VERSION = 'r220'
+    MIN_REF_DATA_VERSION = 'r226'
     COMPATIBLE_REF_DATA_VERSIONS = ['r220','r226']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
@@ -96,7 +96,9 @@ class __GTDBTkCommonConfig:
     PPLACER_MIN_RAM_ARC = 40
 
     SKANI_SPECIES_THRESHOLD = 95.0
+    SKANI_IDENTITY_SKETCH_THRESHOLD = 85.0
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
+    SKANI_MIN_AF = 15.0
 
     # Mash configuration
     MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'
@@ -152,10 +154,6 @@ class __GTDBTkCommonConfig:
     @property
     def SKANI_DIR(self):
         return os.path.join(self.GENERIC_PATH, 'skani/')
-
-    @property
-    def MASH_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'mash/')
 
     @property
     def TAX_FOLDER(self):

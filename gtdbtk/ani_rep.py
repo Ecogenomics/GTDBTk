@@ -7,10 +7,8 @@ from gtdbtk.biolib_lite.common import canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.common import CONFIG
-from gtdbtk.config.output import DIR_ANI_REP_INT_MASH
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.external.skani import SkANI
-from gtdbtk.external.mash import Mash
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.tools import get_ref_genomes
 
@@ -29,51 +27,24 @@ class ANIRep(object):
         self.logger = logging.getLogger('timestamp')
         self.cpus = cpus
 
-    @staticmethod
-    def check_dependencies(no_mash):
-        """Exits the system if the required programs are not on the path.
-
-        Parameters
-        ----------
-        no_mash : bool
-            True if Mash will be used, False otherwise.
-        """
-        dependencies = ['skani']
-        if not no_mash:
-            dependencies.append('mash')
-        check_dependencies(dependencies)
 
 
-    def run(self, genomes, no_mash, mash_d, out_dir, prefix, mash_k, mash_v, mash_s, min_af, mash_db):
+
+    def run(self, genomes, out_dir, prefix, min_af):
         """Runs the pipeline.
 
         Parameters
         ----------
         genomes : dict[str, str]
             Dict[genome_id] = fasta_path
-        no_mash : bool
-            True if Mash should be used for pre-filtering, False otherwise.
-        mash_d : float
-             maximum distance to keep [0-1]
         out_dir : str
             The directory to write the output files to.
         prefix : str
             The prefix to use when writing output files.
-        mash_k : int
-            k-mer size [1-32]
-        mash_v : float
-            maximum p-value to keep [0-1]
-        mash_s : int
-            maximum number of non-redundant hashes
         min_af : float
             alignment fraction to consider the closest genomes
-        mash_db : Optional[str]
-            The path to read/write the pre-computed Mash reference sketch database.
         """
-        max_mash_dist = mash_d
-        skani_results = self.run_mash_skani(genomes, no_mash, mash_d, out_dir,
-                                                prefix, mash_k, mash_v,
-                                                mash_s, max_mash_dist, mash_db=mash_db)
+        skani_results = self.run_skani(genomes,prefix)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
         ani_summary_file = ANISummaryFile(out_dir, prefix, skani_results, taxonomy)
@@ -85,8 +56,8 @@ class ANIRep(object):
                        min_af,
                        taxonomy)
 
-    def run_mash_skani(self,genomes, no_mash, max_d, out_dir, prefix, mash_k, mash_v, mash_s, mash_max_dist=100, mash_db=None):
-        """Runs the mash and skani pipeline.
+    def run_skani(self,genomes, prefix,skani_preset=None):
+        """Runs the skani pipeline.
         This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
 
@@ -94,52 +65,31 @@ class ANIRep(object):
         ----------
         genomes : dict[str, str]
             Dict[genome_id] = fasta_path
-        no_mash : bool
-            True if Mash should be used for pre-filtering, False otherwise.
-        max_d : float
-             maximum distance to keep [0-1]
         out_dir : str
             The directory to write the output files to.
         prefix : str
             The prefix to use when writing output files.
-        mash_k : int
-            k-mer size [1-32]
-        mash_v : float
-            maximum p-value to keep [0-1]
-        mash_s : int
-            maximum number of non-redundant hashes
-        min_af : float
-            alignment fraction to consider the closest genome
-        mash_db : Optional[str]
-            The path to read/write the pre-computed Mash reference sketch database.
+        skani_min_af : float
+            alignment fraction to consider the closest genomes
+        skani_s : int
+            Min k-mer identity to keep.
+        skani_presets : str
+            Skani mode preset
         """
-        self.check_dependencies(no_mash)
+        check_dependencies(['skani'])
 
         self.logger.info('Loading reference genomes.')
         ref_genomes = get_ref_genomes()
         d_compare = defaultdict(set)
-        d_paths = {**genomes, **ref_genomes}
+        for qry_gid in genomes:
+            d_compare[qry_gid] = set(ref_genomes.keys())
 
-        # Pre-filter using Mash if specified.
-        if not no_mash:
-
-            dir_mash = os.path.join(out_dir, DIR_ANI_REP_INT_MASH)
-
-            mash = Mash(self.cpus, dir_mash, prefix)
-            self.logger.info(f'Using Mash version {mash.version()}')
-            mash_results = mash.run(genomes, ref_genomes, max_d, mash_k, mash_v, mash_s, mash_max_dist, mash_db)
-            for qry_gid, ref_hits in mash_results.items():
-                d_compare[qry_gid] = d_compare[qry_gid].union(set(ref_hits.keys()))
-
-        # Compare against all reference genomes.
-        else:
-            for qry_gid in genomes:
-                d_compare[qry_gid] = set(ref_genomes.keys())
-
-        self.logger.info(f'Calculating ANI with skani v{SkANI._get_version()}.')
-        skani = SkANI(self.cpus, force_single=True)
-        skani_results = skani.run(d_compare, d_paths)
+        self.logger.info(f'Calculating all vs all ANI with skani v{SkANI._get_version()}.')
+        skani = SkANI(self.cpus, force_single=False)
+        skani_results = skani.run_vs_all_reps(genomes,ref_genomes,prefix,skani_preset)
         return skani_results
+
+
 
 class ANISummaryFile(object):
     name = 'ani_summary.tsv'
@@ -191,7 +141,11 @@ class ANISummaryFile(object):
                     canonical_rid = canonical_gid(ref_gid)
                     taxonomy_str = ';'.join(self.taxonomy[canonical_rid])
                     fh.write(f'{qry_gid}\t{ref_gid}')
-                    fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
+                    fh.write(f'\t{ref_hit["ani"]}')
+                    # we round the af to 4 decimals for consistency
+                    ref_hit['af'] = round(ref_hit['af'], 5)
+                    fh.write(f'\t{ref_hit["af"]}')
+                    #fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
                     fh.write(f'\t{taxonomy_str}')
                     if ani_screen_step:
                         fh.write(f'\t{ref_hit.get("other_related_refs","") or ""}')
@@ -264,6 +218,9 @@ class ANIClosestFile(object):
                         gtdb_ani_radius = self.gtdb_radii.get_rep_ani(canonical_rid)
                         closest_ani = closest[0][1]["ani"]
                         closest_af = closest[0][1]["af"]
+
+                        # round closest_af to 4 decimals for consistency
+                        closest_af = round(closest_af, 5)
 
                         fh.write(f'{gid}\t{ref_gid}')
                         fh.write(f'\t{closest_ani}\t{closest_af}')
