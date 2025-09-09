@@ -268,7 +268,8 @@ class SkANI(object):
 
             elif sketch_done and ((" TRACE " in line and " Ratio " in line) or
                                   (" DEBUG " in line and " Ref_file " in line and " Query_file " in line)):
-                comparison_bar.update(1)
+                if comparison_bar is not None:
+                    comparison_bar.update(1)
 
 
             # all Ref_file,Query_file,ANI,Align_fraction_ref,Align_fraction_query,Ref_name,Query_name in line
