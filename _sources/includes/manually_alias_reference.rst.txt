@@ -1,7 +1,7 @@
 .. code-block:: bash
 
     # Activate the GTDB-Tk conda environment
-    conda activate gtdbtk-2.5.0
+    conda activate gtdbtk-2.5.1
 
     # Set the environment variable to the directory containing the GTDB-Tk reference data
     conda env config vars set GTDBTK_DATA_PATH="/path/to/unarchived/gtdbtk/data";
