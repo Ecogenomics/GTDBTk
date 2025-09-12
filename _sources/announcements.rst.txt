@@ -1,6 +1,16 @@
 Announcements
 =============
 
+GTDB-Tk 2.5.2 available
+-----------------------
+
+*September 12, 2025*
+
+* GTDB-Tk version ``2.5.2`` is now available.
+
+* This release resolves the ani_screen error that reports ``TypeError: bool() undefined when iterable == total == None``.
+
+
 GTDB-Tk 2.5.1 available
 -----------------------
 

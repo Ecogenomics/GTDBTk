@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Bioconda &mdash; GTDB-Tk 2.5.1 documentation</title>
+  <title>Bioconda &mdash; GTDB-Tk 2.5.2 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.5.1
+                2.5.2
               </div>
             
           
@@ -258,13 +258,13 @@
 </div>
 <p>GTDB-Tk requires third-party packages from the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> and <code class="docutils literal notranslate"><span class="pre">bioconda</span></code> channels, make sure to
 specify those channels in that order!</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: replace 2.5.1 with the version you wish to install</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: replace 2.5.2 with the version you wish to install</span>
 
 <span class="c1"># using conda</span>
-conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gtdbtk-2.5.1<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span><span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.5.1
+conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gtdbtk-2.5.2<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span><span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.5.2
 
 <span class="c1"># using mamba (alternative)</span>
-mamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gtdbtk-2.5.1<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span><span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.5.1
+mamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>gtdbtk-2.5.2<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>-c<span class="w"> </span>bioconda<span class="w"> </span><span class="nv">gtdbtk</span><span class="o">=</span><span class="m">2</span>.5.2
 </pre></div>
 </div>
 </div>
@@ -285,7 +285,7 @@ that will automatically download, and extract the GTDB-Tk reference data. The sc
 <p>You can automatically alias <code class="docutils literal notranslate"><span class="pre">GTDBTK_DATA_PATH</span></code> whenever the environment is activated by
 <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables">setting environment-specific variables</a>, e.g.:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Activate the GTDB-Tk conda environment</span>
-conda<span class="w"> </span>activate<span class="w"> </span>gtdbtk-2.5.1
+conda<span class="w"> </span>activate<span class="w"> </span>gtdbtk-2.5.2
 
 <span class="c1"># Set the environment variable to the directory containing the GTDB-Tk reference data</span>
 conda<span class="w"> </span>env<span class="w"> </span>config<span class="w"> </span>vars<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">GTDBTK_DATA_PATH</span><span class="o">=</span><span class="s2">&quot;/path/to/unarchived/gtdbtk/data&quot;</span><span class="p">;</span>
