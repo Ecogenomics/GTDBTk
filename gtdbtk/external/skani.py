@@ -276,7 +276,7 @@ class SkANI(object):
             elif all(token in line for token in ['Ref_file', 'Query_file', 'ANI', 'Align_fraction_ref', 'Align_fraction_query']):
                 # This is the header line, skip it but from now on, we capture the output
                 capture_line = True
-                if comparison_bar:
+                if comparison_bar is not None:
                     comparison_bar.close()
                 self.logger.info(f'Comparisons finished, capturing results.')
                 continue
