@@ -2,6 +2,14 @@
 Change log
 ==========
 
+
+2.5.2
+-----
+
+Bug Fixes:
+
+* This release resolves the ani_screen error that reports ``TypeError: bool() undefined when iterable == total == None``.  (`#663 <https://github.com/Ecogenomics/GTDBTk/issues/663>`_) (`#662 <https://github.com/Ecogenomics/GTDBTk/issues/662>`_)
+
 2.5.1
 -----
 
