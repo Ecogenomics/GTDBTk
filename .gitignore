@@ -54,3 +54,5 @@ coverage.xml
 
 # OSX
 .DS_Store
+
+release226/
