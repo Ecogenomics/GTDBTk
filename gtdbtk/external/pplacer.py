@@ -201,6 +201,8 @@ class Pplacer(object):
                         if virt and res:
                             p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
                                                       f'{states[4]} ({virt:.2f} GB)')
+                            # self.logger.info(f'Step {cur_state + 1} of {len(states)} : {states[4]} ({virt:.2f} GB)')
+
                         else:
                             p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)} '
                                                            f'{states[4]}')
@@ -210,6 +212,8 @@ class Pplacer(object):
                             p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
                                                       f'{states[5]} ({res:.2f}/{virt:.2f} GB, '
                                                       f'{res / virt:.2%})')
+                            # self.logger.info(f'Step {cur_state + 1} of {len(states)} : {states[5]} '
+                            #                   f'({res:.2f}/{virt:.2f} GB, {res / virt:.2%})')
                         else:
                             p_bar.set_description_str(desc=f'Step {cur_state + 1} of {len(states)}: '
                                                            f'{states[5]}')

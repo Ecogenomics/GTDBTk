@@ -186,6 +186,13 @@ class SkANI(object):
         query_total = len(query_files)
         ref_total = len(ref_files)
 
+        #If server doesnt have atty then update the progress bars every 10000 items
+        # Detect if we are in a terminal
+        is_terminal = os.isatty(1)
+        update_interval = 1 if is_terminal else 10000
+
+
+
         # Setup tqdm progress bars
         self.logger.info(f'Sketching genomes')
         ref_bar = tqdm(
@@ -204,8 +211,6 @@ class SkANI(object):
         )
         count_ratio = 0
 
-
-
         # Track what's already been counted (avoid duplicate progress)
         seen_queries = set()
         seen_refs = set()
@@ -217,6 +222,8 @@ class SkANI(object):
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
 
         comparison_bar = None
+        ref_counter = 0
+        query_counter = 0
 
         for line in proc.stdout:
             line = line.strip()
@@ -231,13 +238,18 @@ class SkANI(object):
 
                     if filename in query_files and filename not in seen_queries:
                         seen_queries.add(filename)
-                        query_bar.update(1)
+                        query_counter += 1
+                        if query_counter % update_interval == 0 or is_terminal:
+                            query_bar.update(update_interval if not is_terminal else 1)
 
                     elif filename in ref_files and filename not in seen_refs:
                         seen_refs.add(filename)
-                        ref_bar.update(1)
+                        ref_counter += 1
+                        if ref_counter % update_interval == 0 or is_terminal:
+                            ref_bar.update(update_interval if not is_terminal else 1)
                 except Exception as e:
                     self.logger.warning(f"Could not parse line: {line} ({e})")
+
 
             elif "Generating sketch time" in line:
                 time_info = line.split()[-1].strip()
@@ -246,6 +258,15 @@ class SkANI(object):
                 # Convert to HH:MM:SS
                 minutes = int(time_in_seconds // 60)
                 seconds = int(time_in_seconds % 60)
+
+                # Catch any remaining items
+                ref_remaining = ref_total - ref_bar.n
+                if ref_remaining > 0:
+                    ref_bar.update(ref_remaining)
+
+                query_remaining = query_total - query_bar.n
+                if query_remaining > 0:
+                    query_bar.update(query_remaining)
 
                 self.logger.info(f"Sketches done: {minutes}min {seconds}secs")
 
@@ -280,8 +301,10 @@ class SkANI(object):
                     comparison_bar.close()
                 self.logger.info(f'Comparisons finished, capturing results.')
                 continue
-            elif capture_line and line and "ANI calculation time:" not in line:
+            elif capture_line and line and "ANI calculation time:" not in line and " TRACE " not in line:
                 result_lines.add((line.strip()))
+
+
 
         proc.wait()
         #remove the last printed line
