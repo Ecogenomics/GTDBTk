@@ -28,7 +28,7 @@ class ANIScreener(object):
         self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
         self.gtdb_radii = GTDBRadiiFile()
 
-    def run_aniscreen(self,genomes,out_dir,prefix):
+    def run_aniscreen(self,genomes,out_dir,prefix,skani_sketch_dir):
 
         # If prescreen is set to True, then we will first run all genomes against a skani database
         # of all genomes in the reference package.
@@ -48,7 +48,7 @@ class ANIScreener(object):
                 del genomes_copy[k]
 
 
-        skani_results = ani_rep.run_skani(genomes, prefix,output_dir=out_dir)
+        skani_results = ani_rep.run_skani(genomes, prefix,output_dir=out_dir,skani_sketch_dir=skani_sketch_dir)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
 

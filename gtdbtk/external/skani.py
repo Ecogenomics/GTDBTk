@@ -89,7 +89,7 @@ class SkANI(object):
         )
 
 
-    def run_vs_all_reps(self, genomes, ref_genomes, prefix,output_dir=None,skani_preset=None, report_progress=True):
+    def run_vs_all_reps(self, genomes, ref_genomes, prefix,output_dir=None,skani_sketch_dir=None,skani_preset=None, report_progress=True):
         """Runs skani against all representatives in the GTDB.
 
         Parameters
@@ -129,12 +129,13 @@ class SkANI(object):
 
             # Run skani
             results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl,output_dir,skani_preset,
-                            report_progress=report_progress)
+                                                    skani_sketch_dir=skani_sketch_dir,
+                                                    report_progress=report_progress)
 
             return self._parse_results(iter(results_all_vs_all))
 
 
-    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,output_dir,skani_preset=None, report_progress=True):
+    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,output_dir,skani_preset=None,skani_sketch_dir=None,report_progress=True):
         """Runs skani in batch mode against all genomes in the GTDB.
 
         Parameters
@@ -160,7 +161,7 @@ class SkANI(object):
 
         # lets sketch all genomes first
         self.logger.info('Sketching refence genomes')
-        ref_sketch = self.sketch_references(rl,output_dir,skani_preset)
+        ref_sketch = self.sketch_references(rl,output_dir,skani_sketch_dir,skani_preset)
         self.logger.info('Done')
 
 
@@ -499,7 +500,7 @@ class SkANI(object):
         return out
 
 
-    def sketch_references(self, list_file,output_dir,skani_preset):
+    def sketch_references(self, list_file,output_dir,skani_sketch_dir,skani_preset):
         """Sketches the genomes in the provided list file.
 
         Parameters
@@ -516,8 +517,12 @@ class SkANI(object):
         with open(list_file) as f:
             total_genomes = sum(1 for _ in f)
 
-
-        sketching_dir = os.path.join(output_dir, DIR_ANISCREEN_SKETCH_REF)
+        if skani_sketch_dir is not None:
+            # if skani_sketch_dir fininshed with "/" then remove it
+            skani_sketch_dir = skani_sketch_dir.rstrip('/')
+            sketching_dir = skani_sketch_dir
+        else:
+            sketching_dir = os.path.join(output_dir, DIR_ANISCREEN_SKETCH_REF)
 
         # if sketching_dir exists and has only this 3 files : index.db  markers.bin  sketches.db
         # then we assume the sketching has already been done
@@ -526,13 +531,6 @@ class SkANI(object):
             if set(existing_files) == {'index.db', 'markers.bin', 'sketches.db'}:
                 self.logger.info(f'Sketches already exist at {sketching_dir}, skipping sketching step.')
                 return sketching_dir
-        # if the directory exists but has other files, we cant remove it as it might be used by another process
-        # but skani cant overwrite existing sketches, so we raise an error
-        if os.path.exists(sketching_dir):
-            existing_files = os.listdir(sketching_dir)
-            if set(existing_files) != {'index.db', 'markers.bin', 'sketches.db'}:
-                raise GTDBTkExit(f'Sketch directory {sketching_dir} already exists and non-skani files are present. '
-                                 f'Please remove it before running skani sketching.')
 
         # if the directory exists but has only  1 or 2 of the 3 files {'index.db', 'markers.bin', 'sketches.db'},
         # we remove it as it is incomplete
@@ -541,6 +539,11 @@ class SkANI(object):
             if len(existing_files) < 3 and set(existing_files).issubset({'index.db', 'markers.bin', 'sketches.db'}):
                 self.logger.warning(f'Sketch directory {sketching_dir} exists but is incomplete. Removing it and re-sketching.')
                 shutil.rmtree(sketching_dir)
+            elif len(existing_files) >= 3 and set(existing_files) != {'index.db', 'markers.bin', 'sketches.db'}:
+                # if the directory exists but has other files, we cant remove it as it might be used by another process
+                # but skani cant overwrite existing sketches, so we raise an error
+                raise GTDBTkExit(f'Sketch directory {sketching_dir} already exists and non-skani files are present. '
+                                 f'Please remove it before running skani sketching.')
             else:
                 # we know the directory exists but is empty or has only skani files so we can remove it safely
                 shutil.rmtree(sketching_dir)
@@ -557,8 +560,14 @@ class SkANI(object):
         args += ['-o',sketching_dir]
         args += ['-t', f'{self.cpus}']
         args += ['-l', list_file]
-        self.logger.debug('Running skani sketch with the following arguments:')
-        self.logger.debug(f'args: {type(args)}')
+        # print the size of list_file
+        size_file = os.path.getsize(list_file)
+        print(f'List file size: {size_file} bytes')
+
+        self.logger.info('Running skani sketch with the following arguments:')
+        self.logger.info(f'args: {args}')
+        # sleep unyil I press enter
+        input("Press Enter to exit...")
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, encoding='utf-8')
 
