@@ -48,9 +48,7 @@ class ANIScreener(object):
                 del genomes_copy[k]
 
 
-
-
-        skani_results = ani_rep.run_skani(genomes, prefix)
+        skani_results = ani_rep.run_skani(genomes, prefix,output_dir=out_dir)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
 
