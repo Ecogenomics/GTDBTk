@@ -63,6 +63,9 @@ PATH_AR53_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.prescre
 #Command: ani_screen
 DIR_ANISCREEN = join(DIR_CLASSIFY, 'ani_screen')
 DIR_ANISCREEN_INTERMEDIATE = join(DIR_ANISCREEN, 'intermediate_results')
+DIR_ANISCREEN_SKETCH_SKANI = join(DIR_ANISCREEN_INTERMEDIATE, 'sketch_skani')
+DIR_ANISCREEN_SKETCH_REF = join(DIR_ANISCREEN_SKETCH_SKANI, 'sketch_ref')
+DIR_ANISCREEN_SKETCH_QRY = join(DIR_ANISCREEN_SKETCH_SKANI, 'sketch_query')
 PATH_BAC120_ANI_SKANI = join(DIR_ANISCREEN, '{prefix}.bac120_skani.summary.tsv')
 PATH_AR53_ANI_SKANI = join(DIR_ANISCREEN, '{prefix}.ar53_skani.summary.tsv')
 
