@@ -30,8 +30,7 @@ from tqdm import tqdm
 from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import tqdm_log
-from gtdbtk.config.common import CONFIG
-from gtdbtk.config.output import DIR_ANISCREEN_SKETCH_QRY, DIR_ANISCREEN_SKETCH_REF
+from gtdbtk.config.output import DIR_ANISCREEN_SKETCH_REF
 
 from collections import namedtuple
 
@@ -128,14 +127,14 @@ class SkANI(object):
             reverse_dict_rl=self.write_list_to_file(ref_genomes, rl)
 
             # Run skani
-            results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl,output_dir,skani_preset,
+            results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl,tmpdir,skani_preset,
                                                     skani_sketch_dir=skani_sketch_dir,
                                                     report_progress=report_progress)
 
             return self._parse_results(iter(results_all_vs_all))
 
 
-    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,output_dir,skani_preset=None,skani_sketch_dir=None,report_progress=True):
+    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,tmpdir,skani_preset=None,skani_sketch_dir=None,report_progress=True):
         """Runs skani in batch mode against all genomes in the GTDB.
 
         Parameters
@@ -161,7 +160,7 @@ class SkANI(object):
 
         # lets sketch all genomes first
         self.logger.info('Sketching refence genomes')
-        ref_sketch = self.sketch_references(rl,output_dir,skani_sketch_dir,skani_preset)
+        ref_sketch = self.sketch_references(rl,tmpdir,skani_sketch_dir,skani_preset)
         self.logger.info('Done')
 
 
@@ -500,7 +499,7 @@ class SkANI(object):
         return out
 
 
-    def sketch_references(self, list_file,output_dir,skani_sketch_dir,skani_preset):
+    def sketch_references(self, list_file,tmpdir,skani_sketch_dir,skani_preset):
         """Sketches the genomes in the provided list file.
 
         Parameters
@@ -522,7 +521,7 @@ class SkANI(object):
             skani_sketch_dir = skani_sketch_dir.rstrip('/')
             sketching_dir = skani_sketch_dir
         else:
-            sketching_dir = os.path.join(output_dir, DIR_ANISCREEN_SKETCH_REF)
+            sketching_dir = os.path.join(tmpdir, DIR_ANISCREEN_SKETCH_REF)
 
         # if sketching_dir exists and has only this 3 files : index.db  markers.bin  sketches.db
         # then we assume the sketching has already been done
@@ -550,7 +549,7 @@ class SkANI(object):
 
         make_sure_path_exists(os.path.dirname(sketching_dir))
         # list files and directories in out_dir
-        self.logger.info(f'Sketch path: {sketching_dir}')
+        #self.logger.info(f'Sketch path: {sketching_dir}')
         args = ['skani', 'sketch']
         if skani_preset:
             # is skani_preset doesnt start with "--" then add "--" to it
@@ -561,11 +560,9 @@ class SkANI(object):
         args += ['-t', f'{self.cpus}']
         args += ['-l', list_file]
         # print the size of list_file
-        size_file = os.path.getsize(list_file)
-        print(f'List file size: {size_file} bytes')
 
-        self.logger.info('Running skani sketch with the following arguments:')
-        self.logger.info(f'args: {args}')
+        self.logger.debug('Running skani sketch with the following arguments:')
+        self.logger.debug(f'args: {args}')
         # sleep unyil I press enter
         input("Press Enter to exit...")
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
