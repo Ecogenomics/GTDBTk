@@ -653,7 +653,8 @@ class OptionsParser(object):
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
             out_dir=options.out_dir,
-            prefix=options.prefix)
+            prefix=options.prefix,
+            skani_sketch_dir=options.skani_sketch_dir)
 
 
         self.logger.info('Done.')

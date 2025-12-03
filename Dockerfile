@@ -42,12 +42,12 @@ RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplace
 # ------------------------------ INSTALL SKANI ------------------------------- #
 # ---------------------------------------------------------------------------- #
 
-RUN wget https://github.com/bluenote-1577/skani/archive/refs/tags/v0.2.1.tar.gz
-RUN tar -xvf v0.2.1.tar.gz
-RUN cd skani-0.2.1 && cargo install --path . --root /usr
+RUN wget https://github.com/bluenote-1577/skani/archive/refs/tags/v0.3.1.tar.gz
+RUN tar -xvf v0.3.1.tar.gz
+RUN cd skani-0.3.1 && cargo install --path . --root /usr
 RUN chmod +x /usr/bin/skani
 RUN cd ../
-RUN rm -rf v0.2.1.tar.gz skani-0.2.1
+RUN rm -rf v0.3.1.tar.gz skani-0.3.1
 
 # ---------------------------------------------------------------------------- #
 # --------------------- SET GTDB-TK MOUNTED DIRECTORIES ---------------------- #

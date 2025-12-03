@@ -27,9 +27,10 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+from gtdbtk.biolib_lite.common import make_sure_path_exists
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.tools import tqdm_log
-from gtdbtk.config.common import CONFIG
+from gtdbtk.config.output import DIR_ANISCREEN_SKETCH_REF
 
 from collections import namedtuple
 
@@ -87,7 +88,7 @@ class SkANI(object):
         )
 
 
-    def run_vs_all_reps(self, genomes, ref_genomes, prefix,skani_preset=None, report_progress=True):
+    def run_vs_all_reps(self, genomes, ref_genomes, prefix,output_dir=None,skani_sketch_dir=None,skani_preset=None, report_progress=True):
         """Runs skani against all representatives in the GTDB.
 
         Parameters
@@ -126,17 +127,14 @@ class SkANI(object):
             reverse_dict_rl=self.write_list_to_file(ref_genomes, rl)
 
             # Run skani
-            results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl,skani_preset,
-                            report_progress=report_progress)
+            results_all_vs_all= self.run_all_vs_all(ql, rl,reverse_dict_ql,reverse_dict_rl,tmpdir,skani_preset,
+                                                    skani_sketch_dir=skani_sketch_dir,
+                                                    report_progress=report_progress)
 
             return self._parse_results(iter(results_all_vs_all))
 
 
-
-
-
-
-    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,skani_preset=None, report_progress=True):
+    def run_all_vs_all(self, ql, rl,reverse_ql,reverse_rl,tmpdir,skani_preset=None,skani_sketch_dir=None,report_progress=True):
         """Runs skani in batch mode against all genomes in the GTDB.
 
         Parameters
@@ -159,8 +157,15 @@ class SkANI(object):
 
         ani_af = set()
 
+
+        # lets sketch all genomes first
+        self.logger.info('Sketching refence genomes')
+        ref_sketch = self.sketch_references(rl,tmpdir,skani_sketch_dir,skani_preset)
+        self.logger.info('Done')
+
+
         #
-        args = ['skani', 'dist']
+        args = ['skani', 'search']
         if skani_preset:
             # is skani_preset doesnt start with "--" then add "--" to it
             if not skani_preset.startswith('--'):
@@ -169,123 +174,23 @@ class SkANI(object):
 
 
         #args += ['-t',f'{self.cpus}','-s',f'{skani_s}','--min-af',f'{skani_min_af}','--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
-        args += ['-t',f'{self.cpus}','--trace','--ql', ql, '--rl', rl, '-o', '/dev/stdout']
+        args += ['-t',f'{self.cpus}','-d', ref_sketch, '--ql', ql,'--short-header', '-o', '/dev/stdout']
 
-        # print the type of args for debugging
-        self.logger.debug('Running skani with the following arguments:')
-        self.logger.debug(f'args: {type(args)}')
-        # print the args for debugging
-
-
-        # Read file lists into sets for fast lookup
-        with open(ql) as f:
-            query_files = set(Path(line.strip()).name for line in f if line.strip())
-        with open(rl) as f:
-            ref_files = set(Path(line.strip()).name for line in f if line.strip())
-
-        query_total = len(query_files)
-        ref_total = len(ref_files)
-
-        # Setup tqdm progress bars
-        self.logger.info(f'Sketching genomes')
-        ref_bar = tqdm(
-            total=ref_total,
-            desc="Sketching references",
-            unit="genome",
-            ncols=100,
-            leave=False
-        )
-        query_bar = tqdm(
-            total=query_total,
-            desc="Sketching queries",
-            unit="genome",
-            ncols=100,
-            leave=False
-        )
-        count_ratio = 0
-
-
-
-        # Track what's already been counted (avoid duplicate progress)
-        seen_queries = set()
-        seen_refs = set()
         result_lines = set()
-        capture_line=False
-        sketch_done = False
         capture_output= []
 
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
-
-        comparison_bar = None
 
         for line in proc.stdout:
             line = line.strip()
             capture_output.append(line)
             self.logger.debug(line)
-
-            if "TRACE" in line and "Sketching" in line:
-                # Extract the file name from path
-                try:
-                    file_path = line.split()[-2].strip()
-                    filename = Path(file_path).name
-
-                    if filename in query_files and filename not in seen_queries:
-                        seen_queries.add(filename)
-                        query_bar.update(1)
-
-                    elif filename in ref_files and filename not in seen_refs:
-                        seen_refs.add(filename)
-                        ref_bar.update(1)
-                except Exception as e:
-                    self.logger.warning(f"Could not parse line: {line} ({e})")
-
-            elif "Generating sketch time" in line:
-                time_info = line.split()[-1].strip()
-                #convert time_info to seconds if needed
-                time_in_seconds = float(time_info)
-                # Convert to HH:MM:SS
-                minutes = int(time_in_seconds // 60)
-                seconds = int(time_in_seconds % 60)
-
-                self.logger.info(f"Sketches done: {minutes}min {seconds}secs")
-
-                query_bar.clear()
-                query_bar.close()
-                ref_bar.clear()
-                ref_bar.close()
-                self.logger.info(f"Running comparisons")
-                sketch_done = True
-
-                # after sketching is done
-                comparison_bar = tqdm(
-                    desc="Running comparisons",
-                    unit="comparisons",
-                    ncols=100,
-                    leave=False,  # keep final summary line
-                    total=None  # unknown total, just count
-                )
-
-
-            elif sketch_done and ((" TRACE " in line and " Ratio " in line) or
-                                  (" DEBUG " in line and " Ref_file " in line and " Query_file " in line)):
-                if comparison_bar is not None:
-                    comparison_bar.update(1)
-
-
-            # all Ref_file,Query_file,ANI,Align_fraction_ref,Align_fraction_query,Ref_name,Query_name in line
-            elif all(token in line for token in ['Ref_file', 'Query_file', 'ANI', 'Align_fraction_ref', 'Align_fraction_query']):
-                # This is the header line, skip it but from now on, we capture the output
-                capture_line = True
-                if comparison_bar is not None:
-                    comparison_bar.close()
-                self.logger.info(f'Comparisons finished, capturing results.')
-                continue
-            elif capture_line and line and "ANI calculation time:" not in line:
+            # if the line does not start with a timer we parse it
+            if not re.match(r'^\[\d\d:\d\d:\d\d\.\d+\]', line):
                 result_lines.add((line.strip()))
 
         proc.wait()
         #remove the last printed line
-  # overwrite with spaces and return to start
 
         if proc.returncode != 0:
             self.logger.error('STDOUT:\n' + "\n".join(capture_output))
@@ -294,6 +199,9 @@ class SkANI(object):
         if len(result_lines)> 1:
             for result_line in result_lines:
                 try:
+                    if all(token in result_line.strip().split('\t') for token in ['Ref_file', 'Query_file', 'ANI', 'Align_fraction_ref', 'Align_fraction_query']):
+                        self.logger.info('Capturing skani results.')
+                        continue
                     parsed = self.parse_result_line(result_line)
                     ani_af.add((
                         reverse_ql.get(parsed.query_file),
@@ -589,3 +497,95 @@ class SkANI(object):
                 out[qid][rid] = {'ani': ani, 'af': max_af}
 
         return out
+
+
+    def sketch_references(self, list_file,tmpdir,skani_sketch_dir,skani_preset):
+        """Sketches the genomes in the provided list file.
+
+        Parameters
+        ----------
+        list_file : str
+            The path to the list file containing genome paths.
+        out_dir : str
+            The directory to write the sketches to.
+
+
+        """
+
+        # Detect total number of genomes from list file
+        with open(list_file) as f:
+            total_genomes = sum(1 for _ in f)
+
+        if skani_sketch_dir is not None:
+            # if skani_sketch_dir fininshed with "/" then remove it
+            skani_sketch_dir = skani_sketch_dir.rstrip('/')
+            sketching_dir = skani_sketch_dir
+        else:
+            sketching_dir = os.path.join(tmpdir, DIR_ANISCREEN_SKETCH_REF)
+
+        # if sketching_dir exists and has only this 3 files : index.db  markers.bin  sketches.db
+        # then we assume the sketching has already been done
+        if os.path.exists(sketching_dir):
+            existing_files = os.listdir(sketching_dir)
+            if set(existing_files) == {'index.db', 'markers.bin', 'sketches.db'}:
+                self.logger.info(f'Sketches already exist at {sketching_dir}, skipping sketching step.')
+                return sketching_dir
+
+        # if the directory exists but has only  1 or 2 of the 3 files {'index.db', 'markers.bin', 'sketches.db'},
+        # we remove it as it is incomplete
+        if os.path.exists(sketching_dir):
+            existing_files = os.listdir(sketching_dir)
+            if len(existing_files) < 3 and set(existing_files).issubset({'index.db', 'markers.bin', 'sketches.db'}):
+                self.logger.warning(f'Sketch directory {sketching_dir} exists but is incomplete. Removing it and re-sketching.')
+                shutil.rmtree(sketching_dir)
+            elif len(existing_files) >= 3 and set(existing_files) != {'index.db', 'markers.bin', 'sketches.db'}:
+                # if the directory exists but has other files, we cant remove it as it might be used by another process
+                # but skani cant overwrite existing sketches, so we raise an error
+                raise GTDBTkExit(f'Sketch directory {sketching_dir} already exists and non-skani files are present. '
+                                 f'Please remove it before running skani sketching.')
+            else:
+                # we know the directory exists but is empty or has only skani files so we can remove it safely
+                shutil.rmtree(sketching_dir)
+
+        make_sure_path_exists(os.path.dirname(sketching_dir))
+        # list files and directories in out_dir
+        #self.logger.info(f'Sketch path: {sketching_dir}')
+        args = ['skani', 'sketch']
+        if skani_preset:
+            # is skani_preset doesnt start with "--" then add "--" to it
+            if not skani_preset.startswith('--'):
+                preset = f'--{skani_preset}'
+                args.append(preset)
+        args += ['-o',sketching_dir]
+        args += ['-t', f'{self.cpus}']
+        args += ['-l', list_file]
+        # print the size of list_file
+
+        self.logger.debug('Running skani sketch with the following arguments:')
+        self.logger.debug(f'args: {args}')
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, encoding='utf-8')
+
+        # Regex to capture lines like: "3100 sequences sketched."
+        progress_re = re.compile(r"(\d+)\s+sequences sketched")
+        pbar = tqdm(total=total_genomes, desc="Sketching", unit="genomes", ncols=100,leave=False)
+        last_count = 0
+
+        for line in proc.stdout:
+            line = line.strip()
+            m = progress_re.search(line)
+            if m:
+                count = int(m.group(1))
+                delta = count - last_count
+                if delta > 0:
+                    pbar.update(delta)
+                    last_count = count
+
+        # Make sure the bar completes
+        if last_count < total_genomes:
+            pbar.update(total_genomes - last_count)
+
+        pbar.close()
+        proc.wait()
+        return sketching_dir
+
