@@ -563,8 +563,6 @@ class SkANI(object):
 
         self.logger.debug('Running skani sketch with the following arguments:')
         self.logger.debug(f'args: {args}')
-        # sleep unyil I press enter
-        input("Press Enter to exit...")
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, encoding='utf-8')
 
