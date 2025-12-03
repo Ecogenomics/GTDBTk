@@ -2,6 +2,23 @@
 Change log
 ==========
 
+2.6.0
+-----
+
+Major Changes:
+* GTDB-Tk has now a fixed version for skani (v0.3.1) and pplacer (v1.1.alpha19) to i) ensure reproducibility of results
+and ii) use the sketch format compatible with skani v0.3.1.
+* The limit of number of genomes compared in dense genera has been removed.This ensures that all representative genomes
+in a genus are compared, preventing incorrect species assignments when the closest genome by ANI is outside the
+previous 100-genome limit. This is especially important in dense genera like Collinsella and significantly
+improves classification accuracy, even if runtime increases slightly.
+
+Bug Fixes:
+* (`#670 <https://github.com/Ecogenomics/GTDBTk/issues/670>`_), (`#674 <<https://github.com/Ecogenomics/GTDBTk/issues/674>`_),(`#668 <<https://github.com/Ecogenomics/GTDBTk/issues/668>`_) Fixed an issue where GTDB-Tk would crash when using pplacer v1.1.alpha20. This issue is now resolved by fixing pplacer to v1.1.alpha19.
+* (`#671 <https://github.com/Ecogenomics/GTDBTk/issues/671>`_) The limit of number of genomes compared in dense genera has been removed.
+* (`#672 <https://github.com/Ecogenomics/GTDBTk/issues/672>`_) skani is now fixed to v0.3.1 to and uses `sketch` + `search` commands instead of `dist`.
+* (`#665 <https://github.com/Ecogenomics/GTDBTk/issues/665>`_) GTDB-Tk now uses skani v0.3.1 and have a option to save the sketch db for reference genomes for future use( `--skani_sketch_dir` ).
+* (`#669 <https://github.com/Ecogenomics/GTDBTk/issues/669>`_) BaseModel from pydantic is now replaces by DataClass to avoid warnings with pydantic v2.x.
 
 2.5.2
 -----

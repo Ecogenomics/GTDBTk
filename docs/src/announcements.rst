@@ -1,6 +1,14 @@
 Announcements
 =============
 
+GTDB-Tk 2.6.0 available
+-----------------------
+
+*December XX, 2025*
+
+* GTDB-Tk version ``2.6.0`` is now available.
+
+
 GTDB-Tk 2.5.2 available
 -----------------------
 

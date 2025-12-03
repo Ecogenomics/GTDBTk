@@ -37,12 +37,14 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.5.0+ includes the following new features:
-- GTDB-Tk now uses **``skani`` exclusively** for genome clustering, replacing the previous mash/skani hybrid approach.  
-  As a result, the mutually exclusive required options ``--mash_db`` and ``--skip_ani_screen`` have been removed. The ``--skip_ani_screen`` 
-flag has now been changed to an optional parameter.  
-  **⚠️This change is not backward-compatible and may break existing pipelines or scripts that rely on these options.**
-
+GTDB-Tk v2.6.0+ includes the following new features:
+* GTDB-Tk has now a fixed version for skani (v0.3.1) and pplacer (v1.1.alpha19) to i) ensure reproducibility of results
+and ii) use the sketch format compatible with skani v0.3.1.
+* The limit of number of genomes compared in dense genera has been removed.This ensures that all representative genomes
+in a genus are compared, preventing incorrect species assignments when the closest genome by ANI is outside the
+previous 100-genome limit. This is especially important in dense genera like Collinsella and significantly
+improves classification accuracy, even if runtime increases slightly: 
+* **Rerunning GTDB-Tk v2.6.0+ on genomes previously run with the `--skip-ani-screen` option is recommended to ensure accurate species assignments.**
 
 ## 📈 Performance
 Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).
