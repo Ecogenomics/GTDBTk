@@ -1,7 +1,19 @@
 import json
+from datetime import datetime
+
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional, Dict, ClassVar
 
+
+
+def _convert(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, list):
+        return [_convert(o) for o in obj]
+    if isinstance(obj, dict):
+        return {k: _convert(v) for k, v in obj.items()}
+    return obj
 
 @dataclass
 class Steps:
@@ -103,6 +115,9 @@ class DecorateStep(Steps):
     output_files: Optional[Dict] = None
 
 
+
+
+
 @dataclass
 class _StageLoggerImpl:
     """Internal implementation of StageLogger"""
@@ -121,7 +136,7 @@ class _StageLoggerImpl:
         if not self.path:
             raise ValueError("Path not set for StageLogger")
         with open(self.path, "w") as f:
-            json.dump(asdict(self), f, indent=4)
+            json.dump(_convert(asdict(self)), f, indent=4)
 
     def has_stage(self, stage_class: type) -> bool:
         return any(isinstance(x, stage_class) for x in self.steps)
@@ -175,6 +190,10 @@ class StageLogger:
         if not cls._instance:
             cls._instance = super().__new__(cls)
             cls._instance._impl = _StageLoggerImpl(steps=[])
+        return cls._instance
+
+    @classmethod
+    def instance(cls):
         return cls._instance
 
     def __getattr__(self, name):

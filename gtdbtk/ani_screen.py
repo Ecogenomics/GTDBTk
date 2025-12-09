@@ -47,7 +47,6 @@ class ANIScreener(object):
                 self.logger.warning(f'Genome {k} file is invalid for skani. It will be removed from the sketch step.')
                 del genomes_copy[k]
 
-
         skani_results = ani_rep.run_skani(genomes, prefix,output_dir=out_dir,skani_sketch_dir=skani_sketch_dir)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)

@@ -523,6 +523,7 @@ def get_main_parser():
         #     __skani_preset(grp)
         with arg_group(parser, 'optional clustering arguments') as grp:
             __min_af(grp)
+            __skani_sketch_dir(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)

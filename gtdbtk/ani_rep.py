@@ -30,7 +30,7 @@ class ANIRep(object):
 
 
 
-    def run(self, genomes, out_dir, prefix, min_af):
+    def run(self, genomes, out_dir, prefix, min_af,skani_sketch_dir=None):
         """Runs the pipeline.
 
         Parameters
@@ -44,7 +44,7 @@ class ANIRep(object):
         min_af : float
             alignment fraction to consider the closest genomes
         """
-        skani_results = self.run_skani(genomes,prefix)
+        skani_results = self.run_skani(genomes,prefix,skani_sketch_dir=skani_sketch_dir)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
         ani_summary_file = ANISummaryFile(out_dir, prefix, skani_results, taxonomy)

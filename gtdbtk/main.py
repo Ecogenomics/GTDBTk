@@ -872,7 +872,7 @@ class OptionsParser(object):
                                               options.extension)
 
         ani_rep = ANIRep(options.cpus)
-        ani_rep.run(genomes, options.out_dir, options.prefix, options.min_af)
+        ani_rep.run(genomes, options.out_dir, options.prefix, options.min_af,options.skani_sketch_dir)
 
         self.logger.info('Done.')
 
