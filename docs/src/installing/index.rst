@@ -104,9 +104,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes they are o
    * - `FastTree <http://www.microbesonline.org/fasttree/>`_
      - >= 2.1.9
      - Price MN, et al. 2010. `FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/>`_. *PLoS One*, 5, e9490.
-   * - `Mash <https://github.com/marbl/Mash>`_
-     - >= 2.2
-     - Ondov BD, et al. 2016. `Mash: fast genome and metagenome distance estimation using MinHash <https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0997-x>`_. *Genome Biol* 17, 132. doi: doi: 10.1186/s13059-016-0997-x.
+
 
 
 Please cite these tools if you use GTDB-Tk in your work.
