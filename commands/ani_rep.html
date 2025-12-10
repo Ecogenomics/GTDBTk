@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>ani_rep &mdash; GTDB-Tk 2.5.2 documentation</title>
+  <title>ani_rep &mdash; GTDB-Tk 2.6.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.5.2
+                2.6.0
               </div>
             
           
@@ -263,7 +263,8 @@
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">ani_rep</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
-                      <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
+                      <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">min_af</span> <span class="n">MIN_AF</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">skani_sketch_dir</span> <span class="n">SKANI_SKETCH_DIR</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
                       <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span>
                       <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
@@ -293,6 +294,9 @@
 <dt><kbd>--min_af</kbd></dt>
 <dd><p>minimum alignment fraction to assign genome to a species cluster</p>
 <p>Default: 0.5</p>
+</dd>
+<dt><kbd>--skani_sketch_dir</kbd></dt>
+<dd><p>directory to store skani sketch db for reference genomes to reuse across runs.If not provided, a temporary directory will be used. If provided for the first time, the sketch db will be created in this directory.</p>
 </dd>
 </dl>
 </div>

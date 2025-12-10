@@ -1,9 +1,9 @@
 .. code-block:: bash
 
-    # NOTE: replace 2.5.2 with the version you wish to install
+    # NOTE: replace 2.6.0 with the version you wish to install
 
     # using conda
-    conda create -n gtdbtk-2.5.2 -c conda-forge -c bioconda gtdbtk=2.5.2
+    conda create -n gtdbtk-2.6.0 -c conda-forge -c bioconda gtdbtk=2.6.0
 
     # using mamba (alternative)
-    mamba create -n gtdbtk-2.5.2 -c conda-forge -c bioconda gtdbtk=2.5.2
+    mamba create -n gtdbtk-2.6.0 -c conda-forge -c bioconda gtdbtk=2.6.0

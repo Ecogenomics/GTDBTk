@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>classify_wf &mdash; GTDB-Tk 2.5.2 documentation</title>
+  <title>classify_wf &mdash; GTDB-Tk 2.6.0 documentation</title>
   
 
   
@@ -89,7 +89,7 @@
             
             
               <div class="version">
-                2.5.2
+                2.6.0
               </div>
             
           
@@ -133,6 +133,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optional skani arguments">optional skani arguments</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
 </ul>
 </li>
@@ -301,9 +302,11 @@ The location of genomes can also be specified using a batch file with the <code 
 <div class="section" id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">classify_wf</span> <span class="p">(</span><span class="o">--</span><span class="n">genome_dir</span> <span class="n">GENOME_DIR</span> <span class="o">|</span> <span class="o">--</span><span class="n">batchfile</span> <span class="n">BATCHFILE</span><span class="p">)</span>
-                          <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span> <span class="p">[</span><span class="o">--</span><span class="n">skip_ani_screen</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span>
-                          <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
+                          <span class="o">--</span><span class="n">out_dir</span> <span class="n">OUT_DIR</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">skani_sketch_dir</span> <span class="n">SKANI_SKETCH_DIR</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">skip_ani_screen</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">x</span> <span class="n">EXTENSION</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">min_perc_aa</span> <span class="n">MIN_PERC_AA</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cpus</span> <span class="n">CPUS</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">pplacer_cpus</span> <span class="n">PPLACER_CPUS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">force</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">scratch_dir</span> <span class="n">SCRATCH_DIR</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">write_single_copy_genes</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">keep_intermediates</span><span class="p">]</span>
@@ -326,6 +329,14 @@ The location of genomes can also be specified using a batch file with the <code 
 <dl class="option-list">
 <dt><kbd>--out_dir</kbd></dt>
 <dd><p>directory to output files</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="optional skani arguments">
+<h3>optional skani arguments<a class="headerlink" href="#optional skani arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--skani_sketch_dir</kbd></dt>
+<dd><p>directory to store skani sketch db for reference genomes to reuse across runs.If not provided, a temporary directory will be used. If provided for the first time, the sketch db will be created in this directory.</p>
 </dd>
 </dl>
 </div>
