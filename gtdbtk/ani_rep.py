@@ -30,7 +30,7 @@ class ANIRep(object):
 
 
 
-    def run(self, genomes, out_dir, prefix, min_af):
+    def run(self, genomes, out_dir, prefix, min_af,skani_sketch_dir=None):
         """Runs the pipeline.
 
         Parameters
@@ -44,7 +44,7 @@ class ANIRep(object):
         min_af : float
             alignment fraction to consider the closest genomes
         """
-        skani_results = self.run_skani(genomes,prefix)
+        skani_results = self.run_skani(genomes,prefix,skani_sketch_dir=skani_sketch_dir)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
         ani_summary_file = ANISummaryFile(out_dir, prefix, skani_results, taxonomy)
@@ -56,7 +56,7 @@ class ANIRep(object):
                        min_af,
                        taxonomy)
 
-    def run_skani(self,genomes, prefix,skani_preset=None):
+    def run_skani(self,genomes, prefix,output_dir=None,skani_sketch_dir=None,skani_preset=None):
         """Runs the skani pipeline.
         This step is separated from the run function because it is called from 2 different
         functions in the gtdbtk ( classify and ani_reps).
@@ -86,7 +86,7 @@ class ANIRep(object):
 
         self.logger.info(f'Calculating all vs all ANI with skani v{SkANI._get_version()}.')
         skani = SkANI(self.cpus, force_single=False)
-        skani_results = skani.run_vs_all_reps(genomes,ref_genomes,prefix,skani_preset)
+        skani_results = skani.run_vs_all_reps(genomes,ref_genomes,prefix,output_dir=output_dir,skani_sketch_dir=skani_sketch_dir,skani_preset=skani_preset)
         return skani_results
 
 

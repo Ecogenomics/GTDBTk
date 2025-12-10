@@ -41,8 +41,6 @@ References
      - Shaw J. and Yu Y.W. 2023. `Fast and robust metagenomic sequence comparison through sparse chaining with skani <https://www.nature.com/articles/s41592-023-02018-3>`_. *Nature Methods*, 20, pages1661–1665 (2023).
    * - `FastTree <http://www.microbesonline.org/fasttree/>`_
      - Price MN, et al. 2010. `FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/>`_. *PLoS One*, 5, e9490.
-   * - `Mash <https://github.com/marbl/Mash>`_
-     - Ondov BD, et al. 2016. `Mash: fast genome and metagenome distance estimation using MinHash <https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0997-x>`_. *Genome Biol* 17, 132. doi: doi: 10.1186/s13059-016-0997-x.
    * - `DendroPy <https://dendropy.org/>`_
      - Sukumaran J. and Mark T. Holder. 2010. DendroPy: A Python library for phylogenetic computing. Bioinformatics 26: 1569-1571.
    * - `NumPy <https://numpy.org/>`_

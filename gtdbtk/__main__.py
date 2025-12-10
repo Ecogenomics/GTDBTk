@@ -74,7 +74,6 @@ def main():
         sys.exit(0)
     elif sys.argv[1] in {'-v', '--v', '-version', '--version'}:
         print(f"gtdbtk: version {__version__} {__copyright__} {__author__}")
-
         # Warn the user they are not using the latest version (if possible)
         latest_ver = get_gtdbtk_latest_version()
         if latest_ver and latest_ver != __version__:

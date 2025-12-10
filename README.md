@@ -37,12 +37,13 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.5.0+ includes the following new features:
-- GTDB-Tk now uses **``skani`` exclusively** for genome clustering, replacing the previous mash/skani hybrid approach.  
-  As a result, the mutually exclusive required options ``--mash_db`` and ``--skip_ani_screen`` have been removed. The ``--skip_ani_screen`` 
-flag has now been changed to an optional parameter.  
-  **⚠️This change is not backward-compatible and may break existing pipelines or scripts that rely on these options.**
-
+GTDB-Tk v2.6.0+ includes the following new features:
+* GTDB-Tk has now a fixed version for skani (v0.3.1) and pplacer (v1.1.alpha19) to i) ensure reproducibility of results
+and ii) use the sketch format compatible with skani v0.3.1.
+* The limit of number of genomes compared in dense genera has been removed.This ensures that all representative genomes
+in a genus are compared, preventing incorrect species assignments when the closest genome by ANI is outside the
+previous 100-genome limit. This is important in dense genera like Collinsella and improves classification accuracy, even if runtime increases slightly.
+This limitation only occurred when previous versions of GTDB-Tk were used with the `--skip-ani-screen` flag.
 
 ## 📈 Performance
 Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).
@@ -65,12 +66,10 @@ The Genome Taxonomy Database (GTDB) is described in:
 We strongly encourage you to cite the following 3rd party dependencies:
 
 * Matsen FA, et al. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
-* Jain C, et al. 2019. [High-throughput ANI Analysis of 90K Prokaryotic Genomes Reveals Clear Species Boundaries](https://www.nature.com/articles/s41467-018-07641-9). <i>Nat. Communications</i>, doi: 10.1038/s41467-018-07641-9.
 * Shaw J. and Yu Y.W. 2023. [Fast and robust metagenomic sequence comparison through sparse chaining with skani](https://www.nature.com/articles/s41592-023-02018-3). <i>Nature Methods</i>, 20, pages1661–1665 (2023).
 * Hyatt D, et al. 2010. [Prodigal: prokaryotic gene recognition and translation initiation site identification](https://www.ncbi.nlm.nih.gov/pubmed/20211023). <i>BMC Bioinformatics</i>, 11:119. doi: 10.1186/1471-2105-11-119.
 * Price MN, et al. 2010. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.
 * Eddy SR. 2011. [Accelerated profile HMM searches](https://www.ncbi.nlm.nih.gov/pubmed/22039361). <i>PLOS Comp. Biol.</i>, 7:e1002195.
-* Ondov BD, et al. 2016. [Mash: fast genome and metagenome distance estimation using MinHash](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0997-x). <i>Genome Biol</i> 17, 132. doi: 10.1186/s13059-016-0997-x.
 
 
 ## © Copyright

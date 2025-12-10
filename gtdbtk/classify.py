@@ -885,7 +885,11 @@ class Classify(object):
                                                                         tt)
 
                     sorted_l = sorted(iter(dict_dist_refgenomes.items()), key=itemgetter(1))
-                    sorted_l = sorted_l[0:100]
+                    # Ok so we are removing this limit because in some cases, in very dense genera,
+                    # the actual closest genome might be beyond the 100 closest genomes ( see issue #671)
+                    # it will increase computation time a bit, but will be more accurate
+                    # it happens mostly when running the --skip_ani_screen option
+                    #sorted_l = sorted_l[0:100]
                     number_comparison += len(sorted_l)
                     out[leaf_node] = {"potential_g": sorted_l,
                                       "pplacer_g": leaf_ref_genome}
