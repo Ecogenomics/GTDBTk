@@ -542,7 +542,7 @@ class SkANI(object):
                 # if the directory exists but has other files, we cant remove it as it might be used by another process
                 # but skani cant overwrite existing sketches, so we raise an error
                 raise GTDBTkExit(f'Sketch directory {sketching_dir} already exists and non-skani files are present. '
-                                 f'Please remove it before running skani sketching.')
+                                 f'Ensure the directory is empty or contains only Skani sketch files before sketching.')
             else:
                 # we know the directory exists but is empty or has only skani files so we can remove it safely
                 shutil.rmtree(sketching_dir)
