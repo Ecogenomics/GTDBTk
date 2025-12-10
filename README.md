@@ -42,9 +42,8 @@ GTDB-Tk v2.6.0+ includes the following new features:
 and ii) use the sketch format compatible with skani v0.3.1.
 * The limit of number of genomes compared in dense genera has been removed.This ensures that all representative genomes
 in a genus are compared, preventing incorrect species assignments when the closest genome by ANI is outside the
-previous 100-genome limit. This is especially important in dense genera like Collinsella and significantly
-improves classification accuracy, even if runtime increases slightly: 
-* **Rerunning GTDB-Tk v2.6.0+ on genomes previously run with the `--skip-ani-screen` option is recommended to ensure accurate species assignments.**
+previous 100-genome limit. This is important in dense genera like Collinsella and improves classification accuracy, even if runtime increases slightly.
+This limitation only occurred when previous versions of GTDB-Tk were used with the `--skip-ani-screen` flag.
 
 ## 📈 Performance
 Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).
