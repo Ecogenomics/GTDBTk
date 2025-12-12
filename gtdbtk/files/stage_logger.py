@@ -134,7 +134,9 @@ class _StageLoggerImpl:
 
     def write(self):
         if not self.path:
-            raise ValueError("Path not set for StageLogger")
+            # Silently skip writing if no path is set
+            # This is expected for commands like check_install
+            return
         with open(self.path, "w") as f:
             json.dump(_convert(asdict(self)), f, indent=4)
 
