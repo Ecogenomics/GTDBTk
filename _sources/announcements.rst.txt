@@ -1,6 +1,16 @@
 Announcements
 =============
 
+GTDB-Tk 2.6.1 available
+-----------------------
+
+*December 12, 2025*
+
+* GTDB-Tk version ``2.6.1`` is now available.
+
+* This release resolves the check_install error that reports ``Path not set for StageLogger``
+
+
 GTDB-Tk 2.6.0 available
 -----------------------
 

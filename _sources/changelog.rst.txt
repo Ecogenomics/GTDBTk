@@ -2,6 +2,13 @@
 Change log
 ==========
 
+2.6.1
+_____
+
+Bug Fixes:
+
+* (`#680 <https://github.com/Ecogenomics/GTDBTk/issues/680>`_) This release resolves the check_install error that reports ``Path not set for StageLogger``
+
 2.6.0
 -----
 
