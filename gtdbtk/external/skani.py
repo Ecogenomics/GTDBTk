@@ -159,7 +159,7 @@ class SkANI(object):
 
 
         # lets sketch all genomes first
-        self.logger.info('Sketching refence genomes')
+        self.logger.info('Sketching reference genomes')
         ref_sketch = self.sketch_references(rl,tmpdir,skani_sketch_dir,skani_preset)
         self.logger.info('Done')
 
