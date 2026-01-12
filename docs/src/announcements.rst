@@ -1,6 +1,15 @@
 Announcements
 =============
 
+GTDB-Tk 2.6.2 available
+-----------------------
+
+*January 15, 2026*
+
+* GTDB-Tk version ``2.6.2`` is now available.
+
+* This release resolves crash when running GTDB-Tk in a directory with an existing stage log.
+
 GTDB-Tk 2.6.1 available
 -----------------------
 

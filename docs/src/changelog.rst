@@ -2,6 +2,13 @@
 Change log
 ==========
 
+2.6.2
+-----
+
+Bug Fixes:
+
+* (`#684 <https://github.com/Ecogenomics/GTDBTk/issues/684>`_) Remove 'name' from JSON data before unpacking into Step classes.
+
 2.6.1
 _____
 
