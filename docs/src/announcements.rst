@@ -4,7 +4,7 @@ Announcements
 GTDB-Tk 2.6.2 available
 -----------------------
 
-*January 15, 2026*
+*January 29, 2026*
 
 * GTDB-Tk version ``2.6.2`` is now available.
 
