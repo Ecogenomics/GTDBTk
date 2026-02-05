@@ -28,26 +28,16 @@ class ANIScreener(object):
         self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
         self.gtdb_radii = GTDBRadiiFile()
 
-    def run_aniscreen(self,genomes,out_dir,prefix,skani_sketch_dir):
+    def run_aniscreen(self,genomes,out_dir,prefix):
 
         # If prescreen is set to True, then we will first run all genomes against a skani database
         # of all genomes in the reference package.
         # All genomes classified with skani will be removed from the input genomes list for the
         # rest of the pipeline.
 
-
-
         ani_rep = ANIRep(self.cpus)
 
-        #we create a copy of the genomes dictionary to avoid modifying it
-        genomes_copy = genomes.copy()
-        # we remove all empty files from genomes.
-        for k in list(genomes_copy.keys()):
-            if os.path.getsize(genomes_copy[k]) == 0:
-                self.logger.warning(f'Genome {k} file is invalid for skani. It will be removed from the sketch step.')
-                del genomes_copy[k]
-
-        skani_results = ani_rep.run_skani(genomes, prefix,output_dir=out_dir,skani_sketch_dir=skani_sketch_dir)
+        skani_results = ani_rep.run_skani(genomes, prefix,output_dir=out_dir)
 
         taxonomy = Taxonomy().read(CONFIG.TAXONOMY_FILE, canonical_ids=True)
 

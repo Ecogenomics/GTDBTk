@@ -653,8 +653,7 @@ class OptionsParser(object):
         classified_genomes,reports = aniscreener.run_aniscreen(
             genomes=genomes,
             out_dir=options.out_dir,
-            prefix=options.prefix,
-            skani_sketch_dir=options.skani_sketch_dir)
+            prefix=options.prefix)
 
 
         self.logger.info('Done.')
@@ -872,7 +871,7 @@ class OptionsParser(object):
                                               options.extension)
 
         ani_rep = ANIRep(options.cpus)
-        ani_rep.run(genomes, options.out_dir, options.prefix, options.min_af,options.skani_sketch_dir)
+        ani_rep.run(genomes, options.out_dir, options.prefix, options.min_af)
 
         self.logger.info('Done.')
 

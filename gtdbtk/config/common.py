@@ -100,13 +100,6 @@ class __GTDBTkCommonConfig:
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
     SKANI_MIN_AF = 15.0
 
-    # Mash configuration
-    MASH_SKETCH_FILE = 'gtdb_ref_sketch.msh'
-    MASH_K_VALUE = 16
-    MASH_S_VALUE = 5000
-    MASH_MAX_DISTANCE = 0.15
-    MASH_D_VALUE = MASH_MAX_DISTANCE
-    MASH_V_VALUE = 1.0
 
     # Config values for checking GTDB-Tk on startup.
     GTDBTK_VER_CHECK = True
@@ -311,12 +304,12 @@ class __GTDBTkCommonConfig:
         return f"gtdb_{self.VERSION_DATA}_rps23.refpkg"
 
     @property
-    def SKANI_GENOMES(self):
+    def SKANI_SKETCHDB(self):
         return os.path.join(self.SKANI_DIR, "database/")
 
     @property
-    def SKANI_GENOME_LIST(self):
-        return os.path.join(self.SKANI_DIR, "genome_paths.tsv")
+    def SKANI_REFERENCE_EXTENSION(self):
+        return "_genomic.fna.gz"
 
     @property
     def MRCA_RED_BAC120(self):
