@@ -19,6 +19,7 @@ import logging
 import os
 import shutil
 from collections import defaultdict
+from itertools import chain, compress
 from shutil import copy
 from typing import Dict, Tuple, Optional
 
@@ -346,28 +347,29 @@ class Markers(object):
 
     def _apply_mask(self, gtdb_msa, user_msa, msa_mask, min_perc_aa):
         """Apply canonical mask to MSA file."""
-        aligned_genomes = merge_two_dicts(gtdb_msa, user_msa)
-        list_mask = np.fromfile(msa_mask, dtype='S1') == b'1'
+        aligned_genomes = chain(gtdb_msa.items(), user_msa.items())
+        total_seqs = len(gtdb_msa) + len(user_msa)
+
+        array_mask = np.fromfile(msa_mask, dtype='S1') == b'1'
+        list_mask = array_mask.tolist()
+        mask_len = len(list_mask)
 
         output_seqs, pruned_seqs = dict(), dict()
-        for seq_id, seq in tqdm_log(aligned_genomes.items(), unit='sequence'):
-            list_seq = np.fromiter(seq, dtype='S1')
-            if list_mask.shape[0] != list_seq.shape[0]:
+        for seq_id, seq in tqdm_log(aligned_genomes, unit='sequence',total=total_seqs):
+            if mask_len != len(seq):
                 raise MSAMaskLengthMismatch(
-                    f'Mask ({list_mask.shape[0]}) and alignment ({list_seq.shape[0]}) length do not match.')
+                    f'Mask ({mask_len}) and alignment ({len(seq)}) length do not match.')
 
-            list_masked_seq = list_seq[list_mask]
+            masked_seq = "".join(compress(seq, list_mask))
 
-            masked_seq_unique = np.unique(list_masked_seq, return_counts=True)
-            masked_seq_counts = defaultdict(lambda: 0)
-            for aa_char, aa_count in zip(masked_seq_unique[0], masked_seq_unique[1]):
-                masked_seq_counts[aa_char.decode('utf-8')] = aa_count
+            seq_len = len(masked_seq)
+            if seq_len == 0:
+                # if the entire sequence is masked, we cannot calculate the percentage of valid bases, so we set it to 0
+                valid_bases = 0
+            else:
+                valid_bases = seq_len - masked_seq.count('.') - masked_seq.count('-')
 
-            masked_seq = list_masked_seq.tobytes().decode('utf-8')
-
-            valid_bases = list_masked_seq.shape[0] - \
-                masked_seq_counts['.'] - masked_seq_counts['-']
-            if seq_id in user_msa and valid_bases < list_masked_seq.shape[0] * min_perc_aa:
+            if seq_id in user_msa and valid_bases < seq_len * min_perc_aa:
                 pruned_seqs[seq_id] = masked_seq
                 continue
 

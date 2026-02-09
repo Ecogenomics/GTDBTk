@@ -21,6 +21,7 @@ import os
 import random
 import shutil
 import sys
+import tempfile
 from collections import defaultdict
 from operator import itemgetter
 
@@ -632,7 +633,7 @@ class Classify(object):
                             for disappearing_genome in disappearing_genomes:
                                 disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
 
-                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes,
+                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes, prefix,
                                                                                                                msa_dict,percent_multihit_dict,
                                                                                                                genes, tln_table_summary_file.genomes,
                                                                                                                bac_ar_diff, submsa_file_path,
@@ -687,7 +688,7 @@ class Classify(object):
                                                                        tree_to_process)
 
                     disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
-                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes,
+                    class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(tree_to_process, genomes, prefix,
                                                                                                            msa_dict, percent_multihit_dict,
                                                                                                            genes,tln_table_summary_file.genomes,
                                                                                                            bac_ar_diff, user_msa_file,
@@ -820,7 +821,7 @@ class Classify(object):
         return low_classify_tree, submsa_file_path
 
     @staticmethod
-    def _get_skani_verification(tree, reference_ids, tt):
+    def _get_pplacer_reference(tree, reference_ids):
         """
 
         Parameters
@@ -839,67 +840,49 @@ class Classify(object):
         If, while going up the tree, we find a node with only one reference
         genome, we select this reference genome as leaf_reference.
         """
+        # instead of doing the traversal for each leaf node,
+        # we can do it for each internal node and assign the leaf reference genome to all the leaf nodes under this internal node,
+        # this way we avoid doing the same traversal multiple times for leaf nodes that are under the same internal node
+        for node in tree.postorder_node_iter():
+            node.reference_count = 0
+            node.leaf_reference = None
 
-        # Traverse up the tree, starting at each user leaf node.
-        out = dict()
-        number_comparison = 0
-        qry_nodes = list(tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids))
-        for leaf_node in tqdm_log(qry_nodes, unit='genome'):
+            if node.is_leaf():
+                temp_label = node.taxon.label.replace("'", '')
+                if temp_label in reference_ids:
+                    node.leaf_reference = node
+                    node.reference_count = 1
+            else:
+                for child in node.child_node_iter():
+                    node.reference_count += child.reference_count
+                    if node.reference_count == 1:
+                        # this field may be overwritten multiple times if there are multiple child nodes with one reference genome,
+                        # but this is not a problem because we will set leaf_reference to None if reference_count is more than 1
+                        node.leaf_reference = child.leaf_reference
 
+                if node.reference_count > 1:
+                    node.leaf_reference = None
+
+
+        qry_nodes = {leaf: {"pplacer_g":None} for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids)}
+        for leaf_node in tqdm_log(qry_nodes.keys(), unit='genome'):
             # Traverse up to find the first labelled parent node.
             par_node = leaf_node.parent_node
-            leaf_ref_genome = None
-            leaf_ref_genomes = [subnd for subnd in tt.get_leaf_nodes(par_node)
-                                if subnd.taxon.label.replace("'", '') in reference_ids]
-            if len(leaf_ref_genomes) == 1:
-                leaf_ref_genome = leaf_ref_genomes[0]
+            found_ref = None
 
-            _support, parent_taxon, _aux_info = parse_label(par_node.label)
-            # while par_node is not None and parent_taxon is empty,
-            # we go up the tree
-            while par_node is not None and not parent_taxon:
+            while par_node is not None:
+                if par_node.reference_count == 1:
+                    found_ref = par_node.leaf_reference
+                    break
+                elif par_node.reference_count > 1:
+                    break
+
                 par_node = par_node.parent_node
-                if leaf_ref_genome is None:
-                    leaf_ref_genomes = [subnd for subnd in tt.get_leaf_nodes(par_node)
-                                        if subnd.taxon.label.replace("'", '') in reference_ids]
-                    if len(leaf_ref_genomes) == 1:
-                        leaf_ref_genome = leaf_ref_genomes[0]
-                _support, parent_taxon, _aux_info = parse_label(par_node.label)
 
-            # if the parent node is at the genus level
-            parent_rank = parent_taxon.split(";")[-1]
-            if parent_rank.startswith('g__'):
-                # we get all the reference genomes under this genus
-                list_subnode_initials = [subnd.taxon.label.replace("'", '')
-                                         for subnd in tt.get_leaf_nodes(par_node)]
-                if len(set(list_subnode_initials) & reference_ids) < 1:
-                    raise GTDBTkExit(f"There are no reference genomes under '{parent_rank}'")
-                else:
-                    list_ref_genomes = [subnd for subnd in tt.get_leaf_nodes(par_node)
-                                        if subnd.taxon.label.replace("'", '') in reference_ids]
+            if found_ref:
+                qry_nodes[leaf_node]['pplacer_g'] = found_ref
 
-                    # we pick the first 100 genomes closest (patristic distance) to the
-                    # user genome under the same genus
-                    dict_dist_refgenomes = calculate_patristic_distance(leaf_node,
-                                                                        list_ref_genomes,
-                                                                        tt)
-
-                    sorted_l = sorted(iter(dict_dist_refgenomes.items()), key=itemgetter(1))
-                    # Ok so we are removing this limit because in some cases, in very dense genera,
-                    # the actual closest genome might be beyond the 100 closest genomes ( see issue #671)
-                    # it will increase computation time a bit, but will be more accurate
-                    # it happens mostly when running the --skip_ani_screen option
-                    #sorted_l = sorted_l[0:100]
-                    number_comparison += len(sorted_l)
-                    out[leaf_node] = {"potential_g": sorted_l,
-                                      "pplacer_g": leaf_ref_genome}
-
-            else:
-                if leaf_ref_genome:
-                    out[leaf_node] = {"potential_g": [(leaf_ref_genome, 0.0)],
-                                      "pplacer_g": leaf_ref_genome}
-
-        return out, qry_nodes
+        return qry_nodes
 
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
                                user_msa_file, red_dict,warning_counter, summary_file, pplacer_taxonomy_dict,
@@ -1204,7 +1187,7 @@ class Classify(object):
 
         return class_level_classification,warning_counter
 
-    def _parse_tree(self, tree, genomes, msa_dict, percent_multihit_dict,genes, trans_table_dict, bac_ar_diff,
+    def _parse_tree(self, tree, genomes, prefix, msa_dict, percent_multihit_dict,genes, trans_table_dict, bac_ar_diff,
                     user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,warning_counter, high_classification,
                     debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
         # Genomes can be classified by using skani or RED values
@@ -1216,30 +1199,39 @@ class Classify(object):
         tt = TreeTraversal()
 
         self.logger.log(CONFIG.LOG_TASK, 'Traversing tree to determine classification method.')
-        if genes:
-            skani_verification = {}
-        else:
-            skani_verification, qury_nodes = self._get_skani_verification(tree, self.reference_ids, tt)
+        run_ANI = False if genes else True
+
+        qury_nodes = self._get_pplacer_reference(tree, self.reference_ids)
 
         #DEBUG: Skip skani step
-        #skani_verification = {}
+        #run_ANI = False
 
-        # we run a skani comparison for each user genomes against the
-        # selected genomes in the same genus
-        ##if not prescreening and len(skani_verification) > 0:
-        if len(skani_verification) > 0:
+        # we run a skani comparison for each user genomes against the full skani database as we only have
+        # a sketch of the database now
+
+        if run_ANI and len(qury_nodes) > 0:
             skani = SkANI(cpus=self.cpus, force_single=True)
-            d_ani_compare, d_paths = self._get_skani_genome_path(
-                skani_verification, genomes)
-            self.logger.log(CONFIG.LOG_TASK,
-                            f'Calculating average nucleotide identity using '
-                            f'skani (v{skani.version}).')
-            all_skani_dict = skani.run(d_ani_compare, d_paths)
-        else:
-            all_skani_dict = {}
+            with tempfile.TemporaryDirectory(prefix=prefix) as tmpdir:
+                # Create the query and reference lists.
+                ql = os.path.join(tmpdir, 'query_list.txt')
 
+                # Write the query and reference lists to disk.
+                # get the subset of genomes in from query nodes that are in the skani database
+                subset_genomes = {k:v for k,v in genomes.items() if k in qury_nodes}
+                reverse_dict_ql = skani.write_list_to_file(subset_genomes, ql)
+
+                self.logger.log(CONFIG.LOG_TASK,
+                                f'Calculating average nucleotide identity using '
+                                f'skani (v{skani.version}).')
+
+                # Run skani
+                results_subtree_vs_all = skani.run_all_vs_all(ql, reverse_dict_ql, tmpdir)
+                results_subtree_vs_all = skani.parse_results(iter(results_subtree_vs_all))
+        else:
+            results_subtree_vs_all = {}
+        # import IPython; IPython.embed()
         classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_skani_results(
-            skani_verification, pplacer_taxonomy_dict, all_skani_dict, msa_dict, percent_multihit_dict,
+            qury_nodes, pplacer_taxonomy_dict, results_subtree_vs_all, msa_dict, percent_multihit_dict,
             trans_table_dict, bac_ar_diff,warning_counter, summary_file)
         #if not prescreening:
         if not genes:
@@ -1569,15 +1561,13 @@ class Classify(object):
 
 
 
-    def _sort_skani_results(self, skani_verification, pplacer_taxonomy_dict,
-                              all_skani_dict, msa_dict, percent_multihit_dict,
+    def _sort_skani_results(self, qury_nodes, pplacer_taxonomy_dict,
+                              results_subtree_vs_all, msa_dict, percent_multihit_dict,
                               trans_table_dict, bac_ar_diff,warning_counter, summary_file):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
         ----------
-        skani_verification : dictionary listing the potential genomes associated with a user genome
-        d[user_genome] = {"potential_g": [(potential_genome_in_same_genus,patristic distance)],
         "pplacer_g": genome_of_reference_selected_by_pplacer(if any)}
         all_skani_dict : dictionary listing the skani ANI for each user genomes against the potential genomes
         d[user_genome]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
@@ -1594,7 +1584,7 @@ class Classify(object):
         classified_user_genomes = {}
         unclassified_user_genomes = {}
 
-        for userleaf, potential_nodes in skani_verification.items():
+        for userleaf, pplacer_info in qury_nodes.items():
 
             summary_row = ClassifySummaryFileRow()
 
@@ -1607,19 +1597,19 @@ class Classify(object):
                     bac_ar_diff.get(userleaf.taxon.label).get('bac120'),
                     bac_ar_diff.get(userleaf.taxon.label).get('ar53')))
 
-            if potential_nodes.get("pplacer_g"):
-                pplacer_leafnode = potential_nodes.get("pplacer_g").taxon.label
+            if pplacer_info.get("pplacer_g"):
+                pplacer_leafnode = pplacer_info.get("pplacer_g").taxon.label
                 if pplacer_leafnode[0:3] in ['RS_', 'GB_']:
                     pplacer_leafnode = pplacer_leafnode[3:]
-                if userleaf.taxon.label in all_skani_dict:
+                if userleaf.taxon.label in results_subtree_vs_all:
                     # import IPython; IPython.embed()
                     prefilter_af_reference_dictionary = {k: v for k, v in
-                                                         all_skani_dict.get(userleaf.taxon.label).items() if v.get(
+                                                         results_subtree_vs_all.get(userleaf.taxon.label).items() if v.get(
                             'af') >= self.af_threshold}
                     sorted_prefilter_af_dict = sorted(iter(prefilter_af_reference_dictionary.items()),
                                                       key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
 
-                    sorted_dict = sorted(iter(all_skani_dict.get(
+                    sorted_dict = sorted(iter(results_subtree_vs_all.get(
                         userleaf.taxon.label).items()), key=lambda _x_y: (_x_y[1]['ani'], _x_y[1]['af']), reverse=True)
 
                     skani_matching_reference = None
@@ -1627,9 +1617,9 @@ class Classify(object):
                         if sorted_prefilter_af_dict[0][1].get('ani') >= self.species_radius.get(
                                 sorted_prefilter_af_dict[0][0]):
                             skani_matching_reference = sorted_prefilter_af_dict[0][0]
-                            current_ani = all_skani_dict.get(userleaf.taxon.label).get(
+                            current_ani = results_subtree_vs_all.get(userleaf.taxon.label).get(
                                 skani_matching_reference).get('ani')
-                            current_af = all_skani_dict.get(userleaf.taxon.label).get(
+                            current_af = results_subtree_vs_all.get(userleaf.taxon.label).get(
                                 skani_matching_reference).get('af')
                         else:
                             warnings.append(
@@ -1685,10 +1675,10 @@ class Classify(object):
                                 self.species_radius.get(pplacer_leafnode))
                             summary_row.closest_placement_tax = ";".join(self.gtdb_taxonomy.get(
                                 add_ncbi_prefix(pplacer_leafnode)))
-                            if pplacer_leafnode in all_skani_dict.get(userleaf.taxon.label):
-                                summary_row.closest_placement_ani = round(all_skani_dict.get(
+                            if pplacer_leafnode in results_subtree_vs_all.get(userleaf.taxon.label):
+                                summary_row.closest_placement_ani = round(results_subtree_vs_all.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
-                                summary_row.closest_placement_af = round(all_skani_dict.get(
+                                summary_row.closest_placement_af = round(results_subtree_vs_all.get(
                                     userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
                             summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
 
@@ -1707,10 +1697,10 @@ class Classify(object):
                             self.species_radius.get(pplacer_leafnode))
                         summary_row.closest_placement_tax = ";".join(self.gtdb_taxonomy.get(
                             add_ncbi_prefix(pplacer_leafnode)))
-                        if pplacer_leafnode in all_skani_dict.get(userleaf.taxon.label):
-                            summary_row.closest_placement_ani = round(all_skani_dict.get(
+                        if pplacer_leafnode in results_subtree_vs_all.get(userleaf.taxon.label):
+                            summary_row.closest_placement_ani = round(results_subtree_vs_all.get(
                                 userleaf.taxon.label).get(pplacer_leafnode).get('ani'), 2)
-                            summary_row.closest_placement_af = round(all_skani_dict.get(
+                            summary_row.closest_placement_af = round(results_subtree_vs_all.get(
                                 userleaf.taxon.label).get(pplacer_leafnode).get('af'),3)
 
                         if len(sorted_dict) > 0:
@@ -1722,13 +1712,13 @@ class Classify(object):
                                 summary_row.other_related_refs = other_ref
                         unclassified_user_genomes[userleaf.taxon.label] = summary_row
 
-            elif userleaf.taxon.label in all_skani_dict:
+            elif userleaf.taxon.label in results_subtree_vs_all:
                 prefilter_af_reference_dictionary = {k: v for k, v in
-                                                     all_skani_dict.get(userleaf.taxon.label).items() if v.get(
+                                                     results_subtree_vs_all.get(userleaf.taxon.label).items() if v.get(
                         'af') >= self.af_threshold}
                 sorted_prefilter_af_dict = sorted(iter(prefilter_af_reference_dictionary.items()),
                                                   key=lambda _x_y1: (_x_y1[1]['ani'], _x_y1[1]['af']), reverse=True)
-                sorted_dict = sorted(iter(all_skani_dict.get(
+                sorted_dict = sorted(iter(results_subtree_vs_all.get(
                     userleaf.taxon.label).items()), key=lambda _x_y2: (_x_y2[1]['ani'], _x_y2[1]['af']), reverse=True)
 
                 summary_row.gid = userleaf.taxon.label
@@ -1768,10 +1758,10 @@ class Classify(object):
                             self.species_radius.get(skani_matching_reference))
                         summary_row.closest_genome_tax = ";".join(self.gtdb_taxonomy.get(
                             add_ncbi_prefix(skani_matching_reference)))
-                        current_ani = all_skani_dict.get(userleaf.taxon.label).get(
+                        current_ani = results_subtree_vs_all.get(userleaf.taxon.label).get(
                             skani_matching_reference).get('ani')
                         summary_row.closest_genome_ani = round(current_ani, 2)
-                        current_af = all_skani_dict.get(userleaf.taxon.label).get(
+                        current_af = results_subtree_vs_all.get(userleaf.taxon.label).get(
                             skani_matching_reference).get('af')
                         summary_row.closest_genome_af = round(current_af,3)
                         summary_row.note = 'topological placement and ANI have incongruent species assignments'
@@ -2209,39 +2199,6 @@ class Classify(object):
 
         return new_tree
 
-    def _get_skani_genome_path(self, skani_verification, genomes):
-        """Generates a queue of comparisons to be made and the paths to
-        the corresponding genome id."""
-        dict_compare, dict_paths = dict(), dict()
-
-        for qry_node, qry_dict in skani_verification.items():
-            user_label = qry_node.taxon.label
-            dict_paths[user_label] = genomes[user_label]
-            dict_compare[user_label] = set()
-            for node in qry_dict.get('potential_g'):
-                leafnode = node[0]
-                shortleaf = leafnode.taxon.label
-                if leafnode.taxon.label.startswith('GB_') or leafnode.taxon.label.startswith('RS_'):
-                    shortleaf = leafnode.taxon.label[3:]
-                # TODEL UBA genomes
-                if shortleaf.startswith("UBA"):
-                    ref_path = os.path.join(
-                        CONFIG.SKANI_GENOMES,
-                        'UBA',
-                        shortleaf + CONFIG.SKANI_GENOMES_EXT)
-                else:
-                    ref_path = os.path.join(
-                        CONFIG.SKANI_GENOMES,
-                        self.parse_leaf_to_dir_path(shortleaf),
-                        shortleaf + CONFIG.SKANI_GENOMES_EXT)
-
-                if not os.path.isfile(ref_path):
-                    raise GTDBTkExit(f'Reference genome missing from skani database: {ref_path}')
-
-                dict_compare[user_label].add(shortleaf)
-                dict_paths[shortleaf] = ref_path
-
-        return dict_compare, dict_paths
 
     def get_authorised_rank(self, order_in_spe_tree,rank_index):
         results = []

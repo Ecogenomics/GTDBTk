@@ -135,7 +135,7 @@ class SkANI(object):
             results_all_vs_all= self.run_all_vs_all(ql,reverse_dict_ql,tmpdir,skani_preset,
                                                     report_progress=report_progress)
 
-            return self._parse_results(iter(results_all_vs_all))
+            return self.parse_results(iter(results_all_vs_all))
 
 
     def run_all_vs_all(self, ql,reverse_ql,tmpdir,skani_preset=None,report_progress=True):
@@ -274,7 +274,7 @@ class SkANI(object):
 
         # Process and return each of the results obtained
         q_results.put(None)
-        return self._parse_results(q_results, from_queue=True)
+        return self.parse_results(q_results, from_queue=True)
 
     def _worker(self, q_worker, q_writer, q_results):
         """Operates skani in list mode.
@@ -394,7 +394,7 @@ class SkANI(object):
                 fh.write(f'{gid_path}\n')
         return reverse_dict_ql
 
-    def _parse_results(self, results, from_queue=False):
+    def parse_results(self, results, from_queue=False):
         """Parses results into a nested dictionary of ANI and AF values.
 
         Parameters
