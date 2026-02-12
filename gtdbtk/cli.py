@@ -306,6 +306,9 @@ def __db_version(group):
     group.add_argument('--db_version', type = int, default = None,
                        help="GTDB-Tk version package to test for compatibility.")
 
+def __place_species(group):
+    group.add_argument('--place_species', default=False, action='store_true',
+                       help='place species in pplacer trees even if they are classified with skani.')
 
 def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
@@ -362,6 +365,8 @@ def get_main_parser():
             __batchfile(grp)
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
+        with arg_group(parser, 'optional skani arguments') as grp:
+            __place_species(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __skip_ani_screen(grp)
             __full_tree(grp)
@@ -445,7 +450,8 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
-        # with arg_group(parser, 'optional skani arguments') as grp:
+        with arg_group(parser, 'optional skani arguments') as grp:
+            __place_species(grp)
         #     __skani_min_af(grp)
         #     __skani_s(grp)
         #     __skani_preset(grp)
