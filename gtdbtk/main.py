@@ -554,7 +554,7 @@ class OptionsParser(object):
         self.logger.info('Test has successfully finished.')
         return True
 
-    def classify(self, options,all_classified_ani=False,all_failed_prodigal=False,process_classified_genomes=False):
+    def classify(self, options,all_classified_ani=False,all_failed_prodigal=False,process_classified_genomes=None):
         """Determine taxonomic classification of genomes.
 
         Parameters
@@ -562,6 +562,9 @@ class OptionsParser(object):
         options : argparse.Namespace
             The CLI arguments input by the user.
         """
+
+        if process_classified_genomes is None:
+            process_classified_genomes = getattr(options, 'place_species', False)
 
         classify_step = ClassifyStep()
         classify_step.starts_at = datetime.now()

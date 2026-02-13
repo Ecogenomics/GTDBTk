@@ -350,9 +350,12 @@ class Classify(object):
             len_skani_classified_ar53 = len(skani_classified_user_genomes['ar53']) \
                 if 'ar53' in skani_classified_user_genomes else 0
 
-
             self.logger.info(f'{len_skani_classified_ar53+len_skani_classified_bac120} genome(s) have '
                              f'been classified using the ANI pre-screening step.')
+
+            if process_classified_genomes:
+                self.logger.warning(f'The --place_species flag is set to True.All genomes will be placed '
+                                    f'in the reference tree.')
 
         if skip_ani_screen and ani_summary_files is not None:
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
