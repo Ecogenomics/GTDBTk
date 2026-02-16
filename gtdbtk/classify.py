@@ -110,15 +110,9 @@ class Classify(object):
 
     @staticmethod
     def parse_radius_file():
-        results = {}
         with open(CONFIG.RADII_FILE) as f:
-            for line in f:
-                infos = line.strip().split('\t')
-                gid = infos[1]
-                if infos[1].startswith('GB_') or infos[1].startswith('RS_'):
-                    gid = gid[3:]
-                results[gid] = float(infos[2])
-        return results
+            return {line.split('\t')[1].replace('GB_', '').replace('RS_', ''): float(line.split('\t')[2])
+                for line in f}
 
     def place_genomes(self,
                       user_msa_file,
@@ -276,23 +270,13 @@ class Classify(object):
         return tree_file
 
     def _parse_red_dict(self, red_dist_dict):
-        results = {}
-        for k, v in red_dist_dict.items():
-            if k in ['d__', 'domain']:
-                results['d__'] = v
-            elif k in ['p__', 'phylum']:
-                results['p__'] = v
-            elif k in ['c__', 'class']:
-                results['c__'] = v
-            elif k in ['o__', 'order']:
-                results['o__'] = v
-            elif k in ['f__', 'family']:
-                results['f__'] = v
-            elif k in ['g__', 'genus']:
-                results['g__'] = v
-            elif k in ['s__', 'species']:
-                results['s__'] = v
-        return results
+        rank_map = {'domain': 'd__', 'phylum': 'p__', 'class': 'c__',
+                    'order': 'o__', 'family': 'f__', 'genus': 'g__', 'species': 's__'}
+
+        # Combine map with existing short keys
+        lookup = {**rank_map, **{v: v for v in rank_map.values()}}
+
+        return {lookup[k]: v for k, v in red_dist_dict.items() if k in lookup}
 
     def parser_marker_summary_file(self, marker_summary_fh):
         results = dict()
@@ -394,7 +378,7 @@ class Classify(object):
             return output_files
         elif not all_failed_prodigal:
             for marker_set_id in ('ar53', 'bac120'):
-                warning_counter, prodigal_failed_counter = 0, 0
+                warning_counter, prodigal_failed_counter = [], []
                 if marker_set_id == 'ar53':
                     marker_summary_fh = CopyNumberFileAR53(align_dir, prefix)
                     marker_summary_fh.read()
@@ -480,10 +464,11 @@ class Classify(object):
                         elif marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                       os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                        if prodigal_failed_counter > 0:
-                            self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
-                                                f"genome{'' if prodigal_failed_counter == 1 else 's'} "
-                                                f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                        if len(prodigal_failed_counter) > 0:
+                            len_prodigal_failed_counter = len(set(prodigal_failed_counter))
+                            self.logger.warning(f"{len_prodigal_failed_counter} of {len(genomes)} "
+                                                f"genome{'' if len_prodigal_failed_counter == 1 else 's'} "
+                                                f"ha{'s' if len_prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
 
 
                     continue
@@ -715,13 +700,15 @@ class Classify(object):
                     output_files.setdefault(marker_set_id, []).append(tree_mapping_file.path)
 
 
-                if warning_counter > 0:
-                    sum_of_genomes =  len(genomes_to_process)+prodigal_failed_counter
+                if len(warning_counter) > 0:
+                    sum_of_genomes =  len(set(genomes_to_process+prodigal_failed_counter))
                     if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes:
-                        sum_of_genomes +=len(skani_classified_user_genomes.get(marker_set_id))
-                    self.logger.warning(f"{warning_counter} of {sum_of_genomes} "
-                                        f"genome{'' if warning_counter==1 else 's'}"
-                                        f" ha{'s' if warning_counter==1 else 've'} a warning (see summary file).")
+                        # lets flatting the skani_classified_user_genomes and get all the row_gid:
+                        row_gids = [row.gid for row in skani_classified_user_genomes.get(marker_set_id)]
+                        sum_of_genomes= len(set(genomes_to_process+prodigal_failed_counter+row_gids))
+                    self.logger.warning(f"{len(set(warning_counter))} of {sum_of_genomes} "
+                                        f"genome{'' if len(set(warning_counter))==1 else 's'}"
+                                        f" ha{'s' if len(set(warning_counter))==1 else 've'} a warning (see summary file).")
 
                 # Write the summary file to disk.
                 if disappearing_genomes_file.data:
@@ -771,7 +758,7 @@ class Classify(object):
                     percent_multihit_dict.get(row.gid))]
         if warnings:
             row.warnings = ';'.join(set(warnings))
-            warning_counter += 1
+            warning_counter.append(row.gid)
 
         return row,warning_counter
 
@@ -1159,7 +1146,7 @@ class Classify(object):
                 if summary_row.warnings is not None:
                     warnings.extend(summary_row.warnings.split(';'))
                 summary_row.warnings = ';'.join(set(warnings))
-                warning_counter += 1
+                warning_counter.append(summary_row.gid)
             if len(notes) > 0:
                 if summary_row.note is not None:
                     notes.extend(summary_row.note.split(';'))
@@ -1395,19 +1382,19 @@ class Classify(object):
                                 row_to_update.warnings = existing_warnings + ';' + infos[1]
                             else:
                                 row_to_update.warnings = infos[1]
-                                warning_counter += 1
+                                warning_counter.append(infos[0])
                     else:
                         summary_row = ClassifySummaryFileRow()
                         summary_row.gid = infos[0]
                         summary_row.classification = f'Unclassified {domain}'
                         summary_row.warnings = infos[1]
                         summary_file.add_row(summary_row)
-                        warning_counter += 1
+                        warning_counter.append(infos[0])
 
         return warning_counter
 
     def add_failed_genomes_to_summary(self, align_dir, summary_file, prefix):
-        warning_counter = 0
+        warning_counter = []
         prodigal_failed_file = os.path.join(align_dir, PATH_FAILS.format(prefix=prefix))
         align_failed_file = os.path.join(align_dir, PATH_FAILED_ALIGN_GENOMES.format(prefix=prefix))
         for failfile in (prodigal_failed_file, align_failed_file):
@@ -1420,7 +1407,7 @@ class Classify(object):
                         summary_row.classification = f'Unclassified'
                         summary_row.warnings = infos[1]
                         summary_file.add_row(summary_row)
-                        warning_counter += 1
+                        warning_counter.append(infos[0])
         return warning_counter
 
     @staticmethod
@@ -1650,6 +1637,7 @@ class Classify(object):
                     else:
                         warnings.append(
                             "Genome not assigned to closest species as it falls outside its pre-defined ANI radius")
+                        warning_counter.append(userleaf.taxon.label)
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(pplacer_leafnode)))
@@ -1662,6 +1650,7 @@ class Classify(object):
                     summary_row.tln_table = trans_table_dict.get(summary_row.gid)
                     if len(warnings) > 0:
                         summary_row.warnings = ';'.join(warnings)
+                        warning_counter.append(userleaf.taxon.label)
 
                     if skani_matching_reference is not None:
                         summary_row.closest_genome_ref = skani_matching_reference
@@ -1740,7 +1729,7 @@ class Classify(object):
                 if skani_matching_reference:
                     if len(warnings) > 0:
                         summary_row.warnings = ';'.join(warnings)
-                        warning_counter += 1
+                        warning_counter.append(userleaf.taxon.label)
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(add_ncbi_prefix(skani_matching_reference)))
                     summary_row.classification = standardise_taxonomy(taxa_str)
@@ -1762,6 +1751,7 @@ class Classify(object):
                     warnings.append(
                         "Genome not assigned to closest species as it falls outside its pre-defined ANI radius")
                     summary_row.warnings = ';'.join(warnings)
+                    warning_counter.append(userleaf.taxon.label)
                     summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                     summary_row.other_related_refs = existing_result.other_related_refs
                     unclassified_user_genomes[userleaf.taxon.label] = summary_row
