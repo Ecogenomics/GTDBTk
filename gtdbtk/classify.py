@@ -1569,8 +1569,27 @@ class Classify(object):
 
         return '; '.join(kept_refs)
 
+    def _parse_genome_warnings(self, gid, percent_multihit_dict, bac_ar_diff):
+        """
+        Find if a specific genomes has any warning to report.
 
+        Returns:
+            list: A list of warning strings.
+        """
+        warnings = []
+        if gid in percent_multihit_dict:
+            warnings.append(
+                f'Genome has more than {percent_multihit_dict.get(gid)}% of markers with multiple hits'
+            )
 
+        if gid in bac_ar_diff:
+            bac_perc = bac_ar_diff.get(gid).get('bac120')
+            arc_perc = bac_ar_diff.get(gid).get('ar53')
+            warnings.append(
+                f'Genome domain questionable ( {bac_perc}% Bacterial, {arc_perc}% Archaeal)'
+            )
+
+        return warnings
 
     def _sort_skani_results(self, qury_nodes, pplacer_taxonomy_dict,
                               results_subtree_vs_all,marker_set_id, msa_dict, percent_multihit_dict,
@@ -1606,15 +1625,8 @@ class Classify(object):
 
             summary_row = ClassifySummaryFileRow()
 
-            warnings = []
-            if userleaf.taxon.label in percent_multihit_dict:
-                warnings.append('Genome has more than {}% of markers with multiple hits'.format(
-                    percent_multihit_dict.get(userleaf.taxon.label)))
-            if userleaf.taxon.label in bac_ar_diff:
-                warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                    bac_ar_diff.get(userleaf.taxon.label).get('bac120'),
-                    bac_ar_diff.get(userleaf.taxon.label).get('ar53')))
-
+            warnings = self._parse_genome_warnings(userleaf.taxon.label,percent_multihit_dict,bac_ar_diff)
+            
             existing_result = genome_results_map.get(userleaf.taxon.label)
 
             # Parse the (other references) immediately
