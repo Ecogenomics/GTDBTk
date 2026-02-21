@@ -501,7 +501,7 @@ class Classify(object):
 
                     # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
                     prescreened_msa_file_path = os.path.join(
-                        out_dir, PATH_BAC120_PRESCREEN_MSA.format(prefix=prefix))
+                        out_dir, PATH_PRESCREEN_MSA.format(prefix=prefix, marker_set_id=marker_set_id))
                     #makes sure the path exists
                     make_sure_path_exists(os.path.dirname(prescreened_msa_file_path))
 
