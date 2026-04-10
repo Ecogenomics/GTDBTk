@@ -565,16 +565,14 @@ class OptionsParser(object):
 
         if process_classified_genomes is None:
             process_classified_genomes = getattr(options, 'place_species', False)
+        skip_ani_screen = getattr(options, 'skip_ani_screen', False)
 
         classify_step = ClassifyStep()
         classify_step.starts_at = datetime.now()
         classify_step.output_dir = options.out_dir
         classify_step.debug_option = options.debug
         classify_step.full_tree = options.full_tree
-        classify_step.skip_ani_screen = options.skip_ani_screen
-        # classify_step.skani_min_af = options.skani_min_af
-        # classify_step.skani_s = options.skani_s
-        # classify_step.preset = options.preset
+        classify_step.place_species = process_classified_genomes
 
         ani_summary_files = {}
         if self.stage_logger.has_stage(ANIScreenStep):
@@ -609,11 +607,8 @@ class OptionsParser(object):
                      scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
                      fulltreeopt=options.full_tree,
-                     skip_ani_screen=options.skip_ani_screen,
+                     skip_ani_screen=skip_ani_screen,
                      genes=options.genes,
-                     # min_skani_af=options.min_skani_af,
-                     # skani_s=options.skani_s,
-                     # skani_presets= options.preset,
                      ani_summary_files=ani_summary_files,
                      all_classified_ani=all_classified_ani,
                      all_failed_prodigal=all_failed_prodigal,

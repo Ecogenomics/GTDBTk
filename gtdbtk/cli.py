@@ -74,9 +74,6 @@ def __extension(group):
     group.add_argument('-x', '--extension', type=str, default='fna',
                        help='extension of files to process, ``gz`` = gzipped')
 
-def __skip_ani_screen(group):
-    group.add_argument('--skip_ani_screen', action="store_true", default=False,
-                       help="Skip the skani ANI screening step to classify genomes.")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,
@@ -368,7 +365,6 @@ def get_main_parser():
         with arg_group(parser, 'optional skani arguments') as grp:
             __place_species(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __skip_ani_screen(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
@@ -452,11 +448,7 @@ def get_main_parser():
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional skani arguments') as grp:
             __place_species(grp)
-        #     __skani_min_af(grp)
-        #     __skani_s(grp)
-        #     __skani_preset(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __skip_ani_screen(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)

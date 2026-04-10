@@ -326,12 +326,12 @@ class __GTDBTkCommonConfig:
 
         if version is None or version==232:
             return {
-                self.PPLACER_DIR: '2aec15810f3edc4f6d42b843b259396b2cc9e636',
+                self.PPLACER_DIR: '65478602f4c7206116313ea0b0fd0f4bc35a7196',
                 self.MASK_DIR: '84c7f7a17adc134db4161b15db10ae58389a90c1',
                 self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
                 self.RADII_DIR: '546c1769ae19c946ba94b91482f32002a204f598',
                 self.MSA_FOLDER: '8cf2ed4ea53f9201b127dbeed71bcc0fff27e204',
-                self.METADATA_DIR: 'bf2eeef3b6aa19300cd9ab7bf468b6479396ff7a',
+                self.METADATA_DIR: '1febdba7d2513a8f43c409423aee83ed99df7a78',
                 self.TAX_FOLDER: 'c1e1766fa610229cb7cb45edc9a8fa0eafb44c96',
                 self.SKANI_DIR: '00afba7b7e89a27e4d9aa9b4ce176550b56af09e',
                 self.RED_DIR: '10a0fc1ca4199ff33e6c2fc4bc933318962ab212'
