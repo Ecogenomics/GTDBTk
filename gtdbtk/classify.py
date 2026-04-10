@@ -338,7 +338,7 @@ class Classify(object):
                              f'been classified using the ANI pre-screening step.')
 
             if process_classified_genomes:
-                self.logger.warning(f'The --place_species flag is set to True.All genomes will be placed '
+                self.logger.warning(f'The --place_species flag is set to True. All genomes will be placed '
                                     f'in the reference tree.')
 
         if skip_ani_screen and ani_summary_files is not None:
@@ -484,7 +484,7 @@ class Classify(object):
                 # run pplacer to place bins in reference genome tree
                 genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
-                # if skani_classified_user_genomes is has key marker_set_id, we
+                # if skani_classified_user_genomes has key marker_set_id, we
                 # need to add those genomes to the summary file and remove those genomes to the list of genomes
                 # to process with pplacer
                 if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes and not process_classified_genomes:
@@ -1303,7 +1303,10 @@ class Classify(object):
 
                 # we go up the tree until we reach pplacer_parent_node
                 current_node = child_node.parent_node
-                edge_length = child_node.edge_length
+
+                edge_length = max(child_node.edge_length,1e-9)
+                # This will avoid a division by zero if pplacer place the genome with a branch length of 0
+                # Rare but it happens
                 on_pplacer_branch = False
                 pplacer_edge_length = 0
 

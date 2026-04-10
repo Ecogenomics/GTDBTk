@@ -37,13 +37,13 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 
 ## ✨ New Features
 
-GTDB-Tk v2.6.0+ includes the following new features:
-* GTDB-Tk has now a fixed version for skani (v0.3.1) and pplacer (v1.1.alpha19) to i) ensure reproducibility of results
-and ii) use the sketch format compatible with skani v0.3.1.
-* The limit of number of genomes compared in dense genera has been removed.This ensures that all representative genomes
-in a genus are compared, preventing incorrect species assignments when the closest genome by ANI is outside the
-previous 100-genome limit. This is important in dense genera like Collinsella and improves classification accuracy, even if runtime increases slightly.
-This limitation only occurred when previous versions of GTDB-Tk were used with the `--skip-ani-screen` flag.
+GTDB-Tk v2.7.0+ includes the following new features:
+* **Pre-sketched skani database:** GTDB-Tk now uses a skani pre-sketched database of the GTDB representative genomes. This significantly reduces the database storage footprint from 198 GB (in Release 232) down to 98 GB.
+* **Representative genomes availability:** The GTDB representative genomes are now available via the "Download" page on the GTDB website.
+* **Deprecated flag:** Because the database is already sketched natively, the `--skani_sketch_dir` flag is now deprecated.
+* **Updated `--skip_ani_screen` logic:** The behavior when running GTDB-Tk with the `--skip_ani_screen` flag has been refined:
+    * *Previously:* If the ANI screen was skipped, GTDB-Tk would attempt to classify all input genomes with pplacer. If a user genome was placed in a genus, GTDB-Tk would only perform an ANI comparison with species strictly within that genus. 
+    * *Now:* GTDB-Tk will still attempt to classify all input genomes with pplacer, but it will also compare user genomes to *all* reference genomes (since the skani sketch is built on all representatives). This change allows users to skip the initial ANI screen while ensuring classifications are similar with our without `--skip_ani_screen`.
 
 ## 📈 Performance
 Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).

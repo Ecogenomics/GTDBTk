@@ -11,8 +11,8 @@ class __GTDBTkCommonConfig:
     that requires the setting of the GTDB-Tk reference data path.
     """
 
-    MIN_REF_DATA_VERSION = 'r226'
-    COMPATIBLE_REF_DATA_VERSIONS = ['r220','r226']
+    MIN_REF_DATA_VERSION = 'r232'
+    COMPATIBLE_REF_DATA_VERSIONS = ['r232']
 
     BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
     CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
@@ -323,30 +323,18 @@ class __GTDBTkCommonConfig:
         compatible_versions = [int(x.replace('r','')) for x in CONFIG.COMPATIBLE_REF_DATA_VERSIONS]
         if version is not None and version not in compatible_versions:
             raise ValueError(f"Version {version} is not compatible with this version of GTDB-Tk. Compatible versions are {compatible_versions}")
-        if version is None or version==226:
-            return {
-                self.PPLACER_DIR: '40d242bd5b84d4b2218586390220e6f741191804',
-                self.MASK_DIR: 'beb296ca29ffadf2d5b86f4160f2a525c5954185',
-                self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
-                self.RADII_DIR: '577663ffcd7892551a0f8cb2864fb80544c3bfcd',
-                self.MSA_FOLDER: '1d47808337897c2965cfc8a101df5e4813ce1581',
-                self.METADATA_DIR: '56b3a753b0cec1f0ac983fea4c7db32a160d00cb',
-                self.TAX_FOLDER: 'ea99878828e0baffe8977c7371ce7b7d5109c1e1',
-                self.SKANI_DIR: '8100f226743d74572fa726ac3ea358c34d5b8222',
-                self.RED_DIR: 'bd8cfe5c4f5b8fc180cebf974713194395efbc00'
-            }
 
-        elif version==220:
+        if version is None or version==232:
             return {
-                self.PPLACER_DIR: '75fdd0e093c9af6a73cb510c3d0cd2041265e093',
-                self.MASK_DIR: 'f4b8ebfa59526a7a86f09752b47e8de1efc384c7',
+                self.PPLACER_DIR: '2aec15810f3edc4f6d42b843b259396b2cc9e636',
+                self.MASK_DIR: '84c7f7a17adc134db4161b15db10ae58389a90c1',
                 self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
-                self.RADII_DIR: '63d06ecc8b4547addd22c5b06ada4a28c5332bcc',
-                self.MSA_FOLDER: '3d5c1cf5346b244fcb0a9d48d2f1a9358a71cc7a',
-                self.METADATA_DIR: '01b8c23253cef097b1bc233d609dae9eb84c98e2',
-                self.TAX_FOLDER: '6758173fa61ae4a77f5588ec2874ea52ed345feb',
-                self.SKANI_DIR: 'ff58a1d7e0584da324d140701ee12cead4f0df9d',
-                self.RED_DIR: '206bd781997fffbac951b4437dd75e6543139fd6'
+                self.RADII_DIR: '546c1769ae19c946ba94b91482f32002a204f598',
+                self.MSA_FOLDER: '8cf2ed4ea53f9201b127dbeed71bcc0fff27e204',
+                self.METADATA_DIR: 'bf2eeef3b6aa19300cd9ab7bf468b6479396ff7a',
+                self.TAX_FOLDER: 'c1e1766fa610229cb7cb45edc9a8fa0eafb44c96',
+                self.SKANI_DIR: '00afba7b7e89a27e4d9aa9b4ce176550b56af09e',
+                self.RED_DIR: '10a0fc1ca4199ff33e6c2fc4bc933318962ab212'
             }
 
 
