@@ -1138,12 +1138,11 @@ class OptionsParser(object):
                     self.stage_logger.reset_steps()
 
             if options.genes:
-                if not options.skip_ani_screen:
                     self.logger.warning('The --genes flag is set to True. The ANI screening step will be skipped.')
                     options.skip_ani_screen = True
 
-
-            if not options.skip_ani_screen:
+            skip_ani_screen = getattr(options, 'skip_ani_screen', False)
+            if not skip_ani_screen:
                 all_classified_ani,classified_genomes = self.ani_screen(options)
 
             # if all genomes have been classified by the ani_screen step, we do not need to run the identify step
