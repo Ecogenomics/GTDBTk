@@ -80,7 +80,7 @@ class ClassifyStep(Steps):
     scratch_dir: Optional[str] = None
     debug_option: Optional[bool] = None
     full_tree: Optional[bool] = None
-    skip_ani_screen: Optional[bool] = None
+    place_species: Optional[bool] = None
     output_files: Optional[Dict] = None
 
 

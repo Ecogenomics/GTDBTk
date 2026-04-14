@@ -57,14 +57,12 @@ PATH_BAC120_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.cla
 PATH_AR53_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.classification_pplacer.tsv')
 PATH_BAC120_BACKBONE_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.backbone.classification_pplacer.tsv')
 PATH_BAC120_CLASS_LEVEL_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.class_level.classification_pplacer_tree_{iter}.tsv')
-PATH_BAC120_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.prescreened.msa.fasta')
-PATH_AR53_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.prescreened.msa.fasta')
+PATH_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.{marker_set_id}.prescreened.msa.fasta')
 
 #Command: ani_screen
 DIR_ANISCREEN = join(DIR_CLASSIFY, 'ani_screen')
 DIR_ANISCREEN_INTERMEDIATE = join(DIR_ANISCREEN, 'intermediate_results')
 DIR_ANISCREEN_SKETCH_SKANI = join(DIR_ANISCREEN_INTERMEDIATE, 'sketch_skani')
-DIR_ANISCREEN_SKETCH_REF = 'sketch_ref'
 PATH_BAC120_ANI_SKANI = join(DIR_ANISCREEN, '{prefix}.bac120_skani.summary.tsv')
 PATH_AR53_ANI_SKANI = join(DIR_ANISCREEN, '{prefix}.ar53_skani.summary.tsv')
 
