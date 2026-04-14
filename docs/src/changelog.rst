@@ -2,12 +2,21 @@
 Change log
 ==========
 
-2.6.2
+2.7.0
 -----
 
 Bug Fixes:
 
 * (`#684 <https://github.com/Ecogenomics/GTDBTk/issues/684>`_) Remove 'name' from JSON data before unpacking into Step classes.
+
+Major Changes:
+
+* **Pre-sketched skani database:** GTDB-Tk now uses a skani pre-sketched database of the GTDB representative genomes. This significantly reduces the database storage footprint from 198 GB (in Release 232) down to 98 GB.
+* **Representative genomes availability:** The GTDB representative genomes are now available via the "Download" page on the GTDB website.
+* **Deprecated flag:** Because the database is already sketched natively, the `--skani_sketch_dir` flag is now deprecated.
+* **Replaced `--skip_ani_screen` with `--place_species`:** The `--skip_ani_screen` flag is now deprecated in v2.7.0 and has been replaced by the `--place_species` flag. The logic has been updated to reflect the new database structure:
+    * *Previously:* Using `--skip_ani_screen`, genomes placed in a genus by pplacer were only compared to representative genomes within that specific genus.
+    * *Now:* Because the database is a single skani sketch, user genomes are compared against *all* GTDB reference genomes once at the very beginning of the pipeline. When the new `--place_species` flag is selected, the genomes are still explicitly placed in the reference tree.
 
 2.6.1
 _____
