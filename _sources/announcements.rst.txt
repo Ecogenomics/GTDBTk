@@ -1,6 +1,26 @@
 Announcements
 =============
 
+GTDB-Tk 2.7.0 available
+-----------------------
+
+*April 15, 2026*
+
+* GTDB-Tk version ``2.7.0`` is now available.
+* This version of GTDB-Tk compatible with the new version of the GTDB-Tk reference package (Release 232).
+  `gtdbtk_r232_data.tar.gz <https://data.gtdb.ecogenomic.org/releases/release232/232.0/auxillary_files/gtdbtk_package/>`_.
+
+
+
+GTDB-Tk 2.6.2 available
+-----------------------
+
+*January 29, 2026*
+
+* GTDB-Tk version ``2.6.2`` is now available.
+
+* This release resolves crash when running GTDB-Tk in a directory with an existing stage log.
+
 GTDB-Tk 2.6.1 available
 -----------------------
 
