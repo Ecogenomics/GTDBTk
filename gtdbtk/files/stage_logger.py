@@ -80,7 +80,7 @@ class ClassifyStep(Steps):
     scratch_dir: Optional[str] = None
     debug_option: Optional[bool] = None
     full_tree: Optional[bool] = None
-    skip_ani_screen: Optional[bool] = None
+    place_species: Optional[bool] = None
     output_files: Optional[Dict] = None
 
 
@@ -163,7 +163,9 @@ class _StageLoggerImpl:
             data = json.load(f)
             steps = []
             for step in data.get('steps', []):
-                name = step.get('name')
+                # 1. Pop 'name' out of the dict so it isn't passed to __init__
+                name = step.pop('name', None)
+
                 if name == "ANI screen":
                     step_object = ANIScreenStep(**step)
                 elif name == "identify":

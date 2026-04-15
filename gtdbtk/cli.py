@@ -74,9 +74,6 @@ def __extension(group):
     group.add_argument('-x', '--extension', type=str, default='fna',
                        help='extension of files to process, ``gz`` = gzipped')
 
-def __skip_ani_screen(group):
-    group.add_argument('--skip_ani_screen', action="store_true", default=False,
-                       help="Skip the skani ANI screening step to classify genomes.")
 
 def __skip_gtdb_refs(group):
     group.add_argument('--skip_gtdb_refs', action="store_true", default=False,
@@ -306,16 +303,14 @@ def __db_version(group):
     group.add_argument('--db_version', type = int, default = None,
                        help="GTDB-Tk version package to test for compatibility.")
 
+def __place_species(group):
+    group.add_argument('--place_species', default=False, action='store_true',
+                       help='place species in pplacer trees even if they are classified with skani.')
 
 def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
                        help='output unaligned single-copy marker genes')
 
-def __skani_sketch_dir(group):
-    group.add_argument('--skani_sketch_dir', type=str, default=None,
-                       help='directory to store skani sketch db for reference genomes to reuse across runs.'
-                            'If not provided, a temporary directory will be used. If provided for the first time,'
-                            ' the sketch db will be created in this directory.')
 
 def get_main_parser():
     # Setup the main, and sub parsers.
@@ -368,12 +363,8 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __out_dir(grp, required=True)
         with arg_group(parser, 'optional skani arguments') as grp:
-            __skani_sketch_dir(grp)
-        #     __skani_min_af(grp)
-        #     __skani_s(grp)
-        #     __skani_preset(grp)
+            __place_species(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __skip_ani_screen(grp)
             __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
@@ -455,12 +446,9 @@ def get_main_parser():
         with arg_group(parser, 'required named arguments') as grp:
             __align_dir(grp, required=True)
             __out_dir(grp, required=True)
-        # with arg_group(parser, 'optional skani arguments') as grp:
-        #     __skani_min_af(grp)
-        #     __skani_s(grp)
-        #     __skani_preset(grp)
+        with arg_group(parser, 'optional skani arguments') as grp:
+            __place_species(grp)
         with arg_group(parser, 'optional arguments') as grp:
-            __skip_ani_screen(grp)
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
@@ -523,7 +511,6 @@ def get_main_parser():
         #     __skani_preset(grp)
         with arg_group(parser, 'optional clustering arguments') as grp:
             __min_af(grp)
-            __skani_sketch_dir(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __extension(grp)
             __prefix(grp)
