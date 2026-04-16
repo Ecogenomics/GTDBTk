@@ -302,8 +302,11 @@ class Classify(object):
             all_failed_prodigal=False,
             process_classified_genomes=False):
         """Classify genomes based on position in reference tree."""
-        if not all_classified_ani and not all_failed_prodigal:
+        if (not all_classified_ani and not all_failed_prodigal) or process_classified_genomes:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
+        #TODO: genomes can be all identified with skani but if we use process_classified_genomes we still need the  _bac_gids, _ar_gids, bac_ar_diff
+        #  Test this
+
 
 
         # If prescreen is set to True, then we will first run all genomes against a skani database
