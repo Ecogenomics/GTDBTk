@@ -2,6 +2,15 @@
 Change log
 ==========
 
+2.7.1
+-----
+
+Bug Fixes:
+
+* (`#699 <https://github.com/Ecogenomics/GTDBTk/issues/699>`_) Although all genomes are classified with ``skani``, selecting ``--place_species`` still requires ``_bac_gids``, ``_ar_gids``, and ``bac_ar_diff`` for downstream processing.
+* (`#698 <https://github.com/Ecogenomics/GTDBTk/issues/698>`_) Fixes an MD5 mismatch in the ``check_install`` configuration.
+
+
 2.7.0
 -----
 

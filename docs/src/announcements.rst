@@ -1,6 +1,15 @@
 Announcements
 =============
 
+GTDB-Tk 2.7.1 available
+-----------------------
+
+*April 17, 2026*
+
+* GTDB-Tk version ``2.7.1`` is now available.
+* This release fixes an MD5 mismatch in the ``check_install`` configuration.
+* Although all genomes are classified with ``skani``, selecting ``--place_species`` still requires ``_bac_gids``, ``_ar_gids``, and ``bac_ar_diff`` for downstream processing.
+
 GTDB-Tk 2.7.0 available
 -----------------------
 
