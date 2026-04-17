@@ -326,7 +326,7 @@ class __GTDBTkCommonConfig:
 
         if version is None or version==232:
             return {
-                self.PPLACER_DIR: '65478602f4c7206116313ea0b0fd0f4bc35a7196',
+                self.PPLACER_DIR: '4e8ffa1133f10bde827bddb81413d06d62de341e',
                 self.MASK_DIR: '84c7f7a17adc134db4161b15db10ae58389a90c1',
                 self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
                 self.RADII_DIR: '546c1769ae19c946ba94b91482f32002a204f598',
