@@ -2,6 +2,13 @@
 Change log
 ==========
 
+2.7.2
+-----
+
+Bug Fixes:
+
+* (`#701 <https://github.com/Ecogenomics/GTDBTk/issues/701>`_) Remove ``--skip_ani_screen`` from test command.
+
 2.7.1
 -----
 
