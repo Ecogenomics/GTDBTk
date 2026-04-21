@@ -134,12 +134,12 @@ To create an archive from the GTDB-Tk release data parts:
 2. Open a terminal or command prompt.
 3. Navigate to the directory containing the parts of the GTDB-Tk release data.
 4. Use the following command to concatenate all parts into a single archive:
-   cat gtdbtk_r226_data.tar.gz.part_* > gtdbtk_r226_data.tar.gz
+   cat gtdbtk_r232_data.tar.gz.part_* > gtdbtk_r232_data.tar.gz
 
-5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r226_data.tar.gz' in the same directory.
+5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r232_data.tar.gz' in the same directory.
 
-You can find the gtdbtk_r226_data.tar.gz.part_* files under:
-https://data.ace.uq.edu.au/public/gtdb/data/releases/release226/226.0/auxillary_files/gtdbtk_package/split_package/
+You can find the gtdbtk_r232_data.tar.gz.part_* files under:
+https://data.ace.uq.edu.au/public/gtdb/data/releases/release232/232.0/auxillary_files/gtdbtk_package/split_package/
 
 **Alias the GTDB-Tk reference data:**
 
