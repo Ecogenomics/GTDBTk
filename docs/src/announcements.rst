@@ -10,6 +10,7 @@ GTDB-Tk 2.7.2 available
 * This release fixed the "warning_counter" error during the placement in the bacterial backbone reference tree.
 * It removes the `--skip_ani_screen` option from the `test` command.
 
+
 GTDB-Tk 2.7.1 available
 -----------------------
 
