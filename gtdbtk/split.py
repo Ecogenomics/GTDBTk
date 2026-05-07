@@ -382,7 +382,7 @@ class Split(object):
                         if summary_row.warnings is not None:
                             warnings.extend(summary_row.warnings.split(';'))
                         summary_row.warnings = ';'.join(set(warnings))
-                        warning_counter += 1
+                        warning_counter.append(summary_row.gid)
 
 
                     mapping_row = GenomeMappingFileRow()
