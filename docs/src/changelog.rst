@@ -7,7 +7,9 @@ Change log
 
 Bug Fixes:
 
-* (`#701 <https://github.com/Ecogenomics/GTDBTk/issues/701>`_) Remove ``--skip_ani_screen`` from test command.
+* (`#705 <https://github.com/Ecogenomics/GTDBTk/issues/705>`_) Fixes the "warning_counter" error during the placement in the bacterial backbone reference tree.
+* (`#701 <https://github.com/Ecogenomics/GTDBTk/issues/701>`_) Removes the `--skip_ani_screen` option from the `test` command.
+
 
 2.7.1
 -----
