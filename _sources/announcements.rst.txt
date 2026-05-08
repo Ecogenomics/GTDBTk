@@ -1,6 +1,16 @@
 Announcements
 =============
 
+GTDB-Tk 2.7.2 available
+-----------------------
+
+*May 8, 2026*
+
+* GTDB-Tk version ``2.7.2`` is now available.
+* This release fixed the "warning_counter" error during the placement in the bacterial backbone reference tree.
+* It removes the `--skip_ani_screen` option from the `test` command.
+
+
 GTDB-Tk 2.7.1 available
 -----------------------
 
