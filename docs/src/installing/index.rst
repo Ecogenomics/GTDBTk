@@ -126,7 +126,7 @@ GTDB-Tk requires ~100G of external data (for R232) that needs to be downloaded a
     tar xvzf gtdbtk_data.tar.gz
 
 **For split package:**
-The split package is currently not available for R232. This release prioritised the addition of new mirrors and a reduction in the overall storage footprint of the package.
+Currently the split pacakge is not available for R232. We have focused on adding more mirror and reducing the storage footprint of the package for this release.
 
 To create an archive from the GTDB-Tk release data parts:
 
@@ -136,7 +136,7 @@ To create an archive from the GTDB-Tk release data parts:
 4. Use the following command to concatenate all parts into a single archive:
    cat gtdbtk_r232_data.tar.gz.part_* > gtdbtk_r232_data.tar.gz
 
-5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r232_data.tar.gz' in the same directory.
+5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r226_data.tar.gz' in the same directory.
 
 You can find the gtdbtk_r232_data.tar.gz.part_* files under:
 https://data.ace.uq.edu.au/public/gtdb/data/releases/release232/232.0/auxillary_files/gtdbtk_package/split_package/
