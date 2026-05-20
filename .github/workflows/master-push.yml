@@ -35,7 +35,10 @@ jobs:
 
       - name: Build documentation
         working-directory: ${{ github.workspace }}/master/docs
-        run: make html
+        run: |
+          PACKAGE_VER=$(python -c "import sys; sys.path.insert(0, '../'); from gtranslate import __version__; print(__version__)")
+          echo "Building docs for version: $PACKAGE_VER"
+          make html O="-D version=$PACKAGE_VER -D release=$PACKAGE_VER"
 
       - name: Move documentation
         run: |
