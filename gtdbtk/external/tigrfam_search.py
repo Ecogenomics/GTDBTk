@@ -136,7 +136,7 @@ class TigrfamSearch(object):
                 make_sure_path_exists(genome_dir)
 
                 args = ['hmmsearch', '-o', hmmsearch_out, '--tblout', output_hit_file,
-                        '--noali', '--notextw', '--cut_nc', '--cpu',
+                        '--noali', '--notextw', '-E 1e-5', '--cpu',
                         str(self.cpus_per_genome), self.tigrfam_hmms, gene_file]
                 p = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 stdout, stderr = p.communicate()

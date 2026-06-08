@@ -23,46 +23,60 @@ class __GTDBTkCommonConfig:
     RED_MIN_CHILDREN = 2
 
     # Marker information
-    BAC120_MARKERS = {"PFAM": ["PF00380.20.hmm", "PF00410.20.hmm", "PF00466.21.hmm",
-                               "PF01025.20.hmm", "PF02576.18.hmm", "PF03726.15.hmm"],
-                      "TIGRFAM": ["TIGR00006.HMM", "TIGR00019.HMM", "TIGR00020.HMM",
-                                  "TIGR00029.HMM", "TIGR00043.HMM", "TIGR00054.HMM",
-                                  "TIGR00059.HMM", "TIGR00061.HMM", "TIGR00064.HMM",
-                                  "TIGR00065.HMM", "TIGR00082.HMM", "TIGR00083.HMM",
-                                  "TIGR00084.HMM", "TIGR00086.HMM", "TIGR00088.HMM",
-                                  "TIGR00090.HMM", "TIGR00092.HMM", "TIGR00095.HMM",
-                                  "TIGR00115.HMM", "TIGR00116.HMM", "TIGR00138.HMM",
-                                  "TIGR00158.HMM", "TIGR00166.HMM", "TIGR00168.HMM",
-                                  "TIGR00186.HMM", "TIGR00194.HMM", "TIGR00250.HMM",
-                                  "TIGR00337.HMM", "TIGR00344.HMM", "TIGR00362.HMM",
-                                  "TIGR00382.HMM", "TIGR00392.HMM", "TIGR00396.HMM",
-                                  "TIGR00398.HMM", "TIGR00414.HMM", "TIGR00416.HMM",
-                                  "TIGR00420.HMM", "TIGR00431.HMM", "TIGR00435.HMM",
-                                  "TIGR00436.HMM", "TIGR00442.HMM", "TIGR00445.HMM",
-                                  "TIGR00456.HMM", "TIGR00459.HMM", "TIGR00460.HMM",
-                                  "TIGR00468.HMM", "TIGR00472.HMM", "TIGR00487.HMM",
-                                  "TIGR00496.HMM", "TIGR00539.HMM", "TIGR00580.HMM",
-                                  "TIGR00593.HMM", "TIGR00615.HMM", "TIGR00631.HMM",
-                                  "TIGR00634.HMM", "TIGR00635.HMM", "TIGR00643.HMM",
-                                  "TIGR00663.HMM", "TIGR00717.HMM", "TIGR00755.HMM",
-                                  "TIGR00810.HMM", "TIGR00922.HMM", "TIGR00928.HMM",
-                                  "TIGR00959.HMM", "TIGR00963.HMM", "TIGR00964.HMM",
-                                  "TIGR00967.HMM", "TIGR01009.HMM", "TIGR01011.HMM",
-                                  "TIGR01017.HMM", "TIGR01021.HMM", "TIGR01029.HMM",
-                                  "TIGR01032.HMM", "TIGR01039.HMM", "TIGR01044.HMM",
-                                  "TIGR01059.HMM", "TIGR01063.HMM", "TIGR01066.HMM",
-                                  "TIGR01071.HMM", "TIGR01079.HMM", "TIGR01082.HMM",
-                                  "TIGR01087.HMM", "TIGR01128.HMM", "TIGR01146.HMM",
-                                  "TIGR01164.HMM", "TIGR01169.HMM", "TIGR01171.HMM",
-                                  "TIGR01302.HMM", "TIGR01391.HMM", "TIGR01393.HMM",
-                                  "TIGR01394.HMM", "TIGR01510.HMM", "TIGR01632.HMM",
-                                  "TIGR01951.HMM", "TIGR01953.HMM", "TIGR02012.HMM",
-                                  "TIGR02013.HMM", "TIGR02027.HMM", "TIGR02075.HMM",
-                                  "TIGR02191.HMM", "TIGR02273.HMM", "TIGR02350.HMM",
-                                  "TIGR02386.HMM", "TIGR02397.HMM", "TIGR02432.HMM",
-                                  "TIGR02729.HMM", "TIGR03263.HMM", "TIGR03594.HMM",
-                                  "TIGR03625.HMM", "TIGR03632.HMM", "TIGR03654.HMM",
-                                  "TIGR03723.HMM", "TIGR03725.HMM", "TIGR03953.HMM"]}
+    BAC120_MARKERS = {
+                "PFAM": [],
+                "TIGRFAM": [
+                    "custom_1.HMM", "custom_2.HMM", "custom_3.HMM", "custom_4.HMM",
+                    "custom_5.HMM", "custom_6.HMM", "custom_7.HMM", "custom_8.HMM",
+                    "custom_9.HMM", "custom_10.HMM", "custom_11.HMM", "custom_12.HMM",
+                    "custom_13.HMM", "custom_14.HMM", "custom_15.HMM", "custom_16.HMM",
+                    "custom_17.HMM", "custom_18.HMM", "custom_19.HMM", "custom_20.HMM",
+                    "custom_21.HMM", "custom_22.HMM", "custom_23.HMM", "custom_24.HMM",
+                    "custom_25.HMM", "custom_26.HMM", "custom_27.HMM", "custom_28.HMM",
+                    "custom_29.HMM", "custom_30.HMM", "custom_31.HMM", "custom_32.HMM",
+                    "custom_33.HMM", "custom_34.HMM", "custom_35.HMM", "custom_36.HMM",
+                    "custom_37.HMM", "custom_38.HMM", "custom_39.HMM", "custom_40.HMM",
+                    "custom_41.HMM", "custom_42.HMM", "custom_43.HMM", "custom_44.HMM",
+                    "custom_45.HMM", "custom_46.HMM", "custom_47.HMM", "custom_48.HMM",
+                    "custom_49.HMM", "custom_50.HMM", "custom_51.HMM", "custom_52.HMM",
+                    "custom_53.HMM", "custom_54.HMM", "custom_55.HMM", "custom_56.HMM",
+                    "custom_57.HMM", "custom_58.HMM", "custom_59.HMM", "custom_60.HMM",
+                    "custom_61.HMM", "custom_62.HMM", "custom_63.HMM", "custom_64.HMM",
+                    "custom_65.HMM", "custom_66.HMM", "custom_67.HMM", "custom_68.HMM",
+                    "custom_69.HMM", "custom_70.HMM", "custom_71.HMM", "custom_72.HMM",
+                    "custom_73.HMM", "custom_74.HMM", "custom_75.HMM", "custom_76.HMM",
+                    "custom_77.HMM", "custom_78.HMM", "custom_79.HMM", "custom_80.HMM",
+                    "custom_81.HMM", "custom_82.HMM", "custom_83.HMM", "custom_84.HMM",
+                    "custom_85.HMM", "custom_86.HMM", "custom_87.HMM", "custom_88.HMM",
+                    "custom_89.HMM", "custom_90.HMM", "custom_91.HMM", "custom_92.HMM",
+                    "custom_93.HMM", "custom_94.HMM", "custom_95.HMM", "custom_96.HMM",
+                    "custom_97.HMM", "custom_98.HMM", "custom_99.HMM", "custom_100.HMM",
+                    "custom_101.HMM", "custom_102.HMM", "custom_103.HMM", "custom_104.HMM",
+                    "custom_105.HMM", "custom_106.HMM", "custom_107.HMM", "custom_108.HMM",
+                    "custom_109.HMM", "custom_110.HMM", "custom_111.HMM", "custom_112.HMM",
+                    "custom_113.HMM", "custom_114.HMM", "custom_115.HMM", "custom_116.HMM",
+                    "custom_117.HMM", "custom_118.HMM", "custom_119.HMM", "custom_120.HMM",
+                    "custom_121.HMM", "custom_122.HMM", "custom_123.HMM", "custom_124.HMM",
+                    "custom_125.HMM", "custom_126.HMM", "custom_127.HMM", "custom_128.HMM",
+                    "custom_129.HMM", "custom_130.HMM", "custom_131.HMM", "custom_132.HMM",
+                    "custom_133.HMM", "custom_134.HMM", "custom_135.HMM", "custom_136.HMM",
+                    "custom_137.HMM", "custom_138.HMM", "custom_139.HMM", "custom_140.HMM",
+                    "custom_141.HMM", "custom_142.HMM", "custom_143.HMM", "custom_144.HMM",
+                    "custom_145.HMM", "custom_146.HMM", "custom_147.HMM", "custom_148.HMM",
+                    "custom_149.HMM", "custom_150.HMM", "custom_151.HMM", "custom_152.HMM",
+                    "custom_153.HMM", "custom_154.HMM", "custom_155.HMM", "custom_156.HMM",
+                    "custom_157.HMM", "custom_158.HMM", "custom_159.HMM", "custom_160.HMM",
+                    "custom_161.HMM", "custom_162.HMM", "custom_163.HMM", "custom_164.HMM",
+                    "custom_165.HMM", "custom_166.HMM", "custom_167.HMM", "custom_168.HMM",
+                    "custom_169.HMM", "custom_170.HMM", "custom_171.HMM", "custom_172.HMM",
+                    "custom_173.HMM", "custom_174.HMM", "custom_175.HMM", "custom_176.HMM",
+                    "custom_177.HMM", "custom_178.HMM", "custom_179.HMM", "custom_180.HMM",
+                    "custom_181.HMM", "custom_182.HMM", "custom_183.HMM", "custom_184.HMM",
+                    "custom_185.HMM", "custom_186.HMM", "custom_187.HMM", "custom_188.HMM",
+                    "custom_189.HMM", "custom_190.HMM", "custom_191.HMM", "custom_192.HMM",
+                    "custom_193.HMM", "custom_194.HMM", "custom_195.HMM", "custom_196.HMM",
+                    "custom_197.HMM", "custom_198.HMM", "custom_199.HMM", "custom_200.HMM",
+                    "custom_201.HMM", "custom_202.HMM"]}
 
     # New Version of AR53_MARKERS
     AR53_MARKERS = {"PFAM": ["PF04919.13.hmm", "PF07541.13.hmm", "PF01000.27.hmm",
@@ -86,7 +100,7 @@ class __GTDBTkCommonConfig:
     # Information for aligning genomes
     DEFAULT_DOMAIN_THRESHOLD = 10.0
     AR_MARKER_COUNT = 53
-    BAC_MARKER_COUNT = 120
+    BAC_MARKER_COUNT = 202
 
     # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
@@ -166,11 +180,11 @@ class __GTDBTkCommonConfig:
 
     @property
     def MARKER_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'markers/')
+        return os.path.abspath("/data/pam/team162/sd28/scratch/prevotella_prj/full_isolate_tree/gene_alignments/hmms")
 
     @property
     def TIGRFAM_HMMS(self):
-        return os.path.join(self.MARKER_DIR, 'tigrfam/tigrfam.hmm')
+        return os.path.join(self.MARKER_DIR, 'custom_markers/custom_marker.hmm')
 
     @property
     def PFAM_HMM_DIR(self):
@@ -328,7 +342,7 @@ class __GTDBTkCommonConfig:
             return {
                 self.PPLACER_DIR: '4e8ffa1133f10bde827bddb81413d06d62de341e',
                 self.MASK_DIR: '84c7f7a17adc134db4161b15db10ae58389a90c1',
-                self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
+                #self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
                 self.RADII_DIR: '546c1769ae19c946ba94b91482f32002a204f598',
                 self.MSA_FOLDER: '8cf2ed4ea53f9201b127dbeed71bcc0fff27e204',
                 self.METADATA_DIR: '1febdba7d2513a8f43c409423aee83ed99df7a78',
