@@ -2,6 +2,18 @@
 Change log
 ==========
 
+2.7.3
+-----
+
+Bug Fixes:
+
+* (`#717 <https://github.com/Ecogenomics/GTDBTk/issues/717>`_) Restores the ``other_related_references`` and ``warnings`` fields for genomes not assigned to a species because their ANI falls below the closest representative's circumscription radius.
+
+Changes:
+
+* The "outside the ANI radius" warning is now raised only when the query's ANI is above the minimum species radius (~95%) but below the closest representative's radius; a separate warning is emitted when the ANI is sufficient but the alignment fraction is below threshold.
+* ``other_related_references`` is now capped at the 50 closest references.
+
 2.7.2
 -----
 
