@@ -181,7 +181,7 @@ class SkANI(object):
             self.logger.debug(line)
             # if the line does not start with a timer we parse it
             if not re.match(r'^\[\d\d:\d\d:\d\d\.\d+\]', line):
-                result_lines.add((line.strip()))
+                result_lines.add(line)
 
         proc.wait()
         #remove the last printed line
