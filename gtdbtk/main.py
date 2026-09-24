@@ -575,9 +575,11 @@ class OptionsParser(object):
         classify_step.place_species = process_classified_genomes
 
         ani_summary_files = {}
+        unassigned_hits_file = None
         if self.stage_logger.has_stage(ANIScreenStep):
             previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
             ani_summary_files = previous_ani_step.output_files
+            unassigned_hits_file = previous_ani_step.unassigned_hits_file
 
         if not all_classified_ani:
             check_dir_exists(options.align_dir)
@@ -610,6 +612,7 @@ class OptionsParser(object):
                      skip_ani_screen=skip_ani_screen,
                      genes=options.genes,
                      ani_summary_files=ani_summary_files,
+                     unassigned_hits_file=unassigned_hits_file,
                      all_classified_ani=all_classified_ani,
                      all_failed_prodigal=all_failed_prodigal,
                     process_classified_genomes=process_classified_genomes
@@ -666,7 +669,7 @@ class OptionsParser(object):
                                               options.extension)
 
         aniscreener = ANIScreener(options.cpus,options.min_af)
-        classified_genomes,reports = aniscreener.run_aniscreen(
+        classified_genomes,reports,unassigned_hits_file = aniscreener.run_aniscreen(
             genomes=genomes,
             out_dir=options.out_dir,
             prefix=options.prefix)
@@ -680,6 +683,7 @@ class OptionsParser(object):
         ani_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
         ani_step.status = 'completed'
         ani_step.output_files=reports
+        ani_step.unassigned_hits_file = unassigned_hits_file
 
         self.stage_logger.steps.append(ani_step)
 

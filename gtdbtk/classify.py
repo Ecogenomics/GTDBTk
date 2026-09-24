@@ -30,7 +30,7 @@ import dendropy
 from numpy import median as np_median
 
 from gtdbtk.config.common import CONFIG
-from gtdbtk.ani_rep import ANIRep, ANISummaryFile
+from gtdbtk.ani_rep import ANIRep, ANISummaryFile, SkaniRawHitsFile
 from gtdbtk.biolib_lite.common import make_sure_path_exists,canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.newick import parse_label
@@ -303,6 +303,7 @@ class Classify(object):
             skip_ani_screen=False,
             genes=False,
             ani_summary_files=None,
+            unassigned_hits_file=None,
             all_classified_ani=False,
             all_failed_prodigal=False,
             process_classified_genomes=False):
@@ -333,8 +334,6 @@ class Classify(object):
             skani_results = ani_rep.run_skani(genomes, prefix)
             # retain raw hits for the tree stage
             raw_skani_results = skani_results
-            print(raw_skani_results.get('SPIREOTU_00863486'))
-            print(raw_skani_results.get('SPIREOTU_01099274'))
 
 
             skani_classified_user_genomes = self._sort_skani_results_pre_pplacer(
@@ -357,6 +356,15 @@ class Classify(object):
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
             # and use them to generate the final taxonomy file
             skani_classified_user_genomes = self.load_skani_results_pre_pplacer(ani_summary_files)
+
+        # classify_wf / resume: skani was run by the ani_screen step, not here. Reload the raw hits
+        # of genomes it did not classify so below-radius / low-AF reporting still happens (Issue #717).
+        if skip_ani_screen and not genes and unassigned_hits_file:
+            if os.path.isfile(unassigned_hits_file):
+                raw_skani_results = SkaniRawHitsFile.read(unassigned_hits_file)
+            else:
+                self.logger.warning(f'skani hits file from the ANI screen step not found ({unassigned_hits_file}); '
+                                    f'below-radius / low-AF near misses will not be reported.')
 
         #import IPython; IPython.embed()  # DEBUG
         output_files = {}
@@ -1481,9 +1489,9 @@ class Classify(object):
                     summary_row.gid = gid
                     summary_row.classification_method = 'ani_screen'
 
-                    if len(trimmed_closest) > 1:
+                    if len(trimmed_closest) > 0:
                         other_ref = '; '.join(self.formatnote(
-                            closest,self.gtdb_taxonomy,self.species_radius, [gid]))
+                            closest,self.gtdb_taxonomy,self.species_radius, [closest_rep]))
                         summary_row.other_related_refs = other_ref
                     summary_row.note = 'classification based on ANI only'
 
@@ -1642,7 +1650,7 @@ class Classify(object):
                     pplacer_leafnode = pplacer_info.get("pplacer_g").taxon.label
                     if pplacer_leafnode[0:3] in ('RS_', 'GB_'):
                         pplacer_leafnode = pplacer_leafnode[3:]
-                self._resolve_unscreened_genome(
+                self._resolve_ani_unassigned_genome(
                     userleaf.taxon.label, pplacer_leafnode,
                     all_skani_results.get(userleaf.taxon.label),
                     pplacer_taxonomy_dict, msa_dict, trans_table_dict,
@@ -1786,7 +1794,7 @@ class Classify(object):
                     unclassified_user_genomes[userleaf.taxon.label] = summary_row
         return classified_user_genomes, unclassified_user_genomes,warning_counter
 
-    def _resolve_unscreened_genome(self, label, pplacer_leafnode, hits,
+    def _resolve_ani_unassigned_genome(self, label, pplacer_leafnode, hits,
                                    pplacer_taxonomy_dict, msa_dict, trans_table_dict,
                                    percent_multihit_dict, bac_ar_diff, warning_counter,
                                    summary_file, classified_user_genomes, unclassified_user_genomes):
