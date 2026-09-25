@@ -310,6 +310,7 @@ class Classify(object):
         """Classify genomes based on position in reference tree."""
         #v2.7.1:genomes can be all identified with skani but if we use process_classified_genomes
         #We still need the  _bac_gids, _ar_gids, bac_ar_diff
+        bac_ar_diff = {}  # also read by the ANI screen below, which can run when genome_domain() is skipped
         if (not all_classified_ani and not all_failed_prodigal) or process_classified_genomes:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
@@ -323,12 +324,13 @@ class Classify(object):
         skani_classified_user_genomes = {}
         # keep full per-genome skani hits per genome for below-radius reporting and under ANI radius warning
         raw_skani_results = {}
+        # --genes: inputs are proteins, skani cannot compare them to the nucleotide reference genomes.
+        # This check must happen before the ANI block (it used to be inside it, so skani still ran).
+        if genes and not skip_ani_screen:
+            self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
+            skip_ani_screen = True
+
         if not skip_ani_screen:
-            if genes:
-                self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
-                skip_ani_screen = True
-
-
             ani_rep = ANIRep(self.cpus)
             # we store all the skani information in the classify directory
             skani_results = ani_rep.run_skani(genomes, prefix)
