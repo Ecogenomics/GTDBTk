@@ -282,7 +282,7 @@ class Split(object):
                 pchildrank = child_taxons[child_taxons.index(
                     child_taxon) - 1]
                 if (abs(current_rel_list - red_bac_dict.get(child_taxon_rank)) < abs(
-                        current_rel_list - red_bac_dict.get(child_taxon_rank)) and
+                        current_rel_list - red_bac_dict.get(pchildrank[:3])) and
                         abs(current_rel_list - red_bac_dict.get(child_taxon_rank)) < abs(
                             child_rel_dist - red_bac_dict.get(child_taxon_rank))):
                     closest_rank = child_taxon
