@@ -484,11 +484,7 @@ class Classify(object):
                         elif marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                       os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                        if len(prodigal_failed_counter) > 0:
-                            len_prodigal_failed_counter = len(set(prodigal_failed_counter))
-                            self.logger.warning(f"{len_prodigal_failed_counter} of {len(genomes)} "
-                                                f"genome{'' if len_prodigal_failed_counter == 1 else 's'} "
-                                                f"ha{'s' if len_prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                        self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
                     continue
@@ -754,10 +750,7 @@ class Classify(object):
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                if prodigal_failed_counter > 0:
-                    self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
-                                        f"genome{'' if prodigal_failed_counter == 1 else 's'} "
-                                        f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
         return output_files
@@ -1435,6 +1428,17 @@ class Classify(object):
                         summary_file.add_row(summary_row)
                         warning_counter.append(infos[0])
         return warning_counter
+
+    def _log_unclassified_failed_genomes(self, failed_gids, genomes):
+        """Warn how many genomes were labelled 'Unclassified' because prodigal or the alignment failed.
+
+        failed_gids is the list returned by add_failed_genomes_to_summary.
+        """
+        n_failed = len(set(failed_gids))
+        if n_failed > 0:
+            self.logger.warning(f"{n_failed} of {len(genomes)} "
+                                f"genome{'' if n_failed == 1 else 's'} "
+                                f"ha{'s' if n_failed == 1 else 've'} been labeled as 'Unclassified'.")
 
     @staticmethod
     def formatnote(sorted_dict, gtdb_taxonomy, species_radius, labels, top_n=50):
