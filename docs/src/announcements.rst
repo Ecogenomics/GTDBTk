@@ -1,12 +1,13 @@
 Announcements
 =============
 
-GTDB-Tk 2.7.3 available
+GTDB-Tk 2.8.0 available
 -----------------------
 
 *September XX, 2026*
 
-* GTDB-Tk version ``2.7.3`` is now available.
+* GTDB-Tk version ``2.8.0`` is now available. No new reference data is required (R232).
+* ``classify`` and ``classify_wf`` now apply the same species-assignment rule and report the same ``other_related_references``; some genomes previously assigned by the ANI screen in ``classify_wf`` are now placed in the reference tree. See the change log for details.
 * This release restores reporting of ``other_related_references`` and ``warnings`` for genomes that are not assigned to a species because their ANI falls below the closest representative's circumscription radius; this information was lost in a previous version.
 * The "outside the ANI radius" warning is now raised only when the query's ANI exceeds the minimum species radius (~95%) but remains below the closest representative's radius, and a separate warning distinguishes cases where the ANI is sufficient but the alignment fraction is below threshold.
 * The ``other_related_references`` field is now capped at the 50 closest references to avoid very large entries.

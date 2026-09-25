@@ -1108,7 +1108,15 @@ class OptionsParser(object):
                 if self.stage_logger.has_stage(ANIScreenStep):
                     # we get the genomes already classified by the ani_screen step
                     previous_ani_step = self.stage_logger.get_stage(ANIScreenStep)
-                    if previous_ani_step.is_complete():
+                    # An ANI screen from GTDB-Tk < 2.8.0 has no unassigned-hits file; reusing it would
+                    # silently skip below-radius / low-AF reporting (Issue #717), so rerun it instead.
+                    unassigned_hits_file = getattr(previous_ani_step, 'unassigned_hits_file', None)
+                    ani_step_reusable = previous_ani_step.is_complete() and \
+                        unassigned_hits_file is not None and os.path.isfile(unassigned_hits_file)
+                    if previous_ani_step.is_complete() and not ani_step_reusable:
+                        self.logger.warning('The existing ani_screen results were produced by an older GTDB-Tk '
+                                            'version or are incomplete; the ani_screen step will be rerun.')
+                    if ani_step_reusable:
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
                         classify_method = Classify()
