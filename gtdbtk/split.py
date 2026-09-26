@@ -241,10 +241,9 @@ class Split(object):
                     list_subrank.append(self.gtdb_taxonomy.get(leaf_subrank)
                                         [self.order_rank.index(parent_rank) + 1])
                 if len(set(list_subrank)) == 1:
-                    print(leaf.taxon.label)
-                    print(list_leaves)
-                    print(list_subrank)
-                    raise GTDBTkExit('There should be only one leaf.')
+                    # `leaf` is the genome id (str); leaf.taxon.label raised AttributeError and hid this error
+                    raise GTDBTkExit(f'There should be only one leaf ({leaf}): '
+                                     f'reference leaves {list_leaves} -> sub-ranks {list_subrank}')
                 else:
                     closest_rank = parent_rank
                     detection = "taxonomic classification fully defined by topology"
