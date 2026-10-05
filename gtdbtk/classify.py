@@ -1442,20 +1442,31 @@ class Classify(object):
                                 f"genome{'' if n_failed == 1 else 's'} "
                                 f"ha{'s' if n_failed == 1 else 've'} been labeled as 'Unclassified'.")
 
+    @property
+    def canonical_taxonomy(self):
+        """GTDB taxonomy keyed by canonical genome id, built once on first use (see formatnote)."""
+        cached = self.__dict__.get('_canonical_taxonomy')
+        if cached is None:
+            cached = {canonical_gid(k): v for k, v in self.gtdb_taxonomy.items()}
+            self._canonical_taxonomy = cached
+        return cached
+
     @staticmethod
-    def formatnote(sorted_dict, gtdb_taxonomy, species_radius, labels, top_n=50):
+    def formatnote(sorted_dict, canonical_taxonomy, species_radius, labels, top_n=50):
         """Format the note field by concatenating all information in a sorted dictionary.
 
         sorted_dict is expected closest-first (ANI desc), so the first `top_n`
         kept entries are the top_n closest references. Pass top_n=None for no cap.
+
+        canonical_taxonomy must be keyed by canonical genome id (e.g. G005435135):
+        Classify.canonical_taxonomy, or Taxonomy().read(..., canonical_ids=True).
+        It used to be re-keyed here on every call (~700k entries, ~0.5-1 s per genome).
         """
-        gtdb_taxonomy = {canonical_gid(k): v for k, v in gtdb_taxonomy.items()}
         note_list = []
         for element in sorted_dict:
             if element[0] not in labels:
                 note_str = "{}, {}, {}, {}, {}".format(element[0],
-                                                       gtdb_taxonomy.get(
-                                                           add_ncbi_prefix(canonical_gid(element[0])))[6],
+                                                       canonical_taxonomy[canonical_gid(element[0])][6],
                                                        species_radius.get(
                                                            element[0]),
                                                        round(
@@ -1497,7 +1508,7 @@ class Classify(object):
 
                     if len(trimmed_closest) > 0:
                         other_ref = '; '.join(self.formatnote(
-                            closest,self.gtdb_taxonomy,self.species_radius, [closest_rep]))
+                            closest,self.canonical_taxonomy,self.species_radius, [closest_rep]))
                         summary_row.other_related_refs = other_ref
                     summary_row.note = 'classification based on ANI only'
 
@@ -1854,7 +1865,7 @@ class Classify(object):
                 summary_row.closest_genome_af = round(best['af'], 3)
                 summary_row.classification = standardise_taxonomy(taxa_str)
                 summary_row.note = 'topological placement and ANI have incongruent species assignments'
-                other = '; '.join(self.formatnote(af_pass, self.gtdb_taxonomy, self.species_radius, [best_ref]))
+                other = '; '.join(self.formatnote(af_pass, self.canonical_taxonomy, self.species_radius, [best_ref]))
                 summary_row.other_related_refs = other or None
                 if warnings:
                     summary_row.warnings = ';'.join(set(warnings))
@@ -1863,7 +1874,7 @@ class Classify(object):
                 classified_user_genomes[label] = standardise_taxonomy(taxa_str)
                 return True
             # within AF but ANI below this representative's circumscription radius
-            other = '; '.join(self.formatnote(af_pass, self.gtdb_taxonomy, self.species_radius, []))
+            other = '; '.join(self.formatnote(af_pass, self.canonical_taxonomy, self.species_radius, []))
             summary_row.other_related_refs = other or None
             summary_row.closest_genome_ref = None
             if best['ani'] >= self.min_species_radius:
