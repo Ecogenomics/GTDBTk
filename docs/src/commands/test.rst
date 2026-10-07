@@ -22,8 +22,9 @@ Arguments
 Files output
 ------------
 
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+* :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.json <files/gtdbtk.json>`
+* :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 * :ref:`output/ <commands/classify_wf>`
 * :ref:`test_execution.log <files/test_execution.log>`
 

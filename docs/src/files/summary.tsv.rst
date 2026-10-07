@@ -11,13 +11,15 @@ following 20 columns. Empty values are written as ``N/A``.
 Genomes are first compared with skani to all GTDB species representative genomes (ANI screen). A genome is assigned
 to a species when the closest representative with an alignment fraction (AF) ≥ ``--min_af`` (default 0.5) has an ANI
 within that representative's species-specific ANI circumscription radius. All other genomes are placed in the reference
-tree with pplacer and classified from their placement and relative evolutionary divergence (RED).
+tree with pplacer and classified from their placement and relative evolutionary divergence (RED). Genomes assigned by
+the ANI screen are only placed in the tree when ``--place_species`` is used.
 
 * ``user_genome``: unique identifier of the query genome, taken from the FASTA file name (or the batch file).
 * ``classification``: GTDB taxonomy string inferred by GTDB-Tk. An unassigned species (``s__``) means that no
   reference genome with an AF ≥ ``--min_af`` has an ANI within its circumscription radius, or that the genome is placed
   outside a named genus. Genomes for which gene calling failed or no marker genes were found are reported as
-  ``Unclassified`` (in the bac120 file), with the reason in ``warnings``.
+  ``Unclassified`` (in the bac120 file), and genomes removed by ``--min_perc_aa`` as ``Unclassified Bacteria`` or
+  ``Unclassified Archaea``, with the reason in ``warnings``.
 * ``closest_genome_reference``: accession of the species representative genome to which the query genome was assigned
   based on ANI and AF. ``N/A`` when no species was assigned by ANI.
 * ``closest_genome_reference_radius``: species-specific ANI circumscription radius of the above reference genome.
@@ -25,9 +27,9 @@ tree with pplacer and classified from their placement and relative evolutionary 
 * ``closest_genome_ani``: ANI between the query and the above reference genome.
 * ``closest_genome_af``: AF between the query and the above reference genome (the larger of the query and reference
   alignment fractions reported by skani).
-* ``closest_placement_reference``: accession of the reference genome on the terminal branch where the query genome is
-  placed in the reference tree. ``N/A`` when the genome is not placed on a terminal branch, or was not placed in the
-  tree (``ani_screen`` classifications without ``--place_species``).
+* ``closest_placement_reference``: for genomes assigned by the ANI screen and placed in the tree with
+  ``--place_species``, the accession of the reference genome on the terminal branch where the query genome is placed.
+  ``N/A`` otherwise.
 * ``closest_placement_radius``: species-specific ANI circumscription radius of the above reference genome.
 * ``closest_placement_taxonomy``: GTDB taxonomy of the above reference genome.
 * ``closest_placement_ani``: ANI between the query and the above reference genome, when available.
@@ -37,14 +39,14 @@ tree with pplacer and classified from their placement and relative evolutionary 
 
   * ``ani_screen``: species assigned from ANI and AF alone during the ANI screen; the genome is not placed in the
     reference tree (unless ``--place_species`` is used).
-  * ``taxonomic classification defined by topology and ANI``: the genome is placed on a terminal branch or within a
-    genus, and the species assignment is evaluated with ANI and AF.
+  * ``taxonomic classification defined by topology and ANI``: with ``--place_species``, a genome assigned by the ANI
+    screen that was also placed in the reference tree; the species assignment comes from ANI and AF.
   * ``taxonomic classification fully defined by topology``: the classification follows directly from the placement of
     the genome in the reference tree.
   * ``taxonomic novelty determined using RED``: the placement and the RED value of the genome were used to determine
     the classification (e.g. a putative novel genus or family).
 
-* ``note``: additional information about the classification. One of:
+* ``note``: additional information about the classification. Several notes are separated by ``;``. Values:
 
   * ``classification based on ANI only``: species assigned by the ANI screen.
   * ``topological placement and ANI have congruent species assignments``: the placement reference and the closest
@@ -53,6 +55,10 @@ tree with pplacer and classified from their placement and relative evolutionary 
     follows ANI/AF.
   * ``classification based on placement in backbone tree``: in split mode (bacteria, default), the genome was
     classified on the backbone tree only.
+  * ``classification based on placement in class-level tree``: in split mode, the classification comes from the
+    class-level tree.
+  * ``classification based on consensus between backbone and class-level tree``: in split mode, the backbone and
+    class-level placements were combined.
 
 * ``other_related_references(genome_id,species_name,radius,ANI,AF)``: other reference genomes found close to the
   query genome by the ANI screen, separated by ``;``. Each entry gives the accession, species name, circumscription
@@ -76,6 +82,8 @@ Produced by
 
 Example
 -------
+
+``genome_2`` shows a genome assigned by the ANI screen and placed in the tree with ``--place_species``.
 
 .. code-block:: text
 

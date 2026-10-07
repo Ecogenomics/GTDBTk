@@ -121,8 +121,9 @@ GTDB-Tk requires ~100G of external data (for R232) that needs to be downloaded a
 
 .. code-block:: bash
 
-    wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
-    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz ( mirror for Australia)
+    wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
+    # or, from the Australian mirror:
+    # wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
     tar xvzf gtdbtk_data.tar.gz
 
 **For split package:**
@@ -132,7 +133,10 @@ To create an archive from the GTDB-Tk release data parts:
 2. Open a terminal or command prompt.
 3. Navigate to the directory containing the parts of the GTDB-Tk release data.
 4. Use the following command to concatenate all parts into a single archive:
-   cat gtdbtk_r232_data.tar.gz.part_* > gtdbtk_r232_data.tar.gz
+
+   .. code-block:: bash
+
+       cat gtdbtk_r232_data.tar.gz.part_* > gtdbtk_r232_data.tar.gz
 
 5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r232_data.tar.gz' in the same directory.
 

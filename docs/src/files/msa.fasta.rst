@@ -16,6 +16,6 @@ Example
 
 .. code-block:: text
 
-    >GB_GCA_000011125.1 d__Archaea;p__Crenarchaeota;c__Thermoprotei;o__Desulfurococcales;f__Acidilobaceae;g__Aeropyrum;s__Aeropyrum pernix
+    >GB_GCA_000011125.1 d__Archaea;p__Thermoproteota;c__Thermoproteia;o__Desulfurococcales;f__Acidilobaceae;g__Aeropyrum;s__Aeropyrum pernix
     RRTSRIVLDAIAMESIVLMYKSAPTLGSIEMVERLAIEAAQGDLNAARKAPKIAVLEGIDDGRWKVKLRNEKSVLSPQTLIIIYLLELEELFKHVFLGTVVRKKYMMVARRAKAGDVQLFFKIVVKSVALKSRPAEK...
     

@@ -84,7 +84,7 @@ def __taxa_filter(group):
     group.add_argument('--taxa_filter', type=str, default=None,
                        help=('filter GTDB genomes to taxa (comma separated) within '
                              + 'specific taxonomic groups (e.g.: ``d__Bacteria`` '
-                             + 'or ``p__Proteobacteria,p__Actinobacteria``)'))
+                             + 'or ``p__Pseudomonadota,p__Actinomycetota``)'))
 
 
 def __min_perc_aa(group):

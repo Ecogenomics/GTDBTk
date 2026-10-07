@@ -11,11 +11,13 @@ Produced by
 -----------
 
 * :ref:`commands/align`
+* :ref:`commands/ani_rep`
 * :ref:`commands/classify`
 * :ref:`commands/classify_wf`
 * :ref:`commands/de_novo_wf`
 * :ref:`commands/identify`
 * :ref:`commands/infer`
+* :ref:`commands/test`
 
 Example
 -------

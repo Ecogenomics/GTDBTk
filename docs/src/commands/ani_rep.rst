@@ -23,6 +23,7 @@ Files output
 * :ref:`[prefix].ani_closest.tsv <files/ani_closest.tsv>`
 * :ref:`[prefix].ani_summary.tsv <files/ani_summary.tsv>`
 * :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.json <files/gtdbtk.json>`
 * :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 
 

@@ -8,7 +8,7 @@ Change log
 Bug Fixes:
 
 * (`#705 <https://github.com/Ecogenomics/GTDBTk/issues/705>`_) Fixes the "warning_counter" error during the placement in the bacterial backbone reference tree.
-* (`#701 <https://github.com/Ecogenomics/GTDBTk/issues/701>`_) Removes the `--skip_ani_screen` option from the `test` command.
+* (`#701 <https://github.com/Ecogenomics/GTDBTk/issues/701>`_) Removes the ``--skip_ani_screen`` option from the ``test`` command.
 
 
 2.7.1
@@ -31,10 +31,10 @@ Major Changes:
 
 * **Pre-sketched skani database:** GTDB-Tk now uses a skani pre-sketched database of the GTDB representative genomes. This significantly reduces the database storage footprint from 198 GB (in Release 232) down to 98 GB.
 * **Representative genomes availability:** The GTDB representative genomes are now available via the "Download" page on the GTDB website.
-* **Deprecated flag:** Because the database is already sketched natively, the `--skani_sketch_dir` flag is now deprecated.
-* **Replaced `--skip_ani_screen` with `--place_species`:** The `--skip_ani_screen` flag is now deprecated in v2.7.0 and has been replaced by the `--place_species` flag. The logic has been updated to reflect the new database structure:
-    * *Previously:* Using `--skip_ani_screen`, genomes placed in a genus by pplacer were only compared to representative genomes within that specific genus.
-    * *Now:* Because the database is a single skani sketch, user genomes are compared against *all* GTDB reference genomes once at the very beginning of the pipeline. When the new `--place_species` flag is selected, the genomes are still explicitly placed in the reference tree.
+* **Deprecated flag:** Because the database is already sketched natively, the ``--skani_sketch_dir`` flag is now deprecated.
+* **Replaced ``--skip_ani_screen`` with ``--place_species``:** The ``--skip_ani_screen`` flag is now deprecated in v2.7.0 and has been replaced by the ``--place_species`` flag. The logic has been updated to reflect the new database structure:
+    * *Previously:* Using ``--skip_ani_screen``, genomes placed in a genus by pplacer were only compared to representative genomes within that specific genus.
+    * *Now:* Because the database is a single skani sketch, user genomes are compared against *all* GTDB reference genomes once at the very beginning of the pipeline. When the new ``--place_species`` flag is selected, the genomes are still explicitly placed in the reference tree.
 
 2.6.1
 -----
@@ -55,8 +55,8 @@ Bug Fixes:
 
 * (`#670 <https://github.com/Ecogenomics/GTDBTk/issues/670>`_), (`#674 <https://github.com/Ecogenomics/GTDBTk/issues/674>`_),(`#668 <https://github.com/Ecogenomics/GTDBTk/issues/668>`_) Fixed an issue where GTDB-Tk would crash when using pplacer v1.1.alpha20. This issue is now resolved by fixing pplacer to v1.1.alpha19.
 * (`#671 <https://github.com/Ecogenomics/GTDBTk/issues/671>`_) The limit of number of genomes compared in dense genera has been removed.
-* (`#672 <https://github.com/Ecogenomics/GTDBTk/issues/672>`_) skani is now fixed to v0.3.1 to and uses `sketch` + `search` commands instead of `dist`.
-* (`#665 <https://github.com/Ecogenomics/GTDBTk/issues/665>`_) GTDB-Tk now uses skani v0.3.1 and have a option to save the sketch db for reference genomes for future use( `--skani_sketch_dir` ).
+* (`#672 <https://github.com/Ecogenomics/GTDBTk/issues/672>`_) skani is now fixed to v0.3.1 to and uses ``sketch`` + ``search`` commands instead of ``dist``.
+* (`#665 <https://github.com/Ecogenomics/GTDBTk/issues/665>`_) GTDB-Tk now uses skani v0.3.1 and have a option to save the sketch db for reference genomes for future use( ``--skani_sketch_dir`` ).
 * (`#669 <https://github.com/Ecogenomics/GTDBTk/issues/669>`_) BaseModel from pydantic is now replaces by DataClass to avoid warnings with pydantic v2.x.
 
 2.5.2
@@ -70,6 +70,7 @@ Bug Fixes:
 -----
 
 Bug Fixes:
+
 * (`#658 <https://github.com/Ecogenomics/GTDBTk/issues/658>`_) Implement progress bar for comparison process.
 
 
@@ -77,9 +78,11 @@ Bug Fixes:
 -----
 
 Major Changes:
+
 * GTDB-Tk now uses **Skani exclusively** for genome clustering, replacing the previous Mash/Skani hybrid approach. This change simplifies the CLI and removes the dependency on Mash, streamlining installation and execution.
 
 Bug Fixes:
+
 * (`#644 <https://github.com/Ecogenomics/GTDBTk/issues/644>`_), (`#641 <https://github.com/Ecogenomics/GTDBTk/issues/641>`_) Fixed compatibility with recent versions of NumPy (≥1.24), which removed the ``tostring()`` method from ``numpy.ndarray``.
 * (`#650 <https://github.com/Ecogenomics/GTDBTk/issues/650>`_) Update CLI with an up-to-date taxon.
 
@@ -88,6 +91,7 @@ Bug Fixes:
 -----
 
 Bug Fixes:
+
 * (`#630 <https://github.com/Ecogenomics/GTDBTk/issues/630>`_) Fixed SyntaxWarning in Python 3.12 by using raw strings for regex in HMMResultsIO.py
 
 
@@ -102,21 +106,21 @@ Bug Fixes:
   step but still be classified in the identify step. To avoid duplication of row, the genome is classified with a warning.
 * (`#540 <https://github.com/Ecogenomics/GTDBTk/issues/540>`_) Empty files are skipped during the sketch step of Mash,
   they are then catch in the prodigal step and are returned as 'Unclassified'
-* (`#549 <https://github.com/Ecogenomics/GTDBTk/issues/549>`_) : `--force` has been modified to deal with #540. Prodigal
+* (`#549 <https://github.com/Ecogenomics/GTDBTk/issues/549>`_) : ``--force`` has been modified to deal with #540. Prodigal
   wasn't returning the empty files as failed genomes, it was only skipping them. These genomes are now returned in the summary file and flagged as Unclassified.
 
 Major Changes:
 
 * FastANI has been replaced by skani as the primary tool for computing Average Nucleotide Identity (ANI).Users may notice slight variations in the results compared to those obtained using FastANI.
-* In the generated `summary.tsv` files, several columns have been renamed for clarity and consistency. The following columns have been affected:
+* In the generated ``summary.tsv`` files, several columns have been renamed for clarity and consistency. The following columns have been affected:
 
-    - "`fastani_reference`" column has been renamed to "`closest_genome_reference`".
-    - "`fastani_reference_radius`" column has been renamed to "`closest_genome_reference_radius`".
-    - "`fastani_taxonomy`" column has been renamed to "`closest_genome_taxonomy`".
-    - "`fastani_ani`" column has been renamed to "`closest_genome_ani`".
-    - "`fastani_af`" column has been renamed to "`closest_genome_af`".
+    - "``fastani_reference``" column has been renamed to "``closest_genome_reference``".
+    - "``fastani_reference_radius``" column has been renamed to "``closest_genome_reference_radius``".
+    - "``fastani_taxonomy``" column has been renamed to "``closest_genome_taxonomy``".
+    - "``fastani_ani``" column has been renamed to "``closest_genome_ani``".
+    - "``fastani_af``" column has been renamed to "``closest_genome_af``".
 
- These changes have been implemented to improve the readability and understanding of the data within the `summary.tsv` files. Users should update their scripts or processes accordingly to reflect these renamed column headers.
+ These changes have been implemented to improve the readability and understanding of the data within the ``summary.tsv`` files. Users should update their scripts or processes accordingly to reflect these renamed column headers.
 
 
 
@@ -232,7 +236,7 @@ Build:
 
 Minor changes:
 
-* (`#433 <https://github.com/Ecogenomics/GTDBTk/issues/433>`_) Added additional checks to ensure that the `--outgroup_taxon` cannot be set to a domain (`root`, `de_novo_wf`).
+* (`#433 <https://github.com/Ecogenomics/GTDBTk/issues/433>`_) Added additional checks to ensure that the ``--outgroup_taxon`` cannot be set to a domain (``root``, ``de_novo_wf``).
 * (`#459 <https://github.com/Ecogenomics/GTDBTk/issues/459>`_ / `#462 <https://github.com/Ecogenomics/GTDBTk/issues/462>`_ ) Fix deprecated np.bool in prodigal_biolib.py. Special thanks to @neoformit for his contribution.
 * (`#466 <http://github.com/Ecogenomics/GTDBTk/issues/466>`_) RED value has been rounded to 5 decimals after the comma.
 * (`#451 <http://github.com/Ecogenomics/GTDBTk/issues/451>`_) Extra checks have been added when Prodigal fails.
@@ -240,8 +244,8 @@ Minor changes:
 
 Bug Fixes:
 
-* (`#420 <https://github.com/Ecogenomics/GTDBTk/issues/420>`_) Fixed an issue where GTDB-Tk might hang when classifying TIGRFAM markers (`identify`, `classify_wf`, `de_novo_wf`). Special thanks to @lfenske-93 and @sjaenick for their contribution.
-* (`#428 <https://github.com/Ecogenomics/GTDBTk/issues/428>`_) Fixed an issue where the `--gtdbtk_classification_file` would raise an error trying to read the `classify` summary (`root`, `de_novo_wf`).
+* (`#420 <https://github.com/Ecogenomics/GTDBTk/issues/420>`_) Fixed an issue where GTDB-Tk might hang when classifying TIGRFAM markers (``identify``, ``classify_wf``, ``de_novo_wf``). Special thanks to @lfenske-93 and @sjaenick for their contribution.
+* (`#428 <https://github.com/Ecogenomics/GTDBTk/issues/428>`_) Fixed an issue where the ``--gtdbtk_classification_file`` would raise an error trying to read the ``classify`` summary (``root``, ``de_novo_wf``).
 * (`#439 <https://github.com/Ecogenomics/GTDBTk/issues/439>`_) Fix the pipeline when using protein files instead of nucleotide files. symlink uses absolute path instead.
 
 
@@ -252,11 +256,11 @@ Bug Fixes:
 
 Documentation:
 
-* (`#410 <https://github.com/Ecogenomics/GTDBTk/issues/410>`_) Add documentation for `convert_to_itol`
+* (`#410 <https://github.com/Ecogenomics/GTDBTk/issues/410>`_) Add documentation for ``convert_to_itol``
 
 Bug Fixes:
 
-* (`#399 <https://github.com/Ecogenomics/GTDBTk/issues/399>`_) Fix `--genes` option attempting to create a directory.
+* (`#399 <https://github.com/Ecogenomics/GTDBTk/issues/399>`_) Fix ``--genes`` option attempting to create a directory.
 * (`#400 <https://github.com/Ecogenomics/GTDBTk/issues/400>`_) Updated contig.py to fix inconsistent pplacer paths causing the program to crash.
 
 
@@ -265,15 +269,15 @@ Bug Fixes:
 
 Major changes:
 
-* GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple **class**-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **55 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag. This is the main change from v2.0.0. The split tree approach has been modified from order-level trees to class-level trees to resolve specific classification issues (see `#383 <https://github.com/Ecogenomics/GTDBTk/issues/383>`_).
-* Genomes that cannot be assigned to a domain (e.g. genomes with no bacterial or archaeal markers or genomes with no genes called by Prodigal) are now reported in the `gtdbtk.bac120.summary.tsv` as 'Unclassified'
-* Genomes filtered out during the alignment step are now reported in the `gtdbtk.bac120.summary.tsv` or `gtdbtk.ar53.summary.tsv` as 'Unclassified Bacteria/Archaea'
-* `--write_single_copy_genes` flag in now available in the `classify_wf` and `de_novo_wf` workflows.
+* GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple **class**-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **55 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the ``--full-tree`` flag. This is the main change from v2.0.0. The split tree approach has been modified from order-level trees to class-level trees to resolve specific classification issues (see `#383 <https://github.com/Ecogenomics/GTDBTk/issues/383>`_).
+* Genomes that cannot be assigned to a domain (e.g. genomes with no bacterial or archaeal markers or genomes with no genes called by Prodigal) are now reported in the ``gtdbtk.bac120.summary.tsv`` as 'Unclassified'
+* Genomes filtered out during the alignment step are now reported in the ``gtdbtk.bac120.summary.tsv`` or ``gtdbtk.ar53.summary.tsv`` as 'Unclassified Bacteria/Archaea'
+* ``--write_single_copy_genes`` flag in now available in the ``classify_wf`` and ``de_novo_wf`` workflows.
 
 
 Features:
 
-* (`#392 <https://github.com/Ecogenomics/GTDBTk/issues/392>`_) `--write_single_copy_genes` flag available in workflows.
+* (`#392 <https://github.com/Ecogenomics/GTDBTk/issues/392>`_) ``--write_single_copy_genes`` flag available in workflows.
 * (`#387 <https://github.com/Ecogenomics/GTDBTk/issues/392>`_) specific memory requirements set in classify_wf depending on the classification approach.
 
 
@@ -282,18 +286,18 @@ Features:
 
 Major changes:
 
-* GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **35 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the `--full-tree` flag.
+* GTDB-TK now uses a **divide-and-conquer** approach where the bacterial reference tree is split into multiple order-level subtrees. This reduces the memory requirements of GTDB-Tk from **320 GB** of RAM when using the full GTDB R07-RS207 reference tree to approximately **35 GB**. A manuscript describing this approach is in preparation. If you wish to continue using the full GTDB reference tree use the ``--full-tree`` flag.
 * Archaeal classification now uses a refined set of 53 archaeal-specific marker genes based on the recent publication by `Dombrowski et al., 2020 <https://www.nature.com/articles/s41467-020-17408-w>`_. This set of archaeal marker genes is now used by GTDB for curating the archaeal taxonomy.
-* By default, all directories containing intermediate results are **now removed** by default at the end of the `classify_wf` and `de_novo_wf` pipelines. If you wish to retain these intermediates files use the `--keep-intermediates` flag.
-* All MSA files produced by the `align` step are now compressed with gzip.
-* The classification summary and failed genomes files are now the only files linked in the root directory of `classify_wf`.
+* By default, all directories containing intermediate results are **now removed** by default at the end of the ``classify_wf`` and ``de_novo_wf`` pipelines. If you wish to retain these intermediates files use the ``--keep-intermediates`` flag.
+* All MSA files produced by the ``align`` step are now compressed with gzip.
+* The classification summary and failed genomes files are now the only files linked in the root directory of ``classify_wf``.
 
 
 Features:
 
-* (`#373 <https://github.com/Ecogenomics/GTDBTk/issues/373>`_) `convert_to_itol` to convert trees into iTOL format
+* (`#373 <https://github.com/Ecogenomics/GTDBTk/issues/373>`_) ``convert_to_itol`` to convert trees into iTOL format
 * (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_) Output FASTA files are compressed by default
-* (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_) Intermediate files will be removed by default when using classify/de-novo workflows unless specified by `--keep_intermediates`
+* (`#369 <https://github.com/Ecogenomics/GTDBTk/issues/369>`_) Intermediate files will be removed by default when using classify/de-novo workflows unless specified by ``--keep_intermediates``
 * (`#362 <https://github.com/Ecogenomics/GTDBTk/issues/362>`_) Add --genes flag for Error
 * (`#360 <https://github.com/Ecogenomics/GTDBTk/issues/360>`_ / `#356 <https://github.com/Ecogenomics/GTDBTk/issues/356>`_) A warning will be displayed if pplacer fails to place a genome
 
@@ -315,9 +319,9 @@ Features:
 1.6.0
 -----
 
-* (`#337 <https://github.com/Ecogenomics/GTDBTk/issues/337>`_) Set minimum `tqdm` version to `4.35.0`
+* (`#337 <https://github.com/Ecogenomics/GTDBTk/issues/337>`_) Set minimum ``tqdm`` version to ``4.35.0``
 * (`#335 <https://github.com/Ecogenomics/GTDBTk/pull/335>`_) Fixed typo in output log messages (@fplaza)
-* Removed the option to re-calculate RED values (`--recalculate_red`)
+* Removed the option to re-calculate RED values (``--recalculate_red``)
 
 1.5.1
 -----

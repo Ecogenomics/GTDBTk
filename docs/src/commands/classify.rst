@@ -13,8 +13,8 @@ using the output of the :ref:`align <commands/align>` step (``--align_dir``). Th
   of a representative when the alignment fraction (AF) is ≥ ``--min_af`` (default: 0.5) and the ANI is within that
   representative's species-specific ANI circumscription radius. These genomes are reported with the classification
   method ``ani_screen`` and are not placed in the reference tree, unless ``--place_species`` is used.
-* All other genomes are placed in the reference tree with pplacer and classified from their placement, relative
-  evolutionary divergence (RED) and ANI to the reference genomes.
+* All other genomes are placed in the reference tree with pplacer and classified from their placement and relative
+  evolutionary divergence (RED).
 * Unlike ``classify_wf``, ``classify`` does not write an ``ani_screen`` folder: ANI results are only reported in the
   :ref:`summary file <files/summary.tsv>`.
 
@@ -45,7 +45,7 @@ Files output
         * :ref:`[prefix].bac120.backbone.classification_pplacer.tsv <files/classification_pplacer.tsv>`
         * :ref:`[prefix].bac120.class_level.classification_pplacer_tree_[index].tsv <files/classification_pplacer.tsv>`
         * :ref:`[prefix].bac120.classification_pplacer.tsv <files/classification_pplacer.tsv>` (``--full_tree`` only)
-        * :ref:`[prefix].[domain].prescreened.msa.fasta <files/msa.fasta>`
+        * :ref:`[prefix].[domain].prescreened.msa.fasta <files/user_msa.fasta>`
         * :ref:`[prefix].[domain].red_dictionary.tsv <files/red_dictionary.tsv>`
         * pplacer
             * :ref:`pplacer.ar53.json <files/pplacer.domain.json>`
