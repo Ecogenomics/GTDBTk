@@ -21,9 +21,9 @@ Files output
 ------------
 
 
-* :ref:`[prefix].log <files/gtdbtk.log>`
-* :ref:`[prefix].json <files/gtdbtk.json>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+* :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.json <files/gtdbtk.json>`
+* :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 * align
     * :ref:`[prefix].[domain].msa.fasta.gz <files/msa.fasta>`
     * :ref:`[prefix].[domain].user_msa.fasta.gz <files/user_msa.fasta>`

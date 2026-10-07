@@ -124,10 +124,10 @@ Deprecated FAQ
 What were the options ``--mash_db`` and ``--skip_ani_screen``?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-| In GTDB-Tk v2.2 and v2.3, ``classify_wf`` and ``classify`` required one of two mutually exclusive options: ``--mash_db`` or ``--skip_ani_screen``.
+| In GTDB-Tk v2.2 to v2.4, ``classify_wf`` and ``classify`` required one of two mutually exclusive options: ``--mash_db`` or ``--skip_ani_screen``.
 | ``--mash_db`` gave the path of the Mash sketch of the reference genomes used by the ANI screen; if it did not exist, it was created so it could be reused in later runs.
 | ``--skip_ani_screen`` skipped the ANI screen: genomes were only compared by ANI to the reference genomes of the genus in which pplacer placed them.
-| Since v2.4.0, Mash and FastANI have been replaced by skani, and ``--mash_db`` is no longer used.
+| FastANI was replaced by skani in v2.4.0, and Mash was removed in v2.5.0 (``--mash_db`` is no longer used).
 | Since v2.7.0, the reference data includes a pre-sketched skani database of the GTDB species representatives, so the ANI screen always runs against all representatives and ``--skip_ani_screen`` (and ``--skani_sketch_dir``, added in v2.6.0) have been removed. To also place ANI-assigned genomes in the reference tree, use ``--place_species`` (see above).
 
 Why is FastANI using more threads than allocated?

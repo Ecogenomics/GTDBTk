@@ -174,7 +174,8 @@ and uses HMM models and the <a class="reference external" href="http://hmmer.org
 120 bacterial and 53 archaeal marker genes used for phylogenetic inference
 (<a class="reference external" href="https://www.ncbi.nlm.nih.gov/pubmed/30148503">Parks et al., 2018</a>). Multiple
 sequence alignments (MSA) are obtained by aligning marker genes to their respective HMM model.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">align</span></code> step concatenates the aligned marker genes and filters the concatenated MSA to approximately 5,000 amino acids.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">align</span></code> step concatenates the aligned marker genes and filters the concatenated MSA with a canonical mask
+(approximately 5,000 amino acids for bacteria and 10,000 for archaea).</p>
 <p>Finally, the <code class="docutils literal notranslate"><span class="pre">classify</span></code> step uses <a class="reference external" href="http://matsen.fhcrc.org/pplacer/">pplacer</a> to find the maximum-likelihood
 placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree,
 its relative evolutionary divergence, and/or average nucleotide identity (ANI) to reference genomes.</p>

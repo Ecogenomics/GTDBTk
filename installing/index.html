@@ -251,19 +251,23 @@ See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="st
 <span id="installing-gtdbtk-reference-data"></span><h2>GTDB-Tk reference data<a class="headerlink" href="#gtdb-tk-reference-data" title="Link to this heading"></a></h2>
 <p>GTDB-Tk requires ~100G of external data (for R232) that needs to be downloaded and unarchived:</p>
 <p><strong>For full package:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
-wget<span class="w"> </span>https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz<span class="w"> </span><span class="o">(</span><span class="w"> </span>mirror<span class="w"> </span><span class="k">for</span><span class="w"> </span>Australia<span class="o">)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
+<span class="c1"># or, from the Australian mirror:</span>
+<span class="c1"># wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz</span>
 tar<span class="w"> </span>xvzf<span class="w"> </span>gtdbtk_data.tar.gz
 </pre></div>
 </div>
 <p><strong>For split package:</strong>
 To create an archive from the GTDB-Tk release data parts:</p>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p>Ensure all parts of the GTDB-Tk release data are in the same directory.</p></li>
 <li><p>Open a terminal or command prompt.</p></li>
 <li><p>Navigate to the directory containing the parts of the GTDB-Tk release data.</p></li>
-<li><p>Use the following command to concatenate all parts into a single archive:
-cat gtdbtk_r232_data.tar.gz.part_* &gt; gtdbtk_r232_data.tar.gz</p></li>
+<li><p>Use the following command to concatenate all parts into a single archive:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>gtdbtk_r232_data.tar.gz.part_*<span class="w"> </span>&gt;<span class="w"> </span>gtdbtk_r232_data.tar.gz
+</pre></div>
+</div>
+</li>
 <li><p>Once the command finishes executing, you will have a single archive file named ‘gtdbtk_r232_data.tar.gz’ in the same directory.</p></li>
 </ol>
 <p>You can find the gtdbtk_r232_data.tar.gz.part_* files under:

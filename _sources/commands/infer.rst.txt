@@ -19,9 +19,10 @@ Arguments
 Files output
 ------------
 
-* :ref:`[prefix].log <files/gtdbtk.log>`
+* :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.json <files/gtdbtk.json>`
 * :ref:`[prefix].unrooted.tree <files/unrooted.tree>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+* :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 * infer/intermediate_results/
     * :ref:`[prefix].fasttree.log <files/fasttree.log>`
     * :ref:`[prefix].tree.log <files/tree.log>`

@@ -3,12 +3,13 @@
 tigrfam.out
 ===========
 
-The raw output Produced by
------------ Tigrfam.
+The raw output of the TIGRFAM HMM search (``hmmsearch``) for a genome.
 
 Produced by
- * :ref:`commands/identify`
- * :ref:`commands/classify_wf`
+-----------
+
+* :ref:`commands/identify`
+* :ref:`commands/classify_wf`
 
 
 Example

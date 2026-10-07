@@ -143,7 +143,9 @@
              
   <section id="convert-to-itol">
 <span id="commands-convert-to-itol"></span><h1>convert_to_itol<a class="headerlink" href="#convert-to-itol" title="Link to this heading"></a></h1>
-<p>The <cite>convert_to_itol</cite> command will remove internal labels from Newick tree, making it suitable for visualization in <a class="reference external" href="http://itol.embl.de/">iTOL</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">convert_to_itol</span></code> command reformats a GTDB-Tk Newick tree for visualization in <a class="reference external" href="https://itol.embl.de/">iTOL</a>:
+taxon labels on internal nodes are kept (with <code class="docutils literal notranslate"><span class="pre">;</span></code> replaced by <code class="docutils literal notranslate"><span class="pre">|</span></code>), and support values are moved into square
+brackets after the branch lengths. To remove all internal labels instead, use <a class="reference internal" href="remove_labels.html#commands-remove-labels"><span class="std std-ref">remove_labels</span></a>.</p>
 <section id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading"></a></h2>
 <div class="highlight-default notranslate" id="gtdbtk-convert_to_itol"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">convert_to_itol</span> <span class="o">--</span><span class="n">input_tree</span> <span class="n">INPUT_TREE</span> <span class="o">--</span><span class="n">output_tree</span>

@@ -3,7 +3,7 @@
 prodigal_translation_table.tsv
 ==============================
 
-A summary of the [translation tables](https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) determined for the current genome.
+A summary of the `translation tables <https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi>`_ determined for the current genome.
 
 Produced by
 -----------

@@ -19,9 +19,9 @@ Arguments
 Files output
 ------------
 
-* :ref:`[prefix].log <files/gtdbtk.log>`
-* :ref:`[prefix].json <files/gtdbtk.json>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+* :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.json <files/gtdbtk.json>`
+* :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 * identify
     * :ref:`[prefix].[domain].markers_summary.tsv <files/markers_summary.tsv>`
     * :ref:`[prefix].translation_table_summary.tsv <files/translation_table_summary.tsv>`

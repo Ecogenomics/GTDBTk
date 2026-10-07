@@ -3,7 +3,7 @@
 translation_table_summary.tsv
 =============================
 
-A summary of the [translation tables](https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) determined for each genome.
+A summary of the `translation tables <https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi>`_ determined for each genome.
 
 Produced by
 -----------

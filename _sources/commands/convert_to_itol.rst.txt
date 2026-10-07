@@ -3,7 +3,9 @@
 convert_to_itol
 ===============
 
-The `convert_to_itol` command will remove internal labels from Newick tree, making it suitable for visualization in `iTOL <http://itol.embl.de/>`_.  
+The ``convert_to_itol`` command reformats a GTDB-Tk Newick tree for visualization in `iTOL <https://itol.embl.de/>`_:
+taxon labels on internal nodes are kept (with ``;`` replaced by ``|``), and support values are moved into square
+brackets after the branch lengths. To remove all internal labels instead, use :ref:`commands/remove_labels`.
 
 Arguments
 ---------

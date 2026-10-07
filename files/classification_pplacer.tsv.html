@@ -151,6 +151,14 @@
   <section id="classification-pplacer-tsv">
 <span id="files-classification-pplacer-tsv"></span><h1>classification_pplacer.tsv<a class="headerlink" href="#classification-pplacer-tsv" title="Link to this heading"></a></h1>
 <p>The classification of query genomes based only on their placement in the reference tree.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[prefix].ar53.classification_pplacer.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">[prefix].bac120.class_level.classification_pplacer_tree_[index].tsv</span></code>
+and, with <code class="docutils literal notranslate"><span class="pre">--full_tree</span></code>, <code class="docutils literal notranslate"><span class="pre">[prefix].bac120.classification_pplacer.tsv</span></code>: two tab-separated columns without a header,
+the genome identifier and the taxonomy from its placement (first example below).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[prefix].bac120.backbone.classification_pplacer.tsv</span></code> (split mode): placement on the bacterial backbone tree, with a
+header and the columns <code class="docutils literal notranslate"><span class="pre">user_genome</span></code>, <code class="docutils literal notranslate"><span class="pre">gtdb_taxonomy_red</span></code>, <code class="docutils literal notranslate"><span class="pre">gtdb_taxonomy_terminal</span></code>, <code class="docutils literal notranslate"><span class="pre">pplacer_taxonomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">is_terminal</span></code> and <code class="docutils literal notranslate"><span class="pre">red</span></code>.</p></li>
+</ul>
 <section id="produced-by">
 <h2>Produced by<a class="headerlink" href="#produced-by" title="Link to this heading"></a></h2>
 <blockquote>
@@ -164,7 +172,7 @@
 <h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>genome_2    d__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__
 genome_3    d__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__VadinCA11;s__
-genome_1    d__Archaea;p__Euryarchaeota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__
+genome_1    d__Archaea;p__Methanobacteriota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__
 </pre></div>
 </div>
 </section>

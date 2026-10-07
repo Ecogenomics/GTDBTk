@@ -35,7 +35,8 @@ and uses HMM models and the `HMMER <http://hmmer.org/>`_ package to identify the
 sequence alignments (MSA) are obtained by aligning marker genes to their respective HMM model.
 
 
-The ``align`` step concatenates the aligned marker genes and filters the concatenated MSA to approximately 5,000 amino acids.
+The ``align`` step concatenates the aligned marker genes and filters the concatenated MSA with a canonical mask
+(approximately 5,000 amino acids for bacteria and 10,000 for archaea).
 
 
 Finally, the ``classify`` step uses `pplacer <http://matsen.fhcrc.org/pplacer/>`_ to find the maximum-likelihood
