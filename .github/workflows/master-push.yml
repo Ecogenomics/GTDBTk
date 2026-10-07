@@ -10,17 +10,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.12'
 
       # Checkout the master branch (docs will be built from this)
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           path: master
 
       # Checkout the documentation branch (docs will be pushed to this)
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: gh_pages
           path: gh_pages
