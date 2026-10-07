@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>infer_ranks &mdash; GTDB-Tk 2.7.2 documentation</title>
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+    <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/commands/infer_ranks.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=4c6c8f0e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/custom.js?v=12edf98b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <script defer data-domain="ecogenomics.github.io/gtdbtk" src="https://plausible.gtdb.ecogenomic.org/js/script.js"></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-84847737-2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+
+        gtag('config', 'UA-84847737-2');
+    </script>
+
+
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="remove_labels" href="remove_labels.html" />
+    <link rel="prev" title="infer" href="infer.html" />
+ 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/GTDBTk.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installing/index.html">Installing GTDB-Tk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Running GTDB-Tk</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../performance/index.html">Performance and Accuracy</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="align.html">align</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ani_rep.html">ani_rep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="check_install.html">check_install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classify.html">classify</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classify_wf.html">classify_wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert_to_itol.html">convert_to_itol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert_to_species.html">convert_to_species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="de_novo_wf.html">de_novo_wf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decorate.html">decorate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export_msa.html">export_msa</a></li>
+<li class="toctree-l2"><a class="reference internal" href="identify.html">identify</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infer.html">infer</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">infer_ranks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#gtdbtk-infer_ranks-required-named-arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gtdbtk-infer_ranks-optional-arguments">optional arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="remove_labels.html">remove_labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="root.html">root</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test.html">test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trim_msa.html">trim_msa</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../files/index.html">Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/classify_wf.html">Example</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">About</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">GTDB-Tk</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Commands</a></li>
+      <li class="breadcrumb-item active">infer_ranks</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/commands/infer_ranks.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="infer-ranks">
+<span id="commands-infer-ranks"></span><h1>infer_ranks<a class="headerlink" href="#infer-ranks" title="Link to this heading"></a></h1>
+<p>Establish the taxonomic ranks of the internal nodes of a rooted tree using relative evolutionary divergence (RED).</p>
+<p>The tree is scaled with RED from the <code class="docutils literal notranslate"><span class="pre">--ingroup_taxon</span></code> node, using the RED of that taxon in the GTDB reference tree.
+Each internal node within the ingroup is then labelled with its RED value and the ranks whose median RED is within
+0.1 of it, closest first, e.g. <code class="docutils literal notranslate"><span class="pre">RED=0.762|family&amp;genus</span></code>. The input tree must be rooted and the ingroup taxon must be labelled in it
+(e.g. a tree produced by <a class="reference internal" href="root.html#commands-root"><span class="std std-ref">root</span></a> and <a class="reference internal" href="decorate.html#commands-decorate"><span class="std std-ref">decorate</span></a>).</p>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate" id="gtdbtk-infer_ranks"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">infer_ranks</span> <span class="o">--</span><span class="n">input_tree</span> <span class="n">INPUT_TREE</span> <span class="o">--</span><span class="n">ingroup_taxon</span>
+                          <span class="n">INGROUP_TAXON</span> <span class="o">--</span><span class="n">output_tree</span> <span class="n">OUTPUT_TREE</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">tmpdir</span> <span class="n">TMPDIR</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="gtdbtk-infer_ranks-required-named-arguments">
+<span id="gtdbtk.cli-get_main_parser-required-named-arguments"></span><h3>required named arguments<a class="headerlink" href="#gtdbtk-infer_ranks-required-named-arguments" title="Link to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>--input_tree</kbd></dt>
+<dd><p>rooted input tree with labelled ingroup taxon</p>
+</dd>
+<dt><kbd>--ingroup_taxon</kbd></dt>
+<dd><p>labelled ingroup taxon to use as root for establishing RED values (e.g., c__Bacilli or f__Lactobacillaceae</p>
+</dd>
+<dt><kbd>--output_tree</kbd></dt>
+<dd><p>path to output the tree</p>
+</dd>
+</dl>
+</section>
+<section id="gtdbtk-infer_ranks-optional-arguments">
+<span id="gtdbtk.cli-get_main_parser-optional-arguments"></span><h3>optional arguments<a class="headerlink" href="#gtdbtk-infer_ranks-optional-arguments" title="Link to this heading"></a></h3>
+<dl class="option-list">
+<dt><kbd>--tmpdir</kbd></dt>
+<dd><p>specify alternative directory for temporary files</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'/tmp'</span></code></p>
+</dd>
+<dt><kbd>--debug</kbd></dt>
+<dd><p>create intermediate files for debugging purposes</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>infer_ranks<span class="w"> </span>--input_tree<span class="w"> </span>decorated.tree<span class="w"> </span>--ingroup_taxon<span class="w"> </span>c__Bacilli<span class="w"> </span>--output_tree<span class="w"> </span>ranks.tree
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="infer.html" class="btn btn-neutral float-left" title="infer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="remove_labels.html" class="btn btn-neutral float-right" title="remove_labels" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

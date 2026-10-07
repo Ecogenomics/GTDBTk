@@ -24,7 +24,7 @@ Input
 
 .. code-block:: bash
 
-    gtdbtk convert_to_itol --input some_tree.tree --output itol.tree
+    gtdbtk convert_to_itol --input_tree some_tree.tree --output_tree itol.tree
 
 
 Output
@@ -34,7 +34,7 @@ Output
 .. code-block:: text
 
     [2022-06-30 18:44:54] INFO: GTDB-Tk v2.1.0
-    [2022-06-30 18:44:54] INFO: gtdbtk convert_to_itol --input /tmp/decorated.tree --output new.tree
+    [2022-06-30 18:44:54] INFO: gtdbtk convert_to_itol --input_tree /tmp/decorated.tree --output_tree new.tree
     [2022-06-30 18:44:54] INFO: Using GTDB-Tk reference data version r207: /gtdbtk-data
     [2022-06-30 18:44:54] INFO: Convert GTDB-Tk tree to iTOL format
     [2022-06-30 18:44:54] INFO: Done.

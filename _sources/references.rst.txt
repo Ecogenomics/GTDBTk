@@ -31,7 +31,7 @@ References
 
    * - Software
      - Reference
-   * - `Prodigal <http://compbio.ornl.gov/prodigal/>`_
+   * - `Prodigal <https://github.com/hyattpd/Prodigal>`_
      - Hyatt D, et al. 2010. `Prodigal: prokaryotic gene recognition and translation initiation site identification <https://www.ncbi.nlm.nih.gov/pubmed/20211023>`_. *BMC Bioinformatics*, 11:119. doi: 10.1186/1471-2105-11-119.
    * - `HMMER <http://hmmer.org/>`_
      - Eddy SR. 2011. `Accelerated profile HMM searches <https://www.ncbi.nlm.nih.gov/pubmed/22039361>`_. *PLOS Comp. Biol.*, 7:e1002195.

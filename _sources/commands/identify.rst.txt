@@ -16,7 +16,8 @@ Arguments
    :nodefaultconst:
 
 
-## Files output
+Files output
+------------
 
 * :ref:`[prefix].log <files/gtdbtk.log>`
 * :ref:`[prefix].json <files/gtdbtk.json>`

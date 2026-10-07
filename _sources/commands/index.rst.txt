@@ -15,11 +15,14 @@ Below is a list of all GTDB-Tk command line options:
    classify
    classify_wf
    convert_to_itol
+   convert_to_species
    de_novo_wf
    decorate
    export_msa
    identify
    infer
+   infer_ranks
+   remove_labels
    root
    test
    trim_msa

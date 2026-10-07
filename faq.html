@@ -1,46 +1,24 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>FAQ &mdash; GTDB-Tk 2.7.2 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
 
   
     <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/faq.html" />
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="_static/custom.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=4c6c8f0e"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/custom.js?v=12edf98b"></script>
+    <script src="_static/js/theme.js"></script>
     <script defer data-domain="ecogenomics.github.io/gtdbtk" src="https://plausible.gtdb.ecogenomic.org/js/script.js"></script>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -65,55 +43,26 @@
  
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html">
           
-
-          
+          <a href="index.html">
             
-            <img src="_static/GTDBTk.svg" class="logo" alt="Logo"/>
-          
+              <img src="_static/GTDBTk.svg" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
-              <div class="version">
-                2.7.2
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="announcements.html">Announcements</a></li>
@@ -128,10 +77,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-faq">GTDB-Tk FAQ</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes">GTDB-Tk reaches the memory limit / pplacer crashes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">How is GTDB-Tk validating species assignments using average nucleotide identity?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-is-place-species">What is <code class="docutils literal notranslate"><span class="pre">--place_species</span></code>?</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#deprecated-faq">Deprecated FAQ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-were-the-options-mash-db-and-skip-ani-screen">What were the options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#why-is-fastani-using-more-threads-than-allocated">Why is FastANI using more threads than allocated?</a></li>
 </ul>
 </li>
@@ -151,109 +101,42 @@
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">GTDB-Tk</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content style-external-links">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>FAQ</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">FAQ</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/faq.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="faq">
-<span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="taxonomy-faq">
-<h2>Taxonomy FAQ<a class="headerlink" href="#taxonomy-faq" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">
-<h3>Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?<a class="headerlink" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names" title="Permalink to this headline">¶</a></h3>
+             
+  <section id="faq">
+<span id="id1"></span><h1>FAQ<a class="headerlink" href="#faq" title="Link to this heading"></a></h1>
+<section id="taxonomy-faq">
+<h2>Taxonomy FAQ<a class="headerlink" href="#taxonomy-faq" title="Link to this heading"></a></h2>
+<section id="why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names">
+<h3>Why is there a discrepancy in the naming system between GTDB-Tk and NCBI or Silva taxonomic names?<a class="headerlink" href="#why-is-there-a-discrepancy-in-the-naming-system-between-gtdb-tk-and-ncbi-or-silva-taxonomic-names" title="Link to this heading"></a></h3>
 <p>GTDB-Tk uses the GTDB taxonomy (<a class="reference external" href="https://gtdb.ecogenomic.org/">https://gtdb.ecogenomic.org/</a>).
 This taxonomy is similar, but not identical to NCBI and Silva.
 In many cases the GTDB taxonomy more strictly follows the nomenclatural rules for rank suffixes which is why there is Nitrospirota instead of Nitrospirae.</p>
-</div>
-<div class="section" id="why-do-i-see-discrepancies-in-classification-for-closely-related-genomes">
-<h3>Why do I see discrepancies in classification for closely related genomes?<a class="headerlink" href="#why-do-i-see-discrepancies-in-classification-for-closely-related-genomes" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="why-do-i-see-discrepancies-in-classification-for-closely-related-genomes">
+<h3>Why do I see discrepancies in classification for closely related genomes?<a class="headerlink" href="#why-do-i-see-discrepancies-in-classification-for-closely-related-genomes" title="Link to this heading"></a></h3>
 <p>Discrepancies in taxonomic assignments can occur when working with closely related genomes. GTDB-Tk uses both the <strong>Relative Evolutionary Divergence (RED)</strong> value and the <strong>placement of the genome in the reference tree</strong> to determine the best taxonomic classification.
 In most cases taxonomic assignments are robust, but it is possible for highly similar genomes  to have sufficiently different protein sequences that their placements in the reference tree will vary slightly. This can lead to:</p>
 <ol class="arabic simple">
@@ -281,18 +164,18 @@ In most cases taxonomic assignments are robust, but it is possible for highly si
 </li>
 </ol>
 <p>you could generate a tree for the class Atribacteria (with one outgroup class) and examine whether your genomes cluster together despite their different family-level assignments.</p>
-</div>
-<div class="section" id="can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">
-<h3>Can you combine the bacterial and archaeal trees into a single tree?<a class="headerlink" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree">
+<h3>Can you combine the bacterial and archaeal trees into a single tree?<a class="headerlink" href="#can-you-combine-the-bacterial-and-archaeal-trees-into-a-single-tree" title="Link to this heading"></a></h3>
 <p>The bacterial and archaeal trees are inferred from different marker genes. Currently, the correct rootings of these trees remain an open area of research.
 GTDB-Tk does not provide a tool to merge the trees but It is possible to artificially combine them by manipulating the Newick files.
 One solution would be to use (<a class="reference external" href="https://dendropy.org/">DendroPy</a>); a Python library used for phylogenetic computing.</p>
-</div>
-</div>
-<div class="section" id="gtdb-tk-faq">
-<h2>GTDB-Tk FAQ<a class="headerlink" href="#gtdb-tk-faq" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="gtdb-tk-reaches-the-memory-limit-pplacer-crashes">
-<span id="faq-pplacer"></span><h3>GTDB-Tk reaches the memory limit / pplacer crashes<a class="headerlink" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="gtdb-tk-faq">
+<h2>GTDB-Tk FAQ<a class="headerlink" href="#gtdb-tk-faq" title="Link to this heading"></a></h2>
+<section id="gtdb-tk-reaches-the-memory-limit-pplacer-crashes">
+<span id="faq-pplacer"></span><h3>GTDB-Tk reaches the memory limit / pplacer crashes<a class="headerlink" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes" title="Link to this heading"></a></h3>
 <p>The host may report that GTDB-Tk has exceeded the memory requirements due to how <code class="docutils literal notranslate"><span class="pre">pplacer</span></code> is implemented.
 Briefly, this is only the reported value and is not true for how much memory is actually in use.</p>
 <p>When pplacer runs, it goes through several steps notable detailed below:</p>
@@ -330,34 +213,43 @@ Due to how copy-on-write is implemented, this is the same memory space and is no
 </ol>
 </li>
 </ol>
-<p>For example, running GTDB-Tk with on the bacterial tree (requires 150 GB of memory) with 1 CPU will require 150 GB of physical
-memory, but the host will report 300 GB of memory in use.</p>
+<p>For example, running GTDB-Tk on the bacterial tree (requires ~140 GB of memory) with 1 CPU will require ~140 GB of physical
+memory, but the host will report ~280 GB of memory in use.</p>
 <p>Using the <code class="docutils literal notranslate"><span class="pre">--scratch_dir</span></code> parameter and <code class="docutils literal notranslate"><span class="pre">--pplacer_cpus</span> <span class="pre">1</span></code> may help.</p>
-</div>
-<div class="section" id="how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">
-<h3>How is GTDB-Tk validating species assignments using average nucleotide identity?<a class="headerlink" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">
+<h3>How is GTDB-Tk validating species assignments using average nucleotide identity?<a class="headerlink" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity" title="Link to this heading"></a></h3>
 <p>GTDB-Tk uses <a class="reference external" href="https://github.com/bluenote-1577/skani">skani</a> ( it was using fastANI until v2.3.2) to estimate the ANI between genomes.
 A query genome is only classified as belonging to the same species as a reference genome if the ANI between the
-genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is &gt;=0.5.
+genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is &gt;= <code class="docutils literal notranslate"><span class="pre">--min_af</span></code>
+(default: 0.5). Since GTDB-Tk v2.7.0, query genomes are compared to all GTDB species representative genomes, not only to
+the representatives of the genus in which they are placed.
 In some circumstances, the phylogenetic placement of a query genome may not support the species assignment.
 GTDB r207+ strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the <a class="reference external" href="https://gtdb.ecogenomic.org/">GTDB</a> website.</p>
-</div>
-<div class="section" id="what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen">
-<h3>What is the difference between the mutually exclusive options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?<a class="headerlink" href="#what-is-the-difference-between-the-mutually-exclusive-options-mash-db-and-skip-ani-screen" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="what-is-place-species">
+<h3>What is <code class="docutils literal notranslate"><span class="pre">--place_species</span></code>?<a class="headerlink" href="#what-is-place-species" title="Link to this heading"></a></h3>
+<p>By default, genomes assigned to a species by the ANI screen are not placed in the reference tree (classification
+method <code class="docutils literal notranslate"><span class="pre">ani_screen</span></code>). With <code class="docutils literal notranslate"><span class="pre">--place_species</span></code>, they are also placed: the species assignment still comes from ANI,
+but the placement columns of the summary file are filled in and the <code class="docutils literal notranslate"><span class="pre">note</span></code> column reports whether placement and ANI
+agree. This increases run time and pplacer memory use. <code class="docutils literal notranslate"><span class="pre">--place_species</span></code> does not disable the ANI screen.</p>
+</section>
+</section>
+<section id="deprecated-faq">
+<h2>Deprecated FAQ<a class="headerlink" href="#deprecated-faq" title="Link to this heading"></a></h2>
+<section id="what-were-the-options-mash-db-and-skip-ani-screen">
+<h3>What were the options <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>?<a class="headerlink" href="#what-were-the-options-mash-db-and-skip-ani-screen" title="Link to this heading"></a></h3>
 <div class="line-block">
-<div class="line">Starting with GTDB-Tk v2.2+, the <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code> function require an extra parameter to run: <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> or <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>.</div>
-<div class="line">With this new version of Tk, The first stage of <code class="docutils literal notranslate"><span class="pre">classify</span></code> pipelines (<code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code>) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.</div>
-<div class="line">Using the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.</div>
-<div class="line">If no database are available ( i.e. this is the first time running classify ), the <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> option will sketch a new Mash database that can be used for subsequent calls.</div>
-<div class="line">The <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code> option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.</div>
+<div class="line">In GTDB-Tk v2.2 and v2.3, <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> and <code class="docutils literal notranslate"><span class="pre">classify</span></code> required one of two mutually exclusive options: <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> or <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code>.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> gave the path of the Mash sketch of the reference genomes used by the ANI screen; if it did not exist, it was created so it could be reused in later runs.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code> skipped the ANI screen: genomes were only compared by ANI to the reference genomes of the genus in which pplacer placed them.</div>
+<div class="line">Since v2.4.0, Mash and FastANI have been replaced by skani, and <code class="docutils literal notranslate"><span class="pre">--mash_db</span></code> is no longer used.</div>
+<div class="line">Since v2.7.0, the reference data includes a pre-sketched skani database of the GTDB species representatives, so the ANI screen always runs against all representatives and <code class="docutils literal notranslate"><span class="pre">--skip_ani_screen</span></code> (and <code class="docutils literal notranslate"><span class="pre">--skani_sketch_dir</span></code>, added in v2.6.0) have been removed. To also place ANI-assigned genomes in the reference tree, use <code class="docutils literal notranslate"><span class="pre">--place_species</span></code> (see above).</div>
 </div>
-</div>
-</div>
-<div class="section" id="deprecated-faq">
-<h2>Deprecated FAQ<a class="headerlink" href="#deprecated-faq" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="why-is-fastani-using-more-threads-than-allocated">
-<h3>Why is FastANI using more threads than allocated?<a class="headerlink" href="#why-is-fastani-using-more-threads-than-allocated" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="why-is-fastani-using-more-threads-than-allocated">
+<h3>Why is FastANI using more threads than allocated?<a class="headerlink" href="#why-is-fastani-using-more-threads-than-allocated" title="Link to this heading"></a></h3>
 <p>If you are using FastANI version 1.33 then you may run into an issue where FastANI will use more threads than you allocate.
 This can be problematic if running GTDB-Tk on a HPC where you have a limited number of threads available.</p>
 <p>This issue has been <a class="reference external" href="https://github.com/ParBLiSS/FastANI/issues/101">reported to the FastANI developers (#101)</a>.</p>
@@ -371,56 +263,39 @@ This can be problematic if running GTDB-Tk on a HPC where you have a limited num
 <p>From GTDB-Tk v2.2.2 the Docker container will automatically have FastANI v1.32 installed. Otherwise, manually
 build the container from the <a class="reference external" href="https://github.com/Ecogenomics/GTDBTk/blob/master/Dockerfile">Dockerfile</a>, making
 sure to specify FastANI v1.32.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="performance/index.html" class="btn btn-neutral float-right" title="Performance and Accuracy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installing/docker.html" class="btn btn-neutral float-left" title="Docker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="performance/index.html" class="btn btn-neutral float-right" title="Performance and Accuracy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2026, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
-
-    </p>
+    <p>&#169; Copyright 2026, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

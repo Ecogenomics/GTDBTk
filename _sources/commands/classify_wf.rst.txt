@@ -14,11 +14,21 @@ For arguments and output files, see each of the individual steps:
 
 The classify workflow consists of four steps: ``ani_screen``, ``identify``, ``align``, and ``classify``.
 
-The ``ani_screen`` step compares user genomes against a `skani <https://www.nature.com/articles/s41592-023-02018-3>`_ database composed of all GTDB representative genomes.
-User genomes classified with skani are not run through the rest of the pipeline (``identify``, ``align``, ``classify``)
-and are reported in the summary file.
+The ``ani_screen`` step compares all user genomes against a pre-sketched
+`skani <https://www.nature.com/articles/s41592-023-02018-3>`_ database of all GTDB species representative genomes.
+A genome is assigned to the species of a representative when the alignment fraction (AF) is ≥ ``--min_af``
+(default: 0.5) and the ANI is within that representative's species-specific ANI circumscription radius.
 
-The ``identify`` step calls genes using `Prodigal <http://compbio.ornl.gov/prodigal/>`_,
+* Genomes assigned by the ANI screen are reported in the :ref:`summary file <files/summary.tsv>` with the
+  classification method ``ani_screen``, and by default are not run through ``identify``, ``align`` and ``classify``.
+* With ``--place_species``, these genomes are also placed in the reference tree; their species assignment still
+  comes from ANI, and the ``note`` column reports whether placement and ANI are congruent.
+* All other genomes go through ``identify``, ``align`` and ``classify``.
+* The ANI screen is skipped when ``--genes`` is used, as skani requires nucleotide sequences.
+* ANI screen results are written to ``classify/ani_screen/<prefix>.<domain>.ani_summary.tsv``. When ``classify_wf``
+  is re-run in the same output directory, a completed ANI screen recorded in ``gtdbtk.json`` is reused.
+
+The ``identify`` step calls genes using `Prodigal <https://github.com/hyattpd/Prodigal>`_,
 and uses HMM models and the `HMMER <http://hmmer.org/>`_ package to identify the
 120 bacterial and 53 archaeal marker genes used for phylogenetic inference
 (`Parks et al., 2018 <https://www.ncbi.nlm.nih.gov/pubmed/30148503>`_). Multiple
@@ -43,14 +53,32 @@ The classify workflow can be run as follows:
 
     gtdbtk classify_wf --genome_dir <my_genomes> --out_dir <output_dir>
 
-This will process all genomes in the directory <my_genomes> using both bacterial and archaeal marker sets and place the results in <output_dir>. Genomes must be in FASTA format (gzip with the extension .gz is acceptable).
-The location of genomes can also be specified using a batch file with the ``--batchfile`` flag. The batch file is a two column file indicating the location of each genome and the desired genome identifier
-(i.e., a Newick compatible alphanumeric string). These fields must be separated by a tab.
+This will process all genomes in the directory ``<my_genomes>`` using both bacterial and archaeal marker sets and
+place the results in ``<output_dir>``. Genomes must be in FASTA format (nucleotide, unless ``--genes`` is used).
+
+* **Genome directory** (``--genome_dir``): only files ending with ``--extension`` are processed (default: ``fna``).
+  For gzipped files, set the extension accordingly, e.g. ``--extension gz`` or ``--extension fna.gz``. The genome
+  identifier is the file name without the extension.
+* **Batch file** (``--batchfile``): a tab-separated file with 2 or 3 columns and no header: the path to the FASTA
+  file, the genome identifier (a Newick-compatible alphanumeric string) and, optionally, the translation table to use
+  for gene calling (``4`` or ``11``). Without a third column, the translation table is chosen automatically.
+
+  .. code-block:: text
+
+      /path/to/genome_1.fna	genome_1
+      /path/to/genome_2.fna.gz	genome_2	4
 
 The workflow supports several optional flags, including:
 
-* ``min_perc_aa``: allows filtering of genomes below a specified percentage of amino acids in the MSA
-* ``cpus``: maximum number of CPUs to use
+* ``--cpus``: maximum number of CPUs to use.
+* ``--pplacer_cpus``: number of CPUs used by pplacer (pplacer memory use grows with the number of CPUs).
+* ``--min_perc_aa``: exclude genomes that do not have at least this percentage of amino acids in the MSA
+  (default: 10).
+* ``--min_af``: minimum alignment fraction to assign a genome to a species cluster (default: 0.5).
+* ``--place_species``: also place genomes classified by the ANI screen in the reference tree.
+* ``--genes``: input files contain predicted proteins (amino acids); gene calling and the ANI screen are skipped.
+* ``--full_tree``: use the unsplit bacterial reference tree (requires much more memory).
+* ``--scratch_dir``: reduce pplacer memory use by writing to disk (slower).
 
 The taxonomic classification of each bacterial and archaeal genome is contained in the
 :ref:`[prefix].[domain].summary.tsv <files/summary.tsv>`  output files.

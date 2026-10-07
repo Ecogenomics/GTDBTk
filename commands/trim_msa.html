@@ -1,46 +1,24 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>trim_msa &mdash; GTDB-Tk 2.7.2 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
 
   
     <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/commands/trim_msa.html" />
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script src="../_static/custom.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=4c6c8f0e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/custom.js?v=12edf98b"></script>
+    <script src="../_static/js/theme.js"></script>
     <script defer data-domain="ecogenomics.github.io/gtdbtk" src="https://plausible.gtdb.ecogenomic.org/js/script.js"></script>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -65,55 +43,26 @@
  
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html">
           
-
-          
+          <a href="../index.html">
             
-            <img src="../_static/GTDBTk.svg" class="logo" alt="Logo"/>
-          
+              <img src="../_static/GTDBTk.svg" class="logo" alt="Logo"/>
           </a>
-
-          
-            
-            
-              <div class="version">
-                2.7.2
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../announcements.html">Announcements</a></li>
@@ -130,18 +79,21 @@
 <li class="toctree-l2"><a class="reference internal" href="classify.html">classify</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classify_wf.html">classify_wf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert_to_itol.html">convert_to_itol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert_to_species.html">convert_to_species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="de_novo_wf.html">de_novo_wf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decorate.html">decorate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="export_msa.html">export_msa</a></li>
 <li class="toctree-l2"><a class="reference internal" href="identify.html">identify</a></li>
 <li class="toctree-l2"><a class="reference internal" href="infer.html">infer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infer_ranks.html">infer_ranks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="remove_labels.html">remove_labels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="root.html">root</a></li>
 <li class="toctree-l2"><a class="reference internal" href="test.html">test</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">trim_msa</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#required named arguments">required named arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mutually exclusive required arguments">mutually exclusive required arguments</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gtdbtk-trim_msa-required-named-arguments">required named arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gtdbtk-trim_msa-mutually-exclusive-required-arguments">mutually exclusive required arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gtdbtk-trim_msa-optional-arguments">optional arguments</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#example">Example</a><ul>
@@ -162,112 +114,44 @@
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">GTDB-Tk</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content style-external-links">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="index.html">Commands</a> &raquo;</li>
-        
-      <li>trim_msa</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Commands</a></li>
+      <li class="breadcrumb-item active">trim_msa</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
-            
               <a href="https://github.com/Ecogenomics/GTDBTk/blob/master/docs/src/commands/trim_msa.rst" class="fa fa-github"> Edit on GitHub</a>
-            
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="trim-msa">
-<span id="commands-trim-msa"></span><h1>trim_msa<a class="headerlink" href="#trim-msa" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="trim-msa">
+<span id="commands-trim-msa"></span><h1>trim_msa<a class="headerlink" href="#trim-msa" title="Link to this heading"></a></h1>
 <p>The <cite>trim_msa</cite> command will trim a MSA given a user-specified mask file, or the archaeal/bacterial
 mask present in the reference data.</p>
-<div class="section" id="arguments">
-<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">trim_msa</span> <span class="o">--</span><span class="n">untrimmed_msa</span> <span class="n">UNTRIMMED_MSA</span> <span class="o">--</span><span class="n">output</span> <span class="n">OUTPUT</span>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate" id="gtdbtk-trim_msa"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">gtdbtk</span> <span class="n">trim_msa</span> <span class="o">--</span><span class="n">untrimmed_msa</span> <span class="n">UNTRIMMED_MSA</span> <span class="o">--</span><span class="n">output</span> <span class="n">OUTPUT</span>
                        <span class="p">(</span><span class="o">--</span><span class="n">mask_file</span> <span class="n">MASK_FILE</span> <span class="o">|</span> <span class="o">--</span><span class="n">reference_mask</span> <span class="p">{</span><span class="n">arc</span><span class="p">,</span><span class="n">bac</span><span class="p">})</span>
                        <span class="p">[</span><span class="o">--</span><span class="n">debug</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="required named arguments">
-<h3>required named arguments<a class="headerlink" href="#required named arguments" title="Permalink to this headline">¶</a></h3>
+<section id="gtdbtk-trim_msa-required-named-arguments">
+<span id="gtdbtk.cli-get_main_parser-required-named-arguments"></span><h3>required named arguments<a class="headerlink" href="#gtdbtk-trim_msa-required-named-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--untrimmed_msa</kbd></dt>
 <dd><p>path to the untrimmed MSA file</p>
@@ -276,9 +160,9 @@ mask present in the reference data.</p>
 <dd><p>output file</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="mutually exclusive required arguments">
-<h3>mutually exclusive required arguments<a class="headerlink" href="#mutually exclusive required arguments" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="gtdbtk-trim_msa-mutually-exclusive-required-arguments">
+<span id="gtdbtk.cli-get_main_parser-mutually-exclusive-required-arguments"></span><h3>mutually exclusive required arguments<a class="headerlink" href="#gtdbtk-trim_msa-mutually-exclusive-required-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--mask_file</kbd></dt>
 <dd><p>path to a custom mask file for trimming the MSA</p>
@@ -288,96 +172,85 @@ mask present in the reference data.</p>
 <p>reference mask already present in GTDB-Tk</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="gtdbtk-trim_msa-optional-arguments">
+<span id="gtdbtk.cli-get_main_parser-optional-arguments"></span><h3>optional arguments<a class="headerlink" href="#gtdbtk-trim_msa-optional-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--debug</kbd></dt>
 <dd><p>create intermediate files for debugging purposes</p>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="input">
-<h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<section id="input">
+<h3>Input<a class="headerlink" href="#input" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gtdbtk<span class="w"> </span>trim_msa<span class="w"> </span>--untrimmed_msa<span class="w"> </span>msa.faa<span class="w"> </span>--output<span class="w"> </span>msa_trim.faa<span class="w"> </span>--mask_file<span class="w"> </span>mask.txt
 </pre></div>
 </div>
-<p>#### msa.faa</p>
+<section id="msa-faa">
+<h4>msa.faa<a class="headerlink" href="#msa-faa" title="Link to this heading"></a></h4>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;genome_a
 AKLAK
 </pre></div>
 </div>
-<p>#### mask.txt</p>
+</section>
+<section id="mask-txt">
+<h4>mask.txt<a class="headerlink" href="#mask-txt" title="Link to this heading"></a></h4>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>01011
 </pre></div>
 </div>
-</div>
-<div class="section" id="output">
-<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="output">
+<h3>Output<a class="headerlink" href="#output" title="Link to this heading"></a></h3>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[2020-04-13 10:25:13] INFO: GTDB-Tk v1.1.0
 [2020-04-13 10:25:13] INFO: gtdbtk trim_msa --untrimmed_msa msa.faa --output msa_trim.faa --mask_file mask.txt
 [2020-04-13 10:25:13] INFO: Using GTDB-Tk reference data version r89: /release89
 [2020-04-13 10:25:13] INFO: Done.
 </pre></div>
 </div>
-<p>#### msa_trim.faa</p>
+<section id="msa-trim-faa">
+<h4>msa_trim.faa<a class="headerlink" href="#msa-trim-faa" title="Link to this heading"></a></h4>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;genome_a
 KAK
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../files/index.html" class="btn btn-neutral float-right" title="Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="test.html" class="btn btn-neutral float-left" title="test" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../files/index.html" class="btn btn-neutral float-right" title="Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2026, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.
-
-    </p>
+    <p>&#169; Copyright 2026, Pierre-Alain Chaumeil, Aaron Mussig and Donovan Parks.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

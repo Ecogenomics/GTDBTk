@@ -22,9 +22,8 @@ Files output
 
 * :ref:`[prefix].ani_closest.tsv <files/ani_closest.tsv>`
 * :ref:`[prefix].ani_summary.tsv <files/ani_summary.tsv>`
-* :ref:`[prefix].log <files/gtdbtk.log>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+* :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 
 
 
@@ -36,7 +35,7 @@ Input
 
 .. code-block:: bash
 
-    gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv -x fa --out_dir test_ani_reps --cpus 90
+    gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv --out_dir test_ani_reps --cpus 90
 
 
 Output
@@ -45,7 +44,7 @@ Output
 .. code-block:: text
 
     [2025-08-05 17:13:33] INFO: GTDB-Tk v2.5.0
-    [2025-08-05 17:13:33] INFO: gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv -x fa --out_dir test_ani_reps --cpus 90
+    [2025-08-05 17:13:33] INFO: gtdbtk ani_rep --batchfile genomes/500_batchfile.tsv --out_dir test_ani_reps --cpus 90
     [2025-08-05 17:13:33] INFO: Using GTDB-Tk reference data version r226: /srv/db/gtdbtk/official/release226
     [2025-08-05 17:13:34] INFO: Loading reference genomes.
     [2025-08-05 17:13:39] INFO: Calculating all vs all ANI with skani v0.2.1.
