@@ -5,6 +5,19 @@ classify
 
 Determine taxonomic classification of genomes.
 
+``classify`` is the last step of the :ref:`classify workflow <commands/classify_wf>` and can also be run on its own,
+using the output of the :ref:`align <commands/align>` step (``--align_dir``). The genomes must still be provided
+(``--genome_dir`` or ``--batchfile``), because ``classify`` runs its own ANI screen:
+
+* Each genome is compared with skani to all GTDB species representative genomes. A genome is assigned to the species
+  of a representative when the alignment fraction (AF) is ≥ ``--min_af`` (default: 0.5) and the ANI is within that
+  representative's species-specific ANI circumscription radius. These genomes are reported with the classification
+  method ``ani_screen`` and are not placed in the reference tree, unless ``--place_species`` is used.
+* All other genomes are placed in the reference tree with pplacer and classified from their placement, relative
+  evolutionary divergence (RED) and ANI to the reference genomes.
+* Unlike ``classify_wf``, ``classify`` does not write an ``ani_screen`` folder: ANI results are only reported in the
+  :ref:`summary file <files/summary.tsv>`.
+
 Arguments
 ---------
 
@@ -21,26 +34,32 @@ Files output
 
 * classify
     * :ref:`[prefix].[domain].summary.tsv <files/summary.tsv>`
-    * :ref:`[prefix].backbone.[domain].classify.tree <files/classify.tree>`
-    * :ref:`[prefix].[domain].tree.mapping.tsv <files/tree.mapping.tsv>`
-    * :ref:`[prefix].[domain].classify.tree.[index].tree <files/classify.tree>`
+    * :ref:`[prefix].ar53.classify.tree <files/classify.tree>`
+    * :ref:`[prefix].backbone.bac120.classify.tree <files/classify.tree>`
+    * :ref:`[prefix].bac120.classify.tree.[index].tree <files/classify.tree>`
+    * :ref:`[prefix].bac120.classify.tree <files/classify.tree>` (``--full_tree`` only)
+    * :ref:`[prefix].bac120.tree.mapping.tsv <files/tree.mapping.tsv>`
+    * [prefix].[domain].disappearing_genomes.tsv (only written if pplacer did not place some genomes)
     * intermediate_results
-        * :ref:`[prefix].[domain].backbone.classification_pplacer.tsv <files/classification_pplacer.tsv>`
-        * :ref:`[prefix].[domain].class_level.classification_pplacer_tree_[index].tsv <files/classification_pplacer.tsv>`
+        * :ref:`[prefix].ar53.classification_pplacer.tsv <files/classification_pplacer.tsv>`
+        * :ref:`[prefix].bac120.backbone.classification_pplacer.tsv <files/classification_pplacer.tsv>`
+        * :ref:`[prefix].bac120.class_level.classification_pplacer_tree_[index].tsv <files/classification_pplacer.tsv>`
+        * :ref:`[prefix].bac120.classification_pplacer.tsv <files/classification_pplacer.tsv>` (``--full_tree`` only)
         * :ref:`[prefix].[domain].prescreened.msa.fasta <files/msa.fasta>`
         * :ref:`[prefix].[domain].red_dictionary.tsv <files/red_dictionary.tsv>`
         * pplacer
-            * :ref:`pplacer.backbone.[domain].json <files/pplacer.domain.json>`
-            * :ref:`pplacer.backbone.[domain].out <files/pplacer.domain.out>`
+            * :ref:`pplacer.ar53.json <files/pplacer.domain.json>`
+            * :ref:`pplacer.ar53.out <files/pplacer.domain.out>`
+            * :ref:`pplacer.backbone.bac120.json <files/pplacer.domain.json>`
+            * :ref:`pplacer.backbone.bac120.out <files/pplacer.domain.out>`
+            * :ref:`pplacer.bac120.json <files/pplacer.domain.json>` and :ref:`pplacer.bac120.out <files/pplacer.domain.out>` (``--full_tree`` only)
             * tree_[index]
-                * :ref:`[prefix].[domain].user_msa.fasta <files/user_msa.fasta>`
-                * :ref:`pplacer.class_level.[domain].out <files/pplacer.domain.out>`
-                * :ref:`pplacer.class_level.[domain].json <files/pplacer.domain.json>`
-* ani_screen
-* :ref:`[prefix].[domain].summary.tsv <files/summary.tsv>`
-* :ref:`[prefix].log <files/gtdbtk.log>`
-* :ref:`[prefix].json <files/gtdbtk.json>`
-* :ref:`[prefix].warnings.log <files/gtdbtk.warnings.log>`
+                * :ref:`user_msa_file.fasta <files/user_msa.fasta>`
+                * :ref:`pplacer.class_level.bac120.json <files/pplacer.domain.json>`
+                * :ref:`pplacer.class_level.bac120.out <files/pplacer.domain.out>`
+* :ref:`gtdbtk.log <files/gtdbtk.log>`
+* :ref:`gtdbtk.json <files/gtdbtk.json>`
+* :ref:`gtdbtk.warnings.log <files/gtdbtk.warnings.log>`
 
 
 Example

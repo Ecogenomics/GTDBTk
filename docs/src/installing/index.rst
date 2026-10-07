@@ -49,7 +49,7 @@ Hardware requirements
 Python libraries
 ----------------
 
-GTDB-Tk is designed for Python >=3.6 and requires the following libraries, which will be automatically installed:
+GTDB-Tk is designed for Python >=3.7 and requires the following libraries, which will be automatically installed:
 
 .. list-table::
    :widths: 10 10 80
@@ -89,7 +89,7 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes they are o
    * - Software
      - Version
      - Reference
-   * - `Prodigal <http://compbio.ornl.gov/prodigal/>`_
+   * - `Prodigal <https://github.com/hyattpd/Prodigal>`_
      - >= 2.6.2
      - Hyatt D, et al. 2010. `Prodigal: prokaryotic gene recognition and translation initiation site identification <https://www.ncbi.nlm.nih.gov/pubmed/20211023>`_. *BMC Bioinformatics*, 11:119. doi: 10.1186/1471-2105-11-119.
    * - `HMMER <http://hmmer.org/>`_
@@ -126,8 +126,6 @@ GTDB-Tk requires ~100G of external data (for R232) that needs to be downloaded a
     tar xvzf gtdbtk_data.tar.gz
 
 **For split package:**
-Currently the split pacakge is not available for R232. We have focused on adding more mirror and reducing the storage footprint of the package for this release.
-
 To create an archive from the GTDB-Tk release data parts:
 
 1. Ensure all parts of the GTDB-Tk release data are in the same directory.
@@ -136,7 +134,7 @@ To create an archive from the GTDB-Tk release data parts:
 4. Use the following command to concatenate all parts into a single archive:
    cat gtdbtk_r232_data.tar.gz.part_* > gtdbtk_r232_data.tar.gz
 
-5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r226_data.tar.gz' in the same directory.
+5. Once the command finishes executing, you will have a single archive file named 'gtdbtk_r232_data.tar.gz' in the same directory.
 
 You can find the gtdbtk_r232_data.tar.gz.part_* files under:
 https://data.ace.uq.edu.au/public/gtdb/data/releases/release232/232.0/auxillary_files/gtdbtk_package/split_package/
@@ -198,7 +196,7 @@ containing the unarchived reference data. This is documented under:
      - 06924c63f4b555ac6fd1525b09901186
    * - `R89 <https://data.gtdb.ecogenomic.org/releases/release89/89.0/gtdbtk_r89_data.tar.gz>`_
      - 0.3.0
-     - 0.1.2
+     - 1.2.0
      - 82966ef36086237d7230955e2bfff759
    * - `R86.2 <https://data.gtdb.ecogenomic.org/releases/release86/86.2/gtdbtk.r86_v2_data.tar.gz>`_
      - 0.2.1

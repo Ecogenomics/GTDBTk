@@ -17,7 +17,6 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
    filtered.tsv
    gtdbtk.log
    gtdbtk.warnings.log
-   gtdbtk_ref_sketch.msh
    marker_info.tsv
    markers_summary.tsv
    msa.fasta
@@ -39,7 +38,6 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
    tree.log
    unrooted.tree
    user_msa.fasta
-   user_query_sketch.msh
    tree.mapping.tsv
    gtdbtk.json
    failed_genomes.tsv

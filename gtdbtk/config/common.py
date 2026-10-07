@@ -91,9 +91,9 @@ class __GTDBTkCommonConfig:
     # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
 
-    PPLACER_MIN_RAM_BAC_FULL = 320
-    PPLACER_MIN_RAM_BAC_SPLIT = 55
-    PPLACER_MIN_RAM_ARC = 40
+    PPLACER_MIN_RAM_BAC_FULL = 950
+    PPLACER_MIN_RAM_BAC_SPLIT = 140
+    PPLACER_MIN_RAM_ARC = 100
 
     SKANI_SPECIES_THRESHOLD = 95.0
     SKANI_IDENTITY_SKETCH_THRESHOLD = 85.0

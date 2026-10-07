@@ -37,7 +37,7 @@ Major Changes:
     * *Now:* Because the database is a single skani sketch, user genomes are compared against *all* GTDB reference genomes once at the very beginning of the pipeline. When the new `--place_species` flag is selected, the genomes are still explicitly placed in the reference tree.
 
 2.6.1
-_____
+-----
 
 Bug Fixes:
 
@@ -97,13 +97,13 @@ Bug Fixes:
 Bug Fixes:
 
 * (`#576 <https://github.com/Ecogenomics/GTDBTk/issues/576>`_) When all genomes fail the prodigal step in the classify_wf, The
-bac120 summary file is still produced with the all failed genomes listed as 'Unclassified'
+  bac120 summary file is still produced with the all failed genomes listed as 'Unclassified'
 * (`#573 <https://github.com/Ecogenomics/GTDBTk/issues/573>`_) When running the 3 classify steps independently, a genome can be filtered out in the align
-step but still be classified in the identify step. To avoid duplication of row, the genome is classified with a warning.
+  step but still be classified in the identify step. To avoid duplication of row, the genome is classified with a warning.
 * (`#540 <https://github.com/Ecogenomics/GTDBTk/issues/540>`_) Empty files are skipped during the sketch step of Mash,
-they are then catch in the prodigal step and are returned as 'Unclassified'
+  they are then catch in the prodigal step and are returned as 'Unclassified'
 * (`#549 <https://github.com/Ecogenomics/GTDBTk/issues/549>`_) : `--force` has been modified to deal with #540. Prodigal
-wasn't returning the empty files as failed genomes, it was only skipping them. These genomes are now returned in the summary file and flagged as Unclassified.
+  wasn't returning the empty files as failed genomes, it was only skipping them. These genomes are now returned in the summary file and flagged as Unclassified.
 
 Major Changes:
 

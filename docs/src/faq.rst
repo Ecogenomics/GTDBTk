@@ -90,8 +90,8 @@ When pplacer runs, it goes through several steps notable detailed below:
    #. each worker will only read from the memory space and exit once the queue of query genomes is depleted.
 
 
-For example, running GTDB-Tk with on the bacterial tree (requires 150 GB of memory) with 1 CPU will require 150 GB of physical
-memory, but the host will report 300 GB of memory in use.
+For example, running GTDB-Tk on the bacterial tree (requires ~140 GB of memory) with 1 CPU will require ~140 GB of physical
+memory, but the host will report ~280 GB of memory in use.
 
 Using the ``--scratch_dir`` parameter and ``--pplacer_cpus 1`` may help.
 
@@ -101,23 +101,34 @@ How is GTDB-Tk validating species assignments using average nucleotide identity?
 
 GTDB-Tk uses `skani <https://github.com/bluenote-1577/skani>`_ ( it was using fastANI until v2.3.2) to estimate the ANI between genomes.
 A query genome is only classified as belonging to the same species as a reference genome if the ANI between the
-genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >=0.5.
+genomes is within the species ANI circumscription radius (typically, 95%) and the alignment fraction (AF) is >= ``--min_af``
+(default: 0.5). Since GTDB-Tk v2.7.0, query genomes are compared to all GTDB species representative genomes, not only to
+the representatives of the genus in which they are placed.
 In some circumstances, the phylogenetic placement of a query genome may not support the species assignment.
 GTDB r207+ strictly uses ANI to circumscribe species and GTDB-Tk follows this methodology.
 The species-specific ANI circumscription radii are available from the `GTDB <https://gtdb.ecogenomic.org/>`_ website.
 
 
-What is the difference between the mutually exclusive options ``--mash_db`` and ``--skip_ani_screen``?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+What is ``--place_species``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-| Starting with GTDB-Tk v2.2+, the ``classify_wf`` and ``classify`` function require an extra parameter to run: ``--mash_db`` or ``--skip_ani_screen``.
-| With this new version of Tk, The first stage of ``classify`` pipelines (``classify_wf`` and ``classify``) is to compare all user genomes to all reference genomes and annotate them, if possible, based on ANI matches.
-| Using the ``--mash_db`` option will indicate to GTDB-Tk the path of the sketched Mash database require for ANI screening.
-| If no database are available ( i.e. this is the first time running classify ), the ``--mash_db`` option will sketch a new Mash database that can be used for subsequent calls.
-| The ``--skip_ani_screen`` option will skip the pre-screening step and classify all genomes similar to previous versions of GTDB-Tk.
+By default, genomes assigned to a species by the ANI screen are not placed in the reference tree (classification
+method ``ani_screen``). With ``--place_species``, they are also placed: the species assignment still comes from ANI,
+but the placement columns of the summary file are filled in and the ``note`` column reports whether placement and ANI
+agree. This increases run time and pplacer memory use. ``--place_species`` does not disable the ANI screen.
+
 
 Deprecated FAQ
 ---------------
+
+What were the options ``--mash_db`` and ``--skip_ani_screen``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+| In GTDB-Tk v2.2 and v2.3, ``classify_wf`` and ``classify`` required one of two mutually exclusive options: ``--mash_db`` or ``--skip_ani_screen``.
+| ``--mash_db`` gave the path of the Mash sketch of the reference genomes used by the ANI screen; if it did not exist, it was created so it could be reused in later runs.
+| ``--skip_ani_screen`` skipped the ANI screen: genomes were only compared by ANI to the reference genomes of the genus in which pplacer placed them.
+| Since v2.4.0, Mash and FastANI have been replaced by skani, and ``--mash_db`` is no longer used.
+| Since v2.7.0, the reference data includes a pre-sketched skani database of the GTDB species representatives, so the ANI screen always runs against all representatives and ``--skip_ani_screen`` (and ``--skani_sketch_dir``, added in v2.6.0) have been removed. To also place ANI-assigned genomes in the reference tree, use ``--place_species`` (see above).
 
 Why is FastANI using more threads than allocated?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

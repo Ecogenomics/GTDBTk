@@ -31,7 +31,7 @@ version = __version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinxarg.ext', 'sphinx.ext.napoleon', 'sphinx.ext.autodoc', 'linuxdoc.rstFlatTable',
-              'recommonmark', 'sphinx_sitemap', 'nbsphinx','matplotlib.sphinxext.plot_directive']
+              'myst_parser', 'sphinx_sitemap', 'nbsphinx','matplotlib.sphinxext.plot_directive']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -60,7 +60,6 @@ html_theme_options = {
     'canonical_url': '',
     # 'analytics_id': 'UA-84847737-2',  # Provided by Google in your dashboard
     'logo_only': True,
-    'display_version': True,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': True,
     # Toc options

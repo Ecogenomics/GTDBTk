@@ -13,7 +13,7 @@ allow hundreds or thousands of metagenome-assembled genomes (MAGs) to be obtaine
 It can also be applied to isolate and single-cell genomes. The GTDB-Tk is open source and released under the 
 [GNU General Public License (Version 3)](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-Notifications about GTDB-Tk releases will be available through the [GTDB Twitter](https://twitter.com/ace_gtdb) 
+Notifications about GTDB-Tk releases will be available through the [GTDB Bluesky](https://bsky.app/profile/ace-gtdb.bsky.social) 
 account and the [GTDB Announcements Forum](https://forum.gtdb.ecogenomic.org/c/announcements/10).
 
 Please post questions and issues related to GTDB-Tk on the Issues section of the GitHub repository. Questions 

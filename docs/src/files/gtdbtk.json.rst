@@ -3,12 +3,13 @@
 gtdbtk.json
 ===========
 
-The console output of GTDB-Tk saved to disk in a JSON format.
+A record of the GTDB-Tk run in JSON format: the version, command line and reference data used, and for each step
+its options, run time, status and output files. When ``classify_wf`` is re-run in the same output directory,
+completed steps recorded in this file (e.g. the ANI screen) are reused.
 
 Produced by
 -----------
 
-* :ref:`commands/align`
 * :ref:`commands/align`
 * :ref:`commands/classify`
 * :ref:`commands/classify_wf`
@@ -22,10 +23,10 @@ Example
 .. code-block:: text
 
     {
-    "version": "2.5.0",
+    "version": "2.7.2",
     "command_line": "gtdbtk classify_wf --batchfile genomes/3_batchfile.tsv --out_dir classify_wf_3_genomes --cpus 20",
-    "database_version": "r226",
-    "database_path": "/srv/db/gtdbtk/official/release226",
+    "database_version": "r232",
+    "database_path": "/srv/db/gtdbtk/official/release232",
     "steps": [
         {
             "name": "ANI screen",
@@ -66,12 +67,12 @@ Example
         },
         {
             "name": "align",
-            "output_dir": "classfiy_wf_3_genomes",
+            "output_dir": "classify_wf_3_genomes",
             "starts_at": "2025-08-05T20:36:15.865242",
             "ends_at": "2025-08-05T20:41:38.376388",
             "duration": "0:05:22",
             "status": "completed",
-            "identify_dir": "classfiy_wf_3_genomes",
+            "identify_dir": "classify_wf_3_genomes",
             "skip_gtdb_refs": false,
             "taxa_filter": null,
             "min_perc_aa": 10,
@@ -85,26 +86,26 @@ Example
             "outgroup_taxon": null,
             "output_files": {
                 "bac120": [
-                    "classfiy_wf_3_genomes/align/gtdbtk.bac120.filtered.tsv",
-                    "classfiy_wf_3_genomes/align/gtdbtk.bac120.msa.fasta",
-                    "classfiy_wf_3_genomes/align/gtdbtk.bac120.user_msa.fasta"
+                    "classify_wf_3_genomes/align/gtdbtk.bac120.filtered.tsv",
+                    "classify_wf_3_genomes/align/gtdbtk.bac120.msa.fasta",
+                    "classify_wf_3_genomes/align/gtdbtk.bac120.user_msa.fasta"
                 ]
             }
         },
         {
             "name": "classify",
-            "output_dir": "classfiy_wf_3_genomes",
+            "output_dir": "classify_wf_3_genomes",
             "starts_at": "2025-08-05T20:41:38.377084",
             "ends_at": "2025-08-05T21:08:25.704484",
             "duration": "0:26:47",
             "status": "completed",
-            "align_dir": "classfiy_wf_3_genomes",
+            "align_dir": "classify_wf_3_genomes",
             "genome_dir": null,
             "batchfile": "genomes/3_batchfile.tsv",
             "scratch_dir": null,
             "debug_option": false,
             "full_tree": false,
-            "skip_ani_screen": true,
+            "place_species": false,
             "output_files": {
                 "bac120": [
                     "classify_wf_3_genomes/classify/gtdbtk.backbone.bac120.classify.tree",
@@ -118,3 +119,4 @@ Example
     ],
     "output_dir": "classify_wf_3_genomes",
     "path": "classify_wf_3_genomes/gtdbtk.json"
+    }

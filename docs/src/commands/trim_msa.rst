@@ -31,7 +31,8 @@ Input
 
 
 
-#### msa.faa
+msa.faa
+"""""""
 
 .. code-block:: text
 
@@ -40,7 +41,8 @@ Input
 
 
 
-#### mask.txt
+mask.txt
+""""""""
 
 .. code-block:: text
     
@@ -60,7 +62,8 @@ Output
 
 
 
-#### msa_trim.faa
+msa_trim.faa
+""""""""""""
 
 .. code-block:: text
 
