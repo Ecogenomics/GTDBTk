@@ -75,10 +75,13 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# Extra CSS is added with html_css_files: setting 'css_files' in html_context replaces
+# Sphinx's own list (theme.css, pygments.css) and leaves the pages unstyled with Sphinx >= 7.
+html_css_files = [
+    'theme_overrides.css',  # override wide tables in RTD theme
+]
+
 html_context = {
-    'css_files': [
-        '_static/theme_overrides.css',  # override wide tables in RTD theme
-        ],
     'display_github': True,
     'github_user': 'Ecogenomics',
     'github_repo': 'GTDBTk',
