@@ -310,6 +310,7 @@ class Classify(object):
         """Classify genomes based on position in reference tree."""
         #v2.7.1:genomes can be all identified with skani but if we use process_classified_genomes
         #We still need the  _bac_gids, _ar_gids, bac_ar_diff
+        bac_ar_diff = {}  # also read by the ANI screen below, which can run when genome_domain() is skipped
         if (not all_classified_ani and not all_failed_prodigal) or process_classified_genomes:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
@@ -323,12 +324,13 @@ class Classify(object):
         skani_classified_user_genomes = {}
         # keep full per-genome skani hits per genome for below-radius reporting and under ANI radius warning
         raw_skani_results = {}
+        # --genes: inputs are proteins, skani cannot compare them to the nucleotide reference genomes.
+        # This check must happen before the ANI block (it used to be inside it, so skani still ran).
+        if genes and not skip_ani_screen:
+            self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
+            skip_ani_screen = True
+
         if not skip_ani_screen:
-            if genes:
-                self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
-                skip_ani_screen = True
-
-
             ani_rep = ANIRep(self.cpus)
             # we store all the skani information in the classify directory
             skani_results = ani_rep.run_skani(genomes, prefix)
@@ -484,11 +486,7 @@ class Classify(object):
                         elif marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                       os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                        if len(prodigal_failed_counter) > 0:
-                            len_prodigal_failed_counter = len(set(prodigal_failed_counter))
-                            self.logger.warning(f"{len_prodigal_failed_counter} of {len(genomes)} "
-                                                f"genome{'' if len_prodigal_failed_counter == 1 else 's'} "
-                                                f"ha{'s' if len_prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                        self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
                     continue
@@ -754,10 +752,7 @@ class Classify(object):
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                if prodigal_failed_counter > 0:
-                    self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
-                                        f"genome{'' if prodigal_failed_counter == 1 else 's'} "
-                                        f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
         return output_files
@@ -1436,20 +1431,42 @@ class Classify(object):
                         warning_counter.append(infos[0])
         return warning_counter
 
+    def _log_unclassified_failed_genomes(self, failed_gids, genomes):
+        """Warn how many genomes were labelled 'Unclassified' because prodigal or the alignment failed.
+
+        failed_gids is the list returned by add_failed_genomes_to_summary.
+        """
+        n_failed = len(set(failed_gids))
+        if n_failed > 0:
+            self.logger.warning(f"{n_failed} of {len(genomes)} "
+                                f"genome{'' if n_failed == 1 else 's'} "
+                                f"ha{'s' if n_failed == 1 else 've'} been labeled as 'Unclassified'.")
+
+    @property
+    def canonical_taxonomy(self):
+        """GTDB taxonomy keyed by canonical genome id, built once on first use (see formatnote)."""
+        cached = self.__dict__.get('_canonical_taxonomy')
+        if cached is None:
+            cached = {canonical_gid(k): v for k, v in self.gtdb_taxonomy.items()}
+            self._canonical_taxonomy = cached
+        return cached
+
     @staticmethod
-    def formatnote(sorted_dict, gtdb_taxonomy, species_radius, labels, top_n=50):
+    def formatnote(sorted_dict, canonical_taxonomy, species_radius, labels, top_n=50):
         """Format the note field by concatenating all information in a sorted dictionary.
 
         sorted_dict is expected closest-first (ANI desc), so the first `top_n`
         kept entries are the top_n closest references. Pass top_n=None for no cap.
+
+        canonical_taxonomy must be keyed by canonical genome id (e.g. G005435135):
+        Classify.canonical_taxonomy, or Taxonomy().read(..., canonical_ids=True).
+        It used to be re-keyed here on every call (~700k entries, ~0.5-1 s per genome).
         """
-        gtdb_taxonomy = {canonical_gid(k): v for k, v in gtdb_taxonomy.items()}
         note_list = []
         for element in sorted_dict:
             if element[0] not in labels:
                 note_str = "{}, {}, {}, {}, {}".format(element[0],
-                                                       gtdb_taxonomy.get(
-                                                           add_ncbi_prefix(canonical_gid(element[0])))[6],
+                                                       canonical_taxonomy[canonical_gid(element[0])][6],
                                                        species_radius.get(
                                                            element[0]),
                                                        round(
@@ -1491,7 +1508,7 @@ class Classify(object):
 
                     if len(trimmed_closest) > 0:
                         other_ref = '; '.join(self.formatnote(
-                            closest,self.gtdb_taxonomy,self.species_radius, [closest_rep]))
+                            closest,self.canonical_taxonomy,self.species_radius, [closest_rep]))
                         summary_row.other_related_refs = other_ref
                     summary_row.note = 'classification based on ANI only'
 
@@ -1848,7 +1865,7 @@ class Classify(object):
                 summary_row.closest_genome_af = round(best['af'], 3)
                 summary_row.classification = standardise_taxonomy(taxa_str)
                 summary_row.note = 'topological placement and ANI have incongruent species assignments'
-                other = '; '.join(self.formatnote(af_pass, self.gtdb_taxonomy, self.species_radius, [best_ref]))
+                other = '; '.join(self.formatnote(af_pass, self.canonical_taxonomy, self.species_radius, [best_ref]))
                 summary_row.other_related_refs = other or None
                 if warnings:
                     summary_row.warnings = ';'.join(set(warnings))
@@ -1857,7 +1874,7 @@ class Classify(object):
                 classified_user_genomes[label] = standardise_taxonomy(taxa_str)
                 return True
             # within AF but ANI below this representative's circumscription radius
-            other = '; '.join(self.formatnote(af_pass, self.gtdb_taxonomy, self.species_radius, []))
+            other = '; '.join(self.formatnote(af_pass, self.canonical_taxonomy, self.species_radius, []))
             summary_row.other_related_refs = other or None
             summary_row.closest_genome_ref = None
             if best['ani'] >= self.min_species_radius:

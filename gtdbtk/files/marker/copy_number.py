@@ -73,7 +73,7 @@ class CopyNumberFile(object):
                 # If sequences are the same, take the most significant hit
                 unq_seqs = {d_genes[x.gene_id] for x in d_hmm_hits[marker_id]}
                 if len(unq_seqs) == 1:
-                    cur_top_hit = sorted(d_hmm_hits[marker_id], reverse=True)[0]
+                    cur_top_hit = max(d_hmm_hits[marker_id])
                     cur_muq[marker_id] = {'hit': cur_top_hit, 'seq': d_genes[cur_top_hit.gene_id]}
 
                 # Marker maps to multiple genes.
