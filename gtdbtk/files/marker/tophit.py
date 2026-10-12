@@ -15,6 +15,7 @@
 #                                                                             #
 ###############################################################################
 
+import functools
 import os
 from typing import Tuple, Optional, Iterator
 
@@ -23,6 +24,7 @@ from gtdbtk.config.output import TIGRFAM_TOP_HIT_SUFFIX, PFAM_TOP_HIT_SUFFIX, CH
 from gtdbtk.tools import sha256
 
 
+@functools.total_ordering
 class Hit(object):
     """More significant hits have a higher bit-score and lower e-value.
 
@@ -59,21 +61,6 @@ class Hit(object):
                 elif self.hmm_id == other.hmm_id:
                     return self.gene_id > other.gene_id
         return False
-
-    def __gt__(self, other) -> bool:
-        """Is self more significant than other?"""
-        raise NotImplemented
-        # if self.bit_score > other.bit_score:
-        #     return True
-        # elif self.bit_score == other.bit_score:
-        #     if self.e_val < other.e_val:
-        #         return True
-        #     elif self.e_val == other.e_val:
-        #         if self.hmm_id < other.hmm_id:
-        #             return True
-        #         elif self.hmm_id == other.hmm_id:
-        #             return self.gene_id < other.gene_id
-        # return False
 
     def __hash__(self) -> int:
         return hash(f'{self.gene_id}_{self.hmm_id}_{self.e_val}_{self.bit_score}')
@@ -117,7 +104,7 @@ class TopHitFile(object):
         """Returns the most significant hit for a given gene id or None."""
         if gene_id not in self.hits or len(self.hits[gene_id]) == 0:
             return None
-        return sorted(self.hits[gene_id].values(), reverse=True)[0]
+        return max(self.hits[gene_id].values())
 
     def get_hmm_hit(self, gene_id: str, hmm_id: str) -> Hit:
         """Returns the hit indexed by the gene and hmm id."""
