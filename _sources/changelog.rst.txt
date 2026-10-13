@@ -2,6 +2,26 @@
 Change log
 ==========
 
+2.8.0
+-----
+
+**No new reference data required**: GTDB-Tk 2.8.0 uses the same R232 reference package as 2.7.x. The minor version bump reflects changes to ``classify_wf`` results (see below).
+
+Bug Fixes:
+
+* (`#717 <https://github.com/Ecogenomics/GTDBTk/issues/717>`_) Restores the ``other_related_references`` and ``warnings`` fields for genomes not assigned to a species because their ANI falls below the closest representative's circumscription radius.
+
+Changes:
+
+* ``classify`` and ``classify_wf`` now apply the same species-assignment rule: the closest reference passing the AF threshold is taken, and only that reference is checked against its ANI radius. Some genomes previously assigned by the ANI screen in ``classify_wf`` are now placed in the reference tree instead.
+* ``classify``: the assigned reference is no longer repeated in ``other_related_references``, and a single other reference is no longer dropped.
+* AF values are now rounded identically in ``classify`` and ``classify_wf`` (floating-point noise and double rounding could differ by 0.001).
+* ``other_related_references`` only lists references with AF >= ``--min_af``, closest first (the ANI screen previously listed an arbitrary 50, including low-AF hits).
+* New file ``classify/ani_screen/<prefix>.ani_screen_unassigned_hits.tsv.gz``: skani hits of genomes not assigned by the ANI screen.
+* AF in ``ani_summary.tsv`` is written at full precision instead of 5 decimals.
+* ``gtdbtk.json`` has a new ``unassigned_hits_file`` field in the ANI screen step; older GTDB-Tk versions cannot resume from it.
+* Resuming ``classify_wf`` in an output directory whose ANI screen was produced by GTDB-Tk < 2.8.0 now reruns the ANI screen instead of reusing it, so below-radius / low-AF reporting is not silently skipped.
+
 2.7.2
 -----
 

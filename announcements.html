@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Announcements &mdash; GTDB-Tk 2.7.2 documentation</title>
+  <title>Announcements &mdash; GTDB-Tk 2.8.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
@@ -16,7 +16,7 @@
     <link rel="canonical" href="https://ecogenomics.github.io/GTDBTk/announcements.html" />
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=4c6c8f0e"></script>
+      <script src="_static/documentation_options.js?v=69ff2ef9"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -69,6 +69,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Announcements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-2-8-0-available">GTDB-Tk 2.8.0 available</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-2-7-2-available">GTDB-Tk 2.7.2 available</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-2-7-1-available">GTDB-Tk 2.7.1 available</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gtdb-tk-2-7-0-available">GTDB-Tk 2.7.0 available</a></li>
@@ -134,6 +135,17 @@
              
   <section id="announcements">
 <h1>Announcements<a class="headerlink" href="#announcements" title="Link to this heading"></a></h1>
+<section id="gtdb-tk-2-8-0-available">
+<h2>GTDB-Tk 2.8.0 available<a class="headerlink" href="#gtdb-tk-2-8-0-available" title="Link to this heading"></a></h2>
+<p><em>October 13, 2026</em></p>
+<ul class="simple">
+<li><p>GTDB-Tk version <code class="docutils literal notranslate"><span class="pre">2.8.0</span></code> is now available. No new reference data is required (R232).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classify</span></code> and <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> now apply the same species-assignment rule and report the same <code class="docutils literal notranslate"><span class="pre">other_related_references</span></code>; some genomes previously assigned by the ANI screen in <code class="docutils literal notranslate"><span class="pre">classify_wf</span></code> are now placed in the reference tree. This only affects fuzzy species in condensed genera, whose ANI radius is above the default 95% (4 of 10,000 GlobDB genomes in our tests). See the change log for details.</p></li>
+<li><p>This release restores reporting of <code class="docutils literal notranslate"><span class="pre">other_related_references</span></code> and <code class="docutils literal notranslate"><span class="pre">warnings</span></code> for genomes that are not assigned to a species because their ANI falls below the closest representative’s circumscription radius; this information was lost in a previous version.</p></li>
+<li><p>The “outside the ANI radius” warning is now raised only when the query’s ANI exceeds the minimum species radius (~95%) but remains below the closest representative’s radius, and a separate warning distinguishes cases where the ANI is sufficient but the alignment fraction is below threshold.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">other_related_references</span></code> field is now capped at the 50 closest references to avoid very large entries.</p></li>
+</ul>
+</section>
 <section id="gtdb-tk-2-7-2-available">
 <h2>GTDB-Tk 2.7.2 available<a class="headerlink" href="#gtdb-tk-2-7-2-available" title="Link to this heading"></a></h2>
 <p><em>May 8, 2026</em></p>
