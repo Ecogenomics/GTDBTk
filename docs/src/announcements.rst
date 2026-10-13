@@ -4,7 +4,7 @@ Announcements
 GTDB-Tk 2.8.0 available
 -----------------------
 
-*September XX, 2026*
+*October 13, 2026*
 
 * GTDB-Tk version ``2.8.0`` is now available. No new reference data is required (R232).
 * ``classify`` and ``classify_wf`` now apply the same species-assignment rule and report the same ``other_related_references``; some genomes previously assigned by the ANI screen in ``classify_wf`` are now placed in the reference tree. See the change log for details.
