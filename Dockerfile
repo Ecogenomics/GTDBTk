@@ -3,7 +3,7 @@
 # docker run -v /host/gtdbtk_io:/data -v /host/release_data:/refdata ecogenomic/gtdbtk classify_wf --genome_dir /data/genomes --out_dir /data/output
 # docker push ecogenomic/gtdbtk:latest && sudo docker push ecogenomic/gtdbtk:1.2.3
 
-FROM python:3.8-slim-bullseye
+FROM python:3.11-slim-bookworm
 
 ARG VER
 
@@ -14,7 +14,7 @@ RUN apt-get update -y -m && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --no-install-suggests -y \
         wget \
         libgomp1 \
-        libgsl25 \
+        libgsl27 \
         libgslcblas0 \
         build-essential \
         curl \
@@ -42,12 +42,12 @@ RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplace
 # ------------------------------ INSTALL SKANI ------------------------------- #
 # ---------------------------------------------------------------------------- #
 
-RUN wget https://github.com/bluenote-1577/skani/archive/refs/tags/v0.3.1.tar.gz
-RUN tar -xvf v0.3.1.tar.gz
-RUN cd skani-0.3.1 && cargo install --path . --root /usr
+RUN wget https://github.com/bluenote-1577/skani/archive/refs/tags/v0.3.2.tar.gz
+RUN tar -xvf v0.3.2.tar.gz
+RUN cd skani-0.3.2 && cargo install --path . --root /usr
 RUN chmod +x /usr/bin/skani
 RUN cd ../
-RUN rm -rf v0.3.1.tar.gz skani-0.3.1
+RUN rm -rf v0.3.2.tar.gz skani-0.3.2
 
 # ---------------------------------------------------------------------------- #
 # --------------------- SET GTDB-TK MOUNTED DIRECTORIES ---------------------- #
