@@ -245,10 +245,14 @@ def symlink_f(src, dst, force=True):
     dst : str
         The destination file.
     force : bool
-        Overwrite any file found with the same name as dst.
+        Overwrite any file or symlink found with the same name as dst, including a
+        dangling symlink (e.g. re-running after the input files were moved).
+        A real directory at dst is never removed.
 
     """
-    if force and os.path.isfile(dst):
+    # os.path.isfile() is False for a dangling symlink, so it used to be kept and
+    # os.symlink() then raised FileExistsError; lexists() also sees broken links.
+    if force and os.path.lexists(dst) and (os.path.islink(dst) or not os.path.isdir(dst)):
         os.remove(dst)
     os.symlink(src, dst)
 
