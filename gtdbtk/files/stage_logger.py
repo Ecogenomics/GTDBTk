@@ -37,6 +37,7 @@ class ANIScreenStep(Steps):
     batchfile: Optional[str] = None
     min_af: Optional[str] = None
     output_files: Optional[Dict] = None
+    unassigned_hits_file: Optional[str] = None
 
 
 @dataclass

@@ -30,7 +30,7 @@ import dendropy
 from numpy import median as np_median
 
 from gtdbtk.config.common import CONFIG
-from gtdbtk.ani_rep import ANIRep, ANISummaryFile
+from gtdbtk.ani_rep import ANIRep, ANISummaryFile, SkaniRawHitsFile
 from gtdbtk.biolib_lite.common import make_sure_path_exists,canonical_gid
 from gtdbtk.biolib_lite.execute import check_dependencies
 from gtdbtk.biolib_lite.newick import parse_label
@@ -102,6 +102,11 @@ class Classify(object):
             self.pplacer_cpus = 64
 
         self.species_radius = self.parse_radius_file()
+
+        # lowest circumscription radius across all reps (the default, ~95%);
+        # used to gate the "outside ANI radius" warning to genuine near-misses
+        self.min_species_radius = min(self.species_radius.values()) if self.species_radius else 95.0
+
         self.reference_ids = get_reference_ids()
 
         # rank_of_interest determine the rank in the tree_mapping file for
@@ -298,12 +303,14 @@ class Classify(object):
             skip_ani_screen=False,
             genes=False,
             ani_summary_files=None,
+            unassigned_hits_file=None,
             all_classified_ani=False,
             all_failed_prodigal=False,
             process_classified_genomes=False):
         """Classify genomes based on position in reference tree."""
         #v2.7.1:genomes can be all identified with skani but if we use process_classified_genomes
         #We still need the  _bac_gids, _ar_gids, bac_ar_diff
+        bac_ar_diff = {}  # also read by the ANI screen below, which can run when genome_domain() is skipped
         if (not all_classified_ani and not all_failed_prodigal) or process_classified_genomes:
             _bac_gids, _ar_gids, bac_ar_diff = Markers().genome_domain(align_dir, prefix)
 
@@ -315,15 +322,21 @@ class Classify(object):
         # All genomes classified with skani will be removed from the input genomes list for the
         # rest of the pipeline.
         skani_classified_user_genomes = {}
+        # keep full per-genome skani hits per genome for below-radius reporting and under ANI radius warning
+        raw_skani_results = {}
+        # --genes: inputs are proteins, skani cannot compare them to the nucleotide reference genomes.
+        # This check must happen before the ANI block (it used to be inside it, so skani still ran).
+        if genes and not skip_ani_screen:
+            self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
+            skip_ani_screen = True
+
         if not skip_ani_screen:
-            if genes:
-                self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
-                skip_ani_screen = True
-
-
             ani_rep = ANIRep(self.cpus)
             # we store all the skani information in the classify directory
             skani_results = ani_rep.run_skani(genomes, prefix)
+            # retain raw hits for the tree stage
+            raw_skani_results = skani_results
+
 
             skani_classified_user_genomes = self._sort_skani_results_pre_pplacer(
                 skani_results,bac_ar_diff)
@@ -345,6 +358,15 @@ class Classify(object):
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
             # and use them to generate the final taxonomy file
             skani_classified_user_genomes = self.load_skani_results_pre_pplacer(ani_summary_files)
+
+        # classify_wf / resume: skani was run by the ani_screen step, not here. Reload the raw hits
+        # of genomes it did not classify so below-radius / low-AF reporting still happens (Issue #717).
+        if skip_ani_screen and not genes and unassigned_hits_file:
+            if os.path.isfile(unassigned_hits_file):
+                raw_skani_results = SkaniRawHitsFile.read(unassigned_hits_file)
+            else:
+                self.logger.warning(f'skani hits file from the ANI screen step not found ({unassigned_hits_file}); '
+                                    f'below-radius / low-AF near misses will not be reported.')
 
         #import IPython; IPython.embed()  # DEBUG
         output_files = {}
@@ -464,11 +486,7 @@ class Classify(object):
                         elif marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                                       os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                        if len(prodigal_failed_counter) > 0:
-                            len_prodigal_failed_counter = len(set(prodigal_failed_counter))
-                            self.logger.warning(f"{len_prodigal_failed_counter} of {len(genomes)} "
-                                                f"genome{'' if len_prodigal_failed_counter == 1 else 's'} "
-                                                f"ha{'s' if len_prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                        self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
                     continue
@@ -612,7 +630,8 @@ class Classify(object):
                                                                                                                pplacer_taxonomy_dict,warning_counter,
                                                                                                                high_classification, debug_file,
                                                                                                                debugopt,tree_mapping_file,
-                                                                                                               tree_iter,tree_mapping_dict_reverse)
+                                                                                                               tree_iter,tree_mapping_dict_reverse,
+                                                                                                               raw_skani_results)
 
                         if debugopt:
                             with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
@@ -668,7 +687,8 @@ class Classify(object):
                         pplacer_taxonomy_dict, warning_counter,
                         None, debug_file,
                         debugopt, None,
-                        None, None)
+                        None, None,
+                        raw_skani_results)
                     # add filtered genomes to the summary file
                     warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
 
@@ -732,10 +752,7 @@ class Classify(object):
                 # Symlink to the summary file from the root
                 symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                if prodigal_failed_counter > 0:
-                    self.logger.warning(f"{prodigal_failed_counter} of {len(genomes)} "
-                                        f"genome{'' if prodigal_failed_counter == 1 else 's'} "
-                                        f"ha{'s' if prodigal_failed_counter == 1 else 've'} been labeled as 'Unclassified'.")
+                self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
         return output_files
@@ -1163,7 +1180,7 @@ class Classify(object):
 
     def _parse_tree(self, tree, genomes, prefix,skani_classified_user_genomes,marker_set_id, msa_dict, percent_multihit_dict,genes,
                     trans_table_dict, bac_ar_diff,user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,
-                    warning_counter, high_classification,debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse):
+                    warning_counter, high_classification,debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse,all_skani_results=None):
         # Genomes can be classified by using skani or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -1186,7 +1203,7 @@ class Classify(object):
         #import IPython; IPython.embed()
         classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_skani_results(
             qury_nodes, pplacer_taxonomy_dict, skani_classified_user_genomes,marker_set_id, msa_dict, percent_multihit_dict,
-            trans_table_dict, bac_ar_diff,warning_counter, summary_file)
+            trans_table_dict, bac_ar_diff,warning_counter, summary_file,all_skani_results)
         #if not prescreening:
         if not genes:
             self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
@@ -1414,35 +1431,50 @@ class Classify(object):
                         warning_counter.append(infos[0])
         return warning_counter
 
-    @staticmethod
-    def formatnote(sorted_dict,gtdb_taxonomy,species_radius, labels):
-        """Format the note field by concatenating all information in a sorted dictionary
+    def _log_unclassified_failed_genomes(self, failed_gids, genomes):
+        """Warn how many genomes were labelled 'Unclassified' because prodigal or the alignment failed.
 
-        Parameters
-        ----------
-        sorted_dict : sorted dictionary listing reference genomes, ani and alignment fraction for a specific user genome
-                    (genomeid, {ani: value, af: value})
-        labels : array of label that are removed from the note field
-
-        Returns
-        -------
-        string
-            note field
-
+        failed_gids is the list returned by add_failed_genomes_to_summary.
         """
-        gtdb_taxonomy = {canonical_gid(k): v for k, v in gtdb_taxonomy.items()}
+        n_failed = len(set(failed_gids))
+        if n_failed > 0:
+            self.logger.warning(f"{n_failed} of {len(genomes)} "
+                                f"genome{'' if n_failed == 1 else 's'} "
+                                f"ha{'s' if n_failed == 1 else 've'} been labeled as 'Unclassified'.")
+
+    @property
+    def canonical_taxonomy(self):
+        """GTDB taxonomy keyed by canonical genome id, built once on first use (see formatnote)."""
+        cached = self.__dict__.get('_canonical_taxonomy')
+        if cached is None:
+            cached = {canonical_gid(k): v for k, v in self.gtdb_taxonomy.items()}
+            self._canonical_taxonomy = cached
+        return cached
+
+    @staticmethod
+    def formatnote(sorted_dict, canonical_taxonomy, species_radius, labels, top_n=50):
+        """Format the note field by concatenating all information in a sorted dictionary.
+
+        sorted_dict is expected closest-first (ANI desc), so the first `top_n`
+        kept entries are the top_n closest references. Pass top_n=None for no cap.
+
+        canonical_taxonomy must be keyed by canonical genome id (e.g. G005435135):
+        Classify.canonical_taxonomy, or Taxonomy().read(..., canonical_ids=True).
+        It used to be re-keyed here on every call (~700k entries, ~0.5-1 s per genome).
+        """
         note_list = []
         for element in sorted_dict:
             if element[0] not in labels:
                 note_str = "{}, {}, {}, {}, {}".format(element[0],
-                                                       gtdb_taxonomy.get(
-                                                           add_ncbi_prefix(canonical_gid(element[0])))[6],
+                                                       canonical_taxonomy[canonical_gid(element[0])][6],
                                                        species_radius.get(
                                                            element[0]),
                                                        round(
                                                            element[1].get('ani'), 2),
-                                                       round(element[1].get('af'),3))
+                                                       round(element[1].get('af'), 3))
                 note_list.append(note_str)
+                if top_n is not None and len(note_list) >= top_n:
+                    break
         return note_list
 
 
@@ -1474,9 +1506,9 @@ class Classify(object):
                     summary_row.gid = gid
                     summary_row.classification_method = 'ani_screen'
 
-                    if len(trimmed_closest) > 1:
+                    if len(trimmed_closest) > 0:
                         other_ref = '; '.join(self.formatnote(
-                            closest,self.gtdb_taxonomy,self.species_radius, [gid]))
+                            closest,self.canonical_taxonomy,self.species_radius, [closest_rep]))
                         summary_row.other_related_refs = other_ref
                     summary_row.note = 'classification based on ANI only'
 
@@ -1584,7 +1616,7 @@ class Classify(object):
 
     def _sort_skani_results(self, qury_nodes, pplacer_taxonomy_dict,
                               results_subtree_vs_all,marker_set_id, msa_dict, percent_multihit_dict,
-                              trans_table_dict, bac_ar_diff,warning_counter, summary_file):
+                              trans_table_dict, bac_ar_diff,warning_counter, summary_file,all_skani_results=None):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
@@ -1624,6 +1656,24 @@ class Classify(object):
             related_refs_lookup = {}
             if existing_result:
                 related_refs_lookup = self.parse_related_refs(existing_result.other_related_refs)
+
+            # Genomes that reached the tree without a pre-screen assignment lost their
+            # below-radius / low-AF reporting. Recover it from the raw skani hits
+
+            if existing_result is None and all_skani_results and userleaf.taxon.label in all_skani_results:
+                pplacer_leafnode = None
+
+                if pplacer_info.get("pplacer_g"):
+                    pplacer_leafnode = pplacer_info.get("pplacer_g").taxon.label
+                    if pplacer_leafnode[0:3] in ('RS_', 'GB_'):
+                        pplacer_leafnode = pplacer_leafnode[3:]
+                self._resolve_ani_unassigned_genome(
+                    userleaf.taxon.label, pplacer_leafnode,
+                    all_skani_results.get(userleaf.taxon.label),
+                    pplacer_taxonomy_dict, msa_dict, trans_table_dict,
+                    percent_multihit_dict, bac_ar_diff, warning_counter,
+                    summary_file, classified_user_genomes, unclassified_user_genomes)
+                continue
 
             if pplacer_info.get("pplacer_g"):
                 pplacer_leafnode = pplacer_info.get("pplacer_g").taxon.label
@@ -1760,6 +1810,97 @@ class Classify(object):
                     summary_row.other_related_refs = existing_result.other_related_refs
                     unclassified_user_genomes[userleaf.taxon.label] = summary_row
         return classified_user_genomes, unclassified_user_genomes,warning_counter
+
+    def _resolve_ani_unassigned_genome(self, label, pplacer_leafnode, hits,
+                                   pplacer_taxonomy_dict, msa_dict, trans_table_dict,
+                                   percent_multihit_dict, bac_ar_diff, warning_counter,
+                                   summary_file, classified_user_genomes, unclassified_user_genomes):
+
+        """Report species-non-assignment for a genome that reached the reference tree
+        without a pre-screen (ANI) species assignment.
+
+        Restores the previous behaviour: below-radius and low-AF near-misses are
+        written in `other_related_references` + `warnings` instead of being dropped.
+        Returns True if the genome was handled here.
+        """
+        if not hits:
+            return False
+
+        summary_row = ClassifySummaryFileRow()
+        summary_row.gid = label
+        summary_row.pplacer_tax = pplacer_taxonomy_dict.get(label)
+        summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
+        summary_row.msa_percent = aa_percent_msa(msa_dict.get(label))
+        summary_row.tln_table = trans_table_dict.get(label)
+
+        # placement neighbour (the pplacer-chosen reference), independent of species assignment
+        if pplacer_leafnode:
+            summary_row.closest_placement_ref = pplacer_leafnode
+            summary_row.closest_placement_radius = str(self.species_radius.get(pplacer_leafnode))
+            placement_tax = self.gtdb_taxonomy.get(add_ncbi_prefix(pplacer_leafnode))
+            if placement_tax:
+                summary_row.closest_placement_tax = ";".join(placement_tax)
+            placement_hit = hits.get(pplacer_leafnode)
+            if placement_hit:
+                summary_row.closest_placement_ani = round(placement_hit['ani'], 2)
+                summary_row.closest_placement_af = round(placement_hit['af'], 3)
+
+
+        warnings = self._parse_genome_warnings(label, percent_multihit_dict, bac_ar_diff)
+
+        sorted_hits = sorted(hits.items(), key=lambda kv: (kv[1]['ani'], kv[1]['af']), reverse=True)
+        # Issue #717 : cap the other references list at the alignment-fraction threshold
+        af_pass = [(r, h) for r, h in sorted_hits if h['af'] >= self.af_threshold]
+
+        if af_pass:
+            best_ref, best = af_pass[0]
+            radius = self.species_radius.get(best_ref)
+            if radius is not None and best['ani'] >= radius:
+                # within radius -> species assignment (reachable via --place_species / full tree)
+                taxa_str = ";".join(self.gtdb_taxonomy.get(add_ncbi_prefix(best_ref)))
+                summary_row.closest_genome_ref = best_ref
+                summary_row.closest_genome_ref_radius = str(radius)
+                summary_row.closest_genome_tax = taxa_str
+                summary_row.closest_genome_ani = round(best['ani'], 2)
+                summary_row.closest_genome_af = round(best['af'], 3)
+                summary_row.classification = standardise_taxonomy(taxa_str)
+                summary_row.note = 'topological placement and ANI have incongruent species assignments'
+                other = '; '.join(self.formatnote(af_pass, self.canonical_taxonomy, self.species_radius, [best_ref]))
+                summary_row.other_related_refs = other or None
+                if warnings:
+                    summary_row.warnings = ';'.join(set(warnings))
+                    warning_counter.append(label)
+                summary_file.add_row(summary_row)
+                classified_user_genomes[label] = standardise_taxonomy(taxa_str)
+                return True
+            # within AF but ANI below this representative's circumscription radius
+            other = '; '.join(self.formatnote(af_pass, self.canonical_taxonomy, self.species_radius, []))
+            summary_row.other_related_refs = other or None
+            summary_row.closest_genome_ref = None
+            if best['ani'] >= self.min_species_radius:
+                # genome is above the default species cutoff but this rep has a raised radius
+                warnings.append(
+                    "Genome not assigned to closest species as it falls outside its pre-defined ANI radius "
+                    "(closest {} ANI={}%, AF={}, radius={}%)".format(
+                        best_ref, round(best['ani'], 2), round(best['af'], 3), radius))
+                warning_counter.append(label)
+            if warnings:
+                summary_row.warnings = ';'.join(set(warnings))
+            unclassified_user_genomes[label] = summary_row
+            return True
+
+        # no AF-passing hit: distinguish a high-ANI / low-AF near miss from a genuine novelty
+        top_ref, top = sorted_hits[0]
+        if top['ani'] >= 95.0:
+            warnings.append(
+                "Closest reference {} has ANI={}% but alignment fraction AF={} below the {} "
+                "threshold; no species assignment".format(
+                    top_ref, round(top['ani'], 2), round(top['af'], 3), self.af_threshold))
+            warning_counter.append(label)
+        if warnings:
+            summary_row.warnings = ';'.join(set(warnings))
+        unclassified_user_genomes[label] = summary_row
+        return True
 
     def _get_redtax(self, list_subnode, closest_rank):
         """

@@ -35,6 +35,16 @@ Be sure to check the [hardware requirements](https://ecogenomics.github.io/GTDBT
 Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDBTk/).
 
 
+## 🔄 What's changed in v2.8.0
+
+* **No new reference data required:** v2.8.0 uses the same R232 reference package as v2.7.x.
+* **`classify` and `classify_wf` now report the same metadata.** `other_related_references` lists only references with AF ≥ `--min_af`, closest first, and genomes not assigned by the ANI screen now report their closest references and warnings in `classify_wf` too ([#717](https://github.com/Ecogenomics/GTDBTk/issues/717)).
+* **Classifications are unchanged except for fuzzy species in condensed genera, and only in `classify_wf`** (4 of 10,000 [GlobDB](https://globdb.org/) genomes in our tests). In condensed genera, species are circumscribed more narrowly: their ANI radius is above the default 95%. If a genome falls outside the radius of its closest reference (AF ≥ `--min_af`), v2.7.x `classify_wf` could still assign it to a more distant species whose radius it falls within. v2.8.0 no longer does this; it applies the rule `classify` has always used.
+    * *Example:* a genome has 97% ANI to representative A, a fuzzy species with a radius of 98%, and 96% ANI to representative B (radius 95%), both with AF ≥ 0.5. A is the closest reference, but the genome is outside A's radius. v2.7.x `classify_wf` assigned the genome to B's species; v2.8.0 (like `classify`) leaves the species unassigned (`s__`), lists A and B in `other_related_references`, and adds the warning that the genome falls outside the closest representative's ANI radius.
+* Output directories whose ANI screen was produced by an earlier version are re-screened when resumed.
+
+See the [change log](https://ecogenomics.github.io/GTDBTk/changelog.html) for the full list.
+
 ## ✨ New Features
 
 GTDB-Tk v2.7.0+ includes the following new features:

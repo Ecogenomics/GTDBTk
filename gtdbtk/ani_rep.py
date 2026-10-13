@@ -1,3 +1,4 @@
+import gzip
 import logging
 import os
 from collections import defaultdict
@@ -135,8 +136,9 @@ class ANISummaryFile(object):
                     taxonomy_str = ';'.join(self.taxonomy[canonical_rid])
                     fh.write(f'{qry_gid}\t{ref_gid}')
                     fh.write(f'\t{ref_hit["ani"]}')
-                    # we round the af to 4 decimals for consistency
-                    ref_hit['af'] = round(ref_hit['af'], 5)
+                    # Written unrounded (skani AF is already rounded to 6 decimals when parsed) and without
+                    # mutating ref_hit: classify_wf reads this value back, and any rounding here would make
+                    # its 3-digit AF differ from standalone classify (double rounding, e.g. 0.63 vs 0.629).
                     fh.write(f'\t{ref_hit["af"]}')
                     #fh.write(f'\t{ref_hit["ani"]}\t{ref_hit["af"]}')
                     fh.write(f'\t{taxonomy_str}')
@@ -162,6 +164,38 @@ class ANISummaryFile(object):
             for line in fh.readlines():
                 qry_gid, ref_gid, ani, af, taxonomy_str,other_refs = line.strip('\n').split('\t')
                 results[qry_gid]={ref_gid:{'ani': float(ani), 'af': float(af), 'taxonomy': taxonomy_str,'other_refs':other_refs}}
+        return results
+
+
+class SkaniRawHitsFile(object):
+    """Raw skani hits (ANI, AF) for user genomes the ANI screen did not classify.
+
+    Written by the ani_screen step so that classify (run later with
+    skip_ani_screen=True, e.g. in classify_wf or on resume) can still report
+    below-radius / low-AF near misses (Issue #717).
+    Values are written with repr() so they round-trip exactly.
+    """
+    COLUMNS = ['user_genome', 'reference_genome', 'ani', 'af']
+
+    @staticmethod
+    def write(path, skani_results, gids):
+        with gzip.open(path, 'wt') as fh:
+            fh.write('\t'.join(SkaniRawHitsFile.COLUMNS) + '\n')
+            for qry_gid in sorted(gids):
+                for ref_gid, hit in skani_results.get(qry_gid, {}).items():
+                    fh.write(f"{qry_gid}\t{ref_gid}\t{hit['ani']!r}\t{hit['af']!r}\n")
+
+    @staticmethod
+    def read(path):
+        """Returns dict[user_genome][reference_genome] = {'ani': float, 'af': float}."""
+        results = {}
+        with gzip.open(path, 'rt') as fh:
+            header = fh.readline().rstrip('\n').split('\t')
+            if header != SkaniRawHitsFile.COLUMNS:
+                raise GTDBTkExit(f'Unexpected columns in skani raw hits file {path}: {header}')
+            for line in fh:
+                qry_gid, ref_gid, ani, af = line.rstrip('\n').split('\t')
+                results.setdefault(qry_gid, {})[ref_gid] = {'ani': float(ani), 'af': float(af)}
         return results
 
 

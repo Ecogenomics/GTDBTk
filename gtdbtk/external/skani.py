@@ -425,7 +425,10 @@ class SkANI(object):
                     break
 
             qid, rid, ani, af_r, af_q = job
-            max_af = max(af_r, af_q) / 100
+            # Round away float noise from the /100 (e.g. 89.45/100 = 0.8945000000000001).
+            # Otherwise classify (rounds AF once) and classify_wf (AF re-rounded to 5 digits in the
+            # ani_summary file first) can report different 3-digit AFs for the same genome.
+            max_af = round(max(af_r, af_q) / 100, 6)
 
             if qid not in out:
                 out[qid] = {rid: {'ani': ani, 'af': max_af}}
