@@ -961,11 +961,8 @@ class Classify(object):
                         list_subrank.append(self.gtdb_taxonomy.get(leaf_subrank)
                                             [self.order_rank.index(parent_rank) + 1])
                     if len(set(list_subrank)) == 1:
-                        print(leaf.taxon.label)
-                        print(list_leaves)
-                        print(list_subrank)
-                        print(set(list_subrank))
-                        raise GTDBTkExit('There should be only one leaf.')
+                        raise GTDBTkExit(f'There should be only one leaf ({leaf.taxon.label}): '
+                                         f'reference leaves {list_leaves} -> sub-ranks {list_subrank}')
                     else:
                         closest_rank = parent_rank
                         detection = "taxonomic classification fully defined by topology"
@@ -2078,7 +2075,7 @@ class Classify(object):
                     valid, error_msg = Taxonomy().validate_species_name(
                         species_name, require_full=True, require_prefix=True)
                 if not valid:
-                    print('[Warning] Species name {} for {} is invalid: {}'.format(
+                    self.logger.warning('Species name {} for {} is invalid: {}'.format(
                         species_name, taxon_id, error_msg))
                     continue
 
@@ -2118,8 +2115,8 @@ class Classify(object):
                 elif not support and min_support > 0:
                     # no support value, so inform user if they were trying to
                     # filter on this property
-                    print(
-                        '[Error] Tree does not contain support values. As such, --min_support should be set to 0.')
+                    self.logger.error(
+                        'Tree does not contain support values. As such, --min_support should be set to 0.')
                     continue
 
         # restrict taxa used for inferring distribution to the trusted set
