@@ -574,6 +574,13 @@ class OptionsParser(object):
         classify_step.full_tree = options.full_tree
         classify_step.place_species = process_classified_genomes
 
+        de_novo_species_file = getattr(options, 'de_novo_species', None)
+        if de_novo_species_file:
+            check_file_exists(de_novo_species_file)
+            if process_classified_genomes:
+                raise GTDBTkExit('--de_novo_species cannot be used with --place_species.')
+            classify_step.de_novo_species = de_novo_species_file
+
         ani_summary_files = {}
         unassigned_hits_file = None
         if self.stage_logger.has_stage(ANIScreenStep):
@@ -615,7 +622,8 @@ class OptionsParser(object):
                      unassigned_hits_file=unassigned_hits_file,
                      all_classified_ani=all_classified_ani,
                      all_failed_prodigal=all_failed_prodigal,
-                    process_classified_genomes=process_classified_genomes
+                    process_classified_genomes=process_classified_genomes,
+                     de_novo_species_file=de_novo_species_file
                      )
 
         classify_step.ends_at = datetime.now()

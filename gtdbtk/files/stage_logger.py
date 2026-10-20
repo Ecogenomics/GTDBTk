@@ -82,6 +82,7 @@ class ClassifyStep(Steps):
     debug_option: Optional[bool] = None
     full_tree: Optional[bool] = None
     place_species: Optional[bool] = None
+    de_novo_species: Optional[str] = None
     output_files: Optional[Dict] = None
 
 

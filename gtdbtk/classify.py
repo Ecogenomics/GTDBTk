@@ -37,6 +37,7 @@ from gtdbtk.biolib_lite.newick import parse_label
 from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
+from gtdbtk.de_novo_species import GenomeClustering
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.pplacer import Pplacer
 from gtdbtk.external.skani import SkANI
@@ -306,7 +307,8 @@ class Classify(object):
             unassigned_hits_file=None,
             all_classified_ani=False,
             all_failed_prodigal=False,
-            process_classified_genomes=False):
+            process_classified_genomes=False,
+            de_novo_species_file=None):
         """Classify genomes based on position in reference tree."""
         #v2.7.1:genomes can be all identified with skani but if we use process_classified_genomes
         #We still need the  _bac_gids, _ar_gids, bac_ar_diff
@@ -329,6 +331,9 @@ class Classify(object):
         if genes and not skip_ani_screen:
             self.logger.warning('The --genes flag is set to True. The ANI screening steps will be skipped.')
             skip_ani_screen = True
+        if genes and de_novo_species_file:
+            self.logger.warning('The --genes flag is set to True. De novo species clustering will be skipped.')
+            de_novo_species_file = None
 
         if not skip_ani_screen:
             ani_rep = ANIRep(self.cpus)
@@ -505,8 +510,24 @@ class Classify(object):
                 # if skani_classified_user_genomes has key marker_set_id, we
                 # need to add those genomes to the summary file and remove those genomes to the list of genomes
                 # to process with pplacer
+                list_summary_rows = []
                 if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes and not process_classified_genomes:
                     list_summary_rows = skani_classified_user_genomes.get(marker_set_id)
+
+                # De novo species (--de_novo_species): the genomes not assigned to a GTDB species are
+                # clustered into new species. Only the representatives are placed in the reference tree,
+                # the members get the taxonomy of their representative.
+                sp_cluster, changing_reps_genomes, de_novo_members = {}, {}, set()
+                if de_novo_species_file and genomes_to_process:
+                    sp_cluster, changing_reps_genomes, de_novo_file = self._run_de_novo_species(
+                        de_novo_species_file, genomes, marker_set_id, genomes_to_process,
+                        list_summary_rows, raw_skani_results, out_dir, prefix)
+                    output_files.setdefault(marker_set_id, []).append(de_novo_file)
+                    de_novo_members = {gid for cluster in sp_cluster.values() for gid, _hit in cluster['members']}
+                    # genomes moved out of their GTDB species are reported with their de novo species
+                    list_summary_rows = [row for row in list_summary_rows if row.gid not in changing_reps_genomes]
+
+                if list_summary_rows or de_novo_members:
                     for row in list_summary_rows:
                         row,warning_counter = self._add_warning_to_row(row,
                                                        msa_dict,
@@ -516,6 +537,7 @@ class Classify(object):
                         summary_file.add_row(row)
                         if row.gid in genomes_to_process:
                             genomes_to_process.remove(row.gid)
+                    genomes_to_process = [gid for gid in genomes_to_process if gid not in de_novo_members]
 
                     # if genomes are classified with pre-screen, they need to be removed from the user_msa_file
                     prescreened_msa_file_path = os.path.join(
@@ -536,6 +558,10 @@ class Classify(object):
 
                 # if the new user_msa_file is empty, we need to skip the rest of the loop
                 if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
+                    if sp_cluster or changing_reps_genomes:
+                        warning_counter = self._add_de_novo_species_to_summary(
+                            summary_file, sp_cluster, changing_reps_genomes, msa_dict,
+                            tln_table_summary_file.genomes, percent_multihit_dict, bac_ar_diff, warning_counter)
                     if summary_file.has_row():
                         summary_file.write()
                         # Symlink to the summary file from the root
@@ -720,6 +746,12 @@ class Classify(object):
                     tree_mapping_file.write()
                     output_files.setdefault(marker_set_id, []).append(tree_mapping_file.path)
 
+                # add the members of the de novo species clusters, with the taxonomy of their representative
+                if sp_cluster or changing_reps_genomes:
+                    warning_counter = self._add_de_novo_species_to_summary(
+                        summary_file, sp_cluster, changing_reps_genomes, msa_dict,
+                        tln_table_summary_file.genomes, percent_multihit_dict, bac_ar_diff, warning_counter)
+
 
                 if len(warning_counter) > 0:
                     sum_of_genomes =  len(set(genomes_to_process+prodigal_failed_counter))
@@ -756,6 +788,118 @@ class Classify(object):
 
 
         return output_files
+
+    def _run_de_novo_species(self, de_novo_species_file, genomes, marker_set_id, genomes_to_process,
+                             list_summary_rows, raw_skani_results, out_dir, prefix):
+        """Cluster the genomes of one domain into de novo species (--de_novo_species).
+
+        genomes_to_process are the genomes not assigned to a GTDB species by the ANI screen,
+        list_summary_rows the ones that were (they are re-checked against the new representatives).
+        """
+        gtdb_assignment = GenomeClustering.gtdb_assignment_from_rows(list_summary_rows)
+        domain_genomes = sorted(set(genomes_to_process) | set(gtdb_assignment.keys()))
+
+        self.logger.info(f'De novo species clustering of {len(domain_genomes):,} {marker_set_id} genomes.')
+        # genomes: path lookup (QC stats, skani); domain_genomes: the genomes actually clustered
+        clustering = GenomeClustering(de_novo_species_file, genomes, self.gtdb_radii, out_dir, prefix,
+                                      cpus=self.cpus, af_threshold=self.af_threshold)
+        clustering.parse(domain_genomes)
+
+        # user <-> user hits (skani triangle) + user -> GTDB hits reused from the ANI screen
+        ani_results = clustering.compute_ani(domain_genomes)
+        # hits to GTDB representatives of the genomes not assigned by the ANI screen
+        for gid in genomes_to_process:
+            for ref_id, hit in raw_skani_results.get(gid, {}).items():
+                clustering.add_hit(ani_results, gid, ref_id, hit)
+
+        sp_cluster, _gtdb_members, changing_reps_genomes, _unassigned = clustering.cluster(gtdb_assignment,
+                                                                                         ani_results)
+        if marker_set_id == 'bac120':
+            de_novo_file = os.path.join(out_dir, PATH_BAC120_DE_NOVO_SPECIES.format(prefix=prefix))
+        else:
+            de_novo_file = os.path.join(out_dir, PATH_AR53_DE_NOVO_SPECIES.format(prefix=prefix))
+        make_sure_path_exists(os.path.dirname(de_novo_file))
+        clustering.write_clusters(de_novo_file, sp_cluster, changing_reps_genomes)
+        return sp_cluster, changing_reps_genomes, de_novo_file
+
+    def _add_de_novo_species_to_summary(self, summary_file, sp_cluster, changing_reps_genomes, msa_dict,
+                                        trans_table_dict, percent_multihit_dict, bac_ar_diff, warning_counter):
+        """Add the de novo species clusters to the summary file.
+
+        - a representative placed in the tree keeps its classification, with the de novo species name
+          if it has no species;
+        - a representative moved out of a GTDB species was not placed: it gets the genus of that
+          GTDB species (its ANI to it is >= 95%) and the de novo species name;
+        - members get the classification of their representative;
+        - a genome moved out of a GTDB species with no new species gets the genus of that GTDB species.
+        """
+        rep_note = 'Selected to be representative genome for the species cluster'
+        for rep_id, cluster in sorted(sp_cluster.items(), key=lambda x: x[1]['increment']):
+            species_name = GenomeClustering.species_name(cluster)
+            if rep_id in changing_reps_genomes:
+                previous_rep = changing_reps_genomes[rep_id][0]
+                rep_row = ClassifySummaryFileRow()
+                rep_row.gid = rep_id
+                taxonomy = self.gtdb_taxonomy.get(add_ncbi_prefix(previous_rep))
+                rep_row.classification = ';'.join(list(taxonomy[:6]) + [species_name])
+                rep_row.classification_method = 'dereplication_ani'
+                rep_row.note = f'{rep_note};Genus from ANI to GTDB representative {previous_rep}'
+                rep_row.warnings = self._domain_warning(rep_id, bac_ar_diff)
+                rep_row, warning_counter = self._add_warning_to_row(rep_row, msa_dict, trans_table_dict,
+                                                                    percent_multihit_dict, warning_counter)
+                summary_file.add_row(rep_row)
+            elif rep_id in summary_file.rows:
+                rep_row = summary_file.get_row(rep_id)
+                if rep_row.classification and rep_row.classification.endswith('s__'):
+                    rep_row.classification = rep_row.classification[:-3] + species_name
+                notes = rep_row.note.split(';') if rep_row.note else []
+                notes.append(rep_note)
+                rep_row.note = ';'.join(notes)
+            else:
+                self.logger.warning(f'The representative genome {rep_id} of the de novo species {species_name} '
+                                    f'has not been classified; its {len(cluster["members"])} member(s) are '
+                                    f'reported without classification.')
+                rep_row = None
+
+            for gid, hit in cluster['members']:
+                row = ClassifySummaryFileRow()
+                row.gid = gid
+                row.classification = rep_row.classification if rep_row else None
+                row.classification_method = 'dereplication_ani'
+                notes = [f"Represented by genome {rep_id} (ANI:{round(hit['ani'], 2)}%,AF:{round(hit['af'], 3)})"]
+                if gid in changing_reps_genomes:
+                    notes.append(f'Previously assigned to GTDB representative {changing_reps_genomes[gid][0]} '
+                                 f'by the ANI screen')
+                row.note = ';'.join(notes)
+                row.warnings = self._domain_warning(gid, bac_ar_diff)
+                row, warning_counter = self._add_warning_to_row(row, msa_dict, trans_table_dict,
+                                                                percent_multihit_dict, warning_counter)
+                summary_file.add_row(row)
+
+        # genomes moved out of their GTDB species without a new species
+        for gid, (previous_rep, new_rep) in sorted(changing_reps_genomes.items()):
+            if new_rep is not None:
+                continue
+            row = ClassifySummaryFileRow()
+            row.gid = gid
+            taxonomy = self.gtdb_taxonomy.get(add_ncbi_prefix(previous_rep))
+            row.classification = ';'.join(list(taxonomy[:6]) + ['s__'])
+            row.classification_method = 'dereplication_ani'
+            row.note = (f'Outside the radius of its closest representative;'
+                        f'Genus from ANI to GTDB representative {previous_rep}')
+            row.warnings = self._domain_warning(gid, bac_ar_diff)
+            row, warning_counter = self._add_warning_to_row(row, msa_dict, trans_table_dict,
+                                                            percent_multihit_dict, warning_counter)
+            summary_file.add_row(row)
+        return warning_counter
+
+    @staticmethod
+    def _domain_warning(gid, bac_ar_diff):
+        if gid in bac_ar_diff:
+            return ['Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                bac_ar_diff.get(gid).get('bac120'),
+                bac_ar_diff.get(gid).get('ar53'))]
+        return None
 
     def _add_warning_to_row(self,row,msa_dict,
                             trans_table_dict,

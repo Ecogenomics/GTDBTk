@@ -100,6 +100,11 @@ class __GTDBTkCommonConfig:
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
     SKANI_MIN_AF = 15.0
 
+    # Minimum quality for a user genome to become a de novo representative.
+    # Genomes below these values can still join a cluster.
+    MIN_REP_COMPLETENESS = 50.0
+    MAX_REP_CONTAMINATION = 10.0
+
 
     # Config values for checking GTDB-Tk on startup.
     GTDBTK_VER_CHECK = True
@@ -107,6 +112,9 @@ class __GTDBTkCommonConfig:
 
     # Internal settings used for logging.
     LOG_TASK = 21
+
+    # Default name for de novo species clusters (--de_novo_species)
+    DEFAULT_SPECIES_CLUSTERS = 's__NovelCluster sp{inc}'
 
     # To avoid multiple hits of parsing files
     _generic_path = None
