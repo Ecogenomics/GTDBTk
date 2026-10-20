@@ -253,15 +253,27 @@ class TestRules(ClusteringTestCase):
         clustering = self.make_clustering({'A': (90, 1)}, {})
         self.assertEqual(clustering.compute_ani(['A']), {})
 
-    def test_write_clusters(self):
-        clustering = self.make_clustering({'A': (95, 1), 'Z': (60, 1)}, {})
-        sp_cluster, _, changing, _ = clustering.cluster({}, self.build_hits([('A', 'Z', 97.0, AF)]))
+    def test_write_and_read_clusters(self):
+        clustering = self.make_clustering({'A': (95, 1)}, {})
+        sp_cluster = {'A': {'increment': 1, 'radius': 95.0, 'members': [('Z', hit(97.0))]}}
+        changing = {'Z': (S1, 'A'), 'Y': (N, None)}
         path = os.path.join(self.dir, 'clusters.tsv')
         clustering.write_clusters(path, sp_cluster, changing)
         with open(path) as fh:
             lines = [line.rstrip('\n').split('\t') for line in fh]
-        self.assertEqual(lines[1], ['A', 'A', 's__NovelCluster sp1', '95.0', 'N/A', 'N/A', 'N/A'])
-        self.assertEqual(lines[2], ['Z', 'A', 's__NovelCluster sp1', '95.0', '97.0', '0.9', 'N/A'])
+        self.assertEqual(lines[1], ['A', 'A', '1', 's__NovelCluster sp1', '95.0', 'N/A', 'N/A', 'N/A'])
+        self.assertEqual(lines[2], ['Z', 'A', '1', 's__NovelCluster sp1', '95.0', '97.0', '0.9', S1])
+        self.assertEqual(lines[3], ['Y', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', N])
+        read_cluster, read_changing = GenomeClustering.read_clusters(path)
+        self.assertEqual(read_cluster, {'A': {'increment': 1, 'radius': 95.0, 'members': [('Z', hit(97.0))]}})
+        self.assertEqual(read_changing, changing)
+
+    def test_gtdb_assignment_from_ani_screen(self):
+        classified = {'bac120': {'U1': {S1: {'ani': 96.5, 'af': 0.9, 'other_refs': 'x'}}},
+                      'ar53': {'U2': {S2: {'ani': 97.0, 'af': 0.8}}}}
+        self.assertEqual(GenomeClustering.gtdb_assignment_from_ani_screen(classified),
+                         {'U1': (S1, hit(96.5, 0.9)), 'U2': (S2, hit(97.0, 0.8))})
+        self.assertEqual(GenomeClustering.gtdb_assignment_from_ani_screen(None), {})
 
 class TestQCFile(ClusteringTestCase):
 

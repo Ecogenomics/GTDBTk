@@ -41,6 +41,14 @@ class ANIScreenStep(Steps):
 
 
 @dataclass
+class DeNovoSpeciesStep(Steps):
+    """Information about the de novo species step of GTDB-Tk (classify_wf --de_novo_species)"""
+    name: str = field(default="de novo species", init=False)
+    qc_file: Optional[str] = None
+    clusters_file: Optional[str] = None
+
+
+@dataclass
 class IdentifyStep(Steps):
     """Information about the Identify step of GTDB-Tk"""
     name: str = field(default="identify", init=False)
@@ -170,6 +178,8 @@ class _StageLoggerImpl:
 
                 if name == "ANI screen":
                     step_object = ANIScreenStep(**step)
+                elif name == "de novo species":
+                    step_object = DeNovoSpeciesStep(**step)
                 elif name == "identify":
                     step_object = IdentifyStep(**step)
                 elif name == "align":

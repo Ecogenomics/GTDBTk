@@ -43,7 +43,10 @@ from gtdbtk.decorate import Decorate
 from gtdbtk.exceptions import *
 from gtdbtk.external.fasttree import FastTree
 from gtdbtk.files.stage_logger import ANIScreenStep, IdentifyStep, ClassifyStep, AlignStep, \
-    InferStep, RootStep, DecorateStep, StageLogger
+    InferStep, RootStep, DecorateStep, StageLogger, DeNovoSpeciesStep
+from gtdbtk.ani_rep import SkaniRawHitsFile
+from gtdbtk.de_novo_species import GenomeClustering
+from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.infer_ranks import InferRanks
 from gtdbtk.files.batchfile import Batchfile
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFile
@@ -291,7 +294,7 @@ class OptionsParser(object):
         return taxonomy
 
 
-    def identify(self, options , classified_genomes = None,process_classified_species=False):
+    def identify(self, options , classified_genomes = None,process_classified_species=False, skip_genomes=None):
         """Identify marker genes in genomes.
 
         Parameters
@@ -328,6 +331,9 @@ class OptionsParser(object):
                 if marker_set_id in classified_genomes:
                     for classified_genome in classified_genomes.get(marker_set_id).keys():
                         genomes.pop(classified_genome, None)
+        # --de_novo_species: genomes that stay in a GTDB species and de novo cluster members are not placed
+        for skip_genome in (skip_genomes or []):
+            genomes.pop(skip_genome, None)
 
         self.logger.info(f'Identifying marker genes in {len(genomes):,} genome(s).')
 
@@ -575,11 +581,16 @@ class OptionsParser(object):
         classify_step.place_species = process_classified_genomes
 
         de_novo_species_file = getattr(options, 'de_novo_species', None)
+        de_novo_clusters_file = None
         if de_novo_species_file:
             check_file_exists(de_novo_species_file)
             if process_classified_genomes:
                 raise GTDBTkExit('--de_novo_species cannot be used with --place_species.')
             classify_step.de_novo_species = de_novo_species_file
+            # classify_wf: the clusters were computed before identify
+            if self.stage_logger.has_stage(DeNovoSpeciesStep):
+                de_novo_clusters_file = self.stage_logger.get_stage(DeNovoSpeciesStep).clusters_file
+                de_novo_species_file = None
 
         ani_summary_files = {}
         unassigned_hits_file = None
@@ -623,7 +634,8 @@ class OptionsParser(object):
                      all_classified_ani=all_classified_ani,
                      all_failed_prodigal=all_failed_prodigal,
                     process_classified_genomes=process_classified_genomes,
-                     de_novo_species_file=de_novo_species_file
+                     de_novo_species_file=de_novo_species_file,
+                     de_novo_clusters_file=de_novo_clusters_file
                      )
 
         classify_step.ends_at = datetime.now()
@@ -702,6 +714,56 @@ class OptionsParser(object):
             all_classified=True
 
         return all_classified,classified_genomes
+
+    def de_novo_species(self, options, classified_genomes):
+        """Cluster the genomes not assigned to a GTDB species by the ANI screen into de novo
+        species (classify_wf --de_novo_species). Runs before identify, so only the representatives
+        and the genomes without a species are identified, aligned and placed.
+
+        Returns
+        -------
+        set : genomes identify must skip (genomes in a GTDB species and de novo cluster members).
+        """
+        de_novo_step = DeNovoSpeciesStep()
+        de_novo_step.starts_at = datetime.now()
+        de_novo_step.output_dir = options.out_dir
+        de_novo_step.qc_file = options.de_novo_species
+
+        ani_step = self.stage_logger.get_stage(ANIScreenStep)
+        unassigned_hits_file = ani_step.unassigned_hits_file if ani_step else None
+        if not unassigned_hits_file or not os.path.isfile(unassigned_hits_file):
+            raise GTDBTkExit('--de_novo_species needs the skani hits saved by the ANI screen '
+                             f'({unassigned_hits_file}); rerun classify_wf in a new output directory.')
+
+        genomes, _ = self._genomes_to_process(options.genome_dir, options.batchfile, options.extension)
+        gtdb_assignment = GenomeClustering.gtdb_assignment_from_ani_screen(classified_genomes)
+
+        clustering = GenomeClustering(options.de_novo_species, genomes, GTDBRadiiFile(), options.out_dir,
+                                      options.prefix, cpus=options.cpus,
+                                      af_threshold=options.min_af if options.min_af else CONFIG.AF_THRESHOLD)
+        clustering.parse(genomes.keys())
+        # user <-> user hits (skani triangle) + user -> GTDB hits saved by the ANI screen
+        ani_results = clustering.compute_ani(genomes.keys())
+        for gid, hits in SkaniRawHitsFile.read(unassigned_hits_file).items():
+            if gid not in gtdb_assignment:
+                ani_results.setdefault(gid, {}).update(hits)
+        sp_cluster, gtdb_members, changing_reps_genomes, _unassigned = clustering.cluster(gtdb_assignment,
+                                                                                        ani_results)
+
+        clusters_file = os.path.join(options.out_dir, PATH_DE_NOVO_SPECIES.format(prefix=options.prefix))
+        make_sure_path_exists(os.path.dirname(clusters_file))
+        clustering.write_clusters(clusters_file, sp_cluster, changing_reps_genomes)
+        self.logger.info(f'De novo species clusters saved to: {clusters_file}')
+
+        de_novo_step.clusters_file = clusters_file
+        de_novo_step.ends_at = datetime.now()
+        duration = de_novo_step.ends_at - de_novo_step.starts_at
+        de_novo_step.duration = str(duration - timedelta(microseconds=duration.microseconds))
+        de_novo_step.status = 'completed'
+        self.stage_logger.steps.append(de_novo_step)
+
+        members = {gid for cluster in sp_cluster.values() for gid, _hit in cluster['members']}
+        return set(gtdb_members) | members
 
     def trim_msa(self, options):
         """ Trim an untrimmed archaea or bacterial MSA file.
@@ -1091,6 +1153,11 @@ class OptionsParser(object):
             check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
                                 'skani'])
 
+            if getattr(options, 'de_novo_species', None):
+                check_file_exists(options.de_novo_species)
+                if options.place_species:
+                    raise GTDBTkExit('--de_novo_species cannot be used with --place_species.')
+
             if options.write_single_copy_genes and not options.keep_intermediates:
                 self.logger.warning('--write_single_copy_genes flag is set to True,'
                                     ' but --keep_intermediates is set to False. '
@@ -1185,9 +1252,25 @@ class OptionsParser(object):
                     self.logger.info('The --place_species flag is set to True. All genomes (including '
                                      'classified ones) will be placed in the tree.')
 
+            # --de_novo_species: cluster the genomes not assigned by the ANI screen before identify,
+            # so only the representatives and the genomes without a species are identified and placed
+            de_novo_skip_genomes = None
+            if getattr(options, 'de_novo_species', None) and not all_classified_ani:
+                if options.genes:
+                    self.logger.warning('The --genes flag is set to True. De novo species clustering will be skipped.')
+                else:
+                    de_novo_skip_genomes = self.de_novo_species(options, classified_genomes)
+
             if all_classified_ani and not options.place_species:
                 self.logger.info('All genomes have been classified by the ANI screening step. '
                                  'Identify and Align steps will be skipped.')
+            elif de_novo_skip_genomes is not None:
+                # genomes moved out of their GTDB species by the de novo step must be identified,
+                # so the ANI screen list is replaced by the de novo skip list
+                self.identify(options, None, skip_genomes=de_novo_skip_genomes)
+                self._reset_align_options(options)
+
+                all_failed_prodigal = self.align(options)
             else:
                 self.identify(options, classified_genomes,process_classified_species=process_classified_genomes)
                 self._reset_align_options(options)

@@ -341,19 +341,57 @@ class GenomeClustering(object):
         """ Name of a de novo species cluster."""
         return CONFIG.DEFAULT_SPECIES_CLUSTERS.format(inc=cluster['increment'])
 
+    CLUSTERS_HEADER = ['user_genome', 'representative', 'cluster', 'de_novo_species', 'radius',
+                       'ani_to_representative', 'af_to_representative', 'previous_gtdb_representative']
+
     def write_clusters(self, path, sp_cluster, changing_reps_genomes):
-        """ Write one line per user genome in a de novo species cluster."""
+        """ Write one line per user genome in a de novo species cluster, and one per genome
+        moved out of its GTDB species without a new species (representative = N/A)."""
         with open(path, 'w') as fh:
-            fh.write('user_genome\trepresentative\tde_novo_species\tradius\t'
-                     'ani_to_representative\taf_to_representative\tprevious_gtdb_representative\n')
+            fh.write('\t'.join(self.CLUSTERS_HEADER) + '\n')
             for rep_id, cluster in sorted(sp_cluster.items(), key=lambda x: x[1]['increment']):
                 species = self.species_name(cluster)
                 previous = changing_reps_genomes.get(rep_id, ('N/A',))[0]
-                fh.write(f"{rep_id}\t{rep_id}\t{species}\t{cluster['radius']}\tN/A\tN/A\t{previous}\n")
+                fh.write(f"{rep_id}\t{rep_id}\t{cluster['increment']}\t{species}\t{cluster['radius']}\t"
+                         f"N/A\tN/A\t{previous}\n")
                 for gid, hit in cluster['members']:
                     previous = changing_reps_genomes.get(gid, ('N/A',))[0]
-                    fh.write(f"{gid}\t{rep_id}\t{species}\t{cluster['radius']}\t"
+                    fh.write(f"{gid}\t{rep_id}\t{cluster['increment']}\t{species}\t{cluster['radius']}\t"
                              f"{round(hit['ani'], 2)}\t{round(hit['af'], 3)}\t{previous}\n")
+            for gid, (previous, new_rep) in sorted(changing_reps_genomes.items()):
+                if new_rep is None:
+                    fh.write(f"{gid}\tN/A\tN/A\tN/A\tN/A\tN/A\tN/A\t{previous}\n")
+
+    @classmethod
+    def read_clusters(cls, path):
+        """ Read a file written by write_clusters. Returns (sp_cluster, changing_reps_genomes)."""
+        sp_cluster, changing_reps_genomes = dict(), dict()
+        with open(path) as fh:
+            header = fh.readline().rstrip('\n').split('\t')
+            if header != cls.CLUSTERS_HEADER:
+                raise GTDBTkExit(f'Unexpected columns in de novo species file {path}: {header}')
+            for line in fh:
+                gid, rep_id, increment, _species, radius, ani, af, previous = line.rstrip('\n').split('\t')
+                if rep_id == 'N/A':
+                    changing_reps_genomes[gid] = (previous, None)
+                    continue
+                cluster = sp_cluster.setdefault(rep_id, {'increment': int(increment), 'members': [],
+                                                         'radius': float(radius)})
+                if gid != rep_id:
+                    cluster['members'].append((gid, {'ani': float(ani), 'af': float(af)}))
+                if previous != 'N/A':
+                    changing_reps_genomes[gid] = (previous, rep_id)
+        return sp_cluster, changing_reps_genomes
+
+    @staticmethod
+    def gtdb_assignment_from_ani_screen(classified_genomes) -> Dict[str, Tuple[str, dict]]:
+        """ GTDB assignment from the ANI screen: classified_genomes[domain][gid] = {gtdb_rep: hit}."""
+        gtdb_assignment = dict()
+        for domain_genomes in (classified_genomes or {}).values():
+            for gid, ref_hits in domain_genomes.items():
+                gtdb_rep, hit = next(iter(ref_hits.items()))
+                gtdb_assignment[gid] = (gtdb_rep, {'ani': hit['ani'], 'af': hit['af']})
+        return gtdb_assignment
 
     @staticmethod
     def gtdb_assignment_from_rows(list_summary_rows: List[ClassifySummaryFileRow]) -> Dict[str, Tuple[str, dict]]:

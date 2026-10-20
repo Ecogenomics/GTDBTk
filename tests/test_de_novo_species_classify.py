@@ -36,6 +36,7 @@ def make_classify():
     classify = Classify.__new__(Classify)
     classify.logger = logging.getLogger('timestamp')
     classify.gtdb_taxonomy = {'RS_' + N: N_TAXONOMY}
+    classify.de_novo_reps_written = set()
     return classify
 
 
@@ -48,9 +49,10 @@ class TestDeNovoSummaryRows(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.dir)
 
-    def add(self, sp_cluster, changing):
-        return make_classify()._add_de_novo_species_to_summary(
-            self.summary, sp_cluster, changing, {}, {}, {}, {}, [])
+    def add(self, sp_cluster, changing, marker_set_id='bac120', classify=None):
+        classify = classify or make_classify()
+        return classify._add_de_novo_species_to_summary(
+            self.summary, sp_cluster, changing, {}, {}, {}, {}, [], marker_set_id)
 
     def test_placed_rep_gets_species_and_members_inherit(self):
         row = ClassifySummaryFileRow()
@@ -83,11 +85,36 @@ class TestDeNovoSummaryRows(unittest.TestCase):
         row = self.summary.get_row('Y')
         self.assertEqual(row.classification, 'd__Bacteria;p__P;c__C;o__O;f__F;g__Genus;s__')
 
-    def test_unplaced_rep_members_have_no_classification(self):
-        sp_cluster = {'R': {'increment': 1, 'radius': 95.0, 'members': [('M', {'ani': 97.0, 'af': 0.8})]}}
-        self.add(sp_cluster, {})
-        self.assertIsNone(self.summary.get_row('M').classification)
+    def placed_row(self, gid, classification='d__Bacteria;p__P;c__C;o__O;f__F;g__G2;s__'):
+        row = ClassifySummaryFileRow()
+        row.gid = gid
+        row.classification = classification
+        self.summary.add_row(row)
 
+    def test_placed_rep_moved_from_gtdb_is_not_duplicated(self):
+        # standalone classify / classify_wf: Y is aligned and placed, so it already has a row
+        self.placed_row('Y')
+        sp_cluster = {'Y': {'increment': 2, 'radius': 96.5, 'members': []}}
+        self.add(sp_cluster, {'Y': (N, 'Y')})
+        self.assertEqual(self.summary.get_row('Y').classification,
+                         'd__Bacteria;p__P;c__C;o__O;f__F;g__G2;s__NovelCluster sp2')
+
+    def test_placed_genome_without_species_is_not_duplicated(self):
+        self.placed_row('Y')
+        self.add({}, {'Y': (N, None)})
+        self.assertEqual(self.summary.get_row('Y').classification, 'd__Bacteria;p__P;c__C;o__O;f__F;g__G2;s__')
+
+    def test_cluster_of_other_domain_is_skipped(self):
+        classify = make_classify()
+        sp_cluster = {'R': {'increment': 1, 'radius': 95.0, 'members': [('M', {'ani': 97.0, 'af': 0.8})]}}
+        self.add(sp_cluster, {}, marker_set_id='ar53', classify=classify)
+        self.assertFalse(self.summary.has_row())
+        self.assertEqual(classify.de_novo_reps_written, set())
+
+    def test_unplaced_rep_moved_from_gtdb_only_in_its_domain(self):
+        sp_cluster = {'Y': {'increment': 1, 'radius': 96.5, 'members': []}}
+        self.add(sp_cluster, {'Y': (N, 'Y')}, marker_set_id='ar53')
+        self.assertFalse(self.summary.has_row())
 
 class TestSkaniTriangle(unittest.TestCase):
 
