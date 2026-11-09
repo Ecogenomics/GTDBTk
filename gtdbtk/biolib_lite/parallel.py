@@ -87,7 +87,7 @@ class Parallel(object):
 
         self.cpus = cpus
 
-    def __producer(self, producer_callback, producer_queue, consumer_queue):
+    def _producer(self, producer_callback, producer_queue, consumer_queue):
         """Process data items with producer processes.
 
         Parameters
@@ -108,7 +108,7 @@ class Parallel(object):
 
             consumer_queue.put(rtn)
 
-    def __process_manager(self, producer_callback, producer_queue, consumer_queue):
+    def _process_manager(self, producer_callback, producer_queue, consumer_queue):
         """Setup producer processes and manage completion of processes.
 
         Parameters
@@ -122,7 +122,7 @@ class Parallel(object):
         """
 
         try:
-            producer_proc = [mp.Process(target=self.__producer, args=(
+            producer_proc = [mp.Process(target=self._producer, args=(
                 producer_callback, producer_queue, consumer_queue)) for _ in range(self.cpus)]
 
             for p in producer_proc:
@@ -169,7 +169,7 @@ class Parallel(object):
 
         try:
             consumer_queue = mp.Queue()
-            manager_proc = mp.Process(target=self.__process_manager, args=(
+            manager_proc = mp.Process(target=self._process_manager, args=(
                 producer, producer_queue, consumer_queue))
 
             manager_proc.start()
@@ -244,7 +244,7 @@ class Parallel(object):
         data_items = sum(1 for _ in read_seq(seq_file))
         try:
             consumer_queue = mp.Queue()
-            manager_proc = mp.Process(target=self.__process_manager, args=(
+            manager_proc = mp.Process(target=self._process_manager, args=(
                 producer, producer_queue, consumer_queue))
 
             manager_proc.start()
