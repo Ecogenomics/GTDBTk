@@ -53,10 +53,8 @@ DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
 PATH_BAC120_TREE_MAPPING = join(DIR_CLASSIFY, '{prefix}.bac120.tree.mapping.tsv')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
 PATH_AR53_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.red_dictionary.tsv')
-PATH_BAC120_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.classification_pplacer.tsv')
-PATH_AR53_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.classification_pplacer.tsv')
-PATH_BAC120_BACKBONE_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.backbone.classification_pplacer.tsv')
-PATH_BAC120_CLASS_LEVEL_PPLACER_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.class_level.classification_pplacer_tree_{iter}.tsv')
+PATH_BAC120_GPLACE_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.classification_gplace.tsv')
+PATH_AR53_GPLACE_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.classification_gplace.tsv')
 PATH_PRESCREEN_MSA = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.{marker_set_id}.prescreened.msa.fasta')
 
 #Command: ani_screen
@@ -68,19 +66,12 @@ PATH_BAC120_ANI_SKANI = join(DIR_ANISCREEN, '{prefix}.bac120_skani.summary.tsv')
 PATH_AR53_ANI_SKANI = join(DIR_ANISCREEN, '{prefix}.ar53_skani.summary.tsv')
 
 
-DIR_PPLACER = join(DIR_CLASSIFY_INTERMEDIATE, 'pplacer')
-PATH_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.bac120.out')
-PATH_AR53_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.ar53.out')
-PATH_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.bac120.json')
-PATH_AR53_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.ar53.json')
+DIR_GPLACE = join(DIR_CLASSIFY_INTERMEDIATE, 'gplace')
+PATH_BAC120_GPLACE_OUT = join(DIR_GPLACE, 'gplace.bac120.out')
+PATH_AR53_GPLACE_OUT = join(DIR_GPLACE, 'gplace.ar53.out')
+PATH_BAC120_GPLACE_JSON = join(DIR_GPLACE, 'gplace.bac120.json')
+PATH_AR53_GPLACE_JSON = join(DIR_GPLACE, 'gplace.ar53.json')
 
-# SPLIT TREE
-PATH_BACKBONE_BAC120_PPLACER_OUT = join(DIR_PPLACER, 'pplacer.backbone.bac120.out')
-PATH_BACKBONE_BAC120_PPLACER_JSON = join(DIR_PPLACER, 'pplacer.backbone.bac120.json')
-DIR_CLASS_LEVEL_PPLACER = join(DIR_PPLACER, 'tree_{iter}')
-PATH_CLASS_LEVEL_BAC120_SUBMSA = join(DIR_CLASS_LEVEL_PPLACER, 'user_msa_file.fasta')
-PATH_CLASS_LEVEL_BAC120_PPLACER_OUT = join(DIR_CLASS_LEVEL_PPLACER, 'pplacer.class_level.bac120.out')
-PATH_CLASS_LEVEL_BAC120_PPLACER_JSON = join(DIR_CLASS_LEVEL_PPLACER, 'pplacer.class_level.bac120.json')
 
 # Command: infer
 DIR_INFER = 'infer'

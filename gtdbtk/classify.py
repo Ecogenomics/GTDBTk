@@ -38,13 +38,12 @@ from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
-from gtdbtk.external.pplacer import Pplacer
+from gtdbtk.external.gplace import Gplace
 from gtdbtk.external.skani import SkANI
 
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.files.pplacer_classification import PplacerClassifyFileBAC120, PplacerClassifyFileAR53, \
-    PplacerLowClassifyFileBAC120
+from gtdbtk.files.gplace_classification import GplaceClassifyFileBAC120, GplaceClassifyFileAR53
 from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
@@ -52,7 +51,6 @@ from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, Disappeari
 from gtdbtk.files.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
-from gtdbtk.split import Split
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
     calculate_patristic_distance, tqdm_log, standardise_taxonomy, limit_rank, aa_percent_msa
 
@@ -63,12 +61,12 @@ sys.setrecursionlimit(15000)
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, pplacer_cpus=None, af_threshold=None,skip_pplacer=False):
+    def __init__(self, cpus=1, gplace_cpus=None, af_threshold=None,skip_gplace=False):
         """Initialize."""
 
-        check_dependencies(['pplacer', 'guppy', 'skani'])
+        check_dependencies(['gplace', 'guppy', 'skani'])
 
-        self.skip_pplacer = skip_pplacer
+        self.skip_gplace = skip_gplace
 
         self.taxonomy_file = CONFIG.TAXONOMY_FILE
         self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
@@ -85,21 +83,21 @@ class Classify(object):
         self.logger = logging.getLogger('timestamp')
 
         self.cpus = max(cpus, 1)
-        self.pplacer_cpus = max(pplacer_cpus if pplacer_cpus else cpus, 1)
+        self.gplace_cpus = max(gplace_cpus if gplace_cpus else cpus, 1)
 
         self.gtdb_radii = GTDBRadiiFile()
 
-        # pplacer seems to hang if more than 64 threads are given, warn the user
-        # otherwise let them if they specify pplacer_cpus.
-        if pplacer_cpus and pplacer_cpus > 64:
-            self.logger.warning('pplacer is known to hang if >64 CPUs are '
+        # gplace seems to hang if more than 64 threads are given, warn the user
+        # otherwise let them if they specify gplace_cpus.
+        if gplace_cpus and gplace_cpus > 64:
+            self.logger.warning('gplace is known to hang if >64 CPUs are '
                                 'used. You have overridden this using: '
-                                '--pplacer_cpus')
-        elif not pplacer_cpus and cpus > 64:
-            self.logger.warning('Setting pplacer CPUs to 64, as pplacer is '
+                                '--gplace_cpus')
+        elif not gplace_cpus and cpus > 64:
+            self.logger.warning('Setting gplace CPUs to 64, as gplace is '
                                 'known to hang if >64 are used. You can '
-                                'override this using: --pplacer_cpus')
-            self.pplacer_cpus = 64
+                                'override this using: --gplace_cpus')
+            self.gplace_cpus = 64
 
         self.species_radius = self.parse_radius_file()
 
@@ -124,27 +122,19 @@ class Classify(object):
                       marker_set_id,
                       out_dir,
                       prefix,
-                      scratch_dir=None,
-                      levelopt=None,
-                      tree_iter=None,
-                      number_low_trees=None,
-                      idx_tree=None):
-        """Place genomes into reference tree using pplacer."""
+                      gplace_max_memory=None):
+        """Place genomes into reference tree using gplace."""
 
         # Warn if the memory is insufficient
-        mem_warning = 'pplacer requires ~{req_gb} GB of RAM to fully load the ' \
+        mem_warning = 'gplace requires ~{req_gb} GB of RAM to fully load the ' \
                       '{domain} tree into memory. However, {cur_gb:,} GB was ' \
-                      'detected. This may affect pplacer performance, or fail' \
+                      'detected. This may affect gplace performance, or fail' \
                       ' if there is insufficient swap space.'
         mem_gb = get_memory_gb()
         if mem_gb is not None:
             mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and levelopt is None and mem_total < CONFIG.PPLACER_MIN_RAM_BAC_FULL:
+            if marker_set_id == 'bac120' and mem_total < CONFIG.PPLACER_MIN_RAM_BAC_FULL:
                 self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_BAC_FULL,
-                                                       domain='bacterial',
-                                                       cur_gb=mem_total))
-            if marker_set_id == 'bac120' and levelopt == 'high' and mem_total < CONFIG.PPLACER_MIN_RAM_BAC_SPLIT:
-                self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_BAC_SPLIT,
                                                        domain='bacterial',
                                                        cur_gb=mem_total))
             elif marker_set_id == 'ar53' and mem_total < CONFIG.PPLACER_MIN_RAM_ARC:
@@ -152,7 +142,7 @@ class Classify(object):
                                                        domain='archaeal',
                                                        cur_gb=mem_total))
 
-        # rename user MSA file for compatibility with pplacer
+        # rename user MSA file for compatibility with gplace
         if not user_msa_file.endswith('.fasta') and not user_msa_file.endswith('.gz'):
             if marker_set_id == 'bac120':
                 t = PATH_BAC120_USER_MSA.format(prefix=prefix)
@@ -164,114 +154,70 @@ class Classify(object):
             shutil.copyfile(user_msa_file, t)
             user_msa_file = t
 
-        # run pplacer to place bins in reference genome tree
+        # run gplace to place bins in reference genome tree
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
 
-        # check if a scratch file is to be created
-        pplacer_mmap_file = None
-        if scratch_dir:
-            self.logger.info('Using a scratch file for pplacer allocations. '
-                             'This decreases memory usage and performance.')
-            pplacer_mmap_file = os.path.join(
-                scratch_dir, prefix + ".pplacer.scratch")
-            make_sure_path_exists(scratch_dir)
-
-        # get path to pplacer reference package
-        pplacer_ref_pkg = None
+        # get path to gplace reference package
+        gplace_ref_pkg = None
         if marker_set_id == 'bac120':
-            if levelopt is None:
-                self.logger.log(CONFIG.LOG_TASK,
-                                f'Placing {num_genomes:,} bacterial genomes '
-                                f'into reference tree with pplacer using '
-                                f'{self.pplacer_cpus} CPUs (be patient).')
-                pplacer_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
-                                               CONFIG.PPLACER_BAC120_REF_PKG)
+            self.logger.log(CONFIG.LOG_TASK,
+                            f'Placing {num_genomes:,} bacterial genomes '
+                            f'into reference tree with gplace using '
+                            f'{self.gplace_cpus} CPUs (be patient).')
+            gplace_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
+                                           CONFIG.PPLACER_BAC120_REF_PKG)
 
-            elif levelopt == 'high':
-                self.logger.log(CONFIG.LOG_TASK,
-                                f'Placing {num_genomes:,} bacterial genomes '
-                                f'into backbone reference tree with pplacer using '
-                                f'{self.pplacer_cpus} CPUs (be patient).')
-                pplacer_ref_pkg = os.path.join(CONFIG.BACKBONE_PPLACER_DIR,
-                                               CONFIG.BACKBONE_PPLACER_REF_PKG)
-            elif levelopt == 'low':
-                self.logger.log(CONFIG.LOG_TASK,
-                                f'Placing {num_genomes:,} bacterial genomes '
-                                f'into class-level reference tree {tree_iter} ({idx_tree}/{number_low_trees}) with '
-                                f'pplacer using {self.pplacer_cpus} CPUs '
-                                f'(be patient).')
-                pplacer_ref_pkg = os.path.join(CONFIG.CLASS_LEVEL_PPLACER_DIR,
-                                               CONFIG.CLASS_LEVEL_PPLACER_REF_PKG.format(iter=tree_iter))
         elif marker_set_id == 'ar53':
             self.logger.log(CONFIG.LOG_TASK,
                             f'Placing {num_genomes:,} archaeal genomes into '
-                            f'reference tree with pplacer using '
-                            f'{self.pplacer_cpus} CPUs (be patient).')
-            pplacer_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
+                            f'reference tree with gplace using '
+                            f'{self.gplace_cpus} CPUs (be patient).')
+            gplace_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
                                            CONFIG.PPLACER_AR53_REF_PKG)
         else:
             raise GenomeMarkerSetUnknown(f'Unknown marker set: {marker_set_id}')
 
-        # create pplacer output directory
-        pplacer_out_dir = os.path.join(out_dir, DIR_PPLACER)
-        if not os.path.exists(pplacer_out_dir):
-            os.makedirs(pplacer_out_dir)
 
-        # run pplacer
-        pplacer_json_out, pplacer_out = None, None
+        # create gplace output directory
+        gplace_out_dir = os.path.join(out_dir, DIR_GPLACE)
+        if not os.path.exists(gplace_out_dir):
+            os.makedirs(gplace_out_dir)
+
+        # run gplace
+        gplace_json_out, gplace_out = None, None
         if marker_set_id == 'bac120':
-            if levelopt is None:
-                pplacer_out = os.path.join(out_dir, PATH_BAC120_PPLACER_OUT)
-                pplacer_json_out = os.path.join(
-                    out_dir, PATH_BAC120_PPLACER_JSON)
-            elif levelopt == 'high':
-                pplacer_out = os.path.join(
-                    out_dir, PATH_BACKBONE_BAC120_PPLACER_OUT)
-                pplacer_json_out = os.path.join(
-                    out_dir, PATH_BACKBONE_BAC120_PPLACER_JSON)
-            elif levelopt == 'low':
-                pplacer_out = os.path.join(
-                    out_dir, PATH_CLASS_LEVEL_BAC120_PPLACER_OUT.format(iter=tree_iter))
-                pplacer_json_out = os.path.join(
-                    out_dir, PATH_CLASS_LEVEL_BAC120_PPLACER_JSON.format(iter=tree_iter))
+            gplace_out = os.path.join(out_dir, PATH_BAC120_GPLACE_OUT)
+            gplace_json_out = os.path.join(
+                out_dir, PATH_BAC120_GPLACE_JSON)
         elif marker_set_id == 'ar53':
-            pplacer_out = os.path.join(out_dir, PATH_AR53_PPLACER_OUT)
-            pplacer_json_out = os.path.join(out_dir, PATH_AR53_PPLACER_JSON)
+            gplace_out = os.path.join(out_dir, PATH_AR53_GPLACE_OUT)
+            gplace_json_out = os.path.join(out_dir, PATH_AR53_GPLACE_JSON)
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        pplacer = Pplacer()
-        if levelopt is None or levelopt == 'high':
-            self.logger.info(f'pplacer version: {pplacer.version}')
-        # #DEBUG: Skip pplacer
-        #run_pplacer = True
-        if not self.skip_pplacer:
-            pplacer.run(self.pplacer_cpus, 'wag', pplacer_ref_pkg, pplacer_json_out,
-                        user_msa_file, pplacer_out, pplacer_mmap_file)
+        gplace = Gplace()
+        if marker_set_id == 'bac120':
+            self.logger.info(f'gplace version: {gplace.version}')
+        # #DEBUG: Skip gplace
+        if not self.skip_gplace:
+            gplace.run(self.gplace_cpus, 'wag', gplace_ref_pkg, gplace_json_out,
+                        user_msa_file, gplace_out, gplace_max_memory)
         else:
-            self.logger.warning('Skipping pplacer for debug purposes.')
+            self.logger.warning('Skipping gplace for debug purposes.')
 
         # extract tree
         tree_file = None
         if marker_set_id == 'bac120':
-            if levelopt is None:
-                tree_file = os.path.join(
-                    out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
-            elif levelopt == 'high':
-                tree_file = os.path.join(
-                    out_dir, PATH_BACKBONE_BAC120_TREE_FILE.format(prefix=prefix))
-            elif levelopt == 'low':
-                tree_file = os.path.join(
-                    out_dir, PATH_CLASS_LEVEL_BAC120_TREE_FILE.format(prefix=prefix, iter=tree_iter))
+            tree_file = os.path.join(
+                out_dir, PATH_BAC120_TREE_FILE.format(prefix=prefix))
         elif marker_set_id == 'ar53':
             tree_file = os.path.join(
                 out_dir, PATH_AR53_TREE_FILE.format(prefix=prefix))
         else:
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
-
-        pplacer.tog(pplacer_json_out, tree_file)
+        gplace.tog(gplace_json_out, tree_file)
         return tree_file
 
     def _parse_red_dict(self, red_dist_dict):
@@ -297,9 +243,8 @@ class Classify(object):
             align_dir,
             out_dir,
             prefix,
-            scratch_dir=None,
+            gplace_max_memory=None,
             debugopt=False,
-            fulltreeopt=False,
             skip_ani_screen=False,
             genes=False,
             ani_summary_files=None,
@@ -337,8 +282,7 @@ class Classify(object):
             # retain raw hits for the tree stage
             raw_skani_results = skani_results
 
-
-            skani_classified_user_genomes = self._sort_skani_results_pre_pplacer(
+            skani_classified_user_genomes = self._sort_skani_results_pre_gplace(
                 skani_results,bac_ar_diff)
 
             len_skani_classified_bac120 = len(skani_classified_user_genomes['bac120']) \
@@ -357,7 +301,7 @@ class Classify(object):
         if skip_ani_screen and ani_summary_files is not None:
             # if the ani_Screen step was run, we need to load the results from the ani_summary_files
             # and use them to generate the final taxonomy file
-            skani_classified_user_genomes = self.load_skani_results_pre_pplacer(ani_summary_files)
+            skani_classified_user_genomes = self.load_skani_results_pre_gplace(ani_summary_files)
 
         # classify_wf / resume: skani was run by the ani_screen step, not here. Reload the raw hits
         # of genomes it did not classify so below-radius / low-AF reporting still happens (Issue #717).
@@ -376,7 +320,7 @@ class Classify(object):
         if all_classified_ani and not process_classified_genomes:
             # if skani_classified_user_genomes is has key marker_set_id, we
             # need to add those genomes to the summary file and remove those genomes to the list of genomes
-            # to process with pplacer
+            # to process with gplace
             for marker_set_id in ('ar53', 'bac120'):
                 if marker_set_id == 'ar53':
                     summary_file = ClassifySummaryFileAR53(out_dir, prefix)
@@ -414,7 +358,7 @@ class Classify(object):
                     summary_file = ClassifySummaryFileAR53(out_dir, prefix)
                     red_dict_file = REDDictFileAR53(out_dir, prefix)
                     disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
-                    pplacer_classify_file = PplacerClassifyFileAR53(out_dir, prefix)
+                    gplace_classify_file = GplaceClassifyFileAR53(out_dir, prefix)
                 elif marker_set_id == 'bac120':
                     marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                     marker_summary_fh.read()
@@ -428,9 +372,7 @@ class Classify(object):
                     summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
                     red_dict_file = REDDictFileBAC120(out_dir, prefix)
                     disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
-                    pplacer_classify_file = PplacerClassifyFileBAC120(out_dir, prefix)
-                    if not fulltreeopt:
-                        tree_mapping_file = GenomeMappingFile(out_dir, prefix)
+                    gplace_classify_file = GplaceClassifyFileBAC120(out_dir, prefix)
                 else:
                     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
@@ -499,12 +441,12 @@ class Classify(object):
 
                 percent_multihit_dict = self.parser_marker_summary_file(marker_summary_fh)
 
-                # run pplacer to place bins in reference genome tree
+                # run gplace to place bins in reference genome tree
                 genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
                 # if skani_classified_user_genomes has key marker_set_id, we
                 # need to add those genomes to the summary file and remove those genomes to the list of genomes
-                # to process with pplacer
+                # to process with gplace
                 if skani_classified_user_genomes and marker_set_id in skani_classified_user_genomes and not process_classified_genomes:
                     list_summary_rows = skani_classified_user_genomes.get(marker_set_id)
                     for row in list_summary_rows:
@@ -549,176 +491,60 @@ class Classify(object):
                     continue
 
 
-                if not fulltreeopt and marker_set_id == 'bac120':
-                    splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
+                classify_tree = self.place_genomes(user_msa_file,
+                                                   marker_set_id,
+                                                   out_dir,
+                                                   prefix,
+                                                   gplace_max_memory)
 
-                    debug_file = self._generate_summary_file(
-                        marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
+                #genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
 
-                    high_classify_tree = self.place_genomes(user_msa_file,
-                                                            marker_set_id,
-                                                            out_dir,
-                                                            prefix,
-                                                            scratch_dir,
-                                                            'high')
-                    output_files.setdefault(marker_set_id, []).append(high_classify_tree)
+                # get taxonomic classification of each user genome
+                debug_file = self._generate_summary_file(
+                    marker_set_id, prefix, out_dir, debugopt)
 
-                    tree = self._assign_mrca_red(
-                        high_classify_tree, marker_set_id, 'high')
+                tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
+                gplace_taxonomy_dict = self._get_gplace_taxonomy(gplace_classify_file,
+                                                                   marker_set_id,
+                                                                   user_msa_file,
+                                                                   tree_to_process)
 
-                    high_classification = splitter.get_high_pplacer_taxonomy(
-                        out_dir, marker_set_id, prefix, user_msa_file, tree)
+                disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in gplace_taxonomy_dict]
+                class_level_classification, classified_user_genomes, warning_counter = self._parse_tree(
+                    tree_to_process, genomes, prefix, skani_classified_user_genomes, marker_set_id,
+                    msa_dict, percent_multihit_dict,
+                    genes, tln_table_summary_file.genomes,
+                    bac_ar_diff, user_msa_file,
+                    red_dict_file.data, summary_file,
+                    gplace_taxonomy_dict, warning_counter, debug_file,
+                    debugopt,
+                    raw_skani_results)
+                # add filtered genomes to the summary file
+                warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
 
-                    disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in high_classification]
-                    if disappearing_genomes:
-                        for disappearing_genome in disappearing_genomes:
-                            disappearing_genomes_file.add_genome(disappearing_genome, 'Backbone')
-
-                    tree_mapping_dict = {}
-                    tree_mapping_dict_reverse = {}
-                    with open(CONFIG.CLASS_LEVEL_TREE_MAPPING_FILE) as ltmf:
-                        for line in ltmf:
-                            k, v = line.strip().split()
-                            tree_mapping_dict[k] = v
-                            tree_mapping_dict_reverse.setdefault(v, []).append(k)
-
-                    splitter = Split(self.order_rank, self.gtdb_taxonomy, self.reference_ids)
-                    sorted_high_taxonomy,warning_counter, len_sorted_genomes, high_taxonomy_used = splitter.map_high_taxonomy(
-                        high_classification, tree_mapping_dict, summary_file, tree_mapping_file,msa_dict,
-                        tln_table_summary_file.genomes,percent_multihit_dict,bac_ar_diff,warning_counter)
-
-                    if debugopt:
-                        with open(out_dir + '/' + prefix + '_backbone_classification.txt', 'w') as htu:
-                            for l, b in high_taxonomy_used.items():
-                                htu.write(l + '\t' + str(b[0]) + '\t' + str(b[1]) + '\t' + str(b[2]) +'\n')
-
-                    self.logger.info(
-                        f"{len_sorted_genomes} out of {len(genomes_to_process)} have an class assignments. Those genomes "
-                        f"will be reclassified.")
-
-                    for idx, tree_iter in enumerate(
-                            sorted(sorted_high_taxonomy, key=lambda z: len(sorted_high_taxonomy[z]), reverse=True)):
-                        listg = sorted_high_taxonomy.get(tree_iter)
-                        low_classify_tree, submsa_file_path = self._place_in_low_tree(
-                            tree_iter, len(sorted_high_taxonomy), idx + 1, listg, msa_dict, marker_set_id, prefix,
-                            scratch_dir, out_dir)
-                        output_files.setdefault(marker_set_id, []).append(low_classify_tree)
-                        genomes_to_process_subtree = [seq_id for seq_id, _seq in read_seq(submsa_file_path)]
-                        mrca_lowtree = self._assign_mrca_red(
-                            low_classify_tree, marker_set_id, 'low', tree_iter)
-                        pplacer_classify_file = PplacerLowClassifyFileBAC120(out_dir, prefix, tree_iter)
-                        pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
-                                                                           marker_set_id, user_msa_file, mrca_lowtree)
-                        disappearing_genomes = [seq_id for seq_id in genomes_to_process_subtree if
-                                                seq_id not in pplacer_taxonomy_dict]
-                        if disappearing_genomes:
-                            self.logger.warning(
-                                f"{len(disappearing_genomes)} out of {len(genomes_to_process_subtree)} have not been"
-                                f" properly placed by pplacer. This is a known issue with pplacer but we do "
-                                f"not have a solution currently. Those missing genomes are written to "
-                                f"the {disappearing_genomes_file.file_name} file. We recommend rerunning "
-                                f"those genomes through GTDB-Tk to 'fix' the problem.")
-                            for disappearing_genome in disappearing_genomes:
-                                disappearing_genomes_file.add_genome(disappearing_genome, tree_iter)
-
-                        class_level_classification, classified_user_genomes,warning_counter = self._parse_tree(mrca_lowtree, genomes, prefix,
-                                                                                                               skani_classified_user_genomes,marker_set_id,
-                                                                                                               msa_dict,percent_multihit_dict,
-                                                                                                               genes, tln_table_summary_file.genomes,
-                                                                                                               bac_ar_diff, submsa_file_path,
-                                                                                                               red_dict_file.data,summary_file,
-                                                                                                               pplacer_taxonomy_dict,warning_counter,
-                                                                                                               high_classification, debug_file,
-                                                                                                               debugopt,tree_mapping_file,
-                                                                                                               tree_iter,tree_mapping_dict_reverse,
-                                                                                                               raw_skani_results)
-
-                        if debugopt:
-                            with open(out_dir + '/' + prefix + '_class_level_classification.txt', 'a') as olf:
-                                for l, b in class_level_classification.items():
-                                    olf.write(l + '\t' + str(b) + '\n')
-                                for l, b in classified_user_genomes.items():
-                                    olf.write(l + '\t' + str(b) + '\n')
-
-
-                    # add filtered genomes to the summary file
-                    warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
-
-                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                    # This is a executive direction: failed prodigal and genomes with
-                    # no markers are not bacterial or archaeal
-                    # but they need to be included in one of the summary file
+                # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
+                # but they need to be included in one of the summary file
+                if marker_set_id == 'bac120':
                     prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
                     warning_counter = warning_counter + prodigal_failed_counter
 
-                    # Symlink to the summary file from the root
+                # Symlink to the summary file from the root
+                if marker_set_id == 'bac120':
                     symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
                               os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-
-                    if debugopt:
-                        debug_file.close()
-
+                elif marker_set_id == 'ar53':
+                    symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
                 else:
-                    classify_tree = self.place_genomes(user_msa_file,
-                                                       marker_set_id,
-                                                       out_dir,
-                                                       prefix,
-                                                       scratch_dir)
+                    raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 
-                    #genomes_to_process = [seq_id for seq_id, _seq in read_seq(user_msa_file)]
+                if disappearing_genomes:
+                    for disappearing_genome in disappearing_genomes:
+                        disappearing_genomes_file.add_genome(disappearing_genome, 'N/A')
 
-                    # get taxonomic classification of each user genome
-                    debug_file = self._generate_summary_file(
-                        marker_set_id, prefix, out_dir, debugopt, fulltreeopt)
-
-                    tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
-                    pplacer_taxonomy_dict = self._get_pplacer_taxonomy(pplacer_classify_file,
-                                                                       marker_set_id,
-                                                                       user_msa_file,
-                                                                       tree_to_process)
-
-                    disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in pplacer_taxonomy_dict]
-                    class_level_classification, classified_user_genomes, warning_counter = self._parse_tree(
-                        tree_to_process, genomes, prefix, skani_classified_user_genomes, marker_set_id,
-                        msa_dict, percent_multihit_dict,
-                        genes, tln_table_summary_file.genomes,
-                        bac_ar_diff, user_msa_file,
-                        red_dict_file.data, summary_file,
-                        pplacer_taxonomy_dict, warning_counter,
-                        None, debug_file,
-                        debugopt, None,
-                        None, None,
-                        raw_skani_results)
-                    # add filtered genomes to the summary file
-                    warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
-
-                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-                    # This is a executive direction: failed prodigal and genomes with no markers are nit bacterial or archaeal
-                    # but they need to be included in one of the summary file
-                    if marker_set_id == 'bac120':
-                        prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
-                        warning_counter = warning_counter + prodigal_failed_counter
-
-                    # Symlink to the summary file from the root
-                    if marker_set_id == 'bac120':
-                        symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                                  os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                    elif marker_set_id == 'ar53':
-                        symlink_f(PATH_AR53_SUMMARY_OUT.format(prefix=prefix),
-                                  os.path.join(out_dir, os.path.basename(PATH_AR53_SUMMARY_OUT.format(prefix=prefix))))
-                    else:
-                        raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
-
-                    if disappearing_genomes:
-                        for disappearing_genome in disappearing_genomes:
-                            disappearing_genomes_file.add_genome(disappearing_genome, 'N/A')
-
-                    if debugopt:
-                        debug_file.close()
-
-                if not fulltreeopt and marker_set_id == 'bac120':
-                    tree_mapping_file.write()
-                    output_files.setdefault(marker_set_id, []).append(tree_mapping_file.path)
+                if debugopt:
+                    debug_file.close()
 
 
                 if len(warning_counter) > 0:
@@ -780,7 +606,7 @@ class Classify(object):
 
         return row,warning_counter
 
-    def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None, fulltreeopt=None):
+    def _generate_summary_file(self, marker_set_id, prefix, out_dir, debugopt=None):
         debug_file = None
 
         if debugopt:
@@ -790,29 +616,8 @@ class Classify(object):
                 "User genome\tRed value\tHigher rank\tHigher value\tLower rank\tLower value\tcase\tclosest_rank\ttool\n")
         return debug_file
 
-    def _place_in_low_tree(self, tree_iter, number_low_trees, idx_tree, listg, msa_dict, marker_set_id, prefix,
-                           scratch_dir, out_dir):
-        make_sure_path_exists(os.path.join(
-            out_dir, DIR_CLASS_LEVEL_PPLACER.format(iter=tree_iter)))
-        submsa_file_path = os.path.join(
-            out_dir, PATH_CLASS_LEVEL_BAC120_SUBMSA.format(iter=tree_iter))
-
-        submsa_file = open(submsa_file_path, 'w')
-
-        for gid in listg:
-            submsa_file.write('>{}\n{}\n'.format(gid, msa_dict.get(gid)))
-        submsa_file.close()
-        low_classify_tree = self.place_genomes(submsa_file_path,
-                                               marker_set_id,
-                                               out_dir,
-                                               prefix,
-                                               scratch_dir,
-                                               'low', tree_iter,
-                                               number_low_trees, idx_tree)
-        return low_classify_tree, submsa_file_path
-
     @staticmethod
-    def _get_pplacer_reference(tree, reference_ids):
+    def _get_gplace_reference(tree, reference_ids):
         """
 
         Parameters
@@ -855,7 +660,7 @@ class Classify(object):
                     node.leaf_reference = None
 
 
-        qry_nodes = {leaf: {"pplacer_g":None} for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids)}
+        qry_nodes = {leaf: {"gplace_g":None} for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label not in reference_ids)}
         for leaf_node in tqdm_log(qry_nodes.keys(), unit='genome'):
             # Traverse up to find the first labelled parent node.
             par_node = leaf_node.parent_node
@@ -871,20 +676,19 @@ class Classify(object):
                 par_node = par_node.parent_node
 
             if found_ref:
-                qry_nodes[leaf_node]['pplacer_g'] = found_ref
+                qry_nodes[leaf_node]['gplace_g'] = found_ref
 
         return qry_nodes
 
     def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                               user_msa_file, red_dict,warning_counter, summary_file, pplacer_taxonomy_dict,
-                               high_classification, debug_file, debugopt, classified_user_genomes,
-                               unclassified_user_genomes, tt,tree_iter,tree_mapping_file, valid_classes,valid_phyla):
+                               user_msa_file, red_dict,warning_counter, summary_file, gplace_taxonomy_dict, debug_file, debugopt, classified_user_genomes,
+                               unclassified_user_genomes, tt):
         user_genome_ids = set(read_fasta(user_msa_file).keys())
         user_genome_ids = user_genome_ids.difference(set(classified_user_genomes.keys()))
         class_level_classification = dict()
         for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label in user_genome_ids):
 
-            # In some cases , pplacer can associate 2 user genomes
+            # In some cases , gplace can associate 2 user genomes
             # on the same parent node so we need to go up the tree
             # to find a node with a reference genome as leaf.
             cur_node = leaf.parent_node
@@ -1034,150 +838,56 @@ class Classify(object):
             notes = []
             warnings = []
 
-            class_level_tax = standardise_taxonomy(';'.join(red_taxonomy)).split(';')
             standardised_red_tax= standardise_taxonomy(';'.join(red_taxonomy))
-            class_in_spe_tree = valid_classes
 
             class_level_classification[leaf.taxon.label] = standardised_red_tax
 
-            if valid_classes:
-                backbone_tax = high_classification.get(leaf.taxon.label).get('tk_tax_red').split(';')
-                pplacer_taxonomy_to_report = ';'.join(class_level_tax)
-                red_value_to_report = current_rel_list
-
-                mapping_row = GenomeMappingFileRow()
-                mapping_row.gid = leaf.taxon.label
-                mapping_row.ani_classification = False
-                mapping_row.mapped_tree = tree_iter
 
 
+            del debug_info[0]
+            summary_row = ClassifySummaryFileRow()
+            if leaf.taxon.label in unclassified_user_genomes:
+                summary_row = unclassified_user_genomes.get(leaf.taxon.label)
+                if summary_row.note == '':
+                    summary_row.note = None
+            summary_row.gid = leaf.taxon.label
+            summary_row.classification = standardise_taxonomy(';'.join(red_taxonomy))
+            summary_row.gplace_tax = gplace_taxonomy_dict.get(leaf.taxon.label)
+            if summary_row.classification_method is None:
+                summary_row.classification_method = detection
+            summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
+            summary_row.tln_table = trans_table_dict.get(summary_row.gid)
+            summary_row.red_value = current_rel_list
 
-                if backbone_tax[self.CLASS_IDX] == 'c__' and class_level_tax[self.CLASS_IDX] == 'c__':
-                    # no classification in class level tree so must
-                    # use the classification in the backbone tree
-                    final_split = backbone_tax
-                    notes.append('classification based on placement in backbone tree')
-                    mapping_row.mapped_tree = 'backbone'
-                    mapping_row.rule = 'Rule 1'
-                    pplacer_taxonomy_to_report = ';'.join(backbone_tax)
-                    red_value_to_report = high_classification.get(leaf.taxon.label).get('rel_dist')
+        if summary_row.gid in percent_multihit_dict:
+            warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                percent_multihit_dict.get(summary_row.gid)))
+        if summary_row.gid in bac_ar_diff:
+            warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                bac_ar_diff.get(summary_row.gid).get('bac120'),
+                bac_ar_diff.get(summary_row.gid).get('ar53')))
 
-                elif class_level_tax[self.CLASS_IDX] in valid_classes \
-                        and backbone_tax[self.CLASS_IDX] == class_level_tax[self.CLASS_IDX]:
-                    # backbone and class-level trees have same class classification so we trust the
-                    # class-level classification down to the rank of class
-                    final_split = class_level_tax
-                    mapping_row.rule = 'Rule 2'
-                    notes.append('classification based on placement in class-level tree')
+        if len(warnings) > 0:
+            if summary_row.warnings is not None:
+                warnings.extend(summary_row.warnings.split(';'))
+            summary_row.warnings = ';'.join(set(warnings))
+            warning_counter.append(summary_row.gid)
+        if len(notes) > 0:
+            if summary_row.note is not None:
+                notes.extend(summary_row.note.split(';'))
+            summary_row.note = ';'.join(set(notes))
+        summary_file.add_row(summary_row)
 
-                elif class_level_tax[self.CLASS_IDX] in valid_classes:
-                    # class classification in the class-level tree
-                    # is to a valid class (i.e. a class fully contained
-                    # in the class-level tree) so we trust the class-level
-                    # classification despite the incongruency with the
-                    # backbone tree
-                    final_split = class_level_tax
-                    mapping_row.rule = 'Rule 3'
-                    notes.append('classification based on placement in class-level tree')
-                    warnings.append('backbone tree has incongruent class classification')
-
-                elif class_level_tax[self.PHYLUM_IDX] in valid_phyla \
-                        and backbone_tax[self.PHYLUM_IDX] == class_level_tax[self.PHYLUM_IDX]:
-                    # backbone and class-level trees have same
-                    # phylum classification so we trust the
-                    # class-level classification down to the
-                    # rank of phylum
-                    final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
-                    mapping_row.rule = 'Rule 4'
-                    notes.append('classification based on placement in class-level tree')
-                    warnings.append('classification restricted to valid phylum')
-
-                elif class_level_tax[self.PHYLUM_IDX] in valid_phyla:
-                    # phylum classification in the class-level tree
-                    # is to a valid phylum (i.e. a phylum from a valid class
-                    # in the class-level tree) so we trust the class-level
-                    # classification despite the incongruency with the
-                    # backbone tree down to the rank of phylum
-                    final_split = limit_rank(class_level_tax, self.PHYLUM_IDX)
-                    mapping_row.rule = 'Rule 5'
-                    notes.append('classification based on placement in class-level tree')
-                    warnings.append('backbone tree has incongruent phylum classification')
-
-                else:
-                    # class-level classification is questionable since it is
-                    # not to a valid taxa so use the consensus between
-                    # the backbone and class-level classifications
-                    consensus = []
-                    for idx, (backbone_taxon, order_taxon) in enumerate(zip(backbone_tax, class_level_tax)):
-                        if backbone_taxon == order_taxon:
-                            consensus.append(backbone_taxon)
-                        else:
-                            consensus.append(self.order_rank[idx])
-                    final_split = consensus
-                    mapping_row.rule = 'Rule 6'
-                    notes.append('classification based on consensus between backbone and class-level tree')
-
-                summary_row = ClassifySummaryFileRow()
-                if leaf.taxon.label in unclassified_user_genomes:
-                    summary_row = unclassified_user_genomes.get(leaf.taxon.label)
-                    if summary_row.note == '':
-                        summary_row.note = None
-                summary_row.gid = leaf.taxon.label
-                summary_row.classification = ';'.join(final_split)
-                summary_row.pplacer_tax = pplacer_taxonomy_to_report
-                summary_row.red_value = red_value_to_report
-                if summary_row.classification_method is None:
-                    summary_row.classification_method = detection
-                summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
-                summary_row.tln_table = trans_table_dict.get(summary_row.gid)
-
-                tree_mapping_file.add_row(mapping_row)
-
-            else:
-                del debug_info[0]
-                summary_row = ClassifySummaryFileRow()
-                if leaf.taxon.label in unclassified_user_genomes:
-                    summary_row = unclassified_user_genomes.get(leaf.taxon.label)
-                    if summary_row.note == '':
-                        summary_row.note = None
-                summary_row.gid = leaf.taxon.label
-                summary_row.classification = standardise_taxonomy(';'.join(red_taxonomy))
-                summary_row.pplacer_tax = pplacer_taxonomy_dict.get(leaf.taxon.label)
-                if summary_row.classification_method is None:
-                    summary_row.classification_method = detection
-                summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
-                summary_row.tln_table = trans_table_dict.get(summary_row.gid)
-                summary_row.red_value = current_rel_list
-
-            if summary_row.gid in percent_multihit_dict:
-                warnings.append('Genome has more than {}% of markers with multiple hits'.format(
-                    percent_multihit_dict.get(summary_row.gid)))
-            if summary_row.gid in bac_ar_diff:
-                warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                    bac_ar_diff.get(summary_row.gid).get('bac120'),
-                    bac_ar_diff.get(summary_row.gid).get('ar53')))
-
-            if len(warnings) > 0:
-                if summary_row.warnings is not None:
-                    warnings.extend(summary_row.warnings.split(';'))
-                summary_row.warnings = ';'.join(set(warnings))
-                warning_counter.append(summary_row.gid)
-            if len(notes) > 0:
-                if summary_row.note is not None:
-                    notes.extend(summary_row.note.split(';'))
-                summary_row.note = ';'.join(set(notes))
-            summary_file.add_row(summary_row)
-
-            if debugopt:
-                debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
-                    leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+        if debugopt:
+            debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
+                leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
 
 
         return class_level_classification,warning_counter
 
     def _parse_tree(self, tree, genomes, prefix,skani_classified_user_genomes,marker_set_id, msa_dict, percent_multihit_dict,genes,
-                    trans_table_dict, bac_ar_diff,user_msa_file, red_dict, summary_file, pplacer_taxonomy_dict,
-                    warning_counter, high_classification,debug_file, debugopt, tree_mapping_file, tree_iter, tree_mapping_dict_reverse,all_skani_results=None):
+                    trans_table_dict, bac_ar_diff,user_msa_file, red_dict, summary_file, gplace_taxonomy_dict,
+                    warning_counter,debug_file, debugopt,all_skani_results=None):
         # Genomes can be classified by using skani or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -1189,7 +899,7 @@ class Classify(object):
         self.logger.log(CONFIG.LOG_TASK, 'Traversing tree to determine classification method.')
         run_ANI = False if genes else True
 
-        qury_nodes = self._get_pplacer_reference(tree, self.reference_ids)
+        qury_nodes = self._get_gplace_reference(tree, self.reference_ids)
 
         #DEBUG: Skip skani step
         #run_ANI = False
@@ -1199,53 +909,36 @@ class Classify(object):
 
         #import IPython; IPython.embed()
         classified_user_genomes, unclassified_user_genomes,warning_counter = self._sort_skani_results(
-            qury_nodes, pplacer_taxonomy_dict, skani_classified_user_genomes,marker_set_id, msa_dict, percent_multihit_dict,
+            qury_nodes, gplace_taxonomy_dict, skani_classified_user_genomes,marker_set_id, msa_dict, percent_multihit_dict,
             trans_table_dict, bac_ar_diff,warning_counter, summary_file,all_skani_results)
         #if not prescreening:
         if not genes:
             self.logger.info(f'{len(classified_user_genomes):,} genome(s) have '
-                             f'been classified using skani and pplacer.')
+                             f'been classified using skani and gplace.')
         else:
             self.logger.info('ANI classification has been skipped (--genes option used).')
-
-        if tree_mapping_file:
-            for genome in classified_user_genomes.keys():
-                mapping_row = GenomeMappingFileRow()
-                mapping_row.gid = genome
-                mapping_row.ani_classification = True
-                mapping_row.mapped_tree = tree_iter
-                mapping_row.rule = 'Rule 7'
-                tree_mapping_file.add_row(mapping_row)
-
-        # Iterate over each leaf node that was not classified with skani.
-        class_in_spe_tree = None
-        phyla_in_spe_tree = None
-        if tree_mapping_dict_reverse:
-            class_in_spe_tree = tree_mapping_dict_reverse.get(tree_iter)
-            phyla_in_spe_tree = self.get_authorised_rank(class_in_spe_tree,self.PHYLUM_IDX)
 
 
         class_level_classification,warning_counter = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
                                                                  trans_table_dict, bac_ar_diff, user_msa_file,
                                                                  red_dict,warning_counter, summary_file,
-                                                                 pplacer_taxonomy_dict, high_classification,
+                                                                 gplace_taxonomy_dict,
                                                                  debug_file, debugopt, classified_user_genomes,
-                                                                 unclassified_user_genomes, tt,tree_iter,tree_mapping_file,
-                                                                 class_in_spe_tree, phyla_in_spe_tree)
+                                                                 unclassified_user_genomes, tt)
 
         return class_level_classification,classified_user_genomes,warning_counter
 
     def _assign_mrca_red(self, input_tree, marker_set_id, levelopt=None, tree_iter=None):
-        """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
+        """Parse the gplace tree and write the partial taxonomy for each user genome based on their placements
 
         Parameters
         ----------
-        input_tree : pplacer tree
+        input_tree : gplace tree
         marker_set_id : bacterial or archeal id (bac120 or ar53)
 
         Returns
         -------
-        tree: pplacer tree with RED value added to nodes of interest
+        tree: gplace tree with RED value added to nodes of interest
 
         """
 
@@ -1290,73 +983,73 @@ class Classify(object):
 
         # For all leaf nodes that are not reference genomes
         # We only give RED value to added nodes placed on a reference edge ( between a reference parent and a reference child)
-        # The new red value for the pplacer node =
-        # RED_parent + (RED_child -RED_parent) * ( (pplacer_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
+        # The new red value for the gplace node =
+        # RED_parent + (RED_child -RED_parent) * ( (gplace_disttoroot - parent_disttoroot) / (child_disttoroot - parent_disttoroot) )
 
         count = 0
         for nd in tree.leaf_nodes():
             if nd not in reference_nodes:
                 nd.rel_dist = 1.0
-                pplacer_node = nd
-                pplacer_parent_node = pplacer_node.parent_node
+                gplace_node = nd
+                gplace_parent_node = gplace_node.parent_node
 
-                while not bool(tt.get_leaf_nodes(pplacer_node) & reference_nodes):
-                    pplacer_node = pplacer_parent_node
-                    pplacer_parent_node = pplacer_node.parent_node
+                while not bool(tt.get_leaf_nodes(gplace_node) & reference_nodes):
+                    gplace_node = gplace_parent_node
+                    gplace_parent_node = gplace_node.parent_node
 
                 # perform level-order tree search to find first child
                 # node that is part of the reference set
-                for child in pplacer_node.levelorder_iter():
+                for child in gplace_node.levelorder_iter():
                     if child in reference_nodes:
                         child_node = child
                         break
 
                 # find first parent node that is part of the reference set
-                while not pplacer_parent_node in reference_nodes:
-                    pplacer_parent_node = pplacer_parent_node.parent_node
+                while not gplace_parent_node in reference_nodes:
+                    gplace_parent_node = gplace_parent_node.parent_node
 
-                # we go up the tree until we reach pplacer_parent_node
+                # we go up the tree until we reach gplace_parent_node
                 current_node = child_node.parent_node
 
                 edge_length = max(child_node.edge_length,1e-9)
-                # This will avoid a division by zero if pplacer place the genome with a branch length of 0
+                # This will avoid a division by zero if gplace place the genome with a branch length of 0
                 # Rare but it happens
-                on_pplacer_branch = False
-                pplacer_edge_length = 0
+                on_gplace_branch = False
+                gplace_edge_length = 0
 
-                while current_node != pplacer_parent_node:
-                    if on_pplacer_branch or current_node == pplacer_node:
-                        on_pplacer_branch = True
-                        pplacer_edge_length += current_node.edge_length
+                while current_node != gplace_parent_node:
+                    if on_gplace_branch or current_node == gplace_node:
+                        on_gplace_branch = True
+                        gplace_edge_length += current_node.edge_length
                     edge_length += current_node.edge_length
                     current_node = current_node.parent_node
 
-                ratio = pplacer_edge_length / edge_length
+                ratio = gplace_edge_length / edge_length
 
-                branch_rel_dist = child_node.rel_dist - pplacer_parent_node.rel_dist
-                branch_rel_dist = pplacer_parent_node.rel_dist + branch_rel_dist * ratio
+                branch_rel_dist = child_node.rel_dist - gplace_parent_node.rel_dist
+                branch_rel_dist = gplace_parent_node.rel_dist + branch_rel_dist * ratio
 
-                pplacer_node.rel_dist = branch_rel_dist
+                gplace_node.rel_dist = branch_rel_dist
 
         return tree
 
-    def _get_pplacer_taxonomy(self, pplacer_classify_file, marker_set_id, user_msa_file, tree):
-        """Parse the pplacer tree and write the partial taxonomy for each user genome based on their placements
+    def _get_gplace_taxonomy(self, gplace_classify_file, marker_set_id, user_msa_file, tree):
+        """Parse the gplace tree and write the partial taxonomy for each user genome based on their placements
 
         Parameters
         ----------
-        pplacer_classify_file : output file object to write
+        gplace_classify_file : output file object to write
         marker_set_id : bacterial or archaeal id (bac120 or ar53)
         user_msa_file : msa file listing all user genomes for a certain domain
-        tree : pplacer tree including the user genomes
+        tree : gplace tree including the user genomes
 
         Returns
         -------
-        dictionary[genome_label]=pplacer_taxonomy
+        dictionary[genome_label]=gplace_taxonomy
 
         """
 
-        # We get the pplacer taxonomy for comparison
+        # We get the gplace taxonomy for comparison
         user_genome_ids = set(read_fasta(user_msa_file).keys())
         for leaf in tree.leaf_node_iter():
             if leaf.taxon.label in user_genome_ids:
@@ -1369,11 +1062,11 @@ class Classify(object):
                             taxa.append(t.strip())
                     cur_node = cur_node.parent_node
                 taxa_str = ';'.join(taxa[::-1])
-                pplacer_classify_file.add_genome(leaf.taxon.label,
+                gplace_classify_file.add_genome(leaf.taxon.label,
                                                  standardise_taxonomy(taxa_str, marker_set_id))
-        pplacer_classify_file.write()
+        gplace_classify_file.write()
 
-        return pplacer_classify_file.data
+        return gplace_classify_file.data
 
     def add_filtered_genomes_to_summary(self, align_dir,warning_counter, summary_file, marker_set_id,prefix):
         if marker_set_id == 'bac120':
@@ -1475,8 +1168,8 @@ class Classify(object):
         return note_list
 
 
-    def _sort_skani_results_pre_pplacer(self,skani_results,bac_ar_diff):
-        """ When run skani on all genomes before using pplacer, we need to sort those results and store them for
+    def _sort_skani_results_pre_gplace(self,skani_results,bac_ar_diff):
+        """ When run skani on all genomes before using gplace, we need to sort those results and store them for
         a later use
 
         Parameters
@@ -1611,14 +1304,14 @@ class Classify(object):
 
         return warnings
 
-    def _sort_skani_results(self, qury_nodes, pplacer_taxonomy_dict,
+    def _sort_skani_results(self, qury_nodes, gplace_taxonomy_dict,
                               results_subtree_vs_all,marker_set_id, msa_dict, percent_multihit_dict,
                               trans_table_dict, bac_ar_diff,warning_counter, summary_file,all_skani_results=None):
         """Format the note field by concatenating all information in a sorted dictionary
 
         Parameters
         ----------
-        "pplacer_g": genome_of_reference_selected_by_pplacer(if any)}
+        "gplace_g": genome_of_reference_selected_by_gplace(if any)}
         all_skani_dict : dictionary listing the skani ANI for each user genomes against the potential genomes
         d[user_genome]={ref_genome1:{"af":af,"ani":ani},ref_genome2:{"af":af,"ani":ani}}
         summaryfout: output file
@@ -1640,7 +1333,7 @@ class Classify(object):
             for row in rows:
                 genome_results_map[row.gid] = row
 
-        for userleaf, pplacer_info in qury_nodes.items():
+        for userleaf, gplace_info in qury_nodes.items():
             #import IPython; IPython.embed()
 
             summary_row = ClassifySummaryFileRow()
@@ -1658,24 +1351,24 @@ class Classify(object):
             # below-radius / low-AF reporting. Recover it from the raw skani hits
 
             if existing_result is None and all_skani_results and userleaf.taxon.label in all_skani_results:
-                pplacer_leafnode = None
+                gplace_leafnode = None
 
-                if pplacer_info.get("pplacer_g"):
-                    pplacer_leafnode = pplacer_info.get("pplacer_g").taxon.label
-                    if pplacer_leafnode[0:3] in ('RS_', 'GB_'):
-                        pplacer_leafnode = pplacer_leafnode[3:]
+                if gplace_info.get("gplace_g"):
+                    gplace_leafnode = gplace_info.get("gplace_g").taxon.label
+                    if gplace_leafnode[0:3] in ('RS_', 'GB_'):
+                        gplace_leafnode = gplace_leafnode[3:]
                 self._resolve_ani_unassigned_genome(
-                    userleaf.taxon.label, pplacer_leafnode,
+                    userleaf.taxon.label, gplace_leafnode,
                     all_skani_results.get(userleaf.taxon.label),
-                    pplacer_taxonomy_dict, msa_dict, trans_table_dict,
+                    gplace_taxonomy_dict, msa_dict, trans_table_dict,
                     percent_multihit_dict, bac_ar_diff, warning_counter,
                     summary_file, classified_user_genomes, unclassified_user_genomes)
                 continue
 
-            if pplacer_info.get("pplacer_g"):
-                pplacer_leafnode = pplacer_info.get("pplacer_g").taxon.label
-                if pplacer_leafnode[0:3] in ['RS_', 'GB_']:
-                    pplacer_leafnode = pplacer_leafnode[3:]
+            if gplace_info.get("gplace_g"):
+                gplace_leafnode = gplace_info.get("gplace_g").taxon.label
+                if gplace_leafnode[0:3] in ['RS_', 'GB_']:
+                    gplace_leafnode = gplace_leafnode[3:]
                 if userleaf.taxon.label in genome_results_map:
                     # import IPython; IPython.embed()
                     skani_matching_reference = existing_result.closest_genome_ref
@@ -1691,10 +1384,10 @@ class Classify(object):
                         warning_counter.append(userleaf.taxon.label)
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
-                        add_ncbi_prefix(pplacer_leafnode)))
+                        add_ncbi_prefix(gplace_leafnode)))
 
                     summary_row.gid = userleaf.taxon.label
-                    summary_row.pplacer_tax = pplacer_taxonomy_dict.get(userleaf.taxon.label)
+                    summary_row.gplace_tax = gplace_taxonomy_dict.get(userleaf.taxon.label)
                     summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                     summary_row.msa_percent = aa_percent_msa(
                         msa_dict.get(summary_row.gid))
@@ -1712,9 +1405,9 @@ class Classify(object):
                         summary_row.closest_genome_ani = round(current_ani, 2)
                         summary_row.closest_genome_af = round(current_af,3)
 
-                        if pplacer_leafnode == skani_matching_reference:
+                        if gplace_leafnode == skani_matching_reference:
                             if taxa_str.endswith("s__"):
-                                taxa_str = taxa_str + pplacer_leafnode
+                                taxa_str = taxa_str + gplace_leafnode
                             summary_row.classification = standardise_taxonomy(
                                 taxa_str)
                             summary_row.closest_placement_ref = summary_row.closest_genome_ref
@@ -1730,35 +1423,35 @@ class Classify(object):
                                 add_ncbi_prefix(skani_matching_reference)))
                             summary_row.classification = standardise_taxonomy(
                                 taxa_str)
-                            summary_row.closest_placement_ref = pplacer_leafnode
+                            summary_row.closest_placement_ref = gplace_leafnode
                             summary_row.closest_placement_radius = str(
-                                self.species_radius.get(pplacer_leafnode))
+                                self.species_radius.get(gplace_leafnode))
                             summary_row.closest_placement_tax = ";".join(self.gtdb_taxonomy.get(
-                                add_ncbi_prefix(pplacer_leafnode)))
-                            if pplacer_leafnode in related_refs_lookup:
-                                summary_row.closest_placement_ani = related_refs_lookup[pplacer_leafnode]['ani']
-                                summary_row.closest_placement_af = related_refs_lookup[pplacer_leafnode]['af']
+                                add_ncbi_prefix(gplace_leafnode)))
+                            if gplace_leafnode in related_refs_lookup:
+                                summary_row.closest_placement_ani = related_refs_lookup[gplace_leafnode]['ani']
+                                summary_row.closest_placement_af = related_refs_lookup[gplace_leafnode]['af']
                             summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
-                            # Filter pplacer node out of the other references list
+                            # Filter gplace node out of the other references list
                             summary_row.other_related_refs = self.filter_related_refs_string(
                                 existing_result.other_related_refs,
-                                pplacer_leafnode
+                                gplace_leafnode
                             )
                         summary_file.add_row(summary_row)
                         classified_user_genomes[userleaf.taxon.label] = standardise_taxonomy(taxa_str)
                     else:
-                        summary_row.closest_placement_ref = pplacer_leafnode
+                        summary_row.closest_placement_ref = gplace_leafnode
                         summary_row.closest_placement_radius = str(
-                            self.species_radius.get(pplacer_leafnode))
+                            self.species_radius.get(gplace_leafnode))
                         summary_row.closest_placement_tax = ";".join(self.gtdb_taxonomy.get(
-                            add_ncbi_prefix(pplacer_leafnode)))
-                        if pplacer_leafnode in related_refs_lookup:
-                            summary_row.closest_placement_ani = related_refs_lookup[pplacer_leafnode]['ani']
-                            summary_row.closest_placement_af = related_refs_lookup[pplacer_leafnode]['af']
+                            add_ncbi_prefix(gplace_leafnode)))
+                        if gplace_leafnode in related_refs_lookup:
+                            summary_row.closest_placement_ani = related_refs_lookup[gplace_leafnode]['ani']
+                            summary_row.closest_placement_af = related_refs_lookup[gplace_leafnode]['af']
 
                         summary_row.other_related_refs = self.filter_related_refs_string(
                             existing_result.other_related_refs,
-                            pplacer_leafnode
+                            gplace_leafnode
                         )
 
 
@@ -1766,7 +1459,7 @@ class Classify(object):
 
             elif existing_result:
                 summary_row.gid = userleaf.taxon.label
-                summary_row.pplacer_tax = pplacer_taxonomy_dict.get(
+                summary_row.gplace_tax = gplace_taxonomy_dict.get(
                     userleaf.taxon.label)
                 summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                 summary_row.msa_percent = aa_percent_msa(
@@ -1793,7 +1486,7 @@ class Classify(object):
                     summary_row.closest_genome_af = existing_result.closest_genome_af
                     summary_row.note = 'topological placement and ANI have incongruent species assignments'
 
-                    # No pplacer node here to remove, just pass through
+                    # No gplace node here to remove, just pass through
                     summary_row.other_related_refs = existing_result.other_related_refs
 
                     summary_file.add_row(summary_row)
@@ -1808,8 +1501,8 @@ class Classify(object):
                     unclassified_user_genomes[userleaf.taxon.label] = summary_row
         return classified_user_genomes, unclassified_user_genomes,warning_counter
 
-    def _resolve_ani_unassigned_genome(self, label, pplacer_leafnode, hits,
-                                   pplacer_taxonomy_dict, msa_dict, trans_table_dict,
+    def _resolve_ani_unassigned_genome(self, label, gplace_leafnode, hits,
+                                   gplace_taxonomy_dict, msa_dict, trans_table_dict,
                                    percent_multihit_dict, bac_ar_diff, warning_counter,
                                    summary_file, classified_user_genomes, unclassified_user_genomes):
 
@@ -1825,19 +1518,19 @@ class Classify(object):
 
         summary_row = ClassifySummaryFileRow()
         summary_row.gid = label
-        summary_row.pplacer_tax = pplacer_taxonomy_dict.get(label)
+        summary_row.gplace_tax = gplace_taxonomy_dict.get(label)
         summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
         summary_row.msa_percent = aa_percent_msa(msa_dict.get(label))
         summary_row.tln_table = trans_table_dict.get(label)
 
-        # placement neighbour (the pplacer-chosen reference), independent of species assignment
-        if pplacer_leafnode:
-            summary_row.closest_placement_ref = pplacer_leafnode
-            summary_row.closest_placement_radius = str(self.species_radius.get(pplacer_leafnode))
-            placement_tax = self.gtdb_taxonomy.get(add_ncbi_prefix(pplacer_leafnode))
+        # placement neighbour (the gplace-chosen reference), independent of species assignment
+        if gplace_leafnode:
+            summary_row.closest_placement_ref = gplace_leafnode
+            summary_row.closest_placement_radius = str(self.species_radius.get(gplace_leafnode))
+            placement_tax = self.gtdb_taxonomy.get(add_ncbi_prefix(gplace_leafnode))
             if placement_tax:
                 summary_row.closest_placement_tax = ";".join(placement_tax)
-            placement_hit = hits.get(pplacer_leafnode)
+            placement_hit = hits.get(gplace_leafnode)
             if placement_hit:
                 summary_row.closest_placement_ani = round(placement_hit['ani'], 2)
                 summary_row.closest_placement_af = round(placement_hit['af'], 3)
@@ -2318,7 +2011,7 @@ class Classify(object):
                 results.append(v[rank_index])
         return list(set(results))
 
-    def load_skani_results_pre_pplacer(self,ani_summary_files):
+    def load_skani_results_pre_gplace(self,ani_summary_files):
         """Load the skani results for the genomes classified with ANI Screen."""
         skani_results={}
         for domain,ani_summary_file_path in ani_summary_files.items():

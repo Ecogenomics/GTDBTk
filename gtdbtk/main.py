@@ -601,14 +601,12 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af,options.skip_pplacer)
+        classify = Classify(options.cpus, options.gplace_cpus, options.min_af,options.skip_gplace)
         reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,
                      prefix=options.prefix,
-                     scratch_dir=options.scratch_dir,
                      debugopt=options.debug,
-                     fulltreeopt=options.full_tree,
                      skip_ani_screen=skip_ani_screen,
                      genes=options.genes,
                      ani_summary_files=ani_summary_files,
