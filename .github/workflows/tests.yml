@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  push:
+    branches: [master, staging]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest
+      - name: Byte-compile (syntax warnings are errors)
+        run: python -W error -m compileall -q -f gtdbtk scripts tests
+      # Only the tests that need neither the reference data nor external binaries.
+      - name: Unit tests
+        run: >
+          python -m pytest -q -W error::DeprecationWarning
+          tests/test_ani_screen_consistency.py
+          tests/test_classify_ani_flags.py
+          tests/test_classify_failed_genomes.py
+          tests/test_symlink_f.py
+          tests/test_tophit_ordering.py
+          tests/test_gtdbtk/test_biolib_lite
+          tests/test_gtdbtk/test_files/test_marker
+          tests/test_gtdbtk/test_files/test_prodigal/test_tln_table_summary.py
+          tests/test_gtdbtk/test_tools.py
+          tests/test_gtdbtk/test_trim_msa.py

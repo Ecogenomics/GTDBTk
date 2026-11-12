@@ -3,7 +3,7 @@
 # docker run -v /host/gtdbtk_io:/data -v /host/release_data:/refdata ecogenomic/gtdbtk classify_wf --genome_dir /data/genomes --out_dir /data/output
 # docker push ecogenomic/gtdbtk:latest && sudo docker push ecogenomic/gtdbtk:1.2.3
 
-FROM python:3.8-slim-bullseye
+FROM python:3.13-slim-bookworm
 
 ARG VER
 
@@ -14,7 +14,7 @@ RUN apt-get update -y -m && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --no-install-suggests -y \
         wget \
         libgomp1 \
-        libgsl25 \
+        libgsl27 \
         libgslcblas0 \
         build-essential \
         curl \

@@ -33,11 +33,6 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
@@ -51,7 +46,9 @@ setup(
             "gtdb_to_ncbi_majority_vote = scripts.gtdb_to_ncbi_majority_vote:main",
         ]
     },
-    install_requires=["dendropy ~= 4.1", 'numpy ~= 1.9', 'tqdm ~= 4.35', 'pydantic ~= 1.9'],
+    # dendropy is capped below 5: dendropy 5 honours unquoted_underscores=True
+    # when writing trees, which removes the quotes around genome IDs in the trees GTDB-Tk writes.
+    install_requires=['dendropy >= 4.5, < 5', 'numpy >= 1.23', 'tqdm >= 4.35'],
     license=meta['license'],
     long_description=readme(),
     long_description_content_type='text/markdown',

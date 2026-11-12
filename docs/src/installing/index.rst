@@ -49,7 +49,7 @@ Hardware requirements
 Python libraries
 ----------------
 
-GTDB-Tk is designed for Python >=3.6 and requires the following libraries, which will be automatically installed:
+GTDB-Tk requires Python >= 3.11 (tested on 3.11, 3.12 and 3.13). The following libraries are installed automatically:
 
 .. list-table::
    :widths: 10 10 80
@@ -59,11 +59,11 @@ GTDB-Tk is designed for Python >=3.6 and requires the following libraries, which
      - Version
      - Reference
    * - `DendroPy <https://dendropy.org/>`_
-     - >= 4.1.0
+     - >= 4.5.0, < 5
      - Sukumaran, J. and Mark T. Holder. 2010. DendroPy: A Python library for phylogenetic computing. Bioinformatics 26: 1569-1571.
    * - `NumPy <https://numpy.org/>`_
-     - >= 1.9.0
-     - Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: `0.1038/s41586-020-2649-2 <https://doi.org/10.1038/s41586-020-2649-2>`_
+     - >= 1.23.0
+     - Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: `10.1038/s41586-020-2649-2 <https://doi.org/10.1038/s41586-020-2649-2>`_
    * - `tqdm <https://github.com/tqdm/tqdm>`_
      - >= 4.35.0
      - DOI: `10.5281/zenodo.595120 <https://doi.org/10.5281/zenodo.595120>`_
