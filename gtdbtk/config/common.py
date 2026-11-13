@@ -14,9 +14,6 @@ class __GTDBTkCommonConfig:
     MIN_REF_DATA_VERSION = 'r232'
     COMPATIBLE_REF_DATA_VERSIONS = ['r232']
 
-    BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
-    CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
-
     # Relative Evolution Distance
     RED_INTERVAL = 0.1
     RED_MIN_SUPPORT = 0.0
@@ -91,10 +88,6 @@ class __GTDBTkCommonConfig:
     # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
 
-    PPLACER_MIN_RAM_BAC_FULL = 320
-    PPLACER_MIN_RAM_BAC_SPLIT = 55
-    PPLACER_MIN_RAM_ARC = 40
-
     SKANI_SPECIES_THRESHOLD = 95.0
     SKANI_IDENTITY_SKETCH_THRESHOLD = 85.0
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
@@ -141,7 +134,7 @@ class __GTDBTkCommonConfig:
         return os.path.join(self.GENERIC_PATH, 'masks/')
 
     @property
-    def PPLACER_DIR(self):
+    def GPLACE_DIR(self):
         return os.path.join(self.GENERIC_PATH, 'pplacer/')
 
     @property
@@ -176,45 +169,6 @@ class __GTDBTkCommonConfig:
     def PFAM_HMM_DIR(self):
         return os.path.join(self.MARKER_DIR, 'pfam/')
 
-    @property
-    def SPLIT_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'split')
-
-    @property
-    def BACKBONE_SPLIT_DIR(self):
-        return os.path.join(self.SPLIT_DIR, 'backbone')
-
-    @property
-    def CLASS_LEVEL_SPLIT_DIR(self):
-        return os.path.join(self.SPLIT_DIR, 'class_level')
-
-    @property
-    def BACKBONE_PPLACER_DIR(self):
-        return os.path.join(self.BACKBONE_SPLIT_DIR, 'pplacer')
-
-    @property
-    def CLASS_LEVEL_PPLACER_DIR(self):
-        return os.path.join(self.CLASS_LEVEL_SPLIT_DIR, 'pplacer')
-
-    @property
-    def BACKBONE_RED_DIR(self):
-        return os.path.join(self.BACKBONE_SPLIT_DIR, 'red')
-
-    @property
-    def CLASS_LEVEL_RED_DIR(self):
-        return os.path.join(self.CLASS_LEVEL_SPLIT_DIR, 'red')
-
-    @property
-    def CLASS_LEVEL_TREE_MAPPING_FILE(self):
-        return os.path.join(self.CLASS_LEVEL_SPLIT_DIR, 'tree_mapping.tsv')
-
-    @property
-    def BACKBONE_RED_FILE(self):
-        return os.path.join(self.BACKBONE_RED_DIR, 'backbone_red_value.tsv')
-
-    @property
-    def CLASS_LEVEL_RED_FILE(self):
-        return os.path.join(self.CLASS_LEVEL_RED_DIR, 'red_value_{iter}.tsv')
 
     def _read_metadata_file(self):
         if self._red_dist_bac_dict is None or self._red_dist_arc_dict is None or self._version_data is None:

@@ -187,6 +187,18 @@ def __gplace_cpus(group):
     group.add_argument('--gplace_cpus', type=int, default=None,
                        help='number of CPUs to use during gplace placement')
 
+
+# Removed with gplace, hidden for one release so older commands still run.
+def __pplacer_deprecated(group):
+    group.add_argument('-f', '--full_tree', default=False, action='store_true',
+                       help=argparse.SUPPRESS)
+    group.add_argument('--scratch_dir', type=str, default=None,
+                       help=argparse.SUPPRESS)
+    group.add_argument('--pplacer_cpus', type=int, default=None,
+                       help=argparse.SUPPRESS)
+    group.add_argument('--skip_pplacer', action="store_true", default=False,
+                       help=argparse.SUPPRESS)
+
 # def __recalculate_red(group):
 #     group.add_argument('-r', '--recalculate_red', default=False, action='store_true',
 #                        help='recalculate RED values based on the reference tree and all added user genomes')
@@ -365,6 +377,7 @@ def get_main_parser():
             __temp_dir(grp)
             __debug(grp)
             __skip_gplace(grp)
+            __pplacer_deprecated(grp)
             __help(grp)
 
     # Identify marker genes in genomes.
@@ -443,6 +456,7 @@ def get_main_parser():
             __temp_dir(grp)
             __debug(grp)
             __skip_gplace(grp)
+            __pplacer_deprecated(grp)
             __help(grp)
 
     # Root a tree using an outgroup.

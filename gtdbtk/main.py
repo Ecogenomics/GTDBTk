@@ -571,7 +571,6 @@ class OptionsParser(object):
         classify_step.starts_at = datetime.now()
         classify_step.output_dir = options.out_dir
         classify_step.debug_option = options.debug
-        classify_step.full_tree = options.full_tree
         classify_step.place_species = process_classified_genomes
 
         ani_summary_files = {}
@@ -585,9 +584,6 @@ class OptionsParser(object):
             check_dir_exists(options.align_dir)
             classify_step.align_dir = options.align_dir
         make_sure_path_exists(options.out_dir)
-        if options.scratch_dir:
-            make_sure_path_exists(options.scratch_dir)
-            classify_step.scratch_dir = options.scratch_dir
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -970,6 +966,18 @@ class OptionsParser(object):
             self.logger.warning(
                 'You cannot use less than 1 CPU, defaulting to 1.')
             options.cpus = 1
+
+        # Options removed with gplace (hidden for one release).
+        if getattr(options, 'full_tree', False):
+            self.logger.warning('--full_tree is ignored with gplace: the full bacterial tree is always used.')
+        if getattr(options, 'scratch_dir', None):
+            self.logger.warning('--scratch_dir is ignored with gplace.')
+        if getattr(options, 'pplacer_cpus', None):
+            self.logger.warning('--pplacer_cpus is deprecated, use --gplace_cpus.')
+            if options.gplace_cpus is None:
+                options.gplace_cpus = options.pplacer_cpus
+        if getattr(options, 'skip_pplacer', False):
+            options.skip_gplace = True
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
