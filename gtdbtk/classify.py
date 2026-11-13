@@ -48,10 +48,9 @@ from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
 from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, DisappearingGenomesFileBAC120
-from gtdbtk.files.tree_mapping import GenomeMappingFile, GenomeMappingFileRow
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
-from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_memory_gb, get_reference_ids, TreeTraversal, \
+from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_reference_ids, TreeTraversal, \
     calculate_patristic_distance, tqdm_log, standardise_taxonomy, limit_rank, aa_percent_msa
 
 
@@ -125,22 +124,8 @@ class Classify(object):
                       gplace_max_memory=None):
         """Place genomes into reference tree using gplace."""
 
-        # Warn if the memory is insufficient
-        mem_warning = 'gplace requires ~{req_gb} GB of RAM to fully load the ' \
-                      '{domain} tree into memory. However, {cur_gb:,} GB was ' \
-                      'detected. This may affect gplace performance, or fail' \
-                      ' if there is insufficient swap space.'
-        mem_gb = get_memory_gb()
-        if mem_gb is not None:
-            mem_total = mem_gb['MemTotal']
-            if marker_set_id == 'bac120' and mem_total < CONFIG.PPLACER_MIN_RAM_BAC_FULL:
-                self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_BAC_FULL,
-                                                       domain='bacterial',
-                                                       cur_gb=mem_total))
-            elif marker_set_id == 'ar53' and mem_total < CONFIG.PPLACER_MIN_RAM_ARC:
-                self.logger.warning(mem_warning.format(req_gb=CONFIG.PPLACER_MIN_RAM_ARC,
-                                                       domain='archaeal',
-                                                       cur_gb=mem_total))
+        # No memory check here: gplace warns itself when its estimated peak is above the
+        # available memory, and the warning is passed to the GTDB-Tk log (Gplace._writer).
 
         # rename user MSA file for compatibility with gplace
         if not user_msa_file.endswith('.fasta') and not user_msa_file.endswith('.gz'):

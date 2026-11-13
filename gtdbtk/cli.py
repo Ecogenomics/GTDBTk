@@ -188,6 +188,12 @@ def __gplace_cpus(group):
                        help='number of CPUs to use during gplace placement')
 
 
+def __gplace_max_memory(group):
+    group.add_argument('--gplace_max_memory', type=str, default=None,
+                       help='memory gplace may use, e.g. 64G or 500M (a plain number is GiB); '
+                            'if the placement does not fit, gplace places the tree tile by tile')
+
+
 # Removed with gplace, hidden for one release so older commands still run.
 def __pplacer_deprecated(group):
     group.add_argument('-f', '--full_tree', default=False, action='store_true',
@@ -370,6 +376,7 @@ def get_main_parser():
             __genes(grp)
             __cpus(grp)
             __gplace_cpus(grp)
+            __gplace_max_memory(grp)
             __force(grp)
             __write_single_copy_genes(grp)
             __keep_intermediates(grp)
@@ -451,6 +458,7 @@ def get_main_parser():
             __prefix(grp)
             __cpus(grp)
             __gplace_cpus(grp)
+            __gplace_max_memory(grp)
             __genes(grp)
             __min_af(grp)
             __temp_dir(grp)

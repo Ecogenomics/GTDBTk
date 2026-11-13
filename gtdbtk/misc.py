@@ -248,8 +248,7 @@ class Misc(object):
 
         # Check that all programs are on the system path.
         self.logger.info(f'Checking that all third-party software are on the system path:')
-        names = {'prodigal', 'hmmsearch', 'skani', 'pplacer', 'guppy',
-                 'FastTree', 'FastTreeMP', 'hmmalign'}
+        names = {'prodigal', 'hmmsearch', 'skani', 'gplace', 'FastTree', 'FastTreeMP', 'hmmalign'}
         for name in sorted(names):
             on_path = False
             try:

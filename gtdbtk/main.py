@@ -18,6 +18,7 @@ import argparse
 import logging
 import ntpath
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -602,6 +603,7 @@ class OptionsParser(object):
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,
                      prefix=options.prefix,
+                     gplace_max_memory=options.gplace_max_memory,
                      debugopt=options.debug,
                      skip_ani_screen=skip_ani_screen,
                      genes=options.genes,
@@ -971,13 +973,18 @@ class OptionsParser(object):
         if getattr(options, 'full_tree', False):
             self.logger.warning('--full_tree is ignored with gplace: the full bacterial tree is always used.')
         if getattr(options, 'scratch_dir', None):
-            self.logger.warning('--scratch_dir is ignored with gplace.')
+            self.logger.warning('--scratch_dir is ignored with gplace, use --gplace_max_memory to limit memory.')
         if getattr(options, 'pplacer_cpus', None):
             self.logger.warning('--pplacer_cpus is deprecated, use --gplace_cpus.')
             if options.gplace_cpus is None:
                 options.gplace_cpus = options.pplacer_cpus
         if getattr(options, 'skip_pplacer', False):
             options.skip_gplace = True
+
+        # Same format as gplace --max_memory, checked before identify/align run.
+        if getattr(options, 'gplace_max_memory', None) and \
+                not re.fullmatch(r'\s*([0-9]*\.?[0-9]+)\s*([KMGT]?)(I?B)?\s*', options.gplace_max_memory, re.IGNORECASE):
+            raise GTDBTkExit(f'Invalid --gplace_max_memory "{options.gplace_max_memory}" (examples: 64G, 500M, 1.5T).')
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
@@ -1086,8 +1093,7 @@ class OptionsParser(object):
 
         elif options.subparser_name == 'classify_wf':
 
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
-                                'skani'])
+            check_dependencies(['prodigal', 'hmmalign', 'gplace','skani'])
 
             if options.write_single_copy_genes and not options.keep_intermediates:
                 self.logger.warning('--write_single_copy_genes flag is set to True,'
@@ -1229,7 +1235,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'export_msa':
             self.export_msa(options)
         elif options.subparser_name == 'test':
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
+            check_dependencies(['prodigal', 'hmmalign', 'gplace',
                                 'skani'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':

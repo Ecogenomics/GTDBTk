@@ -47,7 +47,7 @@ class Gplace(object):
                                     stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
-            return output.strip()[1]
+            return output.split()[2] if proc.returncode == 0 else "(version unavailable)"
         except:
             return "(version unavailable)"
 
@@ -62,7 +62,7 @@ class Gplace(object):
             json_out (str): The path to write the json output to.
             msa_file (str): The path to the input MSA file.
             gplace_out (str): Where to write the gplace output file.
-            gplace_max_memory (int): The maximum memory to use in GB.
+            gplace_max_memory (str): The maximum memory to use.
 
         Raises:
             GplaceException: if a non-zero exit code, or if the json output
@@ -72,8 +72,8 @@ class Gplace(object):
         args = ['gplace','place', '-m', model, '-j', str(cpus), '-c', ref_pkg, '-o',
                 json_out, msa_file]
         if gplace_max_memory:
-            args.append('--max-memory')
-            args.append(str(gplace_max_memory))
+            args.append('--max_memory')
+            args.append(gplace_max_memory)
         self.logger.debug(' '.join(args))
 
         out_q = mp.Queue()
