@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, fields, asdict
 from typing import List, Optional, Dict, ClassVar
 
 
@@ -78,9 +78,7 @@ class ClassifyStep(Steps):
     align_dir: Optional[str] = None
     genome_dir: Optional[str] = None
     batchfile: Optional[str] = None
-    scratch_dir: Optional[str] = None
     debug_option: Optional[bool] = None
-    full_tree: Optional[bool] = None
     place_species: Optional[bool] = None
     output_files: Optional[Dict] = None
 
@@ -168,22 +166,24 @@ class _StageLoggerImpl:
                 name = step.pop('name', None)
 
                 if name == "ANI screen":
-                    step_object = ANIScreenStep(**step)
+                    step_class = ANIScreenStep
                 elif name == "identify":
-                    step_object = IdentifyStep(**step)
+                    step_class = IdentifyStep
                 elif name == "align":
-                    step_object = AlignStep(**step)
+                    step_class = AlignStep
                 elif name == "classify":
-                    step_object = ClassifyStep(**step)
+                    step_class = ClassifyStep
                 elif name == "infer":
-                    step_object = InferStep(**step)
+                    step_class = InferStep
                 elif name == "root":
-                    step_object = RootStep(**step)
+                    step_class = RootStep
                 elif name == "decorate":
-                    step_object = DecorateStep(**step)
+                    step_class = DecorateStep
                 else:
                     raise Exception(f"Unknown step name {name}")
-                steps.append(step_object)
+                # 2. Drop keys removed since the file was written (e.g. scratch_dir, full_tree < 2.9)
+                known = {f.name for f in fields(step_class) if f.init}
+                steps.append(step_class(**{k: v for k, v in step.items() if k in known}))
             self.steps = steps
 
 
