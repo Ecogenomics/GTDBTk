@@ -2,6 +2,38 @@
 Change log
 ==========
 
+2.9.0
+-----
+
+**No new reference data required**: GTDB-Tk 2.9.0 uses the same R232 reference package as 2.7.x and 2.8.x.
+
+Major changes:
+
+* Genomes are placed in the reference trees with `gPlace <https://github.com/cmc-aau/gPlace>`_ instead of pplacer and guppy. gPlace gives the same placements as pplacer v1.1.alpha19 with far less memory and time. It is installed automatically with GTDB-Tk (``gtdb-gplace`` on PyPI and Bioconda).
+* The divide-and-conquer approach for bacterial genomes (backbone tree, then class-level trees) is removed: bacterial genomes are placed directly in the full bacterial reference tree. Bacterial classifications can therefore differ from those of 2.8.x; they match ``--full_tree`` in earlier versions.
+* New ``--gplace_max_memory`` option for ``classify`` and ``classify_wf``: the memory gPlace may use (e.g. ``64G``). If placement does not fit, gPlace places the tree tile by tile, with identical results. See :ref:`faq_memory`.
+* **Memory:** without ``--gplace_max_memory``, gPlace places untiled, which needs more memory than 2.8.x for bacterial genomes (> 200 GB, against ~140 GB). Set ``--gplace_max_memory`` on machines with less memory.
+* GTDB-Tk now requires Python >= 3.12 (required by gPlace).
+
+Deprecated (removed in the next release):
+
+* ``--full_tree`` and ``--scratch_dir`` are ignored, with a warning.
+* ``--pplacer_cpus`` is read as ``--gplace_cpus``, with a warning.
+
+Changes:
+
+* ``summary.tsv``: the ``pplacer_taxonomy`` column is renamed ``placement_taxonomy``.
+* Output files: ``classify/intermediate_results/pplacer/`` is now ``classify/intermediate_results/gplace/`` (``gplace.<domain>.json``, ``gplace.<domain>.out``), and ``classification_pplacer.tsv`` is now ``classification_gplace.tsv``. The backbone and class-level trees (``<prefix>.backbone.bac120.classify.tree``, ``<prefix>.bac120.classify.tree.<index>.tree``) and ``<prefix>.bac120.tree.mapping.tsv`` are no longer written: bacterial genomes are in ``<prefix>.bac120.classify.tree``.
+* gPlace warnings (e.g. genomes without a placement) are copied to the GTDB-Tk log.
+* The number of placement CPUs is no longer capped at 64.
+* ``check_install`` checks for ``gplace`` instead of ``pplacer`` and ``guppy``.
+* ``gtdbtk.json`` no longer records ``scratch_dir`` and ``full_tree``; output directories from earlier versions can still be resumed.
+* DendroPy is pinned below version 5, which writes the genome IDs in trees without quotes.
+
+Bug Fixes:
+
+* (`#723 <https://github.com/Ecogenomics/GTDBTk/pull/723>`_) Parallel steps no longer fail under the ``spawn`` and ``forkserver`` start methods (the default on macOS, and on Linux from Python 3.14).
+
 2.8.0
 -----
 

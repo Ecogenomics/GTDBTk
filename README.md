@@ -35,6 +35,17 @@ Be sure to check the [hardware requirements](https://ecogenomics.github.io/GTDBT
 Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDBTk/).
 
 
+## 🔄 What's changed in v2.9.0
+
+* **No new reference data required:** v2.9.0 uses the same R232 reference package as v2.7.x and v2.8.x.
+* **pplacer is replaced by [gPlace](https://github.com/cmc-aau/gPlace)**, which gives the same placements with far less memory and time. It is installed automatically with GTDB-Tk.
+* **Bacterial genomes are placed in the full bacterial tree:** the divide-and-conquer approach (backbone and class-level trees) is removed, so bacterial classifications can differ from v2.8.x (they match `--full_tree` in earlier versions).
+* **New `--gplace_max_memory` option** (e.g. `64G`): gPlace places the tree tile by tile within that limit, with identical results. Without it, gPlace places untiled, which needs more memory than v2.8.x for bacterial genomes (> 200 GB, against ~140 GB).
+* **Python >= 3.12** is now required.
+* `--full_tree` and `--scratch_dir` are ignored and `--pplacer_cpus` is read as `--gplace_cpus`; they will be removed in the next release. The `pplacer_taxonomy` column of `summary.tsv` is renamed `placement_taxonomy`.
+
+See the [change log](https://ecogenomics.github.io/GTDBTk/changelog.html) for the full list.
+
 ## 🔄 What's changed in v2.8.0
 
 * **No new reference data required:** v2.8.0 uses the same R232 reference package as v2.7.x.
@@ -55,10 +66,10 @@ GTDB-Tk v2.7.0+ includes the following new features:
     * *Previously:* Using `--skip_ani_screen`, genomes placed in a genus by pplacer were only compared to representative genomes within that specific genus. 
     * *Now:* Because the database is a single skani sketch, user genomes are compared against *all* GTDB reference genomes once at the very beginning of the pipeline. When the new `--place_species` flag is selected, the genomes are still explicitly placed in the reference tree.
 
-**⚠️ IMPORTANT MEMORY WARNING:** The divide-and-conquer approach now requires more than 128 GB of RAM. Specifically, you will need at least **140 GB of RAM** for R232.
+**⚠️ MEMORY:** From v2.9.0, placement with gPlace needs more than 200 GB of RAM for the full bacterial tree by default; use `--gplace_max_memory` (e.g. `64G`) to place within a lower limit, with identical results.
 
 ## 📈 Performance
-Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).
+Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be placed in the reference tree which reduces computation time substantially (between 25% and 60% in our testing).
 
 ## 📚 References
 
@@ -77,7 +88,7 @@ The Genome Taxonomy Database (GTDB) is described in:
 
 We strongly encourage you to cite the following 3rd party dependencies:
 
-* Matsen FA, et al. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538.
+* Matsen FA, et al. 2010. [pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree](https://www.ncbi.nlm.nih.gov/pubmed/21034504). <i>BMC Bioinformatics</i>, 11:538. (Placement uses [gPlace](https://github.com/cmc-aau/gPlace), which reproduces pplacer.)
 * Shaw J. and Yu Y.W. 2023. [Fast and robust metagenomic sequence comparison through sparse chaining with skani](https://www.nature.com/articles/s41592-023-02018-3). <i>Nature Methods</i>, 20, pages1661–1665 (2023).
 * Hyatt D, et al. 2010. [Prodigal: prokaryotic gene recognition and translation initiation site identification](https://www.ncbi.nlm.nih.gov/pubmed/20211023). <i>BMC Bioinformatics</i>, 11:119. doi: 10.1186/1471-2105-11-119.
 * Price MN, et al. 2010. [FastTree 2 - Approximately Maximum-Likelihood Trees for Large Alignments](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2835736/). <i>PLoS One</i>, 5, e9490.

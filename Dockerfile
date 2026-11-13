@@ -14,29 +14,17 @@ RUN apt-get update -y -m && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --no-install-suggests -y \
         wget \
         libgomp1 \
-        libgsl27 \
-        libgslcblas0 \
         build-essential \
         curl \
         hmmer=3.* \
         prodigal=1:2.6.* \
-        fasttree=2.1.* \
-        unzip && \
+        fasttree=2.1.* && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     ln -s /usr/bin/fasttreeMP /usr/bin/FastTreeMP && \
     curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 ENV PATH="/root/.cargo/bin:${PATH}"
-
-# ---------------------------------------------------------------------------- #
-# ----------------------------- INSTALL PPLACER ------------------------------ #
-# ---------------------------------------------------------------------------- #
-RUN wget https://github.com/matsen/pplacer/releases/download/v1.1.alpha19/pplacer-linux-v1.1.alpha19.zip -q && \
-    unzip pplacer-linux-v1.1.alpha19.zip && \
-    mv pplacer-Linux-v1.1.alpha19/* /usr/bin && \
-    rm pplacer-linux-v1.1.alpha19.zip && \
-    rm -rf pplacer-Linux-v1.1.alpha19
 
 # ---------------------------------------------------------------------------- #
 # ------------------------------ INSTALL SKANI ------------------------------- #
@@ -59,8 +47,10 @@ ENV GTDBTK_DATA_PATH="/refdata/"
 # ---------------------------------------------------------------------------- #
 # --------------------------- INSTALL PIP PACKAGES --------------------------- #
 # ---------------------------------------------------------------------------- #
+# gtdbtk installs gtdb-gplace (the gplace command); check_install verifies its engine.
 RUN python -m pip install --upgrade pip && \
-    python -m pip install gtdbtk==${VER}
+    python -m pip install gtdbtk==${VER} && \
+    gplace check_install
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------- SET THE ENTRYPOINT ---------------------------- #

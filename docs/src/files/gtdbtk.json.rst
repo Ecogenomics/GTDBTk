@@ -101,16 +101,10 @@ Example
             "align_dir": "classfiy_wf_3_genomes",
             "genome_dir": null,
             "batchfile": "genomes/3_batchfile.tsv",
-            "scratch_dir": null,
             "debug_option": false,
-            "full_tree": false,
-            "skip_ani_screen": true,
+            "place_species": false,
             "output_files": {
                 "bac120": [
-                    "classify_wf_3_genomes/classify/gtdbtk.backbone.bac120.classify.tree",
-                    "classify_wf_3_genomes/classify/gtdbtk.bac120.classify.tree.7.tree",
-                    "classify_wf_3_genomes/classify/gtdbtk.bac120.classify.tree.2.tree",
-                    "classify_wf_3_genomes/classify/gtdbtk.bac120.tree.mapping.tsv",
                     "classify_wf_3_genomes/classify/gtdbtk.bac120.summary.tsv"
                 ]
             }

@@ -50,50 +50,26 @@ One solution would be to use (`DendroPy <https://dendropy.org/>`_); a Python lib
 GTDB-Tk FAQ
 ------------
 
-.. _faq_pplacer:
+.. _faq_memory:
 
-GTDB-Tk reaches the memory limit / pplacer crashes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GTDB-Tk reaches the memory limit during placement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The host may report that GTDB-Tk has exceeded the memory requirements due to how ``pplacer`` is implemented.
-Briefly, this is only the reported value and is not true for how much memory is actually in use.
+Placing genomes in the reference tree with gPlace is the step that needs the most memory. By default
+gPlace places untiled: it holds the likelihood vectors of the whole reference tree in memory, which is
+the fastest way to place but needs more than 200 GB for the bacterial tree, more than GTDB-Tk 2.8
+needed (~140 GB). gPlace warns in the GTDB-Tk log when its
+estimated peak memory is above the memory available to it (the machine's memory, or a SLURM or cgroup limit).
 
-When pplacer runs, it goes through several steps notable detailed below:
+Use ``--gplace_max_memory`` to set the memory gPlace may use, for example ``--gplace_max_memory 64G``
+(``K``, ``M``, ``G`` and ``T`` are binary units, as in SLURM; a plain number is GiB). If placement does
+not fit within that limit, gPlace places the tree tile by tile: the results are identical, the run is
+slower. Leave some memory for the rest of GTDB-Tk, e.g. set it a few GB below your job's memory request.
 
-#. pplacer requests an uninitialised chunk of memory from the host (say, 150 GB).
+``--scratch_dir`` from earlier versions has no effect with gPlace, and ``--pplacer_cpus`` is read as
+``--gplace_cpus``; both will be removed in the next release.
 
-   * VIRT = 150 GB ``[virtual memory memory, i.e. the amount of memory mapped]``
-
-   * RES ~= 0 GB ``[amount of memory physically in use]``
-
-#. pplacer starts caching information to that chunk of memory
-
-   * VIRT = 150 GB
-
-   * RES -> 150 GB  (slowly increases to 150 GB as caching information is written)
-
-   .. note::
-      If pplacer crashes here, you likely don't have enough free memory on the server.
-
-#. pplacer starts placing genomes into the tree
-
-   #. the main pplacer thread forks for each ``--pplacer_cpus`` or ``--cpus`` (if not specified).
-
-      * Unix uses the `copy-on-write <https://en.wikipedia.org/wiki/Copy-on-write>`_ method for each child.
-
-      .. note::
-         This means that a new thread will appear using the same amount of memory as the parent (150 GB).
-         Due to how copy-on-write is implemented, this is the same memory space and is not using any additional physical memory.
-
-         Therefore, the host will report pplacer using a total of ``PARENT_MEMORY * (N_CHILDREN + 1)`` GB.
-
-   #. each worker will only read from the memory space and exit once the queue of query genomes is depleted.
-
-
-For example, running GTDB-Tk with on the bacterial tree (requires 150 GB of memory) with 1 CPU will require 150 GB of physical
-memory, but the host will report 300 GB of memory in use.
-
-Using the ``--scratch_dir`` parameter and ``--pplacer_cpus 1`` may help.
+See the `gPlace documentation <https://cmc-aau.github.io/gPlace/advanced/memory.html>`_ for details.
 
 
 How is GTDB-Tk validating species assignments using average nucleotide identity?

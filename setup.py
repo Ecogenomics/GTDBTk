@@ -33,7 +33,6 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
@@ -48,7 +47,8 @@ setup(
     },
     # dendropy is capped below 5: dendropy 5 honours unquoted_underscores=True
     # when writing trees, which removes the quotes around genome IDs in the trees GTDB-Tk writes.
-    install_requires=['dendropy >= 4.5, < 5', 'numpy >= 1.23', 'tqdm >= 4.35'],
+    # gtdb-gplace provides the gplace command used for placement (it needs Python >= 3.12).
+    install_requires=['dendropy >= 4.5, < 5', 'numpy >= 1.23', 'tqdm >= 4.35', 'gtdb-gplace >= 0.1.1'],
     license=meta['license'],
     long_description=readme(),
     long_description_content_type='text/markdown',

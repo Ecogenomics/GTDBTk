@@ -33,23 +33,29 @@ Hardware requirements
      - Storage
      - Time
    * - Archaea
-     - ~100 GB
+     - < 64 GB
      - ~100 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~140GB (950 GB when using --full_tree)
+     - > 200 GB, or the limit set with ``--gplace_max_memory`` (e.g. 64 GB)
      - ~100 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
 
+.. TODO: re-measure memory and time with gPlace on R232 before the release.
+
 .. note::
-   The amount reported of memory reported can vary depending on the number of pplacer threads.
-   See :ref:`faq_pplacer` for more information.
+   Placement with gPlace is the step that needs the most memory. By default gPlace places untiled:
+   it holds the whole reference tree in memory, which is fastest but needs more memory than GTDB-Tk 2.8
+   (> 200 GB for the bacterial tree, against ~140 GB with 2.8's divide-and-conquer approach).
+   With ``--gplace_max_memory`` (e.g. ``64G``) it places the tree tile by tile within that limit,
+   with identical results.
+   See :ref:`faq_memory` for more information.
 
 
 Python libraries
 ----------------
 
-GTDB-Tk requires Python >= 3.11 (tested on 3.11, 3.12 and 3.13). The following libraries are installed automatically:
+GTDB-Tk requires Python >= 3.12 (tested on 3.12 and 3.13). The following libraries are installed automatically:
 
 .. list-table::
    :widths: 10 10 80
@@ -67,6 +73,9 @@ GTDB-Tk requires Python >= 3.11 (tested on 3.11, 3.12 and 3.13). The following l
    * - `tqdm <https://github.com/tqdm/tqdm>`_
      - >= 4.35.0
      - DOI: `10.5281/zenodo.595120 <https://doi.org/10.5281/zenodo.595120>`_
+   * - `gPlace <https://github.com/cmc-aau/gPlace>`_ (``gtdb-gplace``)
+     - >= 0.1.1
+     - Provides the ``gplace`` command used to place genomes in the reference tree. gPlace reproduces pplacer's placements; please cite pplacer: Matsen FA, et al. 2010. `pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree <https://www.ncbi.nlm.nih.gov/pubmed/21034504>`_. *BMC Bioinformatics*, 11:538.
 
 
 Please cite these libraries if you use GTDB-Tk in your work.
@@ -95,9 +104,6 @@ GTDB-Tk makes use of the following 3rd party dependencies and assumes they are o
    * - `HMMER <http://hmmer.org/>`_
      - >= 3.1b2
      - Eddy SR. 2011. `Accelerated profile HMM searches <https://www.ncbi.nlm.nih.gov/pubmed/22039361>`_. *PLOS Comp. Biol.*, 7:e1002195.
-   * - `pplacer <http://matsen.fhcrc.org/pplacer/>`_
-     - >= 1.1
-     - Matsen FA, et al. 2010. `pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree <https://www.ncbi.nlm.nih.gov/pubmed/21034504>`_. *BMC Bioinformatics*, 11:538.
    * - `skani <https://github.com/bluenote-1577/skani/>`_
      - >= 0.2.1
      - Shaw J. and Yu Y.W. 2023. `Fast and robust metagenomic sequence comparison through sparse chaining with skani <https://www.nature.com/articles/s41592-023-02018-3>`_. *Nature Methods*, 20, pages1661–1665 (2023).

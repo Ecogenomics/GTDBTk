@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -30,6 +30,8 @@ jobs:
           tests/test_ani_screen_consistency.py
           tests/test_classify_ani_flags.py
           tests/test_classify_failed_genomes.py
+          tests/test_gplace.py
+          tests/test_stage_logger.py
           tests/test_symlink_f.py
           tests/test_tophit_ordering.py
           tests/test_gtdbtk/test_biolib_lite

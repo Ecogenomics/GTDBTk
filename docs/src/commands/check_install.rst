@@ -42,10 +42,9 @@ Output
     [2025-08-05 17:02:59] INFO: Checking that all third-party software are on the system path:
     [2025-08-05 17:02:59] INFO:          |-- FastTree         OK
     [2025-08-05 17:02:59] INFO:          |-- FastTreeMP       OK
-    [2025-08-05 17:02:59] INFO:          |-- guppy            OK
+    [2025-08-05 17:02:59] INFO:          |-- gplace           OK
     [2025-08-05 17:02:59] INFO:          |-- hmmalign         OK
     [2025-08-05 17:02:59] INFO:          |-- hmmsearch        OK
-    [2025-08-05 17:02:59] INFO:          |-- pplacer          OK
     [2025-08-05 17:02:59] INFO:          |-- prodigal         OK
     [2025-08-05 17:02:59] INFO:          |-- skani            OK
     [2025-08-05 17:02:59] INFO: Checking integrity of reference package: /release226
