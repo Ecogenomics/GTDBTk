@@ -93,7 +93,7 @@ class ANIScreener(object):
         species_radius = Classify.parse_radius_file()   # read once, not once per genome
 
         for gid in skani_results.keys():
-            # Same rule as Classify._sort_skani_results_pre_pplacer (standalone classify):
+            # Same rule as Classify._sort_skani_results_pre_gplace (standalone classify):
             # take the closest AF-passing hit, then check only that hit against its own radius.
             # A lower hit within its own radius does NOT rescue the genome.
             af_pass = sorted([(ref_gid, hit) for (ref_gid, hit) in skani_results[gid].items()

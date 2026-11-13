@@ -63,7 +63,7 @@ class Classify(object):
     def __init__(self, cpus=1, gplace_cpus=None, af_threshold=None,skip_gplace=False):
         """Initialize."""
 
-        check_dependencies(['gplace', 'guppy', 'skani'])
+        check_dependencies(['gplace', 'skani'])
 
         self.skip_gplace = skip_gplace
 
@@ -149,7 +149,7 @@ class Classify(object):
                             f'Placing {num_genomes:,} bacterial genomes '
                             f'into reference tree with gplace using '
                             f'{self.gplace_cpus} CPUs (be patient).')
-            gplace_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
+            gplace_ref_pkg = os.path.join(CONFIG.GPLACE_DIR,
                                            CONFIG.PPLACER_BAC120_REF_PKG)
 
         elif marker_set_id == 'ar53':
@@ -157,7 +157,7 @@ class Classify(object):
                             f'Placing {num_genomes:,} archaeal genomes into '
                             f'reference tree with gplace using '
                             f'{self.gplace_cpus} CPUs (be patient).')
-            gplace_ref_pkg = os.path.join(CONFIG.PPLACER_DIR,
+            gplace_ref_pkg = os.path.join(CONFIG.GPLACE_DIR,
                                            CONFIG.PPLACER_AR53_REF_PKG)
         else:
             raise GenomeMarkerSetUnknown(f'Unknown marker set: {marker_set_id}')

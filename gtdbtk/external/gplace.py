@@ -47,7 +47,9 @@ class Gplace(object):
                                     stderr=subprocess.PIPE, env=env, encoding='utf-8')
 
             output, error = proc.communicate()
-            return output.split()[2] if proc.returncode == 0 else "(version unavailable)"
+            # 'gPlace v0.1.1' (>= 0.1.1) or 'gplace: version 0.1.0 ...'
+            return re.search(r'(\d+\.\d+\.\d+)', output).group(1) if proc.returncode == 0 \
+                else "(version unavailable)"
         except:
             return "(version unavailable)"
 
@@ -212,7 +214,7 @@ class Gplace(object):
             self.logger.error('An error was encountered while running tog.')
             raise GplaceException(proc_err)
 
-        if not os.path.isfile(gplace_json_out):
+        if not os.path.isfile(tree_file):
             self.logger.error('gplace tog returned a zero exit code but no output '
                               'file was generated.')
             raise GplaceException

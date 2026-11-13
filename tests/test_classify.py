@@ -26,7 +26,7 @@ from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
-from gtdbtk.files.pplacer_classification import PplacerClassifyFileAR53
+from gtdbtk.files.gplace_classification import GplaceClassifyFileAR53
 
 
 class TestClassify(unittest.TestCase):
@@ -83,7 +83,7 @@ class TestClassify(unittest.TestCase):
                 test_value = self.classify.standardise_taxonomy(test_str, cur_dom)
                 self.assertEqual(expected_str, test_value)
 
-    def test_get_pplacer_taxonomy(self):
+    def test_get_gplace_taxonomy(self):
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
         tree = dendropy.Tree.get_from_path(os.path.join(os.getcwd(), self.pplacer_dir_reference,
@@ -91,11 +91,11 @@ class TestClassify(unittest.TestCase):
                                            schema='newick',
                                            rooting='force-rooted',
                                            preserve_underscores=True)
-        pplacer_classify_file = PplacerClassifyFileAR53(self.out_dir, self.prefix)
-        self.classify._get_pplacer_taxonomy(pplacer_classify_file, 'ar53', self.user_msa_file, tree)
+        gplace_classify_file = GplaceClassifyFileAR53(self.out_dir, self.prefix)
+        self.classify._get_gplace_taxonomy(gplace_classify_file, 'ar53', self.user_msa_file, tree)
         results = {}
 
-        with open(os.path.join(self.out_dir, PATH_AR53_PPLACER_CLASS.format(prefix=self.prefix)), 'r') as f:
+        with open(os.path.join(self.out_dir, PATH_AR53_GPLACE_CLASS.format(prefix=self.prefix)), 'r') as f:
             for line in f:
                 infos = line.strip().split('\t')
                 results[infos[0]] = infos[1]

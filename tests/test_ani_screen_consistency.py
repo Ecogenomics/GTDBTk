@@ -17,7 +17,7 @@
 
 """Regression tests for Issue #717: `classify` and `classify_wf` must give the same answer.
 
-`classify` runs skani itself (Classify._sort_skani_results_pre_pplacer), while
+`classify` runs skani itself (Classify._sort_skani_results_pre_gplace), while
 `classify_wf` runs the ANI screen first (ANIScreener.sort_skani_ani_screen), writes
 its results to disk and reloads them in classify. These tests check that both paths
 assign the same species, list the same other related references and report the same
@@ -85,7 +85,7 @@ class TestANIScreenConsistency(unittest.TestCase):
                 for dom in out.values() for gid, d in dom.items() for ref, hit in d.items()}
 
     def _classify(self, skani_results, taxonomy, radii=None):
-        """classify path: Classify._sort_skani_results_pre_pplacer -> {gid: (ref, other_refs)}."""
+        """classify path: Classify._sort_skani_results_pre_gplace -> {gid: (ref, other_refs)}."""
         c = Classify.__new__(Classify)
         c.logger = logging.getLogger('timestamp')
         c.af_threshold = self.af_threshold
@@ -93,7 +93,7 @@ class TestANIScreenConsistency(unittest.TestCase):
         c.species_radius = {}
         c.gtdb_taxonomy = {add_ncbi_prefix(r): v for r, v in
                            ((r, taxonomy[canonical_gid(r)]) for g in skani_results.values() for r in g)}
-        out = c._sort_skani_results_pre_pplacer(copy.deepcopy(skani_results), {})
+        out = c._sort_skani_results_pre_gplace(copy.deepcopy(skani_results), {})
         return {row.gid: (row.closest_genome_ref, row.other_related_refs)
                 for rows in out.values() for row in rows}
 

@@ -1132,7 +1132,7 @@ class OptionsParser(object):
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
                         classify_method = Classify()
-                        classified_genomes=classify_method.load_skani_results_pre_pplacer(ani_summary_files)
+                        classified_genomes=classify_method.load_skani_results_pre_gplace(ani_summary_files)
                         classified_genomes = classify_method.convert_rows_to_dict(classified_genomes)
                         len_skani_classified_bac120 = len(classified_genomes['bac120']) \
                             if 'bac120' in classified_genomes else 0
