@@ -21,12 +21,11 @@ import os
 import queue
 import re
 import subprocess
-import sys
 import threading
 
 from tqdm import tqdm
 
-from gtdbtk.exceptions import GplaceException, TogException
+from gtdbtk.exceptions import GplaceException
 from gtdbtk.tools import get_proc_memory_gb
 
 
@@ -80,8 +79,6 @@ class Gplace(object):
 
         out_q = mp.Queue()
         pid = mp.Value('i', 0)
-        # print(f'Running gplace with the following command: {" ".join(args)}')
-        # sys.exit(0)
         p_worker = mp.Process(target=self._worker, args=(
             args, out_q, gplace_out, pid))
         # Thread, so gplace warnings reach the GTDB-Tk logger under spawn (macOS).
@@ -197,7 +194,7 @@ class Gplace(object):
         """ Convert the gplace json output into a newick tree.
 
         Args:
-            pplacer_json_out (str): The path to the output of pplacer.
+            gplace_json_out (str): The path to the jplace output of gplace.
             tree_file (str): The path to output the newick file to.
 
         Raises:

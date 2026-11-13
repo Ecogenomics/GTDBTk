@@ -48,7 +48,6 @@ PATH_AR53_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.ar53.disappearing_
 PATH_BAC120_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.bac120.disappearing_genomes.tsv')
 
 DIR_CLASSIFY_INTERMEDIATE = join(DIR_CLASSIFY, 'intermediate_results')
-PATH_BAC120_TREE_MAPPING = join(DIR_CLASSIFY, '{prefix}.bac120.tree.mapping.tsv')
 PATH_BAC120_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.red_dictionary.tsv')
 PATH_AR53_RED_DICT = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.ar53.red_dictionary.tsv')
 PATH_BAC120_GPLACE_CLASS = join(DIR_CLASSIFY_INTERMEDIATE, '{prefix}.bac120.classification_gplace.tsv')

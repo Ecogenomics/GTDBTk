@@ -246,15 +246,15 @@ class __GTDBTkCommonConfig:
         return f"gtdb_{self.VERSION_DATA}_rps23.mask"
 
     @property
-    def PPLACER_BAC120_REF_PKG(self):
+    def GPLACE_BAC120_REF_PKG(self):
         return f"gtdb_{self.VERSION_DATA}_bac120.refpkg"
 
     @property
-    def PPLACER_AR53_REF_PKG(self):
+    def GPLACE_AR53_REF_PKG(self):
         return f"gtdb_{self.VERSION_DATA}_ar53.refpkg"
 
     @property
-    def PPLACER_RPS23_REF_PKG(self):
+    def GPLACE_RPS23_REF_PKG(self):
         return f"gtdb_{self.VERSION_DATA}_rps23.refpkg"
 
     @property

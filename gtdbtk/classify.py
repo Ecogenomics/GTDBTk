@@ -19,7 +19,6 @@
 import logging
 import os
 import random
-import shutil
 import sys
 import tempfile
 from collections import defaultdict
@@ -86,18 +85,6 @@ class Classify(object):
 
         self.gtdb_radii = GTDBRadiiFile()
 
-        # gplace seems to hang if more than 64 threads are given, warn the user
-        # otherwise let them if they specify gplace_cpus.
-        if gplace_cpus and gplace_cpus > 64:
-            self.logger.warning('gplace is known to hang if >64 CPUs are '
-                                'used. You have overridden this using: '
-                                '--gplace_cpus')
-        elif not gplace_cpus and cpus > 64:
-            self.logger.warning('Setting gplace CPUs to 64, as gplace is '
-                                'known to hang if >64 are used. You can '
-                                'override this using: --gplace_cpus')
-            self.gplace_cpus = 64
-
         self.species_radius = self.parse_radius_file()
 
         # lowest circumscription radius across all reps (the default, ~95%);
@@ -106,9 +93,6 @@ class Classify(object):
 
         self.reference_ids = get_reference_ids()
 
-        # rank_of_interest determine the rank in the tree_mapping file for
-        # lower classification
-        self.rank_of_interest = "c__"
 
     @staticmethod
     def parse_radius_file():
@@ -127,18 +111,6 @@ class Classify(object):
         # No memory check here: gplace warns itself when its estimated peak is above the
         # available memory, and the warning is passed to the GTDB-Tk log (Gplace._writer).
 
-        # rename user MSA file for compatibility with gplace
-        if not user_msa_file.endswith('.fasta') and not user_msa_file.endswith('.gz'):
-            if marker_set_id == 'bac120':
-                t = PATH_BAC120_USER_MSA.format(prefix=prefix)
-            elif marker_set_id == 'ar53':
-                t = PATH_AR53_USER_MSA.format(prefix=prefix)
-            else:
-                raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
-
-            shutil.copyfile(user_msa_file, t)
-            user_msa_file = t
-
         # run gplace to place bins in reference genome tree
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
 
@@ -150,7 +122,7 @@ class Classify(object):
                             f'into reference tree with gplace using '
                             f'{self.gplace_cpus} CPUs (be patient).')
             gplace_ref_pkg = os.path.join(CONFIG.GPLACE_DIR,
-                                           CONFIG.PPLACER_BAC120_REF_PKG)
+                                           CONFIG.GPLACE_BAC120_REF_PKG)
 
         elif marker_set_id == 'ar53':
             self.logger.log(CONFIG.LOG_TASK,
@@ -158,7 +130,7 @@ class Classify(object):
                             f'reference tree with gplace using '
                             f'{self.gplace_cpus} CPUs (be patient).')
             gplace_ref_pkg = os.path.join(CONFIG.GPLACE_DIR,
-                                           CONFIG.PPLACER_AR53_REF_PKG)
+                                           CONFIG.GPLACE_AR53_REF_PKG)
         else:
             raise GenomeMarkerSetUnknown(f'Unknown marker set: {marker_set_id}')
 
@@ -913,7 +885,7 @@ class Classify(object):
 
         return class_level_classification,classified_user_genomes,warning_counter
 
-    def _assign_mrca_red(self, input_tree, marker_set_id, levelopt=None, tree_iter=None):
+    def _assign_mrca_red(self, input_tree, marker_set_id):
         """Parse the gplace tree and write the partial taxonomy for each user genome based on their placements
 
         Parameters
@@ -936,12 +908,7 @@ class Classify(object):
         # Persist descendant information for efficient traversal.
         tt = TreeTraversal()
 
-        if levelopt is None:
-            red_file = CONFIG.MRCA_RED_BAC120
-        elif levelopt == 'high':
-            red_file = CONFIG.BACKBONE_RED_FILE
-        elif levelopt == 'low':
-            red_file = CONFIG.CLASS_LEVEL_RED_FILE.format(iter=tree_iter)
+        red_file = CONFIG.MRCA_RED_BAC120
         if marker_set_id == 'ar53':
             red_file = CONFIG.MRCA_RED_AR53
 
@@ -1988,13 +1955,6 @@ class Classify(object):
 
         return new_tree
 
-
-    def get_authorised_rank(self, order_in_spe_tree,rank_index):
-        results = []
-        for k, v in self.gtdb_taxonomy.items():
-            if v[self.order_rank.index(self.rank_of_interest)] in order_in_spe_tree:
-                results.append(v[rank_index])
-        return list(set(results))
 
     def load_skani_results_pre_gplace(self,ani_summary_files):
         """Load the skani results for the genomes classified with ANI Screen."""
