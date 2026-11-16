@@ -25,11 +25,11 @@ import threading
 
 from tqdm import tqdm
 
-from gtdbtk.exceptions import GplaceException
+from gtdbtk.exceptions import GPlaceException
 from gtdbtk.tools import get_proc_memory_gb
 
 
-class Gplace(object):
+class GPlace(object):
     """Phylogenetic placement of genomes into a reference tree
     (https://github.com/cmc-aau/gPlace).
     """
@@ -66,7 +66,7 @@ class Gplace(object):
             gplace_max_memory (str): The maximum memory to use.
 
         Raises:
-            GplaceException: if a non-zero exit code, or if the json output
+            GPlaceException: if a non-zero exit code, or if the json output
                               file isn't generated.
 
         """
@@ -93,7 +93,7 @@ class Gplace(object):
             p_writer.join()
 
             if p_worker.exitcode != 0:
-                raise GplaceException(
+                raise GPlaceException(
                     'An error was encountered while running gplace.')
         except Exception:
             p_worker.terminate()
@@ -103,7 +103,7 @@ class Gplace(object):
         if not os.path.isfile(json_out):
             self.logger.error('gplace returned a zero exit code but no output '
                               'file was generated.')
-            raise GplaceException
+            raise GPlaceException
 
     def _worker(self, args, out_q, gplace_out, pid):
         """The worker thread writes the piped output of gplace to disk and
@@ -123,7 +123,7 @@ class Gplace(object):
             proc.wait()
 
             if proc.returncode != 0:
-                raise GplaceException('An error was encountered while '
+                raise GPlaceException('An error was encountered while '
                                        'running gplace, check the log '
                                        'file: {}'.format(gplace_out))
 
@@ -198,7 +198,7 @@ class Gplace(object):
             tree_file (str): The path to output the newick file to.
 
         Raises:
-            GplaceException: If a non-zero exit code is returned, or the tree file
+            GPlaceException: If a non-zero exit code is returned, or the tree file
                           isn't output.
         """
 
@@ -209,9 +209,9 @@ class Gplace(object):
 
         if proc.returncode != 0:
             self.logger.error('An error was encountered while running tog.')
-            raise GplaceException(proc_err)
+            raise GPlaceException(proc_err)
 
         if not os.path.isfile(tree_file):
             self.logger.error('gplace tog returned a zero exit code but no output '
                               'file was generated.')
-            raise GplaceException
+            raise GPlaceException

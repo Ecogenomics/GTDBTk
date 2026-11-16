@@ -37,12 +37,12 @@ from gtdbtk.biolib_lite.seq_io import read_seq, read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
-from gtdbtk.external.gplace import Gplace
+from gtdbtk.external.gplace import GPlace
 from gtdbtk.external.skani import SkANI
 
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
-from gtdbtk.files.gplace_classification import GplaceClassifyFileBAC120, GplaceClassifyFileAR53
+from gtdbtk.files.gplace_classification import GPlaceClassifyFileBAC120, GPlaceClassifyFileAR53
 from gtdbtk.files.prodigal.tln_table_summary import TlnTableSummaryFile
 from gtdbtk.files.red_dict import REDDictFileAR53, REDDictFileBAC120
 from gtdbtk.files.gtdb_radii import GTDBRadiiFile
@@ -109,7 +109,7 @@ class Classify(object):
         """Place genomes into reference tree using gplace."""
 
         # No memory check here: gplace warns itself when its estimated peak is above the
-        # available memory, and the warning is passed to the GTDB-Tk log (Gplace._writer).
+        # available memory, and the warning is passed to the GTDB-Tk log (GPlace._writer).
 
         # run gplace to place bins in reference genome tree
         num_genomes = sum([1 for _seq_id, _seq in read_seq(user_msa_file)])
@@ -153,7 +153,7 @@ class Classify(object):
             self.logger.error('There was an error determining the marker set.')
             raise GenomeMarkerSetUnknown
 
-        gplace = Gplace()
+        gplace = GPlace()
         if marker_set_id == 'bac120':
             self.logger.info(f'gplace version: {gplace.version}')
         # #DEBUG: Skip gplace
@@ -315,7 +315,7 @@ class Classify(object):
                     summary_file = ClassifySummaryFileAR53(out_dir, prefix)
                     red_dict_file = REDDictFileAR53(out_dir, prefix)
                     disappearing_genomes_file = DisappearingGenomesFileAR53(out_dir, prefix)
-                    gplace_classify_file = GplaceClassifyFileAR53(out_dir, prefix)
+                    gplace_classify_file = GPlaceClassifyFileAR53(out_dir, prefix)
                 elif marker_set_id == 'bac120':
                     marker_summary_fh = CopyNumberFileBAC120(align_dir, prefix)
                     marker_summary_fh.read()
@@ -329,7 +329,7 @@ class Classify(object):
                     summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
                     red_dict_file = REDDictFileBAC120(out_dir, prefix)
                     disappearing_genomes_file = DisappearingGenomesFileBAC120(out_dir, prefix)
-                    gplace_classify_file = GplaceClassifyFileBAC120(out_dir, prefix)
+                    gplace_classify_file = GPlaceClassifyFileBAC120(out_dir, prefix)
                 else:
                     raise GenomeMarkerSetUnknown('There was an error determining the marker set.')
 

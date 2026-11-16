@@ -26,7 +26,7 @@ from gtdbtk.config.common import CONFIG
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
-from gtdbtk.files.gplace_classification import GplaceClassifyFileAR53
+from gtdbtk.files.gplace_classification import GPlaceClassifyFileAR53
 
 
 class TestClassify(unittest.TestCase):
@@ -91,7 +91,7 @@ class TestClassify(unittest.TestCase):
                                            schema='newick',
                                            rooting='force-rooted',
                                            preserve_underscores=True)
-        gplace_classify_file = GplaceClassifyFileAR53(self.out_dir, self.prefix)
+        gplace_classify_file = GPlaceClassifyFileAR53(self.out_dir, self.prefix)
         self.classify._get_gplace_taxonomy(gplace_classify_file, 'ar53', self.user_msa_file, tree)
         results = {}
 

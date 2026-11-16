@@ -106,7 +106,7 @@ class MSAMaskLengthMismatch(GTDBTkException):
     def __init__(self, message=''):
         GTDBTkException.__init__(self, message)
 
-class GplaceException(GTDBTkException):
+class GPlaceException(GTDBTkException):
     """ Thrown whenever an error is encountered while running gplace. """
 
     def __init__(self, message=''):

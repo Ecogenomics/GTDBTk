@@ -7,8 +7,8 @@ from unittest import mock
 
 from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.cli import get_main_parser
-from gtdbtk.exceptions import GplaceException, GTDBTkExit
-from gtdbtk.external.gplace import Gplace
+from gtdbtk.exceptions import GPlaceException, GTDBTkExit
+from gtdbtk.external.gplace import GPlace
 from gtdbtk.main import OptionsParser
 
 
@@ -60,7 +60,7 @@ class _SyncProcess(object):
 
 @mock.patch('gtdbtk.external.gplace.mp.Process', _SyncProcess)
 @mock.patch('gtdbtk.external.gplace.subprocess.Popen', _FakePopen)
-class TestGplace(unittest.TestCase):
+class TestGPlace(unittest.TestCase):
 
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
@@ -71,14 +71,14 @@ class TestGplace(unittest.TestCase):
         shutil.rmtree(self.tmp)
 
     def test_version(self):
-        self.assertEqual(Gplace().version, '0.1.1')
+        self.assertEqual(GPlace().version, '0.1.1')
         _FakePopen.version_out = 'gplace: version 0.1.0 Copyright 2026 Pierre-Alain Chaumeil\n'
-        self.assertEqual(Gplace().version, '0.1.0')
+        self.assertEqual(GPlace().version, '0.1.0')
 
     def test_run_command(self):
         json_out = os.path.join(self.tmp, 'gplace.json')
         gplace_out = os.path.join(self.tmp, 'gplace.out')
-        Gplace().run(4, 'wag', 'ref.refpkg', json_out, 'user.msa', gplace_out, '64G')
+        GPlace().run(4, 'wag', 'ref.refpkg', json_out, 'user.msa', gplace_out, '64G')
         self.assertEqual(_FakePopen.calls[-1],
                          ['gplace', 'place', '-m', 'wag', '-j', '4', '-c', 'ref.refpkg', '-o', json_out,
                           'user.msa', '--max_memory', '64G'])
@@ -87,28 +87,28 @@ class TestGplace(unittest.TestCase):
 
     def test_run_without_max_memory(self):
         json_out = os.path.join(self.tmp, 'gplace.json')
-        Gplace().run(1, 'wag', 'ref.refpkg', json_out, 'user.msa', os.path.join(self.tmp, 'gplace.out'))
+        GPlace().run(1, 'wag', 'ref.refpkg', json_out, 'user.msa', os.path.join(self.tmp, 'gplace.out'))
         self.assertNotIn('--max_memory', _FakePopen.calls[-1])
 
     def test_run_no_output(self):
         _FakePopen.write_output = False
-        with self.assertRaises(GplaceException):
-            Gplace().run(1, 'wag', 'ref.refpkg', os.path.join(self.tmp, 'gplace.json'), 'user.msa',
+        with self.assertRaises(GPlaceException):
+            GPlace().run(1, 'wag', 'ref.refpkg', os.path.join(self.tmp, 'gplace.json'), 'user.msa',
                          os.path.join(self.tmp, 'gplace.out'))
 
     def test_tog(self):
         tree_file = os.path.join(self.tmp, 'classify.tree')
-        Gplace().tog('gplace.json', tree_file)
+        GPlace().tog('gplace.json', tree_file)
         self.assertEqual(_FakePopen.calls[-1], ['gplace', 'tog', '-o', tree_file, 'gplace.json'])
 
         _FakePopen.write_output = False
-        with self.assertRaises(GplaceException):
-            Gplace().tog('gplace.json', os.path.join(self.tmp, 'missing.tree'))
+        with self.assertRaises(GPlaceException):
+            GPlace().tog('gplace.json', os.path.join(self.tmp, 'missing.tree'))
 
 
 @mock.patch.object(OptionsParser, '_check_package_compatibility', lambda self: None)
 @mock.patch.object(OptionsParser, 'classify')
-class TestGplaceOptions(unittest.TestCase):
+class TestGPlaceOptions(unittest.TestCase):
 
     def setUp(self):
         logger_setup(None, "gtdbtk.log", "GTDB-Tk", 'unittest', True)

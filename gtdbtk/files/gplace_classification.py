@@ -23,7 +23,7 @@ from gtdbtk.config.output import PATH_AR53_GPLACE_CLASS, PATH_BAC120_GPLACE_CLAS
 from gtdbtk.exceptions import GTDBTkExit
 
 
-class GplaceClassifyFile(object):
+class GPlaceClassifyFile(object):
     """Store the gPlace classifications."""
 
     def __init__(self, path: str):
@@ -46,7 +46,7 @@ class GplaceClassifyFile(object):
                     fh.write(f'{gid}\t{tax_str}\n')
 
 
-class GplaceClassifyFileAR53(GplaceClassifyFile):
+class GPlaceClassifyFileAR53(GPlaceClassifyFile):
     """Store the gPlace classifications for the AR53 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
@@ -55,7 +55,7 @@ class GplaceClassifyFileAR53(GplaceClassifyFile):
 
 
 
-class GplaceClassifyFileBAC120(GplaceClassifyFile):
+class GPlaceClassifyFileBAC120(GPlaceClassifyFile):
     """Store the gPlace classifications for the BAC120 marker set."""
 
     def __init__(self, out_dir: str, prefix: str):
