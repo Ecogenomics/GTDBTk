@@ -21,11 +21,12 @@ import os
 import queue
 import re
 import subprocess
+import sys
 import threading
 
 from tqdm import tqdm
 
-from gtdbtk.exceptions import GPlaceException
+from gtdbtk.exceptions import GPlaceException, GTDBTkExit
 from gtdbtk.tools import get_proc_memory_gb
 
 
@@ -92,9 +93,9 @@ class GPlace(object):
             out_q.put(None)
             p_writer.join()
 
+            # gplace's own error is already in the log (_writer): exit without a traceback.
             if p_worker.exitcode != 0:
-                raise GPlaceException(
-                    'An error was encountered while running gplace.')
+                raise GTDBTkExit(f'gplace failed, see the error above and {gplace_out}')
         except Exception:
             p_worker.terminate()
             out_q.put(None)
@@ -122,10 +123,9 @@ class GPlace(object):
                     out_q.put(line)
             proc.wait()
 
+            # Exit code only: an exception here prints a traceback from the child process.
             if proc.returncode != 0:
-                raise GPlaceException('An error was encountered while '
-                                       'running gplace, check the log '
-                                       'file: {}'.format(gplace_out))
+                sys.exit(proc.returncode)
 
     def _writer(self, out_q, pid):
         """The writer thread reports gplace progress from the piped log lines,

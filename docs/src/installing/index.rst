@@ -37,7 +37,7 @@ Hardware requirements
      - ~100 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - > 200 GB, or the limit set with ``--gplace_max_memory`` (e.g. 64 GB)
+     - ~300 GB, or the limit set with ``--gplace_max_memory`` (e.g. 64 GB)
      - ~100 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
 
@@ -46,7 +46,7 @@ Hardware requirements
 .. note::
    Placement with gPlace is the step that needs the most memory. By default gPlace places untiled:
    it holds the whole reference tree in memory, which is fastest but needs more memory than GTDB-Tk 2.8
-   (> 200 GB for the bacterial tree, against ~140 GB with 2.8's divide-and-conquer approach).
+   (~300 GB for the bacterial tree, against ~140 GB with 2.8's divide-and-conquer approach).
    With ``--gplace_max_memory`` (e.g. ``64G``) it places the tree tile by tile within that limit,
    with identical results.
    See :ref:`faq_memory` for more information.

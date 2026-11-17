@@ -17,10 +17,11 @@ class _FakePopen(object):
     calls = []
     version_out = 'gPlace v0.1.1\n'
     write_output = True
+    exit_code = 0
 
     def __init__(self, args, **_kwargs):
         _FakePopen.calls.append(args)
-        self.returncode, self.pid = 0, 1
+        self.returncode, self.pid = self.exit_code, 1
         if self.write_output and '-o' in args:
             open(args[args.index('-o') + 1], 'w').close()
         self.stdout = io.StringIO('[2026-11-13 10:00:00] INFO: Read 2 sequences from user.msa\n')
@@ -48,6 +49,8 @@ class _SyncProcess(object):
         try:
             self.target(*self.args)
             self.exitcode = 0
+        except SystemExit as e:
+            self.exitcode = e.code
         except Exception:
             self.exitcode = 1
 
@@ -64,7 +67,7 @@ class TestGPlace(unittest.TestCase):
 
     def setUp(self):
         self.tmp = tempfile.mkdtemp(prefix='gtdbtk_tmp_')
-        _FakePopen.calls, _FakePopen.write_output = [], True
+        _FakePopen.calls, _FakePopen.write_output, _FakePopen.exit_code = [], True, 0
         _FakePopen.version_out = 'gPlace v0.1.1\n'
 
     def tearDown(self):
@@ -95,6 +98,13 @@ class TestGPlace(unittest.TestCase):
         with self.assertRaises(GPlaceException):
             GPlace().run(1, 'wag', 'ref.refpkg', os.path.join(self.tmp, 'gplace.json'), 'user.msa',
                          os.path.join(self.tmp, 'gplace.out'))
+
+    def test_run_gplace_error(self):
+        # e.g. --max_memory below gplace's minimum: one clean exit, no traceback
+        _FakePopen.exit_code = 1
+        with self.assertRaises(GTDBTkExit):
+            GPlace().run(1, 'wag', 'ref.refpkg', os.path.join(self.tmp, 'gplace.json'), 'user.msa',
+                         os.path.join(self.tmp, 'gplace.out'), '5')
 
     def test_tog(self):
         tree_file = os.path.join(self.tmp, 'classify.tree')

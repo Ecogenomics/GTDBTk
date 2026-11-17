@@ -57,7 +57,7 @@ GTDB-Tk reaches the memory limit during placement
 
 Placing genomes in the reference tree with gPlace is the step that needs the most memory. By default
 gPlace places untiled: it holds the likelihood vectors of the whole reference tree in memory, which is
-the fastest way to place but needs more than 200 GB for the bacterial tree, more than GTDB-Tk 2.8
+the fastest way to place but needs about 300 GB for the bacterial tree, more than GTDB-Tk 2.8
 needed (~140 GB). gPlace warns in the GTDB-Tk log when its
 estimated peak memory is above the memory available to it (the machine's memory, or a SLURM or cgroup limit).
 

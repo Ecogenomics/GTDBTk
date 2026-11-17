@@ -38,7 +38,6 @@ from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.gplace import GPlace
-from gtdbtk.external.skani import SkANI
 
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
@@ -50,7 +49,7 @@ from gtdbtk.files.missing_genomes import DisappearingGenomesFileAR53, Disappeari
 from gtdbtk.markers import Markers
 from gtdbtk.relative_distance import RelativeDistance
 from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_reference_ids, TreeTraversal, \
-    calculate_patristic_distance, tqdm_log, standardise_taxonomy, limit_rank, aa_percent_msa
+    calculate_patristic_distance, tqdm_log, standardise_taxonomy, aa_percent_msa
 
 
 sys.setrecursionlimit(15000)
@@ -809,7 +808,7 @@ class Classify(object):
                     summary_row.note = None
             summary_row.gid = leaf.taxon.label
             summary_row.classification = standardise_taxonomy(';'.join(red_taxonomy))
-            summary_row.gplace_tax = gplace_taxonomy_dict.get(leaf.taxon.label)
+            summary_row.placement_tax = gplace_taxonomy_dict.get(leaf.taxon.label)
             if summary_row.classification_method is None:
                 summary_row.classification_method = detection
             summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
@@ -1339,7 +1338,7 @@ class Classify(object):
                         add_ncbi_prefix(gplace_leafnode)))
 
                     summary_row.gid = userleaf.taxon.label
-                    summary_row.gplace_tax = gplace_taxonomy_dict.get(userleaf.taxon.label)
+                    summary_row.placement_tax = gplace_taxonomy_dict.get(userleaf.taxon.label)
                     summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                     summary_row.msa_percent = aa_percent_msa(
                         msa_dict.get(summary_row.gid))
@@ -1411,7 +1410,7 @@ class Classify(object):
 
             elif existing_result:
                 summary_row.gid = userleaf.taxon.label
-                summary_row.gplace_tax = gplace_taxonomy_dict.get(
+                summary_row.placement_tax = gplace_taxonomy_dict.get(
                     userleaf.taxon.label)
                 summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                 summary_row.msa_percent = aa_percent_msa(
@@ -1470,7 +1469,7 @@ class Classify(object):
 
         summary_row = ClassifySummaryFileRow()
         summary_row.gid = label
-        summary_row.gplace_tax = gplace_taxonomy_dict.get(label)
+        summary_row.placement_tax = gplace_taxonomy_dict.get(label)
         summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
         summary_row.msa_percent = aa_percent_msa(msa_dict.get(label))
         summary_row.tln_table = trans_table_dict.get(label)
