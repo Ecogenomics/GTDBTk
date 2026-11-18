@@ -159,7 +159,7 @@ If you are unsure which one to choose, Bioconda is generally the easiest.</p>
 <td><p>~90 minutes / 1,000 genomes &#64; 64 CPUs</p></td>
 </tr>
 <tr class="row-odd"><td><p>Bacteria</p></td>
-<td><p>~140GB (950 GB when using –full_tree)</p></td>
+<td><p>~140 GiB &#64; 1 CPU; ~190 GiB &#64; 64 CPUs (950 GB when using –full_tree)</p></td>
 <td><p>~100 GB</p></td>
 <td><p>~90 minutes / 1,000 genomes &#64; 64 CPUs</p></td>
 </tr>
@@ -167,8 +167,9 @@ If you are unsure which one to choose, Bioconda is generally the easiest.</p>
 </table>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The amount reported of memory reported can vary depending on the number of pplacer threads.
-See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="std std-ref">GTDB-Tk reaches the memory limit / pplacer crashes</span></a> for more information.</p>
+<p>Peak memory increases with the number of pplacer processes (<code class="docutils literal notranslate"><span class="pre">--pplacer_cpus</span></code>, or <code class="docutils literal notranslate"><span class="pre">--cpus</span></code> if not set):
+placing genomes in the largest class-level tree (R232) needs ~140 GiB with 1 CPU and ~190 GiB with 64 CPUs.
+The exact peak depends a little on what each process is doing. See <a class="reference internal" href="../faq.html#faq-pplacer"><span class="std std-ref">GTDB-Tk reaches the memory limit / pplacer crashes</span></a> for more information.</p>
 </div>
 </section>
 <section id="python-libraries">

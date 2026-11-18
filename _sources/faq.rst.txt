@@ -55,8 +55,9 @@ GTDB-Tk FAQ
 GTDB-Tk reaches the memory limit / pplacer crashes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The host may report that GTDB-Tk has exceeded the memory requirements due to how ``pplacer`` is implemented.
-Briefly, this is only the reported value and is not true for how much memory is actually in use.
+The memory pplacer needs grows with the number of pplacer processes: placing genomes in the largest class-level
+tree (R232) needs ~140 GiB with 1 CPU and ~190 GiB with 64 CPUs (187.3 GiB measured). The host may also report
+more memory than is physically in use, due to how ``pplacer`` is implemented.
 
 When pplacer runs, it goes through several steps notable detailed below:
 
@@ -82,18 +83,19 @@ When pplacer runs, it goes through several steps notable detailed below:
       * Unix uses the `copy-on-write <https://en.wikipedia.org/wiki/Copy-on-write>`_ method for each child.
 
       .. note::
-         This means that a new thread will appear using the same amount of memory as the parent (150 GB).
-         Due to how copy-on-write is implemented, this is the same memory space and is not using any additional physical memory.
+         This means that a new process will appear using the same amount of memory as the parent (150 GB).
+         Due to copy-on-write, the cached tree is shared and is not copied for each process, so the host will report
+         pplacer using a total of ``PARENT_MEMORY * (N_CHILDREN + 1)`` GB, much more than is physically in use.
 
-         Therefore, the host will report pplacer using a total of ``PARENT_MEMORY * (N_CHILDREN + 1)`` GB.
+   #. each worker reads the shared cache, and uses some memory of its own while placing genomes
+      (about 0.75 GiB per additional process with the largest class-level tree in R232), then exits once the
+      queue of query genomes is depleted.
 
-   #. each worker will only read from the memory space and exit once the queue of query genomes is depleted.
 
+For example, running GTDB-Tk on the bacterial tree with 1 CPU requires ~140 GiB of physical memory, but the host
+will report ~280 GiB of memory in use. With 64 CPUs, it requires ~190 GiB of physical memory.
 
-For example, running GTDB-Tk on the bacterial tree (requires ~140 GB of memory) with 1 CPU will require ~140 GB of physical
-memory, but the host will report ~280 GB of memory in use.
-
-Using the ``--scratch_dir`` parameter and ``--pplacer_cpus 1`` may help.
+If memory is short, use fewer pplacer processes (e.g. ``--pplacer_cpus 1``); the ``--scratch_dir`` parameter may also help.
 
 
 How is GTDB-Tk validating species assignments using average nucleotide identity?

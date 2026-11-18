@@ -179,8 +179,9 @@ One solution would be to use (<a class="reference external" href="https://dendro
 <h2>GTDB-Tk FAQ<a class="headerlink" href="#gtdb-tk-faq" title="Link to this heading"></a></h2>
 <section id="gtdb-tk-reaches-the-memory-limit-pplacer-crashes">
 <span id="faq-pplacer"></span><h3>GTDB-Tk reaches the memory limit / pplacer crashes<a class="headerlink" href="#gtdb-tk-reaches-the-memory-limit-pplacer-crashes" title="Link to this heading"></a></h3>
-<p>The host may report that GTDB-Tk has exceeded the memory requirements due to how <code class="docutils literal notranslate"><span class="pre">pplacer</span></code> is implemented.
-Briefly, this is only the reported value and is not true for how much memory is actually in use.</p>
+<p>The memory pplacer needs grows with the number of pplacer processes: placing genomes in the largest class-level
+tree (R232) needs ~140 GiB with 1 CPU and ~190 GiB with 64 CPUs (187.3 GiB measured). The host may also report
+more memory than is physically in use, due to how <code class="docutils literal notranslate"><span class="pre">pplacer</span></code> is implemented.</p>
 <p>When pplacer runs, it goes through several steps notable detailed below:</p>
 <ol class="arabic">
 <li><p>pplacer requests an uninitialised chunk of memory from the host (say, 150 GB).</p>
@@ -207,18 +208,20 @@ Briefly, this is only the reported value and is not true for how much memory is 
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This means that a new thread will appear using the same amount of memory as the parent (150 GB).
-Due to how copy-on-write is implemented, this is the same memory space and is not using any additional physical memory.</p>
-<p>Therefore, the host will report pplacer using a total of <code class="docutils literal notranslate"><span class="pre">PARENT_MEMORY</span> <span class="pre">*</span> <span class="pre">(N_CHILDREN</span> <span class="pre">+</span> <span class="pre">1)</span></code> GB.</p>
+<p>This means that a new process will appear using the same amount of memory as the parent (150 GB).
+Due to copy-on-write, the cached tree is shared and is not copied for each process, so the host will report
+pplacer using a total of <code class="docutils literal notranslate"><span class="pre">PARENT_MEMORY</span> <span class="pre">*</span> <span class="pre">(N_CHILDREN</span> <span class="pre">+</span> <span class="pre">1)</span></code> GB, much more than is physically in use.</p>
 </div>
 </li>
-<li><p>each worker will only read from the memory space and exit once the queue of query genomes is depleted.</p></li>
+<li><p>each worker reads the shared cache, and uses some memory of its own while placing genomes
+(about 0.75 GiB per additional process with the largest class-level tree in R232), then exits once the
+queue of query genomes is depleted.</p></li>
 </ol>
 </li>
 </ol>
-<p>For example, running GTDB-Tk on the bacterial tree (requires ~140 GB of memory) with 1 CPU will require ~140 GB of physical
-memory, but the host will report ~280 GB of memory in use.</p>
-<p>Using the <code class="docutils literal notranslate"><span class="pre">--scratch_dir</span></code> parameter and <code class="docutils literal notranslate"><span class="pre">--pplacer_cpus</span> <span class="pre">1</span></code> may help.</p>
+<p>For example, running GTDB-Tk on the bacterial tree with 1 CPU requires ~140 GiB of physical memory, but the host
+will report ~280 GiB of memory in use. With 64 CPUs, it requires ~190 GiB of physical memory.</p>
+<p>If memory is short, use fewer pplacer processes (e.g. <code class="docutils literal notranslate"><span class="pre">--pplacer_cpus</span> <span class="pre">1</span></code>); the <code class="docutils literal notranslate"><span class="pre">--scratch_dir</span></code> parameter may also help.</p>
 </section>
 <section id="how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity">
 <h3>How is GTDB-Tk validating species assignments using average nucleotide identity?<a class="headerlink" href="#how-is-gtdb-tk-validating-species-assignments-using-average-nucleotide-identity" title="Link to this heading"></a></h3>
