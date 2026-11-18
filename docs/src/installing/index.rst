@@ -37,13 +37,14 @@ Hardware requirements
      - ~100 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~140GB (950 GB when using --full_tree)
+     - ~140 GiB @ 1 CPU; ~190 GiB @ 64 CPUs (950 GB when using --full_tree)
      - ~100 GB
      - ~90 minutes / 1,000 genomes @ 64 CPUs
 
 .. note::
-   The amount reported of memory reported can vary depending on the number of pplacer threads.
-   See :ref:`faq_pplacer` for more information.
+   Peak memory increases with the number of pplacer processes (``--pplacer_cpus``, or ``--cpus`` if not set):
+   placing genomes in the largest class-level tree (R232) needs ~140 GiB with 1 CPU and ~190 GiB with 64 CPUs.
+   The exact peak depends a little on what each process is doing. See :ref:`faq_pplacer` for more information.
 
 
 Python libraries

@@ -55,7 +55,7 @@ GTDB-Tk v2.7.0+ includes the following new features:
     * *Previously:* Using `--skip_ani_screen`, genomes placed in a genus by pplacer were only compared to representative genomes within that specific genus. 
     * *Now:* Because the database is a single skani sketch, user genomes are compared against *all* GTDB reference genomes once at the very beginning of the pipeline. When the new `--place_species` flag is selected, the genomes are still explicitly placed in the reference tree.
 
-**⚠️ IMPORTANT MEMORY WARNING:** The divide-and-conquer approach now requires more than 128 GB of RAM. Specifically, you will need at least **140 GB of RAM** for R232.
+**⚠️ IMPORTANT MEMORY WARNING:** The divide-and-conquer approach now requires more than 128 GB of RAM. Specifically, you will need at least **140 GiB of RAM** for R232 with 1 CPU, and **~190 GiB** with 64 CPUs: peak memory grows with the number of pplacer CPUs (`--pplacer_cpus`).
 
 ## 📈 Performance
 Using ANI screen "can" reduce computation by >50%, although it depends on the set of input genomes. A set of input genomes consisting primarily of new species will not benefit from ANI screen as much as a set of genomes that are largely assigned to GTDB species clusters. In the latter case, the ANI screen will reduce the number of genomes that need to be classified by pplacer which reduces computation time substantially (between 25% and 60% in our testing).
