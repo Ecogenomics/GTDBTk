@@ -815,28 +815,28 @@ class Classify(object):
             summary_row.tln_table = trans_table_dict.get(summary_row.gid)
             summary_row.red_value = current_rel_list
 
-        if summary_row.gid in percent_multihit_dict:
-            warnings.append('Genome has more than {}% of markers with multiple hits'.format(
-                percent_multihit_dict.get(summary_row.gid)))
-        if summary_row.gid in bac_ar_diff:
-            warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
-                bac_ar_diff.get(summary_row.gid).get('bac120'),
-                bac_ar_diff.get(summary_row.gid).get('ar53')))
+            if summary_row.gid in percent_multihit_dict:
+                warnings.append('Genome has more than {}% of markers with multiple hits'.format(
+                    percent_multihit_dict.get(summary_row.gid)))
+            if summary_row.gid in bac_ar_diff:
+                warnings.append('Genome domain questionable ( {}% Bacterial, {}% Archaeal)'.format(
+                    bac_ar_diff.get(summary_row.gid).get('bac120'),
+                    bac_ar_diff.get(summary_row.gid).get('ar53')))
 
-        if len(warnings) > 0:
-            if summary_row.warnings is not None:
-                warnings.extend(summary_row.warnings.split(';'))
-            summary_row.warnings = ';'.join(set(warnings))
-            warning_counter.append(summary_row.gid)
-        if len(notes) > 0:
-            if summary_row.note is not None:
-                notes.extend(summary_row.note.split(';'))
-            summary_row.note = ';'.join(set(notes))
-        summary_file.add_row(summary_row)
+            if len(warnings) > 0:
+                if summary_row.warnings is not None:
+                    warnings.extend(summary_row.warnings.split(';'))
+                summary_row.warnings = ';'.join(set(warnings))
+                warning_counter.append(summary_row.gid)
+            if len(notes) > 0:
+                if summary_row.note is not None:
+                    notes.extend(summary_row.note.split(';'))
+                summary_row.note = ';'.join(set(notes))
+            summary_file.add_row(summary_row)
 
-        if debugopt:
-            debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
-                leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+            if debugopt:
+                debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
+                    leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
 
 
         return class_level_classification,warning_counter
