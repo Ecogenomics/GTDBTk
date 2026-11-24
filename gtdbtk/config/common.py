@@ -273,6 +273,14 @@ class __GTDBTkCommonConfig:
     def MRCA_RED_AR53(self):
         return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_ar53.tsv")
 
+    @property
+    def JPLACE_TABLE_BAC120(self):
+        return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_bac120.jplace_table.tsv.gz")
+
+    @property
+    def JPLACE_TABLE_AR53(self):
+        return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_ar53.jplace_table.tsv.gz")
+
     def get_REF_HASHES(self,version=None):
         compatible_versions = [int(x.replace('r','')) for x in CONFIG.COMPATIBLE_REF_DATA_VERSIONS]
         if version is not None and version not in compatible_versions:

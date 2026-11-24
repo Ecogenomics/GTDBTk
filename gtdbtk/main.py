@@ -598,7 +598,8 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        classify = Classify(options.cpus, options.gplace_cpus, options.min_af,options.skip_gplace)
+        classify = Classify(options.cpus, options.gplace_cpus, options.min_af,options.skip_gplace,
+                            getattr(options, 'use_jplace_table', False))
         reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,

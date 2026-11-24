@@ -38,6 +38,7 @@ from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.config.output import *
 from gtdbtk.exceptions import GenomeMarkerSetUnknown, GTDBTkExit
 from gtdbtk.external.gplace import GPlace
+from gtdbtk.jplace_table import JplaceTable, TableEdge, best_placements
 
 from gtdbtk.files.classify_summary import ClassifySummaryFileAR53, ClassifySummaryFileBAC120, ClassifySummaryFileRow
 from gtdbtk.files.marker.copy_number import CopyNumberFileAR53, CopyNumberFileBAC120
@@ -55,15 +56,78 @@ from gtdbtk.tools import add_ncbi_prefix, symlink_f, get_reference_ids, TreeTrav
 sys.setrecursionlimit(15000)
 
 
+class TreeEdge(object):
+    """What the RED and topology rules read for one placed genome, from the gplace tog tree:
+    the node the genome is attached to and the reference genomes below it (see
+    gtdbtk.jplace_table.TableEdge for the same from the jplace table)."""
+
+    def __init__(self, classify, leaf, tt):
+        self.classify, self.tt = classify, tt
+        # In some cases , gplace can associate 2 user genomes
+        # on the same parent node so we need to go up the tree
+        # to find a node with a reference genome as leaf.
+        cur_node = leaf.parent_node
+        list_subnode = [subnd.taxon.label.replace("'", '')
+                        for subnd in tt.get_leaf_nodes(cur_node)]
+        while len(set(list_subnode) & classify.reference_ids) < 1:
+            cur_node = cur_node.parent_node
+            list_subnode = [subnd.taxon.label.replace("'", '')
+                            for subnd in tt.get_leaf_nodes(cur_node)]
+        self.node = cur_node
+        self.red = cur_node.rel_dist
+
+        parent_taxon_node = cur_node.parent_node
+        _support, parent_taxon, _aux_info = parse_label(parent_taxon_node.label)
+        while parent_taxon_node is not None and not parent_taxon:
+            parent_taxon_node = parent_taxon_node.parent_node
+            _support, parent_taxon, _aux_info = parse_label(parent_taxon_node.label)
+        self.parent_taxon = parent_taxon
+        self.parent_red = parent_taxon_node.rel_dist
+
+    def ref_ids(self):
+        """Reference genomes under the node."""
+        return [childnd.taxon.label.replace("'", '')
+                for childnd in self.tt.get_leaf_nodes(self.node)
+                if childnd.taxon.label in self.classify.reference_ids]
+
+    def n_refs(self):
+        return len(self.ref_ids())
+
+    def first_ref(self):
+        return self.ref_ids()[0]
+
+    def unique_name(self, rank):
+        """The name all reference genomes under the node have for a rank, or None."""
+        names = {self.classify.gtdb_taxonomy.get(name)[self.classify.order_rank.index(rank)]
+                 for name in self.ref_ids()}
+        return names.pop() if len(names) == 1 else None
+
+    def child_taxon(self, child_rk):
+        """(taxon, RED) of the first internal node labelled with child_rk under the node."""
+        for subranknd in self.node.preorder_iter():
+            _support, subranknd_taxon, _aux_info = parse_label(subranknd.label)
+            if subranknd.is_internal() \
+                    and subranknd_taxon is not None \
+                    and subranknd_taxon.startswith(child_rk):
+                return subranknd_taxon, subranknd.rel_dist
+        return None, None
+
+    def redtax(self, closest_rank):
+        list_subnode = [subnd.taxon.label.replace("'", '')
+                        for subnd in self.tt.get_leaf_nodes(self.node)]
+        return self.classify._get_redtax(list_subnode, closest_rank)
+
+
 class Classify(object):
     """Determine taxonomic classification of genomes by ML placement."""
 
-    def __init__(self, cpus=1, gplace_cpus=None, af_threshold=None,skip_gplace=False):
+    def __init__(self, cpus=1, gplace_cpus=None, af_threshold=None,skip_gplace=False, use_jplace_table=False):
         """Initialize."""
 
         check_dependencies(['gplace', 'skani'])
 
         self.skip_gplace = skip_gplace
+        self.use_jplace_table = use_jplace_table
 
         self.taxonomy_file = CONFIG.TAXONOMY_FILE
         self.af_threshold = af_threshold if af_threshold else CONFIG.AF_THRESHOLD
@@ -175,6 +239,22 @@ class Classify(object):
             raise GenomeMarkerSetUnknown
         gplace.tog(gplace_json_out, tree_file)
         return tree_file
+
+    def _jplace_table_edges(self, marker_set_id, out_dir, user_msa_file):
+        """{genome: TableEdge} for the genomes of the user MSA placed by gplace, from the
+        jplace and the release's jplace table."""
+        if marker_set_id == 'bac120':
+            jplace = os.path.join(out_dir, PATH_BAC120_GPLACE_JSON)
+            table_file, red_file = CONFIG.JPLACE_TABLE_BAC120, CONFIG.MRCA_RED_BAC120
+        else:
+            jplace = os.path.join(out_dir, PATH_AR53_GPLACE_JSON)
+            table_file, red_file = CONFIG.JPLACE_TABLE_AR53, CONFIG.MRCA_RED_AR53
+        jplace_tree, best = best_placements(jplace)
+        table = JplaceTable(table_file)
+        table.check(jplace_tree, red_file, self.taxonomy_file)
+        user_genome_ids = set(read_fasta(user_msa_file).keys())
+        return {gid: TableEdge(table, edge_num, distal_length, self.gtdb_taxonomy)
+                for gid, (edge_num, distal_length) in best.items() if gid in user_genome_ids}
 
     def _parse_red_dict(self, red_dist_dict):
         rank_map = {'domain': 'd__', 'phylum': 'p__', 'class': 'c__',
@@ -459,11 +539,23 @@ class Classify(object):
                 debug_file = self._generate_summary_file(
                     marker_set_id, prefix, out_dir, debugopt)
 
-                tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
-                gplace_taxonomy_dict = self._get_gplace_taxonomy(gplace_classify_file,
-                                                                   marker_set_id,
-                                                                   user_msa_file,
-                                                                   tree_to_process)
+                table_edges = None
+                if self.use_jplace_table:
+                    # RED, placement taxonomy and topology from the jplace table: the tog tree
+                    # (classify_tree) is only written for the user
+                    tree_to_process = None
+                    table_edges = self._jplace_table_edges(marker_set_id, out_dir, user_msa_file)
+                    for gid, edge in table_edges.items():
+                        gplace_classify_file.add_genome(gid, standardise_taxonomy(edge.placement_taxonomy,
+                                                                                  marker_set_id))
+                    gplace_classify_file.write()
+                    gplace_taxonomy_dict = gplace_classify_file.data
+                else:
+                    tree_to_process = self._assign_mrca_red(classify_tree, marker_set_id)
+                    gplace_taxonomy_dict = self._get_gplace_taxonomy(gplace_classify_file,
+                                                                       marker_set_id,
+                                                                       user_msa_file,
+                                                                       tree_to_process)
 
                 disappearing_genomes = [seq_id for seq_id in genomes_to_process if seq_id not in gplace_taxonomy_dict]
                 class_level_classification, classified_user_genomes, warning_counter = self._parse_tree(
@@ -474,7 +566,7 @@ class Classify(object):
                     red_dict_file.data, summary_file,
                     gplace_taxonomy_dict, warning_counter, debug_file,
                     debugopt,
-                    raw_skani_results)
+                    raw_skani_results, table_edges)
                 # add filtered genomes to the summary file
                 warning_counter = self.add_filtered_genomes_to_summary(align_dir,warning_counter, summary_file, marker_set_id, prefix)
 
@@ -634,42 +726,35 @@ class Classify(object):
             if found_ref:
                 qry_nodes[leaf_node]['gplace_g'] = found_ref
 
-        return qry_nodes
+        # {user genome: {"gplace_g": label of the single reference genome below it, or None}}
+        return {leaf_node.taxon.label: {"gplace_g": info["gplace_g"].taxon.label if info["gplace_g"] else None}
+                for leaf_node, info in qry_nodes.items()}
 
-    def _classify_red_topology(self, tree, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
-                               user_msa_file, red_dict,warning_counter, summary_file, gplace_taxonomy_dict, debug_file, debugopt, classified_user_genomes,
-                               unclassified_user_genomes, tt):
+    def _tree_edges(self, tree, user_msa_file, classified_user_genomes, tt):
+        """Edge views (TreeEdge) of the genomes left to classify by RED, read from the tog tree."""
         user_genome_ids = set(read_fasta(user_msa_file).keys())
         user_genome_ids = user_genome_ids.difference(set(classified_user_genomes.keys()))
+        return {leaf.taxon.label: TreeEdge(self, leaf, tt)
+                for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label in user_genome_ids)}
+
+    def _classify_red_topology(self, edges, msa_dict, percent_multihit_dict, trans_table_dict, bac_ar_diff,
+                               red_dict,warning_counter, summary_file, gplace_taxonomy_dict, debug_file, debugopt,
+                               unclassified_user_genomes):
+        """edges: {genome: edge view} (TreeEdge from the tog tree, or TableEdge from the jplace
+        table): the RED and topology rules below only read the genome's RED and the edge it
+        is placed on."""
         class_level_classification = dict()
-        for leaf in tree.leaf_node_iter(filter_fn=lambda x: x.taxon.label in user_genome_ids):
+        for gid, edge in edges.items():
 
-            # In some cases , gplace can associate 2 user genomes
-            # on the same parent node so we need to go up the tree
-            # to find a node with a reference genome as leaf.
-            cur_node = leaf.parent_node
-            list_subnode = [subnd.taxon.label.replace("'", '')
-                            for subnd in tt.get_leaf_nodes(cur_node)]
-            while len(set(list_subnode) & self.reference_ids) < 1:
-                cur_node = cur_node.parent_node
-                list_subnode = [subnd.taxon.label.replace("'", '')
-                                for subnd in tt.get_leaf_nodes(cur_node)]
-
-            current_rel_list = cur_node.rel_dist
-
-            parent_taxon_node = cur_node.parent_node
-            _support, parent_taxon, _aux_info = parse_label(parent_taxon_node.label)
-
-            while parent_taxon_node is not None and not parent_taxon:
-                parent_taxon_node = parent_taxon_node.parent_node
-                _support, parent_taxon, _aux_info = parse_label(parent_taxon_node.label)
+            current_rel_list = edge.red
 
             # is the node represent multiple ranks, we select the lowest one
             # i.e. if node is p__A;c__B;o__C we pick o__
+            parent_taxon = edge.parent_taxon
             parent_rank = parent_taxon.split(";")[-1][0:3]
-            parent_rel_dist = parent_taxon_node.rel_dist
+            parent_rel_dist = edge.parent_red
 
-            debug_info = [leaf.taxon.label, parent_rank, parent_rel_dist, '', '', '', '']
+            debug_info = [gid, parent_rank, parent_rel_dist, '', '', '', '']
 
             child_taxons = []
             closest_rank = None
@@ -681,26 +766,12 @@ class Classify(object):
                 # child rank will be 'o__)'
                 child_rk = self.order_rank[self.order_rank.index(parent_rank) + 1]
 
-                # get all reference genomes under the current node
-                list_subnode = [childnd.taxon.label.replace("'", '')
-                                for childnd in tt.get_leaf_nodes(cur_node)
-                                if childnd.taxon.label in self.reference_ids]
-
-                # get all names for the child rank
-                list_ranks = [self.gtdb_taxonomy.get(name)[self.order_rank.index(child_rk)]
-                              for name in list_subnode]
-
-                # if there is just one rank name
-                if len(set(list_ranks)) == 1:
-                    for subranknd in cur_node.preorder_iter():
-                        _support, subranknd_taxon, _aux_info = parse_label(subranknd.label)
-                        if subranknd.is_internal() \
-                                and subranknd_taxon is not None \
-                                and subranknd_taxon.startswith(child_rk):
-                            child_taxons = subranknd_taxon.split(";")
-                            child_taxon_node = subranknd
-                            child_rel_dist = child_taxon_node.rel_dist
-                            break
+                # if all reference genomes under the current node have one name for the child rank
+                if edge.unique_name(child_rk) is not None:
+                    # first node labelled with the child rank below the current node
+                    child_taxon, child_rel_dist = edge.child_taxon(child_rk)
+                    if child_taxon is not None:
+                        child_taxons = child_taxon.split(";")
                 else:
                     # case 2a and 2b
                     closest_rank = parent_rank
@@ -712,21 +783,15 @@ class Classify(object):
 
             # case 1b
             if len(child_taxons) == 0 and closest_rank is None:
-                list_leaves = [childnd.taxon.label.replace("'", '')
-                               for childnd in tt.get_leaf_nodes(cur_node)
-                               if childnd.taxon.label in self.reference_ids]
-                if len(list_leaves) != 1:
-                    list_subrank = []
-                    for leaf_subrank in list_leaves:
-                        list_subrank.append(self.gtdb_taxonomy.get(leaf_subrank)
-                                            [self.order_rank.index(parent_rank) + 1])
-                    if len(set(list_subrank)) == 1:
-                        raise GTDBTkExit(f'There should be only one leaf ({leaf.taxon.label}): '
-                                         f'reference leaves {list_leaves} -> sub-ranks {list_subrank}')
+                if edge.n_refs() != 1:
+                    # sub-rank = child rank of all reference genomes below
+                    if edge.unique_name(child_rk) is not None:
+                        raise GTDBTkExit(f'There should be only one leaf ({gid}): {edge.n_refs()} reference '
+                                         f'leaves, all in {edge.unique_name(child_rk)}')
                     else:
                         closest_rank = parent_rank
                         detection = "taxonomic classification fully defined by topology"
-                list_leaf_ranks = self.gtdb_taxonomy.get(list_leaves[0])[
+                list_leaf_ranks = self.gtdb_taxonomy.get(edge.first_ref())[
                                   self.order_rank.index(child_rk):-1]  # We remove the species name
                 for leaf_taxon in reversed(list_leaf_ranks):
                     if leaf_taxon == list_leaf_ranks[0]:
@@ -788,27 +853,25 @@ class Classify(object):
 
             debug_info[6] = closest_rank
 
-            list_subnode = [subnd.taxon.label.replace("'", '')
-                            for subnd in tt.get_leaf_nodes(cur_node)]
-            red_taxonomy = self._get_redtax(list_subnode, closest_rank)
+            red_taxonomy = edge.redtax(closest_rank)
             notes = []
             warnings = []
 
             standardised_red_tax= standardise_taxonomy(';'.join(red_taxonomy))
 
-            class_level_classification[leaf.taxon.label] = standardised_red_tax
+            class_level_classification[gid] = standardised_red_tax
 
 
 
             del debug_info[0]
             summary_row = ClassifySummaryFileRow()
-            if leaf.taxon.label in unclassified_user_genomes:
-                summary_row = unclassified_user_genomes.get(leaf.taxon.label)
+            if gid in unclassified_user_genomes:
+                summary_row = unclassified_user_genomes.get(gid)
                 if summary_row.note == '':
                     summary_row.note = None
-            summary_row.gid = leaf.taxon.label
+            summary_row.gid = gid
             summary_row.classification = standardise_taxonomy(';'.join(red_taxonomy))
-            summary_row.placement_tax = gplace_taxonomy_dict.get(leaf.taxon.label)
+            summary_row.placement_tax = gplace_taxonomy_dict.get(gid)
             if summary_row.classification_method is None:
                 summary_row.classification_method = detection
             summary_row.msa_percent = aa_percent_msa(msa_dict.get(summary_row.gid))
@@ -836,14 +899,15 @@ class Classify(object):
 
             if debugopt:
                 debug_file.write('{0}\t{1}\t{2}\t{3}\n'.format(
-                    leaf.taxon.label, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
+                    gid, current_rel_list, '\t'.join(str(x) for x in debug_info), detection))
 
 
         return class_level_classification,warning_counter
 
     def _parse_tree(self, tree, genomes, prefix,skani_classified_user_genomes,marker_set_id, msa_dict, percent_multihit_dict,genes,
                     trans_table_dict, bac_ar_diff,user_msa_file, red_dict, summary_file, gplace_taxonomy_dict,
-                    warning_counter,debug_file, debugopt,all_skani_results=None):
+                    warning_counter,debug_file, debugopt,all_skani_results=None, table_edges=None):
+        """table_edges: {genome: TableEdge} to classify from the jplace table instead of the tree."""
         # Genomes can be classified by using skani or RED values
         # We go through all leaves of the tree. if the leaf is a user
         # genome we take its parent node and look at all the leaves
@@ -855,7 +919,10 @@ class Classify(object):
         self.logger.log(CONFIG.LOG_TASK, 'Traversing tree to determine classification method.')
         run_ANI = False if genes else True
 
-        qury_nodes = self._get_gplace_reference(tree, self.reference_ids)
+        if table_edges is None:
+            qury_nodes = self._get_gplace_reference(tree, self.reference_ids)
+        else:
+            qury_nodes = {gid: {"gplace_g": edge.single_ref()} for gid, edge in table_edges.items()}
 
         #DEBUG: Skip skani step
         #run_ANI = False
@@ -875,12 +942,17 @@ class Classify(object):
             self.logger.info('ANI classification has been skipped (--genes option used).')
 
 
-        class_level_classification,warning_counter = self._classify_red_topology(tree, msa_dict, percent_multihit_dict,
-                                                                 trans_table_dict, bac_ar_diff, user_msa_file,
+        if table_edges is None:
+            edges = self._tree_edges(tree, user_msa_file, classified_user_genomes, tt)
+        else:
+            user_genome_ids = set(read_fasta(user_msa_file).keys()).difference(classified_user_genomes)
+            edges = {gid: edge for gid, edge in table_edges.items() if gid in user_genome_ids}
+        class_level_classification,warning_counter = self._classify_red_topology(edges, msa_dict, percent_multihit_dict,
+                                                                 trans_table_dict, bac_ar_diff,
                                                                  red_dict,warning_counter, summary_file,
                                                                  gplace_taxonomy_dict,
-                                                                 debug_file, debugopt, classified_user_genomes,
-                                                                 unclassified_user_genomes, tt)
+                                                                 debug_file, debugopt,
+                                                                 unclassified_user_genomes)
 
         return class_level_classification,classified_user_genomes,warning_counter
 
@@ -1284,14 +1356,14 @@ class Classify(object):
             for row in rows:
                 genome_results_map[row.gid] = row
 
-        for userleaf, gplace_info in qury_nodes.items():
+        for gid, gplace_info in qury_nodes.items():
             #import IPython; IPython.embed()
 
             summary_row = ClassifySummaryFileRow()
 
-            warnings = self._parse_genome_warnings(userleaf.taxon.label,percent_multihit_dict,bac_ar_diff)
+            warnings = self._parse_genome_warnings(gid,percent_multihit_dict,bac_ar_diff)
             
-            existing_result = genome_results_map.get(userleaf.taxon.label)
+            existing_result = genome_results_map.get(gid)
 
             # Parse the (other references) immediately
             related_refs_lookup = {}
@@ -1301,26 +1373,26 @@ class Classify(object):
             # Genomes that reached the tree without a pre-screen assignment lost their
             # below-radius / low-AF reporting. Recover it from the raw skani hits
 
-            if existing_result is None and all_skani_results and userleaf.taxon.label in all_skani_results:
+            if existing_result is None and all_skani_results and gid in all_skani_results:
                 gplace_leafnode = None
 
                 if gplace_info.get("gplace_g"):
-                    gplace_leafnode = gplace_info.get("gplace_g").taxon.label
+                    gplace_leafnode = gplace_info.get("gplace_g")
                     if gplace_leafnode[0:3] in ('RS_', 'GB_'):
                         gplace_leafnode = gplace_leafnode[3:]
                 self._resolve_ani_unassigned_genome(
-                    userleaf.taxon.label, gplace_leafnode,
-                    all_skani_results.get(userleaf.taxon.label),
+                    gid, gplace_leafnode,
+                    all_skani_results.get(gid),
                     gplace_taxonomy_dict, msa_dict, trans_table_dict,
                     percent_multihit_dict, bac_ar_diff, warning_counter,
                     summary_file, classified_user_genomes, unclassified_user_genomes)
                 continue
 
             if gplace_info.get("gplace_g"):
-                gplace_leafnode = gplace_info.get("gplace_g").taxon.label
+                gplace_leafnode = gplace_info.get("gplace_g")
                 if gplace_leafnode[0:3] in ['RS_', 'GB_']:
                     gplace_leafnode = gplace_leafnode[3:]
-                if userleaf.taxon.label in genome_results_map:
+                if gid in genome_results_map:
                     # import IPython; IPython.embed()
                     skani_matching_reference = existing_result.closest_genome_ref
 
@@ -1332,20 +1404,20 @@ class Classify(object):
                     else:
                         warnings.append(
                             "Genome not assigned to closest species as it falls outside its pre-defined ANI radius")
-                        warning_counter.append(userleaf.taxon.label)
+                        warning_counter.append(gid)
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(
                         add_ncbi_prefix(gplace_leafnode)))
 
-                    summary_row.gid = userleaf.taxon.label
-                    summary_row.placement_tax = gplace_taxonomy_dict.get(userleaf.taxon.label)
+                    summary_row.gid = gid
+                    summary_row.placement_tax = gplace_taxonomy_dict.get(gid)
                     summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                     summary_row.msa_percent = aa_percent_msa(
                         msa_dict.get(summary_row.gid))
                     summary_row.tln_table = trans_table_dict.get(summary_row.gid)
                     if len(warnings) > 0:
                         summary_row.warnings = ';'.join(warnings)
-                        warning_counter.append(userleaf.taxon.label)
+                        warning_counter.append(gid)
 
                     if skani_matching_reference is not None:
                         summary_row.closest_genome_ref = skani_matching_reference
@@ -1389,7 +1461,7 @@ class Classify(object):
                                 gplace_leafnode
                             )
                         summary_file.add_row(summary_row)
-                        classified_user_genomes[userleaf.taxon.label] = standardise_taxonomy(taxa_str)
+                        classified_user_genomes[gid] = standardise_taxonomy(taxa_str)
                     else:
                         summary_row.closest_placement_ref = gplace_leafnode
                         summary_row.closest_placement_radius = str(
@@ -1406,12 +1478,12 @@ class Classify(object):
                         )
 
 
-                        unclassified_user_genomes[userleaf.taxon.label] = summary_row
+                        unclassified_user_genomes[gid] = summary_row
 
             elif existing_result:
-                summary_row.gid = userleaf.taxon.label
+                summary_row.gid = gid
                 summary_row.placement_tax = gplace_taxonomy_dict.get(
-                    userleaf.taxon.label)
+                    gid)
                 summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                 summary_row.msa_percent = aa_percent_msa(
                     msa_dict.get(summary_row.gid))
@@ -1424,7 +1496,7 @@ class Classify(object):
                 if skani_matching_reference:
                     if len(warnings) > 0:
                         summary_row.warnings = ';'.join(warnings)
-                        warning_counter.append(userleaf.taxon.label)
+                        warning_counter.append(gid)
 
                     taxa_str = ";".join(self.gtdb_taxonomy.get(add_ncbi_prefix(skani_matching_reference)))
                     summary_row.classification = standardise_taxonomy(taxa_str)
@@ -1441,15 +1513,15 @@ class Classify(object):
                     summary_row.other_related_refs = existing_result.other_related_refs
 
                     summary_file.add_row(summary_row)
-                    classified_user_genomes[userleaf.taxon.label] = standardise_taxonomy(taxa_str)
+                    classified_user_genomes[gid] = standardise_taxonomy(taxa_str)
                 else:
                     warnings.append(
                         "Genome not assigned to closest species as it falls outside its pre-defined ANI radius")
                     summary_row.warnings = ';'.join(warnings)
-                    warning_counter.append(userleaf.taxon.label)
+                    warning_counter.append(gid)
                     summary_row.classification_method = 'taxonomic classification defined by topology and ANI'
                     summary_row.other_related_refs = existing_result.other_related_refs
-                    unclassified_user_genomes[userleaf.taxon.label] = summary_row
+                    unclassified_user_genomes[gid] = summary_row
         return classified_user_genomes, unclassified_user_genomes,warning_counter
 
     def _resolve_ani_unassigned_genome(self, label, gplace_leafnode, hits,

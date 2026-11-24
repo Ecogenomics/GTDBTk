@@ -194,6 +194,12 @@ def __gplace_max_memory(group):
                             'if the placement does not fit, gplace places the tree tile by tile')
 
 
+# This argument should be hidden from help
+def __use_jplace_table(group):
+    group.add_argument('--use_jplace_table', action="store_true", default=False,
+                       help=argparse.SUPPRESS)
+
+
 # Removed with gplace, hidden for one release so older commands still run.
 def __pplacer_deprecated(group):
     group.add_argument('-f', '--full_tree', default=False, action='store_true',
@@ -384,6 +390,7 @@ def get_main_parser():
             __temp_dir(grp)
             __debug(grp)
             __skip_gplace(grp)
+            __use_jplace_table(grp)
             __pplacer_deprecated(grp)
             __help(grp)
 
@@ -464,6 +471,7 @@ def get_main_parser():
             __temp_dir(grp)
             __debug(grp)
             __skip_gplace(grp)
+            __use_jplace_table(grp)
             __pplacer_deprecated(grp)
             __help(grp)
 
