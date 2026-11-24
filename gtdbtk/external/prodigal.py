@@ -249,7 +249,7 @@ class Prodigal(object):
             else:
                 result_dict[gid] = gid_dict
 
-        if len(lq_gids) > 0:
+        if len(lq_gids + empty_gids) > 0:
             self.logger.warning(f'Skipping {len(lq_gids+empty_gids)} of {len(genomic_files)} '
                                 f'genomes as no genes were called by Prodigal. '
                                 f'Check the genome quality (see gtdbtk.warnings.log).')

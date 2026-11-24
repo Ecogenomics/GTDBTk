@@ -515,7 +515,7 @@ class OptionsParser(object):
             shutil.copytree(input_dir, genome_test_dir)
 
             args = ['gtdbtk', 'classify_wf','--place_species', '--genome_dir', genome_test_dir,
-                    '--out_dir', output_dir, '--cpus', str(options.cpus), '-f']
+                    '--out_dir', output_dir, '--cpus', str(options.cpus)]
             self.logger.info('Command: {}'.format(' '.join(args)))
 
             # Pipe the output and write to disk.
