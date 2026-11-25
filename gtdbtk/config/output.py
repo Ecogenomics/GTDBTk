@@ -43,6 +43,10 @@ PATH_BAC120_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.bac120.classify.tree')
 PATH_AR53_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.ar53.classify.tree')
 PATH_BAC120_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.bac120.summary.tsv')
 PATH_AR53_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar53.summary.tsv')
+PATH_DE_NOVO_SPECIES = join(DIR_CLASSIFY, '{prefix}.de_novo_species.tsv')
+PATH_BAC120_DE_NOVO_SPECIES = join(DIR_CLASSIFY, '{prefix}.bac120.de_novo_species.tsv')
+PATH_AR53_DE_NOVO_SPECIES = join(DIR_CLASSIFY, '{prefix}.ar53.de_novo_species.tsv')
+
 PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
 PATH_AR53_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.ar53.disappearing_genomes.tsv')
 PATH_BAC120_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.bac120.disappearing_genomes.tsv')
@@ -89,6 +93,9 @@ PATH_AR53_DECORATED_TREE = join(DIR_INFER, '{prefix}.ar53.decorated.tree')
 
 # Command: ani_rep
 DIR_ANI_REP_INT = join('intermediate_results')
+
+# Path for dereplication
+DIR_ANI_REP_INT_DEREP = join(DIR_ANI_REP_INT, 'derep')
 
 # General files
 PATH_WARNINGS = '{prefix}.warnings.log'

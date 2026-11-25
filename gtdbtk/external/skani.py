@@ -374,6 +374,49 @@ class SkANI(object):
         return ani_af
 
 
+    def run_triangle(self, genomes, prefix, skani_preset=None):
+        """Runs skani triangle (all-vs-all) on a set of genomes.
+
+        Parameters
+        ----------
+        genomes : dict[str, str]
+            A dictionary containing the genome ids and their paths.
+        prefix : str
+            The prefix to use for the temporary directory.
+        skani_preset : str, optional
+            The preset to use for skani, e.g. '--medium' or '--slow'.
+
+        Returns
+        -------
+        dict[str, dict[str, dict[str, float]]]
+            The ANI/AF of each pair, in one direction (query -> reference).
+        """
+        with tempfile.TemporaryDirectory(prefix=prefix) as tmpdir:
+            genome_list = os.path.join(tmpdir, 'genome_list.txt')
+            reverse_dict = self.write_list_to_file(genomes, genome_list)
+
+            args = ['skani', 'triangle', '-E', '-t', f'{self.cpus}', '-l', genome_list]
+            if skani_preset:
+                args.append(skani_preset if skani_preset.startswith('--') else f'--{skani_preset}')
+
+            self.logger.debug(' '.join(args))
+            proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+            if proc.returncode != 0:
+                self.logger.error('STDERR:\n' + proc.stderr)
+                raise GTDBTkExit('skani triangle returned a non-zero exit code.')
+
+            results = []
+            for line in proc.stdout.splitlines():
+                if not line.strip() or line.startswith('Ref_file'):
+                    continue
+                parsed = self.parse_result_line(line)
+                results.append((reverse_dict.get(parsed.query_file),
+                                reverse_dict.get(parsed.ref_file),
+                                parsed.ani,
+                                parsed.af_r,
+                                parsed.af_q))
+            return self.parse_results(iter(results))
+
     def write_list_to_file(self, d_genomes, path):
         """Writes a query/reference list to disk.
 
