@@ -30,7 +30,7 @@ class ClassifySummaryFileRow:
     __slots__ = ('gid', 'classification', 'closest_genome_ref', 'closest_genome_ref_radius',
                  'closest_genome_tax', 'closest_genome_ani', 'closest_genome_af', 'closest_placement_ref',
                  'closest_placement_radius', 'closest_placement_tax', 'closest_placement_ani',
-                 'closest_placement_af', 'pplacer_tax', 'classification_method',
+                 'closest_placement_af', 'placement_tax', 'classification_method',
                  'note', 'other_related_refs', 'msa_percent', 'tln_table',
                  'red_value', 'warnings')
 
@@ -48,7 +48,7 @@ class ClassifySummaryFileRow:
         self.closest_placement_tax: Optional[str] = None
         self.closest_placement_ani: Optional[float] = None
         self.closest_placement_af: Optional[float] = None
-        self.pplacer_tax: Optional[str] = None
+        self.placement_tax: Optional[str] = None
         self.classification_method: Optional[str] = None
         self.note: Optional[str] = None
         self.other_related_refs: Optional[str] = None
@@ -88,7 +88,7 @@ class ClassifySummaryFile:
                    ('closest_placement_taxonomy', row.closest_placement_tax),
                    ('closest_placement_ani', row.closest_placement_ani),
                    ('closest_placement_af', row.closest_placement_af),
-                   ('pplacer_taxonomy', row.pplacer_tax),
+                   ('placement_taxonomy', row.placement_tax),
                    ('classification_method', row.classification_method),
                    ('note', row.note),
                    ('other_related_references(genome_id,species_name,radius,ANI,AF)', row.other_related_refs),
@@ -173,7 +173,7 @@ class ClassifySummaryFile:
                 row.closest_placement_tax = data[9]
                 row.closest_placement_ani = data[10]
                 row.closest_placement_af = data[11]
-                row.pplacer_tax = data[12]
+                row.placement_tax = data[12]
                 row.classification_method = data[13]
                 row.note = data[14]
                 row.other_related_refs = data[15]

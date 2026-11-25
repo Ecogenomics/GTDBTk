@@ -289,7 +289,7 @@ class HmmAligner(object):
                 stdout, stderr = proc.communicate()
 
                 for line in stderr.splitlines():
-                    print(line)
+                    self.logger.warning(line)
 
                 result = self._get_aligned_marker(
                     marker_info.get("gene"), stdout)

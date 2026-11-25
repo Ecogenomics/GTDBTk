@@ -18,6 +18,7 @@ import argparse
 import logging
 import ntpath
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -520,7 +521,7 @@ class OptionsParser(object):
             shutil.copytree(input_dir, genome_test_dir)
 
             args = ['gtdbtk', 'classify_wf','--place_species', '--genome_dir', genome_test_dir,
-                    '--out_dir', output_dir, '--cpus', str(options.cpus), '-f']
+                    '--out_dir', output_dir, '--cpus', str(options.cpus)]
             self.logger.info('Command: {}'.format(' '.join(args)))
 
             # Pipe the output and write to disk.
@@ -577,7 +578,6 @@ class OptionsParser(object):
         classify_step.starts_at = datetime.now()
         classify_step.output_dir = options.out_dir
         classify_step.debug_option = options.debug
-        classify_step.full_tree = options.full_tree
         classify_step.place_species = process_classified_genomes
 
         de_novo_species_file = getattr(options, 'de_novo_species', None)
@@ -603,9 +603,6 @@ class OptionsParser(object):
             check_dir_exists(options.align_dir)
             classify_step.align_dir = options.align_dir
         make_sure_path_exists(options.out_dir)
-        if options.scratch_dir:
-            make_sure_path_exists(options.scratch_dir)
-            classify_step.scratch_dir = options.scratch_dir
 
         if options.genome_dir:
             check_dir_exists(options.genome_dir)
@@ -619,14 +616,14 @@ class OptionsParser(object):
                                               options.batchfile,
                                               options.extension)
 
-        classify = Classify(options.cpus, options.pplacer_cpus, options.min_af,options.skip_pplacer)
+        classify = Classify(options.cpus, options.gplace_cpus, options.min_af,options.skip_gplace,
+                            getattr(options, 'use_jplace_table', False))
         reports = classify.run(genomes=genomes,
                      align_dir=options.align_dir,
                      out_dir=options.out_dir,
                      prefix=options.prefix,
-                     scratch_dir=options.scratch_dir,
+                     gplace_max_memory=options.gplace_max_memory,
                      debugopt=options.debug,
-                     fulltreeopt=options.full_tree,
                      skip_ani_screen=skip_ani_screen,
                      genes=options.genes,
                      ani_summary_files=ani_summary_files,
@@ -1043,6 +1040,23 @@ class OptionsParser(object):
                 'You cannot use less than 1 CPU, defaulting to 1.')
             options.cpus = 1
 
+        # Options removed with gplace (hidden for one release).
+        if getattr(options, 'full_tree', False):
+            self.logger.warning('--full_tree is ignored with gplace: the full bacterial tree is always used.')
+        if getattr(options, 'scratch_dir', None):
+            self.logger.warning('--scratch_dir is ignored with gplace, use --gplace_max_memory to limit memory.')
+        if getattr(options, 'pplacer_cpus', None):
+            self.logger.warning('--pplacer_cpus is deprecated, use --gplace_cpus.')
+            if options.gplace_cpus is None:
+                options.gplace_cpus = options.pplacer_cpus
+        if getattr(options, 'skip_pplacer', False):
+            options.skip_gplace = True
+
+        # Same format as gplace --max_memory, checked before identify/align run.
+        if getattr(options, 'gplace_max_memory', None) and \
+                not re.fullmatch(r'\s*([0-9]*\.?[0-9]+)\s*([KMGT]?)(I?B)?\s*', options.gplace_max_memory, re.IGNORECASE):
+            raise GTDBTkExit(f'Invalid --gplace_max_memory "{options.gplace_max_memory}" (examples: 64G, 500M, 1.5T).')
+
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])
             check_dependencies(['FastTree' + ('MP' if options.cpus > 1 else '')])
@@ -1150,8 +1164,7 @@ class OptionsParser(object):
 
         elif options.subparser_name == 'classify_wf':
 
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
-                                'skani'])
+            check_dependencies(['prodigal', 'hmmalign', 'gplace','skani'])
 
             if getattr(options, 'de_novo_species', None):
                 check_file_exists(options.de_novo_species)
@@ -1195,7 +1208,7 @@ class OptionsParser(object):
                         self.logger.warning('The ani_screen step has already been completed, we load existing results.')
                         ani_summary_files = previous_ani_step.output_files
                         classify_method = Classify()
-                        classified_genomes=classify_method.load_skani_results_pre_pplacer(ani_summary_files)
+                        classified_genomes=classify_method.load_skani_results_pre_gplace(ani_summary_files)
                         classified_genomes = classify_method.convert_rows_to_dict(classified_genomes)
                         len_skani_classified_bac120 = len(classified_genomes['bac120']) \
                             if 'bac120' in classified_genomes else 0
@@ -1314,7 +1327,7 @@ class OptionsParser(object):
         elif options.subparser_name == 'export_msa':
             self.export_msa(options)
         elif options.subparser_name == 'test':
-            check_dependencies(['prodigal', 'hmmalign', 'pplacer', 'guppy',
+            check_dependencies(['prodigal', 'hmmalign', 'gplace',
                                 'skani'])
             self.run_test(options)
         elif options.subparser_name == 'check_install':

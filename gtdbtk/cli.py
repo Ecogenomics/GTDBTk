@@ -174,8 +174,8 @@ def __debug(group):
                        help='create intermediate files for debugging purposes')
 
 # This argument should be hidden from help
-def __skip_pplacer(group):
-    group.add_argument('--skip_pplacer', action="store_true", default=False,
+def __skip_gplace(group):
+    group.add_argument('--skip_gplace', action="store_true", default=False,
                        help=argparse.SUPPRESS)
 
 
@@ -183,26 +183,37 @@ def __help(group):
     group.add_argument('-h', '--help', action="help", help="show help message")
 
 
-def __pplacer_cpus(group):
-    group.add_argument('--pplacer_cpus', type=int, default=None,
-                       help='number of CPUs to use during pplacer placement')
+def __gplace_cpus(group):
+    group.add_argument('--gplace_cpus', type=int, default=None,
+                       help='number of CPUs to use during gplace placement')
 
 
-def __scratch_dir(group):
+def __gplace_max_memory(group):
+    group.add_argument('--gplace_max_memory', type=str, default=None,
+                       help='memory gplace may use, e.g. 64G or 500M (a plain number is GiB); '
+                            'if the placement does not fit, gplace places the tree tile by tile')
+
+
+# This argument should be hidden from help
+def __use_jplace_table(group):
+    group.add_argument('--use_jplace_table', action="store_true", default=False,
+                       help=argparse.SUPPRESS)
+
+
+# Removed with gplace, hidden for one release so older commands still run.
+def __pplacer_deprecated(group):
+    group.add_argument('-f', '--full_tree', default=False, action='store_true',
+                       help=argparse.SUPPRESS)
     group.add_argument('--scratch_dir', type=str, default=None,
-                       help='reduce pplacer memory usage by writing to disk (slower).')
-
+                       help=argparse.SUPPRESS)
+    group.add_argument('--pplacer_cpus', type=int, default=None,
+                       help=argparse.SUPPRESS)
+    group.add_argument('--skip_pplacer', action="store_true", default=False,
+                       help=argparse.SUPPRESS)
 
 # def __recalculate_red(group):
 #     group.add_argument('-r', '--recalculate_red', default=False, action='store_true',
 #                        help='recalculate RED values based on the reference tree and all added user genomes')
-
-
-def __full_tree(group):
-    group.add_argument('-f', '--full_tree', default=False, action='store_true',
-                       help='use the unsplit bacterial tree for the classify step; this is the original GTDB-Tk '
-                            f'approach (version < 2) and requires more than {CONFIG.PPLACER_MIN_RAM_BAC_FULL} GB of RAM to load the reference tree')
-
 
 def __identify_dir(group, required):
     group.add_argument('--identify_dir', type=str, default=None, required=required,
@@ -305,7 +316,7 @@ def __db_version(group):
 
 def __place_species(group):
     group.add_argument('--place_species', default=False, action='store_true',
-                       help='place species in pplacer trees even if they are classified with skani.')
+                       help='place species in gplace trees even if they are classified with skani.')
 
 def __write_single_copy_genes(group):
     group.add_argument('--write_single_copy_genes', default=False, action='store_true',
@@ -371,21 +382,22 @@ def get_main_parser():
             __place_species(grp)
         with arg_group(parser, 'optional arguments') as grp:
             __de_novo_species(grp)
-            __full_tree(grp)
             __extension(grp)
             __min_perc_aa(grp)
             __prefix(grp)
             __genes(grp)
             __cpus(grp)
-            __pplacer_cpus(grp)
+            __gplace_cpus(grp)
+            __gplace_max_memory(grp)
             __force(grp)
-            __scratch_dir(grp)
             __write_single_copy_genes(grp)
             __keep_intermediates(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)
-            __skip_pplacer(grp)
+            __skip_gplace(grp)
+            __use_jplace_table(grp)
+            __pplacer_deprecated(grp)
             __help(grp)
 
     # Identify marker genes in genomes.
@@ -444,7 +456,7 @@ def get_main_parser():
             __debug(grp)
             __help(grp)
 
-    # Classify genomes via placement with pplacer.
+    # Classify genomes via placement with gplace.
     with subparser(sub_parsers, 'classify', 'Determine taxonomic classification of genomes.') as parser:
         with mutex_group(parser, required=True) as grp:
             __genome_dir(grp)
@@ -459,14 +471,15 @@ def get_main_parser():
             __extension(grp)
             __prefix(grp)
             __cpus(grp)
-            __pplacer_cpus(grp)
-            __scratch_dir(grp)
+            __gplace_cpus(grp)
+            __gplace_max_memory(grp)
             __genes(grp)
-            __full_tree(grp)
             __min_af(grp)
             __temp_dir(grp)
             __debug(grp)
-            __skip_pplacer(grp)
+            __skip_gplace(grp)
+            __use_jplace_table(grp)
+            __pplacer_deprecated(grp)
             __help(grp)
 
     # Root a tree using an outgroup.

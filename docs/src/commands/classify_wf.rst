@@ -28,7 +28,8 @@ sequence alignments (MSA) are obtained by aligning marker genes to their respect
 The ``align`` step concatenates the aligned marker genes and filters the concatenated MSA to approximately 5,000 amino acids.
 
 
-Finally, the ``classify`` step uses `pplacer <http://matsen.fhcrc.org/pplacer/>`_ to find the maximum-likelihood
+Finally, the ``classify`` step uses `gPlace <https://github.com/cmc-aau/gPlace>`_, which gives the same placements as
+`pplacer <http://matsen.fhcrc.org/pplacer/>`_ with far less memory, to find the maximum-likelihood
 placement of each genome in the GTDB-Tk reference tree. GTDB-Tk classifies each genome based on its placement in the reference tree,
 its relative evolutionary divergence, and/or average nucleotide identity (ANI) to reference genomes.
 
@@ -122,24 +123,16 @@ Output
     [2025-08-05 20:40:54] INFO: Creating concatenated alignment for 136,649 bacterial GTDB and user genomes.
     [2025-08-05 20:41:36] INFO: Creating concatenated alignment for 3 bacterial user genomes.
     [2025-08-05 20:41:38] INFO: Done.
-    [2025-08-05 20:41:39] TASK: Placing 3 bacterial genomes into backbone reference tree with pplacer using 20 CPUs (be patient).
-    [2025-08-05 20:41:39] INFO: pplacer version: v1.1.alpha19-0-g807f6f3
+    [2025-08-05 20:41:39] TASK: Placing 3 bacterial genomes into reference tree with gplace using 20 CPUs (be patient).
+    [2025-08-05 20:41:39] INFO: gplace version: 0.1.1
     [2025-08-05 20:44:58] INFO: Calculating RED values based on reference tree.
-    [2025-08-05 20:44:59] INFO: 3 out of 3 have an class assignments. Those genomes will be reclassified.
-    [2025-08-05 20:44:59] TASK: Placing 2 bacterial genomes into class-level reference tree 7 (1/2) with pplacer using 20 CPUs (be patient).
-    [2025-08-05 20:56:48] INFO: Calculating RED values based on reference tree.
-    [2025-08-05 20:56:52] TASK: Traversing tree to determine classification method.
-    [2025-08-05 20:56:52] INFO: Completed 2 genomes in 0.00 seconds (6,026.30 genomes/second).
-    [2025-08-05 20:56:52] TASK: Calculating average nucleotide identity using skani (v0.2.1).
-    [2025-08-05 20:56:53] INFO: Completed 13 comparisons in 0.53 seconds (24.35 comparisons/second).
-    [2025-08-05 20:56:53] INFO: 0 genome(s) have been classified using skani and pplacer.
-    [2025-08-05 20:56:53] TASK: Placing 1 bacterial genomes into class-level reference tree 2 (2/2) with pplacer using 20 CPUs (be patient).
-    [2025-08-05 21:08:19] INFO: Calculating RED values based on reference tree.
-    [2025-08-05 21:08:25] TASK: Traversing tree to determine classification method.
-    [2025-08-05 21:08:25] INFO: Completed 1 genome in 0.00 seconds (1,531.89 genomes/second).
-    [2025-08-05 21:08:25] INFO: 0 genome(s) have been classified using skani and pplacer.
-    [2025-08-05 21:08:25] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
-    [2025-08-05 21:08:25] INFO: Done.
-    [2025-08-05 21:08:25] INFO: Removing intermediate files.
-    [2025-08-05 21:08:25] INFO: Intermediate files removed.
-    [2025-08-05 21:08:25] INFO: Done.
+    [2025-08-05 20:45:04] TASK: Traversing tree to determine classification method.
+    [2025-08-05 20:45:04] INFO: Completed 3 genomes in 0.00 seconds (6,026.30 genomes/second).
+    [2025-08-05 20:45:04] TASK: Calculating average nucleotide identity using skani (v0.2.1).
+    [2025-08-05 20:45:05] INFO: Completed 13 comparisons in 0.53 seconds (24.35 comparisons/second).
+    [2025-08-05 20:45:05] INFO: 0 genome(s) have been classified using skani and gplace.
+    [2025-08-05 20:45:05] INFO: Note that Tk classification mode is insufficient for publication of new taxonomic designations. New designations should be based on one or more de novo trees, an example of which can be produced by Tk in de novo mode.
+    [2025-08-05 20:45:05] INFO: Done.
+    [2025-08-05 20:45:05] INFO: Removing intermediate files.
+    [2025-08-05 20:45:05] INFO: Intermediate files removed.
+    [2025-08-05 20:45:05] INFO: Done.

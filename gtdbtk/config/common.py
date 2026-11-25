@@ -14,9 +14,6 @@ class __GTDBTkCommonConfig:
     MIN_REF_DATA_VERSION = 'r232'
     COMPATIBLE_REF_DATA_VERSIONS = ['r232']
 
-    BACKBONE_PPLACER_REF_PKG = 'gtdbtk_package_backbone.refpkg'
-    CLASS_LEVEL_PPLACER_REF_PKG = 'gtdbtk.package.{iter}.refpkg'
-
     # Relative Evolution Distance
     RED_INTERVAL = 0.1
     RED_MIN_SUPPORT = 0.0
@@ -91,10 +88,6 @@ class __GTDBTkCommonConfig:
     # Information about alignment Fraction to resolve skani results
     AF_THRESHOLD = 0.5
 
-    PPLACER_MIN_RAM_BAC_FULL = 320
-    PPLACER_MIN_RAM_BAC_SPLIT = 55
-    PPLACER_MIN_RAM_ARC = 40
-
     SKANI_SPECIES_THRESHOLD = 95.0
     SKANI_IDENTITY_SKETCH_THRESHOLD = 85.0
     SKANI_GENOMES_EXT = "_genomic.fna.gz"
@@ -149,7 +142,7 @@ class __GTDBTkCommonConfig:
         return os.path.join(self.GENERIC_PATH, 'masks/')
 
     @property
-    def PPLACER_DIR(self):
+    def GPLACE_DIR(self):
         return os.path.join(self.GENERIC_PATH, 'pplacer/')
 
     @property
@@ -184,45 +177,6 @@ class __GTDBTkCommonConfig:
     def PFAM_HMM_DIR(self):
         return os.path.join(self.MARKER_DIR, 'pfam/')
 
-    @property
-    def SPLIT_DIR(self):
-        return os.path.join(self.GENERIC_PATH, 'split')
-
-    @property
-    def BACKBONE_SPLIT_DIR(self):
-        return os.path.join(self.SPLIT_DIR, 'backbone')
-
-    @property
-    def CLASS_LEVEL_SPLIT_DIR(self):
-        return os.path.join(self.SPLIT_DIR, 'class_level')
-
-    @property
-    def BACKBONE_PPLACER_DIR(self):
-        return os.path.join(self.BACKBONE_SPLIT_DIR, 'pplacer')
-
-    @property
-    def CLASS_LEVEL_PPLACER_DIR(self):
-        return os.path.join(self.CLASS_LEVEL_SPLIT_DIR, 'pplacer')
-
-    @property
-    def BACKBONE_RED_DIR(self):
-        return os.path.join(self.BACKBONE_SPLIT_DIR, 'red')
-
-    @property
-    def CLASS_LEVEL_RED_DIR(self):
-        return os.path.join(self.CLASS_LEVEL_SPLIT_DIR, 'red')
-
-    @property
-    def CLASS_LEVEL_TREE_MAPPING_FILE(self):
-        return os.path.join(self.CLASS_LEVEL_SPLIT_DIR, 'tree_mapping.tsv')
-
-    @property
-    def BACKBONE_RED_FILE(self):
-        return os.path.join(self.BACKBONE_RED_DIR, 'backbone_red_value.tsv')
-
-    @property
-    def CLASS_LEVEL_RED_FILE(self):
-        return os.path.join(self.CLASS_LEVEL_RED_DIR, 'red_value_{iter}.tsv')
 
     def _read_metadata_file(self):
         if self._red_dist_bac_dict is None or self._red_dist_arc_dict is None or self._version_data is None:
@@ -300,15 +254,15 @@ class __GTDBTkCommonConfig:
         return f"gtdb_{self.VERSION_DATA}_rps23.mask"
 
     @property
-    def PPLACER_BAC120_REF_PKG(self):
+    def GPLACE_BAC120_REF_PKG(self):
         return f"gtdb_{self.VERSION_DATA}_bac120.refpkg"
 
     @property
-    def PPLACER_AR53_REF_PKG(self):
+    def GPLACE_AR53_REF_PKG(self):
         return f"gtdb_{self.VERSION_DATA}_ar53.refpkg"
 
     @property
-    def PPLACER_RPS23_REF_PKG(self):
+    def GPLACE_RPS23_REF_PKG(self):
         return f"gtdb_{self.VERSION_DATA}_rps23.refpkg"
 
     @property
@@ -327,6 +281,14 @@ class __GTDBTkCommonConfig:
     def MRCA_RED_AR53(self):
         return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_ar53.tsv")
 
+    @property
+    def JPLACE_TABLE_BAC120(self):
+        return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_bac120.jplace_table.tsv.gz")
+
+    @property
+    def JPLACE_TABLE_AR53(self):
+        return os.path.join(self.RED_DIR, f"gtdbtk_{self.VERSION_DATA}_ar53.jplace_table.tsv.gz")
+
     def get_REF_HASHES(self,version=None):
         compatible_versions = [int(x.replace('r','')) for x in CONFIG.COMPATIBLE_REF_DATA_VERSIONS]
         if version is not None and version not in compatible_versions:
@@ -334,7 +296,7 @@ class __GTDBTkCommonConfig:
 
         if version is None or version==232:
             return {
-                self.PPLACER_DIR: '4e8ffa1133f10bde827bddb81413d06d62de341e',
+                self.GPLACE_DIR: '4e8ffa1133f10bde827bddb81413d06d62de341e',
                 self.MASK_DIR: '84c7f7a17adc134db4161b15db10ae58389a90c1',
                 self.MARKER_DIR: '163f542c3f0a40f59df45d453aa235b39aa96e27',
                 self.RADII_DIR: '546c1769ae19c946ba94b91482f32002a204f598',

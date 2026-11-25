@@ -24,7 +24,7 @@ from gtdbtk.exceptions import GTDBTkExit
 
 
 class DisappearingGenomesFile(object):
-    """Store the GTDB-Tk RED dictionary."""
+    """Store the genomes missing from the gplace tree."""
 
     def __init__(self, path: str,domain: str):
         self.path: str = path
@@ -33,7 +33,7 @@ class DisappearingGenomesFile(object):
         self.file_name: str = os.path.basename(path)
 
     def add_genome(self, gid: str, tree_index: str):
-        """PlAdds the pplacer classification of a given genome."""
+        """Adds a genome missing from the gplace tree."""
         if gid in self.data:
             raise GTDBTkExit(f'Warning! Attempting to add duplicate genome: {gid}')
         self.data[gid] = tree_index

@@ -1,7 +1,7 @@
-.. _files/classification_pplacer.tsv:
+.. _files/classification_gplace.tsv:
 
-classification_pplacer.tsv
-==========================
+classification_gplace.tsv
+=========================
 
 The classification of query genomes based only on their placement in the reference tree.
 

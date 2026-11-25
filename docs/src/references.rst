@@ -35,7 +35,7 @@ References
      - Hyatt D, et al. 2010. `Prodigal: prokaryotic gene recognition and translation initiation site identification <https://www.ncbi.nlm.nih.gov/pubmed/20211023>`_. *BMC Bioinformatics*, 11:119. doi: 10.1186/1471-2105-11-119.
    * - `HMMER <http://hmmer.org/>`_
      - Eddy SR. 2011. `Accelerated profile HMM searches <https://www.ncbi.nlm.nih.gov/pubmed/22039361>`_. *PLOS Comp. Biol.*, 7:e1002195.
-   * - `pplacer <http://matsen.fhcrc.org/pplacer/>`_
+   * - `pplacer <http://matsen.fhcrc.org/pplacer/>`_ (placement uses `gPlace <https://github.com/cmc-aau/gPlace>`_, which reproduces pplacer)
      - Matsen FA, et al. 2010. `pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree <https://www.ncbi.nlm.nih.gov/pubmed/21034504>`_. *BMC Bioinformatics*, 11:538.
    * - `skani <https://github.com/bluenote-1577/skani>`_
      - Shaw J. and Yu Y.W. 2023. `Fast and robust metagenomic sequence comparison through sparse chaining with skani <https://www.nature.com/articles/s41592-023-02018-3>`_. *Nature Methods*, 20, pages1661–1665 (2023).

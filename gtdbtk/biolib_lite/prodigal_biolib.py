@@ -153,7 +153,7 @@ class Prodigal(object):
                                             '{}'.format(genome_file))
                         self.logger.warning('Error message:')
                         for line in stderr.splitlines():
-                            print(line)
+                            self.logger.warning(line)
                         self.logger.warning('This genome is skipped.')
 
                     # determine coding density

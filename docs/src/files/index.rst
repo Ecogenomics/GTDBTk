@@ -11,7 +11,7 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
 
    ani_closest.tsv
    ani_summary.tsv
-   classification_pplacer.tsv
+   classification_gplace.tsv
    classify.tree
    fasttree.log
    filtered.tsv
@@ -23,8 +23,8 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
    msa.fasta
    pfam.tsv
    pfam_tophit.tsv
-   pplacer.domain.json
-   pplacer.domain.out
+   gplace.domain.json
+   gplace.domain.out
    prodigal_translation_table.tsv
    protein.faa
    protein.fna
@@ -40,7 +40,6 @@ The following files are output by GTDB-Tk throughout various stages of the pipel
    unrooted.tree
    user_msa.fasta
    user_query_sketch.msh
-   tree.mapping.tsv
    gtdbtk.json
    failed_genomes.tsv
 

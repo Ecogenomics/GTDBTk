@@ -60,9 +60,10 @@ class TestCli(unittest.TestCase):
         self.options.outgroup_taxon = None
 
         # classify options
-        self.options.scratch_dir = None
         self.options.keep_ref_red = None
-        self.options.pplacer_cpus = None
+        self.options.gplace_cpus = None
+        self.options.gplace_max_memory = None
+        self.options.skip_gplace = False
         self.options.min_af = None
 
         # infer options
@@ -176,7 +177,6 @@ class TestCli(unittest.TestCase):
 
         classify_options = self.options
         classify_options.genome_dir = self.genome_dir
-        classify_options.full_tree = True
         classify_options.align_dir = align_options.out_dir
         classify_options.out_dir = os.path.join(
             self.generic_out_path, tmp_folder, 'classify')
@@ -217,7 +217,6 @@ class TestCli(unittest.TestCase):
         classify_wf_options.skip_gtdb_refs = False
         classify_wf_options.cols_per_gene = None
         classify_wf_options.max_consensus = None
-        classify_wf_options.full_tree = True
         self.optionparser.align(classify_wf_options)
         self.optionparser.classify(classify_wf_options)
         summary_out = os.path.join(classify_wf_options.out_dir,

@@ -3,7 +3,7 @@
 classify.tree
 =============
 
-Reference tree in Newick format containing query genomes placed with pplacer.
+Reference tree in Newick format containing query genomes placed with gPlace.
 
 
 Produced by
