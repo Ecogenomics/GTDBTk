@@ -514,8 +514,14 @@ class Classify(object):
 
                 # if the new user_msa_file is empty, we need to skip the rest of the loop
                 if not os.path.exists(user_msa_file) or os.path.getsize(user_msa_file) < 30:
+                    # genomes filtered out by align, or failed in identify, are still reported
+                    warning_counter = self.add_filtered_genomes_to_summary(align_dir, warning_counter, summary_file,
+                                                                           marker_set_id, prefix)
+                    if marker_set_id == 'bac120':
+                        self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
                     if summary_file.has_row():
                         summary_file.write()
+                        output_files.setdefault(marker_set_id, []).append(summary_file.path)
                         # Symlink to the summary file from the root
                         if marker_set_id == 'bac120':
                             symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
@@ -612,21 +618,30 @@ class Classify(object):
                 summary_file.write()
                 output_files.setdefault(marker_set_id, []).append(summary_file.path)
         elif all_failed_prodigal:
-            marker_set_id ='bac120'
-            summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+            for marker_set_id in ('ar53', 'bac120'):
+                prodigal_failed_counter = []
+                if marker_set_id == 'ar53':
+                    summary_file = ClassifySummaryFileAR53(out_dir, prefix)
+                else:
+                    summary_file = ClassifySummaryFileBAC120(out_dir, prefix)
+                    # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
+                    # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
+                    # but they need to be included in one of the summary file
+                    prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
 
-            # Add failed genomes from prodigal and genomes with no markers in the bac120 summary file
-            # This is an executive direction: failed prodigal and genomes with no markers are not bacterial or archaeal
-            # but they need to be included in one of the summary file
-            prodigal_failed_counter = self.add_failed_genomes_to_summary(align_dir, summary_file, prefix)
+                # genomes classified by the ANI screen (added last: their row wins over a failed one)
+                for row in skani_classified_user_genomes.get(marker_set_id, []):
+                    summary_file.add_row(row)
 
-            if summary_file.has_row():
-                summary_file.write()
-                output_files.setdefault(marker_set_id, []).append(summary_file.path)
-                # Symlink to the summary file from the root
-                symlink_f(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix),
-                              os.path.join(out_dir, os.path.basename(PATH_BAC120_SUMMARY_OUT.format(prefix=prefix))))
-                self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
+                if summary_file.has_row():
+                    summary_file.write()
+                    output_files.setdefault(marker_set_id, []).append(summary_file.path)
+                    # Symlink to the summary file from the root
+                    path_summary = PATH_BAC120_SUMMARY_OUT if marker_set_id == 'bac120' else PATH_AR53_SUMMARY_OUT
+                    symlink_f(path_summary.format(prefix=prefix),
+                              os.path.join(out_dir, os.path.basename(path_summary.format(prefix=prefix))))
+                    if prodigal_failed_counter:
+                        self._log_unclassified_failed_genomes(prodigal_failed_counter, genomes)
 
 
         return output_files

@@ -33,22 +33,22 @@ Hardware requirements
      - Storage
      - Time
    * - Archaea
-     - < 64 GB
+     - ~20 GB
      - ~100 GB
-     - ~90 minutes / 1,000 genomes @ 64 CPUs
+     - ~45 minutes / 1,000 genomes @ 64 CPUs
    * - Bacteria
-     - ~300 GB, or the limit set with ``--gplace_max_memory`` (e.g. 64 GB)
+     - ~320 GB, or the limit set with ``--gplace_max_memory`` (e.g. 64 GB)
      - ~100 GB
-     - ~90 minutes / 1,000 genomes @ 64 CPUs
+     - ~45 minutes / 1,000 genomes @ 64 CPUs
 
-.. TODO: re-measure memory and time with gPlace on R232 before the release.
 
 .. note::
    Placement with gPlace is the step that needs the most memory. By default gPlace places untiled:
    it holds the whole reference tree in memory, which is fastest but needs more memory than GTDB-Tk 2.8
-   (~300 GB for the bacterial tree, against ~140 GB with 2.8's divide-and-conquer approach).
-   With ``--gplace_max_memory`` (e.g. ``64G``) it places the tree tile by tile within that limit,
-   with identical results.
+   (~300 GB for the bacterial tree on R232, against ~140 GB with 2.8's divide-and-conquer approach;
+   archaea need ~16 GB). With ``--gplace_max_memory`` (e.g. ``64G``) it places the tree tile by tile
+   within that limit, with identical results; e.g. ``50G`` placed bacteria in 8 tiles with a ~45 GB
+   peak, taking about 1.5× longer than untiled.
    See :ref:`faq_memory` for more information.
 
 

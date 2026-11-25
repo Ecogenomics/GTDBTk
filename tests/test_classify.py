@@ -15,6 +15,7 @@
 #                                                                             #
 ###############################################################################
 
+import json
 import os
 import shutil
 import tempfile
@@ -23,6 +24,7 @@ import unittest
 import dendropy
 
 from gtdbtk.config.common import CONFIG
+from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.biolib_lite.taxonomy import Taxonomy
 from gtdbtk.classify import Classify
 from gtdbtk.config.output import *
@@ -107,13 +109,32 @@ class TestClassify(unittest.TestCase):
             'genome_1'), 'd__Archaea;p__Euryarchaeota;c__Methanobacteria;o__Methanobacteriales;f__Methanobacteriaceae;g__Methanobrevibacter;s__')
 
     def test_place_genomes(self):
-        tree_file = self.classify.place_genomes(
-            self.user_msa_file, 'ar53', self.out_dir, self.prefix)
-        with open(tree_file, 'r') as f:
-            lines = f.read().splitlines()
-            last_line = lines[-1]
-        self.assertTrue(last_line.startswith('('))
-        self.assertTrue(last_line.endswith('d__Archaea;'))
+        # Queries copied from the reference package's own alignment, so they match the installed
+        # release (no fixture to regenerate): each copy must be placed next to its reference.
+        refpkg = os.path.join(CONFIG.GPLACE_DIR, CONFIG.GPLACE_AR53_REF_PKG)
+        with open(os.path.join(refpkg, 'CONTENTS.json')) as fh:
+            ref_aln = os.path.join(refpkg, json.load(fh)['files']['aln_fasta'])
+        ref_seqs = read_fasta(ref_aln)
+        ref_ids = sorted(ref_seqs)
+        sources, seen = [], set()
+        for gid in (ref_ids[0], ref_ids[len(ref_ids) // 2], ref_ids[-1]):
+            if ref_seqs[gid] not in seen:                       # identical queries are placed once
+                sources.append(gid)
+                seen.add(ref_seqs[gid])
+
+        user_msa_file = os.path.join(self.out_dir, 'user_msa.fasta')
+        with open(user_msa_file, 'w') as fh:
+            for i, gid in enumerate(sources):
+                fh.write(f'>user_{i}\n{ref_seqs[gid]}\n')
+
+        tree_file = self.classify.place_genomes(user_msa_file, 'ar53', self.out_dir, self.prefix)
+        tree = dendropy.Tree.get_from_path(tree_file, schema='newick', rooting='force-rooted',
+                                           preserve_underscores=True)
+        for i, gid in enumerate(sources):
+            query = tree.find_node_with_taxon_label(f'user_{i}')
+            self.assertIsNotNone(query, f'user_{i} not in {tree_file}')
+            sisters = {leaf.taxon.label for leaf in query.parent_node.leaf_iter()}
+            self.assertIn(gid, sisters, f'user_{i} (a copy of {gid}) was not placed next to it')
 
     def test_formatnote(self):
         first3genomes = list(self.gtdb_taxonomy.keys())[:3]
