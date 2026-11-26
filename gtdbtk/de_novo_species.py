@@ -15,9 +15,10 @@
 #                                                                             #
 ###############################################################################
 import logging
+import os
 from typing import Dict, List, Tuple
 
-from gtdbtk.biolib_lite.common import canonical_gid
+from gtdbtk.biolib_lite.common import canonical_gid, make_sure_path_exists
 from gtdbtk.biolib_lite.seq_io import read_fasta
 from gtdbtk.config.common import CONFIG
 from gtdbtk.exceptions import GTDBTkExit, GenomeNotInQCFile
@@ -145,17 +146,21 @@ class GenomeClustering(object):
         # user genome ids, set by parse(); every other genome id is a GTDB representative
         self.user_genomes = set()
 
-    def parse(self,genomes_to_process=None):
-        """ Read the QC file for the genomes to process (all genomes if None).
-        Rows for other genomes are ignored."""
+    def read_qc_file(self,genomes_to_process=None):
+        """ Read completeness and contamination for the genomes to process (all genomes if None),
+        without reading the genomes, so it can be checked at startup.
+        Rows for other genomes are ignored. Returns {genome_id: (completeness, contamination)}."""
         if genomes_to_process is None:
             genomes_to_process = set(self.genome_path.keys())
         genomes_to_process = set(genomes_to_process)
-        genomes = dict()
-        name_index, completeness_index, contamination_index,sep,both_model = self.__detect_format_checkm()
+        qc_values = dict()
+        try:
+            name_index, completeness_index, contamination_index,sep,both_model = self.__detect_format_checkm()
+        except ValueError as e:
+            raise GTDBTkExit(f'Missing column in the header of {self.de_novo_file_path}: {e}')
         with open(self.de_novo_file_path, 'r') as fh:
             fh.readline()
-            for line in fh:
+            for line_number, line in enumerate(fh, 2):
                 if not line.strip():
                     continue
                 line = line.rstrip('\n').split(sep)
@@ -173,13 +178,24 @@ class GenomeClustering(object):
                         completeness_index = both_model.get('specific_idx')
                     else:
                         raise GTDBTkExit(f'Unknown CheckM2 model for {genome_id}: {line[model_info_idx]}')
-                qg = QCedGenome(genome_id,self.genome_path[genome_id], float(line[completeness_index]), float(line[contamination_index]))
-                genomes[qg.name] = qg
+                try:
+                    qc_values[genome_id] = (float(line[completeness_index]), float(line[contamination_index]))
+                except (ValueError, IndexError):
+                    raise GTDBTkExit(f'Invalid completeness/contamination for {genome_id} '
+                                     f'(line {line_number} of {self.de_novo_file_path}).')
 
-        missing_genomes = sorted(genomes_to_process - set(genomes.keys()))
+        missing_genomes = sorted(genomes_to_process - set(qc_values.keys()))
         if missing_genomes:
-            raise GenomeNotInQCFile(f'{len(missing_genomes)} genome(s) are not in the de_novo_species file, '
-                                    f'e.g. {missing_genomes[0]}')
+            raise GenomeNotInQCFile(f'{len(missing_genomes)} genome(s) are not in the de_novo_species file '
+                                    f'{self.de_novo_file_path}, e.g. {", ".join(missing_genomes[:5])}')
+        return qc_values
+
+    def parse(self,genomes_to_process=None):
+        """ Read the QC file for the genomes to process (all genomes if None), and the genomes
+        for their sequence stats. Rows for other genomes are ignored."""
+        genomes = dict()
+        for genome_id, (completeness, contamination) in self.read_qc_file(genomes_to_process).items():
+            genomes[genome_id] = QCedGenome(genome_id, self.genome_path[genome_id], completeness, contamination)
 
         self.qc_genomes=genomes
         self.user_genomes = set(genomes.keys())
@@ -335,6 +351,25 @@ class GenomeClustering(object):
             self.logger.info(f'{len(changing_reps_genomes):,} genome(s) assigned to a GTDB species '
                              f'by the ANI screen have been reclustered.')
         return sp_cluster, gtdb_members, changing_reps_genomes, unassigned_genomes
+
+    def run(self, gtdb_assignment, gtdb_hits, clusters_file):
+        """ Cluster all user genomes (parse() first) and write the clusters file. Used by
+        classify_wf and classify, so a genome gets the same cluster number in both.
+
+        gtdb_assignment : dict[gid] = (gtdb_rep, hit), genomes assigned by the ANI screen.
+        gtdb_hits : dict[gid][gtdb_rep] = hit, skani hits of the other genomes to GTDB representatives.
+        """
+        # user <-> user hits (skani triangle) + user -> GTDB hits from the ANI screen
+        ani_results = self.compute_ani(self.user_genomes)
+        for gid in sorted(self.user_genomes - set(gtdb_assignment.keys())):
+            for ref_id, hit in gtdb_hits.get(gid, {}).items():
+                self.add_hit(ani_results, gid, ref_id, hit)
+        sp_cluster, gtdb_members, changing_reps_genomes, _unassigned = self.cluster(gtdb_assignment, ani_results)
+
+        make_sure_path_exists(os.path.dirname(clusters_file))
+        self.write_clusters(clusters_file, sp_cluster, changing_reps_genomes)
+        self.logger.info(f'De novo species clusters saved to: {clusters_file}')
+        return sp_cluster, gtdb_members, changing_reps_genomes
 
     @staticmethod
     def species_name(cluster):

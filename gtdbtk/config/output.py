@@ -44,8 +44,6 @@ PATH_AR53_TREE_FILE = join(DIR_CLASSIFY, '{prefix}.ar53.classify.tree')
 PATH_BAC120_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.bac120.summary.tsv')
 PATH_AR53_SUMMARY_OUT = join(DIR_CLASSIFY, '{prefix}.ar53.summary.tsv')
 PATH_DE_NOVO_SPECIES = join(DIR_CLASSIFY, '{prefix}.de_novo_species.tsv')
-PATH_BAC120_DE_NOVO_SPECIES = join(DIR_CLASSIFY, '{prefix}.bac120.de_novo_species.tsv')
-PATH_AR53_DE_NOVO_SPECIES = join(DIR_CLASSIFY, '{prefix}.ar53.de_novo_species.tsv')
 
 PATH_BAC120_CONFLICT = join(DIR_CLASSIFY, '{prefix}.bac120.conflict.tsv')
 PATH_AR53_DISAPPEARING_GENOMES = join(DIR_CLASSIFY, '{prefix}.ar53.disappearing_genomes.tsv')

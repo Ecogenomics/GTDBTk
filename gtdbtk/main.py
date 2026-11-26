@@ -739,18 +739,9 @@ class OptionsParser(object):
                                       options.prefix, cpus=options.cpus,
                                       af_threshold=options.min_af if options.min_af else CONFIG.AF_THRESHOLD)
         clustering.parse(genomes.keys())
-        # user <-> user hits (skani triangle) + user -> GTDB hits saved by the ANI screen
-        ani_results = clustering.compute_ani(genomes.keys())
-        for gid, hits in SkaniRawHitsFile.read(unassigned_hits_file).items():
-            if gid not in gtdb_assignment:
-                ani_results.setdefault(gid, {}).update(hits)
-        sp_cluster, gtdb_members, changing_reps_genomes, _unassigned = clustering.cluster(gtdb_assignment,
-                                                                                        ani_results)
-
         clusters_file = os.path.join(options.out_dir, PATH_DE_NOVO_SPECIES.format(prefix=options.prefix))
-        make_sure_path_exists(os.path.dirname(clusters_file))
-        clustering.write_clusters(clusters_file, sp_cluster, changing_reps_genomes)
-        self.logger.info(f'De novo species clusters saved to: {clusters_file}')
+        sp_cluster, gtdb_members, changing_reps_genomes = clustering.run(
+            gtdb_assignment, SkaniRawHitsFile.read(unassigned_hits_file), clusters_file)
 
         de_novo_step.clusters_file = clusters_file
         de_novo_step.ends_at = datetime.now()
@@ -1056,6 +1047,22 @@ class OptionsParser(object):
         if getattr(options, 'gplace_max_memory', None) and \
                 not re.fullmatch(r'\s*([0-9]*\.?[0-9]+)\s*([KMGT]?)(I?B)?\s*', options.gplace_max_memory, re.IGNORECASE):
             raise GTDBTkExit(f'Invalid --gplace_max_memory "{options.gplace_max_memory}" (examples: 64G, 500M, 1.5T).')
+
+        # --use_jplace_table: the tables are read after gplace, check them before anything runs
+        if getattr(options, 'use_jplace_table', False):
+            for table_file in (CONFIG.JPLACE_TABLE_BAC120, CONFIG.JPLACE_TABLE_AR53):
+                if not os.path.isfile(table_file):
+                    raise GTDBTkExit(f'--use_jplace_table: {table_file} not found. Build the jplace tables of '
+                                     f'this release with scripts/build_jplace_table.py, or run without '
+                                     f'--use_jplace_table.')
+
+        # --de_novo_species: check the QC file (header, values, every genome listed) before the ANI screen
+        if options.subparser_name in ('classify', 'classify_wf') and getattr(options, 'de_novo_species', None) \
+                and not getattr(options, 'genes', False):
+            check_file_exists(options.de_novo_species)
+            genomes, _ = self._genomes_to_process(options.genome_dir, options.batchfile, options.extension)
+            GenomeClustering(options.de_novo_species, genomes, None, options.out_dir,
+                             options.prefix).read_qc_file()
 
         if options.subparser_name == 'de_novo_wf':
             check_dependencies(['prodigal', 'hmmalign'])

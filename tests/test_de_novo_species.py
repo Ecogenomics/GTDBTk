@@ -311,6 +311,31 @@ class TestQCFile(ClusteringTestCase):
             self.make_clustering({'g1': None, 'g2': None}, {},
                                  qc_text='Name\tCompleteness\tContamination\ng1\t99\t1\n')
 
+    def test_missing_genome_is_controlled_exit(self):
+        # GTDBTkExit: logged as one line, no traceback
+        self.assertTrue(issubclass(GenomeNotInQCFile, GTDBTkExit))
+
+    def test_read_qc_file_does_not_read_genomes(self):
+        qc_path = os.path.join(self.dir, 'qc.tsv')
+        with open(qc_path, 'w') as fh:
+            fh.write('Name\tCompleteness\tContamination\ng1\t99\t1\n')
+        clustering = GenomeClustering(qc_path, {'g1': '/does/not/exist.fna'}, None, self.dir, 'test')
+        self.assertEqual(clustering.read_qc_file(), {'g1': (99.0, 1.0)})
+        self.assertIsNone(clustering.qc_genomes)
+
+    def test_bad_value(self):
+        with self.assertRaisesRegex(GTDBTkExit, 'line 2'):
+            self.make_clustering({'g1': None}, {}, qc_text='Name\tCompleteness\tContamination\ng1\tNA\t1\n')
+
+    def test_short_row(self):
+        with self.assertRaises(GTDBTkExit):
+            self.make_clustering({'g1': None}, {}, qc_text='Name\tCompleteness\tContamination\ng1\t99\n')
+
+    def test_checkm2_without_name(self):
+        with self.assertRaisesRegex(GTDBTkExit, 'Missing column'):
+            self.make_clustering({'g1': None}, {},
+                                 qc_text='Bin\tCompleteness_General\tContamination\ng1\t88\t4\n')
+
     def test_seq_stats_and_score(self):
         path = os.path.join(self.dir, 'g.fna.gz')
         with gzip.open(path, 'wt') as fh:

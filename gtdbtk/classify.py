@@ -250,6 +250,8 @@ class Classify(object):
         else:
             jplace = os.path.join(out_dir, PATH_AR53_GPLACE_JSON)
             table_file, red_file = CONFIG.JPLACE_TABLE_AR53, CONFIG.MRCA_RED_AR53
+        if not os.path.isfile(table_file):
+            raise GTDBTkExit(f'jplace table not found: {table_file}')
         jplace_tree, best = best_placements(jplace)
         table = JplaceTable(table_file)
         table.check(jplace_tree, red_file, self.taxonomy_file)
@@ -362,6 +364,13 @@ class Classify(object):
 
         #import IPython; IPython.embed()  # DEBUG
         output_files = {}
+
+        # --de_novo_species with classify alone: all genomes are clustered once, before the domain loop,
+        # as classify_wf does, so cluster numbers are unique across domains and the same in both routes
+        if de_novo_species_file and not all_classified_ani and not all_failed_prodigal:
+            de_novo_clusters, de_novo_file = self._run_de_novo_species(
+                de_novo_species_file, genomes, skani_classified_user_genomes, raw_skani_results, out_dir, prefix)
+            output_files.setdefault('de_novo_species', []).append(de_novo_file)
 
         # if all genomes were classified with skani, we can stop here
         # we write the summary files
@@ -503,12 +512,7 @@ class Classify(object):
                 # clustered into new species. Only the representatives are placed in the reference tree,
                 # the members get the taxonomy of their representative.
                 sp_cluster, changing_reps_genomes, de_novo_members = {}, {}, set()
-                if de_novo_species_file and genomes_to_process:
-                    sp_cluster, changing_reps_genomes, de_novo_file = self._run_de_novo_species(
-                        de_novo_species_file, genomes, marker_set_id, genomes_to_process,
-                        list_summary_rows, raw_skani_results, out_dir, prefix)
-                    output_files.setdefault(marker_set_id, []).append(de_novo_file)
-                elif de_novo_clusters:
+                if de_novo_clusters:
                     sp_cluster, changing_reps_genomes = de_novo_clusters
                 if sp_cluster or changing_reps_genomes:
                     de_novo_all_reps.update(sp_cluster.keys())
@@ -696,38 +700,26 @@ class Classify(object):
 
         return output_files
 
-    def _run_de_novo_species(self, de_novo_species_file, genomes, marker_set_id, genomes_to_process,
-                             list_summary_rows, raw_skani_results, out_dir, prefix):
-        """Cluster the genomes of one domain into de novo species (--de_novo_species).
+    def _run_de_novo_species(self, de_novo_species_file, genomes, skani_classified_user_genomes,
+                             raw_skani_results, out_dir, prefix):
+        """Cluster all genomes into de novo species (classify --de_novo_species), with the same
+        code as classify_wf (GenomeClustering.run).
 
-        genomes_to_process are the genomes not assigned to a GTDB species by the ANI screen,
-        list_summary_rows the ones that were (they are re-checked against the new representatives).
+        skani_classified_user_genomes are the genomes assigned to a GTDB species by the ANI screen
+        (re-checked against the new representatives), raw_skani_results the hits of the others.
+        Returns ((sp_cluster, changing_reps_genomes), clusters file).
         """
-        gtdb_assignment = GenomeClustering.gtdb_assignment_from_rows(list_summary_rows)
-        domain_genomes = sorted(set(genomes_to_process) | set(gtdb_assignment.keys()))
+        gtdb_assignment = GenomeClustering.gtdb_assignment_from_rows(
+            [row for rows in skani_classified_user_genomes.values() for row in rows])
 
-        self.logger.info(f'De novo species clustering of {len(domain_genomes):,} {marker_set_id} genomes.')
-        # genomes: path lookup (QC stats, skani); domain_genomes: the genomes actually clustered
+        self.logger.info(f'De novo species clustering of {len(genomes):,} genomes.')
         clustering = GenomeClustering(de_novo_species_file, genomes, self.gtdb_radii, out_dir, prefix,
                                       cpus=self.cpus, af_threshold=self.af_threshold)
-        clustering.parse(domain_genomes)
-
-        # user <-> user hits (skani triangle) + user -> GTDB hits reused from the ANI screen
-        ani_results = clustering.compute_ani(domain_genomes)
-        # hits to GTDB representatives of the genomes not assigned by the ANI screen
-        for gid in genomes_to_process:
-            for ref_id, hit in raw_skani_results.get(gid, {}).items():
-                clustering.add_hit(ani_results, gid, ref_id, hit)
-
-        sp_cluster, _gtdb_members, changing_reps_genomes, _unassigned = clustering.cluster(gtdb_assignment,
-                                                                                         ani_results)
-        if marker_set_id == 'bac120':
-            de_novo_file = os.path.join(out_dir, PATH_BAC120_DE_NOVO_SPECIES.format(prefix=prefix))
-        else:
-            de_novo_file = os.path.join(out_dir, PATH_AR53_DE_NOVO_SPECIES.format(prefix=prefix))
-        make_sure_path_exists(os.path.dirname(de_novo_file))
-        clustering.write_clusters(de_novo_file, sp_cluster, changing_reps_genomes)
-        return sp_cluster, changing_reps_genomes, de_novo_file
+        clustering.parse(genomes.keys())
+        de_novo_file = os.path.join(out_dir, PATH_DE_NOVO_SPECIES.format(prefix=prefix))
+        sp_cluster, _gtdb_members, changing_reps_genomes = clustering.run(gtdb_assignment, raw_skani_results,
+                                                                           de_novo_file)
+        return (sp_cluster, changing_reps_genomes), de_novo_file
 
     def _add_de_novo_species_to_summary(self, summary_file, sp_cluster, changing_reps_genomes, msa_dict,
                                         trans_table_dict, percent_multihit_dict, bac_ar_diff, warning_counter,

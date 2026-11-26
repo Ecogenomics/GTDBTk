@@ -304,7 +304,7 @@ class __GTDBTkCommonConfig:
                 self.METADATA_DIR: '1febdba7d2513a8f43c409423aee83ed99df7a78',
                 self.TAX_FOLDER: 'c1e1766fa610229cb7cb45edc9a8fa0eafb44c96',
                 self.SKANI_DIR: '00afba7b7e89a27e4d9aa9b4ce176550b56af09e',
-                self.RED_DIR: '10a0fc1ca4199ff33e6c2fc4bc933318962ab212'
+                self.RED_DIR: '4e5e40d10761ebf5107cccf314a70c16c33883dc'
             }
 
 

@@ -154,8 +154,8 @@ class GTDBTkArgsParsingConflict(GTDBTkException):
         GTDBTkException.__init__(self, message)
 
 
-class GenomeNotInQCFile(GTDBTkException):
-    """ Thrown when the user genome ID is not in the QC file.  """
+class GenomeNotInQCFile(GTDBTkExit):
+    """ Thrown when the user genome ID is not in the QC file (controlled exit, no traceback).  """
 
     def __init__(self, message=''):
-        GTDBTkException.__init__(self, message)
+        GTDBTkExit.__init__(self, message)
