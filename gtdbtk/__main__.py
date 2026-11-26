@@ -26,7 +26,7 @@ from gtdbtk.biolib_lite.logger import logger_setup
 from gtdbtk.exceptions import *
 from gtdbtk.files.stage_logger import StageLogger
 from gtdbtk.main import OptionsParser
-from gtdbtk.tools import get_gtdbtk_latest_version
+from gtdbtk.tools import get_gtdbtk_latest_version, is_newer_version
 
 
 def print_help():
@@ -76,7 +76,7 @@ def main():
         print(f"gtdbtk: version {__version__} {__copyright__} {__author__}")
         # Warn the user they are not using the latest version (if possible)
         latest_ver = get_gtdbtk_latest_version()
-        if latest_ver and latest_ver != __version__:
+        if latest_ver and is_newer_version(latest_ver, __version__):
             print(f'There is a newer version of GTDB-Tk available: v{latest_ver}')
         sys.exit(0)
     elif sys.argv[1] in {'-h', '--h', '-help', '--help'}:

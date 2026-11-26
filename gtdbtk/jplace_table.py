@@ -17,6 +17,7 @@
 
 import gzip
 import hashlib
+import io
 import json
 import re
 
@@ -201,7 +202,8 @@ class JplaceTableBuilder(object):
         def _str(v):
             return '' if v is None else str(v)
 
-        with gzip.open(path, 'wt') as fh:
+        # mtime=0: the same inputs give the same bytes, so the mrca_red hash (check_install) is reproducible
+        with io.TextIOWrapper(gzip.GzipFile(path, 'wb', mtime=0)) as fh:
             fh.write(f'# tree_sha1\t{tree_sha1(self.jplace_tree)}\n')
             fh.write(f'# red_sha1\t{file_sha1(self.red_file)}\n')
             fh.write(f'# taxonomy_sha1\t{file_sha1(self.taxonomy_file)}\n')

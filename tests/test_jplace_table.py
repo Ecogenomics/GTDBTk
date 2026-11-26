@@ -5,6 +5,7 @@ import random
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 from gtdbtk.exceptions import GTDBTkExit
 from gtdbtk.jplace_table import JplaceTable, JplaceTableBuilder, best_placements, refpkg_jplace_tree
@@ -37,6 +38,16 @@ class TestJplaceTable(unittest.TestCase):
             fh.write(red)
         JplaceTableBuilder(TREE, self.red_file, self.taxonomy_file).write(self.table_file)
         return JplaceTable(self.table_file)
+
+    def test_reproducible(self):
+        # same inputs, different build time: same bytes (the mrca_red hash depends on them)
+        self._table()
+        other = os.path.join(self.tmp, 'other.tsv.gz')
+        os.rename(self.table_file, other)
+        with mock.patch('time.time', return_value=1e9):
+            JplaceTableBuilder(TREE, self.red_file, self.taxonomy_file).write(self.table_file)
+        with open(self.table_file, 'rb') as a, open(other, 'rb') as b:
+            self.assertEqual(a.read(), b.read())
 
     def test_red(self):
         # 0.1 above C on the 0.4 edge: 0.0 + (0.6 - 0.0) * 0.3 / 0.4

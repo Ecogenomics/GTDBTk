@@ -277,6 +277,13 @@ def get_proc_memory_gb(pid):
         return virt, res
 
 
+def is_newer_version(version, current):
+    """True if version (e.g. '2.8.0', from PyPI) is newer than current."""
+    def _parse(v):
+        return tuple(int(x) for x in re.findall(r'\d+', v)[:3])
+    return _parse(version) > _parse(current)
+
+
 def get_gtdbtk_latest_version():
     if not CONFIG.GTDBTK_VER_CHECK:
         return None
