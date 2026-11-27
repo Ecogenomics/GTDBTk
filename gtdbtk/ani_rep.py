@@ -256,5 +256,5 @@ class ANIClosestFile(object):
                     else:
                         fh.write(f'{gid}\tno result\tno result\tno result\tno result\tno result\n')
                 else:
-                    fh.write(f'{gid}\tno result\tno result\tno result\tno result\n')
+                    fh.write(f'{gid}\tno result\tno result\tno result\tno result\tno result\n')
         self.logger.info(f'Closest representative hits saved to: {self.path}')
