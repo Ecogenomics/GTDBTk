@@ -306,6 +306,12 @@ class TestQCFile(ClusteringTestCase):
         with self.assertRaises(GTDBTkExit):
             self.make_clustering({'g1': None}, {}, qc_text='id\tcomp\tcont\ng1\t99\t1\n')
 
+    def test_missing_contamination_named(self):
+        with self.assertRaisesRegex(GTDBTkExit, 'missing column\\(s\\) Contamination \\(generic'):
+            self.make_clustering({'g1': None}, {}, qc_text='Name\tCompleteness\ng1\t99\n')
+        with self.assertRaisesRegex(GTDBTkExit, 'missing column\\(s\\) Contamination \\(CheckM1'):
+            self.make_clustering({'g1': None}, {}, qc_text='Bin Id\tCompleteness\ng1\t99\n')
+
     def test_missing_genome(self):
         with self.assertRaises(GenomeNotInQCFile):
             self.make_clustering({'g1': None, 'g2': None}, {},

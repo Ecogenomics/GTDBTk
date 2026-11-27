@@ -479,8 +479,15 @@ class GenomeClustering(object):
             contamination_index = header_infos.index('Contamination')
             return name_index, completeness_index, contamination_index, sep, both_models
         else:
-            raise GTDBTkExit('Unknown format of Completeness/Contamination file. the format should be either CheckM1, CheckM2 '
-                             'or contains the headers "Name,Completeness and Contamination".')
+            # name the missing columns of the closest format
+            formats = {'generic': self.generic_headers, 'CheckM1': self.checkm1_headers,
+                       'CheckM2': ['Name', self.checkm2_headers_general, 'Contamination']}
+            format_name, expected = min(formats.items(), key=lambda x: sum(h not in header_infos for h in x[1]))
+            missing = [h for h in expected if h not in header_infos]
+            raise GTDBTkExit(f'Unknown format of Completeness/Contamination file {self.de_novo_file_path}: '
+                             f'missing column(s) {", ".join(missing)} ({format_name} format: {", ".join(expected)}). '
+                             f'The format should be CheckM1, CheckM2 or have the columns Name, Completeness and '
+                             f'Contamination.')
 
     def __detect_delimiters(self,header):
         delimiters = ['\t', ',']

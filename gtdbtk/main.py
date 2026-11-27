@@ -1275,11 +1275,9 @@ class OptionsParser(object):
             # --de_novo_species: cluster the genomes not assigned by the ANI screen before identify,
             # so only the representatives and the genomes without a species are identified and placed
             de_novo_skip_genomes = None
-            if getattr(options, 'de_novo_species', None) and not all_classified_ani:
-                if options.genes:
-                    self.logger.warning('The --genes flag is set to True. De novo species clustering will be skipped.')
-                else:
-                    de_novo_skip_genomes = self.de_novo_species(options, classified_genomes)
+            # (--genes: classify logs that the clustering is skipped)
+            if getattr(options, 'de_novo_species', None) and not all_classified_ani and not options.genes:
+                de_novo_skip_genomes = self.de_novo_species(options, classified_genomes)
 
             if all_classified_ani and not options.place_species:
                 self.logger.info('All genomes have been classified by the ANI screening step. '
