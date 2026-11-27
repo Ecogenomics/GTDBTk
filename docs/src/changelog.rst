@@ -10,15 +10,16 @@ Change log
 Major changes:
 
 * Genomes are placed in the reference trees with `gPlace <https://github.com/cmc-aau/gPlace>`_ instead of pplacer and guppy. gPlace gives the same placements as pplacer v1.1.alpha19 with far less memory and time. It is installed automatically with GTDB-Tk (``gtdb-gplace`` on PyPI and Bioconda).
-* The divide-and-conquer approach for bacterial genomes (backbone tree, then class-level trees) is removed: bacterial genomes are placed directly in the full bacterial reference tree. Bacterial classifications can therefore differ from those of 2.8.x; they match ``--full_tree`` in earlier versions.
+* The divide-and-conquer approach for bacterial genomes (backbone tree, then class-level trees) is removed: bacterial genomes are placed directly in the full bacterial reference tree. Bacterial classifications can therefore differ from those of 2.8.x (divide-and-conquer by default); they match ``--full_tree`` in earlier versions.
 * New ``--gplace_max_memory`` option for ``classify`` and ``classify_wf``: the memory gPlace may use (e.g. ``64G``). If placement does not fit, gPlace places the tree tile by tile, with identical results. See :ref:`faq_memory`.
-* **Memory:** without ``--gplace_max_memory``, gPlace places untiled, which needs more memory than 2.8.x for bacterial genomes (~300 GB, against ~140 GB). Set ``--gplace_max_memory`` on machines with less memory.
+* **Memory:** without ``--gplace_max_memory``, gPlace places untiled, which needs more memory than 2.8.x for bacterial genomes (~300 GB, against ~140 GB with divide-and-conquer). Set ``--gplace_max_memory`` on machines with less memory.
 * GTDB-Tk now requires Python >= 3.12 (required by gPlace).
 
 Deprecated (removed in the next release):
 
 * ``--full_tree`` and ``--scratch_dir`` are ignored, with a warning.
 * ``--pplacer_cpus`` is read as ``--gplace_cpus``, with a warning.
+* The ``split`` folder of the reference package (divide-and-conquer) is no longer used and will be removed from the next reference package (R237).
 
 Changes:
 
@@ -32,7 +33,7 @@ Changes:
 
 Bug Fixes:
 
-* (`#723 <https://github.com/Ecogenomics/GTDBTk/pull/723>`_) Parallel steps no longer fail under the ``spawn`` and ``forkserver`` start methods (the default on macOS, and on Linux from Python 3.14).
+* (`#723 <https://github.com/Ecogenomics/GTDBTk/pull/723>`_) GTDB-Tk no longer hangs in parallel steps such as "Running Prodigal" (``AttributeError: 'Parallel' object has no attribute '__process_manager'``) under the ``spawn`` and ``forkserver`` start methods, the default on macOS since Python 3.8 and on Linux from Python 3.14 (`#619 <https://github.com/Ecogenomics/GTDBTk/issues/619>`_, `#683 <https://github.com/Ecogenomics/GTDBTk/issues/683>`_). Thanks @cmkobel for the fix and the tests.
 
 2.8.0
 -----

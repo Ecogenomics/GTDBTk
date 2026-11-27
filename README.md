@@ -40,9 +40,11 @@ Documentation for GTDB-Tk can be found [here](https://ecogenomics.github.io/GTDB
 * **No new reference data required:** v2.9.0 uses the same R232 reference package as v2.7.x and v2.8.x.
 * **pplacer is replaced by [gPlace](https://github.com/cmc-aau/gPlace)**, which gives the same placements with far less memory and time. It is installed automatically with GTDB-Tk.
 * **Bacterial genomes are placed in the full bacterial tree:** the divide-and-conquer approach (backbone and class-level trees) is removed, so bacterial classifications can differ from v2.8.x (they match `--full_tree` in earlier versions).
-* **New `--gplace_max_memory` option** (e.g. `64G`): gPlace places the tree tile by tile within that limit, with identical results. Without it, gPlace places untiled, which needs more memory than v2.8.x for bacterial genomes (~300 GB, against ~140 GB).
+* **New `--gplace_max_memory` option** (e.g. `64G`): gPlace places the tree tile by tile within that limit, with identical results. Without it, gPlace places untiled, which needs more memory than v2.8.x for bacterial genomes (~300 GB, against ~140 GB with divide-and-conquer).
 * **Python >= 3.12** is now required.
 * `--full_tree` and `--scratch_dir` are ignored and `--pplacer_cpus` is read as `--gplace_cpus`; they will be removed in the next release. The `pplacer_taxonomy` column of `summary.tsv` is renamed `placement_taxonomy`.
+* **Fixed hangs on macOS** ([#723](https://github.com/Ecogenomics/GTDBTk/pull/723)): parallel steps such as Prodigal no longer hang under the `spawn` start method. Thanks [@cmkobel](https://github.com/cmkobel) for the fix!
+* The `split` folder of the reference package (divide-and-conquer) is no longer used and will be removed from the next reference package (R237).
 
 See the [change log](https://ecogenomics.github.io/GTDBTk/changelog.html) for the full list.
 
